@@ -248,11 +248,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .p6-section.open .p6-section-body{display:block;}
 
 /* ── PHASE 6: STICKY SAVE BAR ── */
-/* tiiny.host banner is ~50px. We push the bar up by 50px + safe-area.
-   JS will also detect the actual banner height for precision if needed. */
+/* Sticky save bar */
 .p6-sticky-bar{
   position:fixed;
-  bottom:50px; /* clears tiiny.host banner */
+  bottom:0;
   left:50%;
   transform:translateX(-50%);
   width:100%;
@@ -277,7 +276,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .p6-save-status.saved{color:var(--green);}
 
 /* Screen padding: enough for sticky bar (48px tall) + tiiny banner (50px) + gap */
-#screen-log{padding-bottom:130px;}
+#screen-log{padding-bottom:80px;}
 
 /* ── PHASE 6: IMPROVED MOBILE INPUTS ── */
 .t-input{font-size:16px!important;padding:10px 12px!important;min-height:44px;}
@@ -482,7 +481,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .export-meta{font-size:11px;color:var(--muted);margin-bottom:10px;padding:6px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
 .export-meta span{color:var(--accent);font-weight:700;}
 </style>
-<script defer data-domain="marcusfitapp.tiiny.site" src="https://analytics.tiiny.site/js/plausible.js"></script><script type="text/javascript" src="https://tiiny.host/ad-script.js"></script></head>
 <body>
 <div class="header">
   <div class="header-top">
