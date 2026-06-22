@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarcusFit 9.4.0</title>
+<title>MarcusFit 9.4.2</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 :root {
@@ -745,7 +745,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 9.4.0</strong> &mdash; AI Recommendation Engine<br>
+    <strong style="color:var(--accent);">MarcusFit 9.4.2</strong> &mdash; AI Recommendation Engine<br>
     New: <code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;">_action:recommendations</code> lets the AI set short-term coaching guidance for any workout day independently from exercise programming. Recommendations appear in Today's Recommendations with an <strong style="color:var(--accent);">AI</strong> badge. They never modify exercises, progression, or history. Previous: AI Reorder Engine (9.3.0) — <code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;">_action:reorder</code>.
   </div>
   <div class="export-range-row">
@@ -1086,7 +1086,7 @@ function setRecsForDay(gymKey, dayIdx, recObj){
 function recsInitMigrate(){
   if(localStorage.getItem(RECS_KEY) === null){
     saveRecs({});
-    console.log("[MarcusFit] 9.4.0: Recommendation store initialized.");
+    console.log("[MarcusFit] 9.4.1: Recommendation store initialized.");
   }
 }
 // ── END PHASE 9.4 STORAGE ────────────────────────────────────────────────────
@@ -1128,7 +1128,7 @@ function getLifecycle(){
 function exLifecycleDefault(){
   return {
     schemaVersion: LIFECYCLE_SCHEMA,
-    lifecycleVersion: "9.4.0",
+    lifecycleVersion: "9.4.1",
     customExercises: {},   // id → exercise object (AI-added exercises not in base P)
     inactiveIds: {},       // id → { inactivatedAt, replacedBy|null }
     replacements: {},      // oldId → { newId, replacedAt, reason }  (legacy string also supported)
@@ -1384,8 +1384,8 @@ function exInitLifecycle(){
         // Migrate lifecycleVersion string and replacements format if needed (9.1.x → 9.3.0)
         // 9.2.x/9.3.x state is fully compatible; only version string and new fields need updating.
         let dirty = false;
-        if(parsed.lifecycleVersion !== "9.4.0"){
-          parsed.lifecycleVersion = "9.4.0";
+        if(parsed.lifecycleVersion !== "9.4.1"){
+          parsed.lifecycleVersion = "9.4.1";
           dirty = true;
         }
         // Migrate old replacements format: string values → object values
@@ -1688,7 +1688,7 @@ function mfRunLifecycleValidation(){
     }
   })();
 
-  // ── Check 11: Recommendation Integrity (9.4.0) ───────────────────────────────
+  // ── Check 11: Recommendation Integrity (9.4.1) ───────────────────────────────
   // Verifies all stored recommendations have required fields and valid structure.
   // WARN level only — never hard-fail.
   (function(){
@@ -1829,7 +1829,7 @@ window.mfLifecycleDebug = function(){
     Object.values(resolved).forEach(days => days.forEach(d => activeCount += (d.exercises||[]).length));
   }
 
-  // Recommendation summary (9.4.0)
+  // Recommendation summary (9.4.1)
   const allRecs = getRecs();
   const recKeys = Object.keys(allRecs);
   const recommendationSummary = recKeys.map(key => {
@@ -2585,6 +2585,70 @@ function p9BuildProgressionExport(ex){
 
 // ── END PHASE 9A ──────────────────────────────────────────────────────────────
 
+// ── v9.4.2: PREFILL ALIGNMENT ─────────────────────────────────────────────────
+// Computes aligned prefill values for a single set, given progression status.
+// Returns {wt, reps, rir, wtLabel, repsLabel} where label is shown in the column header.
+// SAFE: read-only. Never touches localStorage or history.
+function p9ComputePrefill(exId, setIdx, savedSets, status, targetRepsStr, targetRirStr){
+  const sd = savedSets[setIdx] || {};
+
+  // ── RIR safe floors ────────────────────────────────────────────────────────
+  // RIR options ordered by conservatism (ascending index = more conservative)
+  const RIR_ORDER = ["0","1","1\u20132","2","2\u20133","3","3+","\u2014"];
+  function rirIndex(v){ const i = RIR_ORDER.indexOf(v); return i === -1 ? 0 : i; }
+  function safestRir(a, b){
+    // Return whichever is more conservative (higher index = more rest in reserve)
+    return rirIndex(a) >= rirIndex(b) ? a : b;
+  }
+
+  // ── REDUCE ─────────────────────────────────────────────────────────────────
+  if(status === "reduce"){
+    // Weight: try to step down last session's load by one increment
+    let prefillWt = sd.wt || "";
+    const lastEntry = p5GetLastEntry(exId);
+    if(lastEntry && lastEntry.validSets.length){
+      const topLoad = p9GetTopActualLoad(lastEntry.validSets);
+      if(topLoad !== null){
+        const bump = topLoad.numeric < 30 ? 2.5 : 5;
+        const reducedLoad = topLoad.numeric - bump;
+        // Only suggest the reduced load if it's meaningfully less than what's in the draft
+        const draftLoad = p9ParseLoad(sd.wt || "");
+        if(draftLoad === null || reducedLoad < draftLoad){
+          // Reconstruct label: keep suffix from original raw
+          const suffix = topLoad.raw.replace(/^[\d.]+\s*/,"").trim();
+          prefillWt = String(reducedLoad) + (suffix ? " " + suffix : "");
+        }
+      }
+    }
+    // Reps: keep saved reps if present, but don't push toward top of range
+    const prefillReps = sd.reps || "";
+    // RIR: enforce minimum of 2–3; never allow RIR 0 or 1 on a REDUCE exercise
+    const REDUCE_FLOOR = "2\u20133";
+    const savedRirSafe = sd.rir && rirIndex(sd.rir) >= rirIndex(REDUCE_FLOOR) ? sd.rir : REDUCE_FLOOR;
+    return {wt: prefillWt, reps: prefillReps, rir: savedRirSafe, hint: "reduce"};
+  }
+
+  // ── HOLD ───────────────────────────────────────────────────────────────────
+  if(status === "hold"){
+    // Weight: keep draft value if present; otherwise leave blank (placeholder shows target)
+    const prefillWt = sd.wt || "";
+    const prefillReps = sd.reps || "";
+    // RIR: keep saved value, but don't allow RIR 0 when target RIR suggests otherwise
+    const targetRirNum = p5ParseRir(targetRirStr);
+    let prefillRir = sd.rir || "";
+    if(prefillRir === "0" && targetRirNum !== null && targetRirNum >= 1){
+      // RIR 0 on a HOLD is suspicious — bump to "1" as a minimum
+      prefillRir = "1";
+    }
+    return {wt: prefillWt, reps: prefillReps, rir: prefillRir, hint: "hold"};
+  }
+
+  // ── PROGRESS / NEW / NEUTRAL ───────────────────────────────────────────────
+  // No adjustment — use saved values as-is
+  return {wt: sd.wt || "", reps: sd.reps || "", rir: sd.rir || "", hint: "normal"};
+}
+// ── END v9.4.2 PREFILL ────────────────────────────────────────────────────────
+
 function renderWoExercises(){
   const dayIdx=document.getElementById("woDaySelect").value;
   const noteEl=document.getElementById("woDayNoteOut"),logEl=document.getElementById("woExerciseLog");
@@ -2596,12 +2660,18 @@ function renderWoExercises(){
     const nm=getF(ex.id,"name",ex.name),ld=getF(ex.id,"load",ex.load),ri=getF(ex.id,"rir",ex.rir),st=parseInt(getF(ex.id,"sets",ex.sets))||3;
     const block=document.createElement("div");block.className="wo-ex-block";
     const savedEx=(saved.exercises&&saved.exercises[ex.id])||{sets:[]};
-    const rirOpts=["0","1","1\u20132","2","2\u20133","3","3+","\u2014"].map(v=>`<option value="${v}"${savedEx.sets[0]&&savedEx.sets[0].rir===v?" selected":""}>${v==="\u2014"?"N/A":"RIR "+v}</option>`).join("");
-    let setRowsHTML='<div class="wo-set-labels"><span class="wo-set-label wt">Weight</span><span class="wo-set-label rp">Reps</span><span class="wo-set-label ri">RIR</span></div><div class="wo-set-rows">';
+    // v9.4.2: compute progression status once per exercise so prefill can align with badge
+    const p942last = p5GetLastEntry(ex.id);
+    const p942status = p9GetProgressionStatus(ex.id, p942last ? p942last.validSets : null, getF(ex.id,"reps",ex.reps), ri);
+    // Label helpers: when inputs are adjusted by progression, label columns accordingly
+    const wtColLabel  = p942status === "reduce" ? "Weight (↓ reduced)" : "Weight";
+    const rirColLabel = p942status === "reduce" ? "RIR (↓ safe floor)" : (p942status === "hold" ? "RIR" : "RIR");
+    let setRowsHTML=`<div class="wo-set-labels"><span class="wo-set-label wt">${wtColLabel}</span><span class="wo-set-label rp">Reps</span><span class="wo-set-label ri">${rirColLabel}</span></div><div class="wo-set-rows">`;
     for(let s=0;s<st;s++){
-      const sd=savedEx.sets[s]||{};
-      const rirOptsS=["0","1","1\u20132","2","2\u20133","3","3+","\u2014"].map(v=>`<option value="${v}"${sd.rir===v?" selected":""}>${v==="\u2014"?"N/A":"RIR "+v}</option>`).join("");
-      setRowsHTML+=`<div class="wo-set-row"><div class="wo-set-num"><span class="wo-set-num-n">S${s+1}</span></div><input class="wo-set-wt" type="text" placeholder="${ld}" value="${sd.wt||""}" data-exid="${ex.id}" data-set="${s}" data-field="wt"><input class="wo-set-reps" type="text" placeholder="reps" value="${sd.reps||""}" data-exid="${ex.id}" data-set="${s}" data-field="reps"><select class="wo-set-rir" data-exid="${ex.id}" data-set="${s}" data-field="rir">${rirOptsS}</select></div>`;
+      // v9.4.2: use aligned prefill instead of raw saved values
+      const pf = p9ComputePrefill(ex.id, s, savedEx.sets, p942status, getF(ex.id,"reps",ex.reps), ri);
+      const rirOptsS=["0","1","1\u20132","2","2\u20133","3","3+","\u2014"].map(v=>`<option value="${v}"${pf.rir===v?" selected":""}>${v==="\u2014"?"N/A":"RIR "+v}</option>`).join("");
+      setRowsHTML+=`<div class="wo-set-row"><div class="wo-set-num"><span class="wo-set-num-n">S${s+1}</span></div><input class="wo-set-wt" type="text" placeholder="${ld}" value="${pf.wt}" data-exid="${ex.id}" data-set="${s}" data-field="wt"><input class="wo-set-reps" type="text" placeholder="reps" value="${pf.reps}" data-exid="${ex.id}" data-set="${s}" data-field="reps"><select class="wo-set-rir" data-exid="${ex.id}" data-set="${s}" data-field="rir">${rirOptsS}</select></div>`;
     }
     setRowsHTML+='</div>';
     const p5Html = p5Block(ex.id, getF(ex.id,"reps",ex.reps), ri);
@@ -2859,7 +2929,7 @@ function genExport(){
   const rangeDesc=val==="program"?"Program templates only":val==="full"?"Full history ("+allDkeys.length+" days)":"Program + last "+val+" days ("+dkeys.length+" of "+allDkeys.length+" total logged days)";
 
   const out="=== MARCUSFIT EXPORT ===\n"
-    +"Version: 9.4.0\n"
+    +"Version: 9.4.2\n"
     +"Generated: "+today+"\n"
     +"Export Range: "+rangeDesc+"\n"
     +"Total logged days (all time): "+allDkeys.length+"\n"
@@ -3074,6 +3144,14 @@ function applySync(){
   // Pattern for "new" exercise IDs: {gym}-d{N}-e{N}
   const newExPattern=/^(home|partial)-d(\d+)-e(\d+)$/;
 
+  // ── Step 6: Declare all result counters and log arrays before any pre-pass ──
+  // (Must be hoisted here so _action:recommendations, reorder, lifecycle, and
+  //  normal sync processing can all reference skipped/lifecycleLog without a
+  //  "Cannot access before initialization" ReferenceError.)
+  const skipped=[];
+  const lifecycleLog=[];
+  let exUpdated=0,exAdded=0,habitsUpdated=0;
+
   // ── Step 6b: Pre-pass — handle top-level _action:reorder entries ─────────────
   // These are not per-exercise entries; they carry gym/dayIndex/exerciseOrder fields.
   // Processed before the per-exercise forEach to keep the main loop clean.
@@ -3236,9 +3314,7 @@ function applySync(){
   const exerciseFields=["name","load","rir","sets","reps","blurb"];
   const habitFields=["name","target","completed"];
 
-  let exUpdated=0,exAdded=0,habitsUpdated=0;
-  const skipped=[];
-  const lifecycleLog=[]; // collect lifecycle action messages for display
+  // (exUpdated, exAdded, habitsUpdated, skipped, lifecycleLog declared above before pre-passes)
 
   updates.forEach((u,idx)=>{
     if(!u.id){skipped.push("Entry #"+(idx+1)+": missing \"id\" field");return;}
@@ -4139,7 +4215,7 @@ function p8BuildBackup(){
   return {
     app: "MarcusFit",
     schemaVersion: SCHEMA_VERSION,
-    appVersion: "9.4.0",
+    appVersion: "9.4.2",
     exportedAt: new Date().toISOString(),
     data
   };
