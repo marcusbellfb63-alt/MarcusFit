@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarcusFit 9.4.5.3</title>
+<title>MarcusFit 9.4.5.2</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 :root {
@@ -770,7 +770,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 9.4.5.3</strong> &mdash; Progression Diagnostics + AI Export Confidence<br>
+    <strong style="color:var(--accent);">MarcusFit 9.4.5.2</strong> &mdash; Progression Diagnostics + AI Export Confidence<br>
     New: <code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;">mfProgressionDebug(exId)</code> and <code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;">mfProgressionAudit()</code> console helpers for diagnosing progression decisions. Export now includes richer progression context (Last, Best, Status, Suggested, Context) for each exercise. Previous: AI Recommendation Engine (9.4.0) — <code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;">_action:recommendations</code>.
   </div>
   <div class="export-range-row">
@@ -858,7 +858,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 // ── VERSION ────────────────────────────────────────────────────────────────
-const APP_VERSION = "9.4.5.3";
+const APP_VERSION = "9.4.5.2";
 const LIFECYCLE_VERSION = APP_VERSION;
 // ── DAILY HABITS DATA ──────────────────────────────────────────────────────
 const HABITS = [
@@ -2493,18 +2493,10 @@ function p9GetBestExercisePerformance(exId){
 }
 
 // Is this a cardio/non-weight exercise?
-// v9.4.5.3: Tightened — numeric loads like "110-120 lb", "130 lb" must NOT match.
-// Only matches explicit cardio keywords/units or a clearly non-lifting RIR (— / n/a).
 function p9IsCardio(loadStr, rirStr){
   if(!loadStr) return false;
-  const s = String(loadStr).toLowerCase().trim();
-  // Explicit cardio keyword or unit present in the load string
-  if(/bpm|heart\s*rate|\bhr\b|\bhr\s*\d|\btreadmill\b|\bbike\b|\bstair\b|\bcardio\b|\bwalk\b|\bjog\b|\bduration\b|\bmin\b/.test(s)) return true;
-  // RIR clearly indicates non-lifting (dash or n/a), AND load is not a plain numeric weight string
-  const isNumericLoad = /^\d/.test(s) && /lb|kg|\/side|x\d/.test(s);
-  if(isNumericLoad) return false; // numeric weight loads are never cardio regardless of RIR
-  if(rirStr === "—" || rirStr === "n/a") return true;
-  return false;
+  const s = String(loadStr).toLowerCase();
+  return /bpm|hr 1|hr 2|treadmill|bike|cardio|120|130|140/.test(s) || (rirStr==="—"||rirStr==="n/a");
 }
 
 // Build a Suggested Today object {text, cls, status}
@@ -2513,6 +2505,12 @@ function p9BuildSuggestion(exId, validSets, targetRepsStr, targetRirStr){
   if(!validSets || !validSets.length){
     return {text:"No rep data. Start conservative.", cls:"neutral", status:"new"};
   }
+  // Cardio detection: check load of first valid set
+  const firstLoad = (validSets[0]||{}).wt||"";
+  if(p9IsCardio(firstLoad, targetRirStr)){
+    return {text:"Cardio session — match or beat duration/HR zone.", cls:"neutral", status:"hold"};
+  }
+
   const lastReps = validSets.map(s=>parseInt(s.reps)).filter(n=>!isNaN(n));
   const lastRirs = validSets.map(s=>p5ParseRir(s.rir||"")).filter(n=>n!==null);
   if(!lastReps.length) return {text:"No rep data. Start conservative.", cls:"neutral", status:"new"};
@@ -2590,14 +2588,6 @@ function p9BuildSuggestion(exId, validSets, targetRepsStr, targetRirStr){
       cls: "reduce",
       status: "target_reset"
     };
-  }
-
-  // ── Cardio detection — AFTER target_reset so reset always wins for lifting exercises ──
-  // v9.4.5.3: use the programmed target load string (or fall back to first logged load)
-  //           so numeric weights like "110-120 lb" are never misclassified as cardio.
-  const _targetLoadRaw = (getF(exId, "load", "") || (validSets[0]||{}).wt || "");
-  if(p9IsCardio(_targetLoadRaw, targetRirStr)){
-    return {text:"Cardio session — match or beat duration/HR zone.", cls:"neutral", status:"hold"};
   }
 
   // ── Decision variables ───────────────────────────────────────────────────────
