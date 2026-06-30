@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarcusFit 9.4.5.3</title>
+<title>MarcusFit 9.4.6</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 :root {
@@ -826,6 +826,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="lc-state-item"><div class="lc-state-label">Replacement Links</div><div class="lc-state-val" id="lcSumReplacements">—</div></div>
       <div class="lc-state-item"><div class="lc-state-label">Schema Version</div><div class="lc-state-val" id="lcSumSchema">—</div></div>
       <div class="lc-state-item"><div class="lc-state-label">Order Overrides</div><div class="lc-state-val" id="lcSumOrderOverrides">—</div></div>
+      <div class="lc-state-item"><div class="lc-state-label">Day Overrides</div><div class="lc-state-val" id="lcSumDayOverrides">—</div></div>
       <div class="lc-state-item" style="grid-column:1/-1;"><div class="lc-state-label">Affected Days</div><div class="lc-state-val" style="font-size:11px;word-break:break-all;" id="lcSumOrderDays">—</div></div>
     </div>
   </div>
@@ -858,7 +859,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 // ── VERSION ────────────────────────────────────────────────────────────────
-const APP_VERSION = "9.4.5.3";
+const APP_VERSION = "9.4.6";
 const LIFECYCLE_VERSION = APP_VERSION;
 // ── DAILY HABITS DATA ──────────────────────────────────────────────────────
 const HABITS = [
@@ -1182,7 +1183,8 @@ function exLifecycleDefault(){
     customExercises: {},   // id → exercise object (AI-added exercises not in base P)
     inactiveIds: {},       // id → { inactivatedAt, replacedBy|null }
     replacements: {},      // oldId → { newId, replacedAt, reason }  (legacy string also supported)
-    orderOverrides: {}     // "gym:dayIdx" → [ exerciseId, ... ]  (AI reorder engine, 9.3.0)
+    orderOverrides: {},    // "gym:dayIdx" → [ exerciseId, ... ]  (AI reorder engine, 9.3.0)
+    dayOverrides: {}       // gymKey → { dayIdx → { name?, subtitle?, focus?, note?, tag?, meta?, updatedAt?, reason? } }  (9.4.6)
   };
 }
 
@@ -1453,6 +1455,11 @@ function exInitLifecycle(){
           parsed.orderOverrides = {};
           dirty = true;
         }
+        // Migrate: add dayOverrides if not present (9.4.6 — old backups won't have it)
+        if(!parsed.dayOverrides){
+          parsed.dayOverrides = {};
+          dirty = true;
+        }
         if(dirty) saveLifecycle(parsed);
       }
     } catch {
@@ -1463,6 +1470,106 @@ function exInitLifecycle(){
 }
 
 // ── END PHASE 9B LIFECYCLE HELPERS ───────────────────────────────────────────
+
+// ── PHASE 9.4.6: DAY STRUCTURE OVERRIDE ENGINE ───────────────────────────────
+//
+// Allows AI Sync to modify workout day-level metadata (name, subtitle, focus,
+// note, tag, meta) without mutating base P. Overrides are stored inside the
+// existing lifecycle object under the `dayOverrides` key.
+//
+// Structure:
+//   lc.dayOverrides = {
+//     [gymKey]: {
+//       [dayIdx]: {
+//         name?, subtitle?, focus?, note?, tag?, meta?, updatedAt?, reason?
+//       }
+//     }
+//   }
+//
+// Base P is NEVER mutated. If no override exists, rendering is identical to v9.4.5.3.
+
+// Allowed day-level override fields (safe list — unknown fields are rejected)
+const DAY_OVERRIDE_FIELDS = ["name", "subtitle", "focus", "note", "tag", "meta"];
+
+// Read the raw override object for a specific gym+day (or null if none)
+function getDayOverride(gymKey, dayIdx){
+  const lc = getLifecycle();
+  const gymOverrides = (lc.dayOverrides || {})[gymKey];
+  if(!gymOverrides) return null;
+  return gymOverrides[String(dayIdx)] || null;
+}
+
+// Set (merge) day override fields for a specific gym+day.
+// Only known safe fields from DAY_OVERRIDE_FIELDS are written.
+// Unknown fields are silently dropped (use meta:{} for custom data).
+// Preserves any existing override fields not included in the update.
+function setDayOverride(gymKey, dayIdx, fields, reason){
+  const lc = getLifecycle();
+  if(!lc.dayOverrides) lc.dayOverrides = {};
+  if(!lc.dayOverrides[gymKey]) lc.dayOverrides[gymKey] = {};
+  const key = String(dayIdx);
+  const existing = lc.dayOverrides[gymKey][key] || {};
+  const updated = { ...existing };
+  DAY_OVERRIDE_FIELDS.forEach(f => {
+    if(fields[f] !== undefined) updated[f] = fields[f];
+  });
+  updated.updatedAt = new Date().toISOString();
+  if(reason) updated.reason = reason;
+  lc.dayOverrides[gymKey][key] = updated;
+  saveLifecycle(lc);
+  console.log(`[MarcusFit] dayOverride set: ${gymKey} d${dayIdx}`, updated);
+}
+
+// Clear (delete) the override for a specific gym+day.
+// If gymKey+dayIdx is omitted, clears ALL overrides for that gym (dayIdx null)
+// or clears everything (both null). Use with care.
+function clearDayOverride(gymKey, dayIdx){
+  const lc = getLifecycle();
+  if(!lc.dayOverrides) return;
+  if(!gymKey){
+    // Clear everything
+    lc.dayOverrides = {};
+    saveLifecycle(lc);
+    console.log("[MarcusFit] dayOverride: ALL overrides cleared");
+    return;
+  }
+  if(dayIdx === undefined || dayIdx === null){
+    // Clear all overrides for this gym
+    delete lc.dayOverrides[gymKey];
+    saveLifecycle(lc);
+    console.log(`[MarcusFit] dayOverride: all overrides cleared for gym '${gymKey}'`);
+    return;
+  }
+  if(!lc.dayOverrides[gymKey]) return;
+  delete lc.dayOverrides[gymKey][String(dayIdx)];
+  // Clean up empty gym entry
+  if(!Object.keys(lc.dayOverrides[gymKey]).length) delete lc.dayOverrides[gymKey];
+  saveLifecycle(lc);
+  console.log(`[MarcusFit] dayOverride: cleared for ${gymKey} d${dayIdx}`);
+}
+
+// Compute effective day metadata by merging base day + override.
+// Returns a new object — does NOT mutate base day or override.
+// If no override exists, returns the base day unchanged (same reference — safe for callers).
+function getEffectiveDayMeta(gymKey, dayIdx, baseDay){
+  const ovr = getDayOverride(gymKey, dayIdx);
+  if(!ovr) return baseDay; // fast path — identical to v9.4.5.3 when no override
+  // Merge: override fields win; base day is fallback for missing fields
+  return {
+    ...baseDay,
+    name:     ovr.name     !== undefined ? ovr.name     : baseDay.name,
+    focus:    ovr.focus    !== undefined ? ovr.focus    : baseDay.focus,
+    note:     ovr.note     !== undefined ? ovr.note     : baseDay.note,
+    tag:      ovr.tag      !== undefined ? ovr.tag      : baseDay.tag,
+    // subtitle is not in base P but is supported as an override extension
+    subtitle: ovr.subtitle !== undefined ? ovr.subtitle : (baseDay.subtitle || null),
+    // meta is purely additive
+    _dayOverrideMeta: ovr.meta || null
+  };
+}
+
+// ── END PHASE 9.4.6 DAY OVERRIDE ENGINE ──────────────────────────────────────
+
 
 // ── PHASE 9C: LIFECYCLE HEALTH CHECK ─────────────────────────────────────────
 //
@@ -1811,6 +1918,14 @@ function mfRenderLifecycleHealth(){
     }
   }
 
+  // Day override summary (9.4.6)
+  const dayOvrCountEl = document.getElementById("lcSumDayOverrides");
+  if(dayOvrCountEl){
+    let dayOvrTotal = 0;
+    Object.values(lc.dayOverrides||{}).forEach(gymOvrs => { dayOvrTotal += Object.keys(gymOvrs||{}).length; });
+    dayOvrCountEl.textContent = dayOvrTotal;
+  }
+
   // Count active exercises from resolved program
   if(active){
     try {
@@ -1896,6 +2011,10 @@ window.mfLifecycleDebug = function(){
   const customCount = Object.keys(lc.customExercises||{}).length;
   const overrideEntries = Object.entries(lc.orderOverrides||{});
   const overrideCount = overrideEntries.length;
+  // 9.4.6: count day overrides
+  const dayOverrideEntries = Object.entries(lc.dayOverrides||{});
+  let dayOverrideCount = 0;
+  dayOverrideEntries.forEach(([,gymOvrs]) => { dayOverrideCount += Object.keys(gymOvrs||{}).length; });
 
   // Build replacement summary
   const replacementSummary = Object.entries(lc.replacements||{}).map(([oldId, rep]) => {
@@ -1915,7 +2034,8 @@ window.mfLifecycleDebug = function(){
       replacementLinks: replacementSummary.length,
       inactive: archivedCount,
       orderOverrides: overrideCount,
-      recommendationCount: recKeys.length
+      recommendationCount: recKeys.length,
+      dayOverrides: dayOverrideCount  // 9.4.6
     },
     orderOverrideSummary: overrideEntries.map(([key, order]) => ({ key, orderedCount: order.length, ids: order })),
     replacementSummary,
@@ -2157,6 +2277,7 @@ function renderProgram(){
   document.getElementById("program-title").textContent=labels[gym];
   const c=document.getElementById("program-days");c.innerHTML="";
   RP[gym].forEach((day,di)=>{
+    const eday=getEffectiveDayMeta(gym,di,day); // 9.4.6: apply day override if set
     const card=document.createElement("div");card.className="day-card";card.id="dc-"+di;card.style.setProperty("--card-color",day.color);
     const exHTML=day.exercises.map(ex=>{
       const nm=getF(ex.id,"name",ex.name),ld=getF(ex.id,"load",ex.load),ri=getF(ex.id,"rir",ex.rir),st=getF(ex.id,"sets",ex.sets),rp=getF(ex.id,"reps",ex.reps),bl=getF(ex.id,"blurb",ex.blurb);
@@ -2176,7 +2297,8 @@ function renderProgram(){
         </div>
       </div>`;
     }).join("");
-    card.innerHTML=`<div class="day-header" onclick="togDay(${di})"><div><div class="day-num">${day.day}</div><div class="day-name">${day.name}</div><div class="day-focus">${day.focus}</div></div><div class="day-right"><span class="day-tag">${day.tag}</span><span class="chevron">&#9662;</span></div></div><div class="day-body"><div class="coach-note">${day.note}</div>${exHTML}</div>`;
+    // 9.4.6: render effective day metadata (name/focus/note/tag from override if set)
+    card.innerHTML=`<div class="day-header" onclick="togDay(${di})"><div><div class="day-num">${eday.day}</div><div class="day-name">${eday.name}</div><div class="day-focus">${eday.focus}</div></div><div class="day-right"><span class="day-tag">${eday.tag}</span><span class="chevron">&#9662;</span></div></div><div class="day-body"><div class="coach-note">${eday.note}</div>${exHTML}</div>`;
     c.appendChild(card);
   });
 }
@@ -2207,7 +2329,10 @@ function setWO(v){toggleStates.wo=v;["yes","no","rest"].forEach(id=>{const b=doc
 function populateWoDaySelect(){
   const sel=document.getElementById("woDaySelect"),days=getResolvedProgram()[logGym];
   sel.innerHTML='<option value="">\u2014 Select Day \u2014</option>';
-  days.forEach((d,i)=>{const opt=document.createElement("option");opt.value=i;opt.textContent=`${d.day}: ${d.name}`;sel.appendChild(opt);});
+  days.forEach((d,i)=>{
+    const ed=getEffectiveDayMeta(logGym,i,d); // 9.4.6: show effective name
+    const opt=document.createElement("option");opt.value=i;opt.textContent=`${ed.day}: ${ed.name}`;sel.appendChild(opt);
+  });
   renderWoExercises();
 }
 
@@ -3066,6 +3191,67 @@ window.mfProgressionAudit = function(){
 var mfProgressionDebug = window.mfProgressionDebug;
 var mfProgressionAudit = window.mfProgressionAudit;
 
+// ── 9.4.6: DAY OVERRIDE DEBUG HELPER ─────────────────────────────────────────
+// Focused diagnostic for day override state. Returns structure + warnings.
+window.mfDayOverrideDebug = function(){
+  const lc = getLifecycle();
+  const dayOverrides = lc.dayOverrides || {};
+  const validGyms = Object.keys(P); // base program gym keys
+  const RP = getResolvedProgram();
+
+  let overriddenCount = 0;
+  const effectiveSummary = {};
+  const warnings = [];
+
+  validGyms.forEach(gymKey => {
+    const gymOverrides = dayOverrides[gymKey] || {};
+    effectiveSummary[gymKey] = [];
+    const days = RP[gymKey] || [];
+    days.forEach((baseDay, di) => {
+      const ovr = gymOverrides[String(di)];
+      const eday = getEffectiveDayMeta(gymKey, di, baseDay);
+      const entry = {
+        dayIdx: di,
+        baseName: baseDay.name,
+        effectiveName: eday.name,
+        hasOverride: !!ovr,
+        override: ovr || null
+      };
+      if(ovr) overriddenCount++;
+      effectiveSummary[gymKey].push(entry);
+    });
+    // Check for overrides referencing out-of-range dayIdx
+    Object.keys(gymOverrides).forEach(key => {
+      const idx = parseInt(key, 10);
+      if(isNaN(idx) || idx < 0 || idx >= days.length){
+        warnings.push("gym '"+gymKey+"': dayOverride key '"+key+"' is out of range (program has "+days.length+" days)");
+      }
+    });
+  });
+
+  // Check for overrides referencing unknown gyms
+  Object.keys(dayOverrides).forEach(gymKey => {
+    if(!validGyms.includes(gymKey)){
+      warnings.push("gymKey '"+gymKey+"' in dayOverrides is not a valid gym (expected: "+validGyms.join(", ")+")");
+    }
+  });
+
+  const summary = {
+    lifecycleVersion: lc.lifecycleVersion,
+    overriddenDaysCount: overriddenCount,
+    dayOverrides,
+    effectiveDaySummary: effectiveSummary,
+    warnings,
+    warningCount: warnings.length
+  };
+
+  console.log("[MarcusFit] mfDayOverrideDebug():", summary);
+  if(warnings.length) console.warn("[MarcusFit] Day override warnings:", warnings);
+  return summary;
+};
+var mfDayOverrideDebug = window.mfDayOverrideDebug;
+// ── END 9.4.6 DAY OVERRIDE DEBUG ─────────────────────────────────────────────
+
 // Smoke test: confirm registration on load
 console.log("[MarcusFit] Progression diagnostics ready:", {
   mfProgressionDebug: typeof window.mfProgressionDebug,
@@ -3123,7 +3309,9 @@ function renderWoExercises(){
   logEl.innerHTML="";
   if(dayIdx===""){noteEl.textContent="";logEl.innerHTML='<div class="no-workout-msg">Select the day you trained above to log your sets.</div>';renderWoRecs();return;}
   const RP=getResolvedProgram();
-  const day=RP[logGym][parseInt(dayIdx)];noteEl.textContent=day.note;
+  const day=RP[logGym][parseInt(dayIdx)];
+  const eday=getEffectiveDayMeta(logGym,parseInt(dayIdx),day); // 9.4.6: apply day override
+  noteEl.textContent=eday.note;
   // v9.4.4 Bug 4: only load saved data for the exact selected date; never bleed across dates
   const saved=getTodayWoData();
   day.exercises.forEach(ex=>{
@@ -3394,8 +3582,14 @@ function genExport(){
   ["home","partial"].forEach(function(g){
     const RP=getResolvedProgram();
     progSnap+="GYM: "+g.toUpperCase()+"\n";
-    RP[g].forEach(function(day){
-      progSnap+="  "+day.day+" \u2014 "+day.name+"\n";
+    RP[g].forEach(function(day,di){
+      // 9.4.6: show effective day metadata; flag overridden fields
+      const eday=getEffectiveDayMeta(g,di,day);
+      const ovr=getDayOverride(g,di);
+      const ovrFlag=ovr?" [DAY OVERRIDE ACTIVE]":"";
+      progSnap+="  "+eday.day+" \u2014 "+eday.name+(ovr&&ovr.name?" (base: "+day.name+")":"")+ovrFlag+"\n";
+      if(eday.focus)progSnap+="    Focus: "+eday.focus+(ovr&&ovr.focus?" (overridden)":"")+"\n";
+      if(eday.note)progSnap+="    Coach Note: "+eday.note+(ovr&&ovr.note?" (overridden)":"")+"\n";
       day.exercises.forEach(function(ex){
         const nm=getF(ex.id,"name",ex.name),ld=getF(ex.id,"load",ex.load),ri=getF(ex.id,"rir",ex.rir),st=getF(ex.id,"sets",ex.sets),rp=getF(ex.id,"reps",ex.reps);
         progSnap+="    ["+ex.id+"] "+nm+" | "+st+"\xd7"+rp+" @ "+ld+" | RIR "+ri+"\n";
@@ -3484,6 +3678,26 @@ function genExport(){
     +"    \"dayIndex\": 1,\n"
     +"    \"exerciseOrder\": [\"partial-d1-e0\", \"partial-d1-e2\", \"partial-d1-e1\", \"partial-d1-e3\"],\n"
     +"    \"reason\": \"Move compound lifts first\"\n"
+    +"  }\n\n"
+    +"  OVERRIDE day-level metadata (name/focus/note/tag) without touching exercises:\n"
+    +"  {\n"
+    +"    \"_action\": \"day_override\",\n"
+    +"    \"gym\": \"home\",\n"
+    +"    \"dayIdx\": 5,\n"
+    +"    \"name\": \"SHOULDERS & ARMS\",\n"
+    +"    \"focus\": \"Shoulders, arms, upper-body detail\",\n"
+    +"    \"note\": \"Delts first, arms second. Designed for shoulder cap development.\",\n"
+    +"    \"tag\": \"SPECIALIZATION\",\n"
+    +"    \"reason\": \"User requested more shoulder emphasis\"\n"
+    +"  }\n\n"
+    +"  Supported fields for day_override: name, subtitle, focus, note, tag, meta (object).\n"
+    +"  Only include fields you want to change — unspecified fields preserve their current value.\n"
+    +"  CLEAR a day override (restore base program metadata):\n"
+    +"  {\n"
+    +"    \"_action\": \"day_override_clear\",\n"
+    +"    \"gym\": \"home\",\n"
+    +"    \"dayIdx\": 5,\n"
+    +"    \"reason\": \"Reverting to original day structure\"\n"
     +"  }\n\n"
     +"  SET COACHING RECOMMENDATIONS for a workout day (display-only — does NOT modify exercises):\n"
     +"  {\n"
@@ -3799,6 +4013,106 @@ function applySync(){
   });
   // ── End reorder pre-pass ──────────────────────────────────────────────────────
 
+  // ── Step 6c: Pre-pass — handle _action:day_override_clear entries ─────────────
+  // Clears a previously set day override. Does NOT touch exercises.
+  let dayOverrideClearCount = 0;
+  const dayOverrideClearLog = [];
+  updates = updates.filter(u => {
+    if(!u._action) return true;
+    const action = (u._action+"").trim().toLowerCase();
+    if(action !== "day_override_clear") return true;
+
+    const gymKey = (u.gym||"").trim();
+    const dayIdx = u.dayIdx;
+
+    // Validate gym
+    const validGyms_c = Object.keys(getResolvedProgram());
+    if(!gymKey || !validGyms_c.includes(gymKey)){
+      skipped.push("_action day_override_clear: gym '"+gymKey+"' is not valid. Expected: "+validGyms_c.join(", "));
+      return false;
+    }
+    // Validate dayIdx
+    const RP_c = getResolvedProgram();
+    const dayIdx_c = parseInt(dayIdx, 10);
+    if(isNaN(dayIdx_c) || dayIdx_c < 0 || dayIdx_c >= RP_c[gymKey].length){
+      skipped.push("_action day_override_clear ("+gymKey+"): dayIdx "+dayIdx+" is out of range");
+      return false;
+    }
+    // Check if there is anything to clear
+    const existing_c = getDayOverride(gymKey, dayIdx_c);
+    if(!existing_c){
+      dayOverrideClearLog.push("ℹ️ day_override_clear ("+gymKey+" d"+dayIdx_c+"): no override set — nothing to clear (idempotent)");
+      return false;
+    }
+    // Apply clear
+    clearDayOverride(gymKey, dayIdx_c);
+    dayOverrideClearCount++;
+    const dayName_c = (RP_c[gymKey][dayIdx_c]||{}).day || ("Day "+dayIdx_c);
+    dayOverrideClearLog.push("✓ Day override cleared: "+gymKey+" "+dayName_c+(u.reason?" ("+u.reason+")":""));
+    return false; // consumed
+  });
+
+  // ── Step 6d: Pre-pass — handle _action:day_override entries ──────────────────
+  // Sets or merges day-level metadata overrides. Does NOT touch exercises or P.
+  let dayOverrideCount = 0;
+  const dayOverrideLog = [];
+  updates = updates.filter(u => {
+    if(!u._action) return true;
+    const action = (u._action+"").trim().toLowerCase();
+    if(action !== "day_override") return true;
+
+    const gymKey = (u.gym||"").trim();
+    const dayIdx = u.dayIdx;
+    const reason = (u.reason||"").trim();
+
+    // Validate gym
+    const validGyms_d = Object.keys(getResolvedProgram());
+    if(!gymKey || !validGyms_d.includes(gymKey)){
+      skipped.push("_action day_override: gym '"+gymKey+"' is not valid. Expected: "+validGyms_d.join(", "));
+      return false;
+    }
+    // Validate dayIdx
+    const RP_d = getResolvedProgram();
+    const dayIdx_d = parseInt(dayIdx, 10);
+    if(isNaN(dayIdx_d) || dayIdx_d < 0 || dayIdx_d >= RP_d[gymKey].length){
+      skipped.push("_action day_override ("+gymKey+"): dayIdx "+dayIdx+" is out of range (0–"+(RP_d[gymKey].length-1)+")");
+      return false;
+    }
+    // Extract only allowed fields (silently drop unknown fields unless placed in meta)
+    const allowed = {};
+    DAY_OVERRIDE_FIELDS.forEach(f => {
+      if(u[f] !== undefined) allowed[f] = u[f];
+    });
+    // Validate: at least one field must be provided
+    if(!Object.keys(allowed).length){
+      skipped.push("_action day_override ("+gymKey+" d"+dayIdx_d+"): no recognized fields provided. Allowed: "+DAY_OVERRIDE_FIELDS.join(", "));
+      return false;
+    }
+    // Validate string fields
+    const stringFields = ["name","subtitle","focus","note","tag"];
+    let fieldErrors = [];
+    stringFields.forEach(f => {
+      if(allowed[f] !== undefined && typeof allowed[f] !== "string"){
+        fieldErrors.push("'"+f+"' must be a string");
+      }
+    });
+    if(allowed.meta !== undefined && (typeof allowed.meta !== "object" || Array.isArray(allowed.meta) || allowed.meta === null)){
+      fieldErrors.push("'meta' must be an object");
+    }
+    if(fieldErrors.length){
+      skipped.push("_action day_override ("+gymKey+" d"+dayIdx_d+"): "+fieldErrors.join("; "));
+      return false;
+    }
+    // Apply override (merge with existing)
+    setDayOverride(gymKey, dayIdx_d, allowed, reason);
+    dayOverrideCount++;
+    const dayName_d = (RP_d[gymKey][dayIdx_d]||{}).day || ("Day "+dayIdx_d);
+    const fieldList = Object.keys(allowed).join(", ");
+    dayOverrideLog.push("✓ Day override set: "+gymKey+" "+dayName_d+" ["+fieldList+"]"+(reason?" — "+reason:""));
+    return false; // consumed
+  });
+  // ── End day_override pre-passes ────────────────────────────────────────────────
+
   // ── Step 7: Process each update entry ─────────────────────────────────────
   const exerciseFields=["name","load","rir","sets","reps","blurb"];
   const habitFields=["name","target","completed"];
@@ -4069,6 +4383,7 @@ function applySync(){
   renderWoExercises();
   if(habitsUpdated>0)renderHabits();
   if(recsApplied>0)renderWoRecs(); // re-render recommendations if any were applied
+  if(dayOverrideCount>0||dayOverrideClearCount>0)populateWoDaySelect(); // 9.4.6: refresh day selector names
 
   // ── Step 9: Build result summary ──────────────────────────────────────────
   const lines=[];
@@ -4076,18 +4391,23 @@ function applySync(){
   if(recsLog.length>0){lines.push(...recsLog);lines.push("");}
   // Reorder messages next
   if(reorderLog.length>0){lines.push(...reorderLog);lines.push("");}
+  // Day override messages (9.4.6)
+  if(dayOverrideLog.length>0){lines.push(...dayOverrideLog);lines.push("");}
+  if(dayOverrideClearLog.length>0){lines.push(...dayOverrideClearLog);lines.push("");}
   // Lifecycle action messages next
   if(lifecycleLog.length>0){lines.push(...lifecycleLog);lines.push("");}
   if(reorderCount>0)lines.push("🔀 "+reorderCount+" day"+(reorderCount!==1?"s":"")+" reordered");
   if(recsApplied>0)lines.push("💬 "+recsApplied+" recommendation set"+(recsApplied!==1?"s":"")+" applied");
+  if(dayOverrideCount>0)lines.push("🏷️ "+dayOverrideCount+" day override"+(dayOverrideCount!==1?"s":"")+" applied");
+  if(dayOverrideClearCount>0)lines.push("🗑️ "+dayOverrideClearCount+" day override"+(dayOverrideClearCount!==1?"s":"")+" cleared");
   if(exUpdated>0)lines.push("✅ "+exUpdated+" exercise"+(exUpdated!==1?"s":"")+" updated");
   if(exAdded>0)lines.push("➕ "+exAdded+" exercise"+(exAdded!==1?"s":"")+" added");
   if(habitsUpdated>0)lines.push("🧠 "+habitsUpdated+" habit"+(habitsUpdated!==1?"s":"")+" updated");
   if(skipped.length>0){lines.push("");lines.push("⚠️ Skipped ("+skipped.length+"):");skipped.forEach(s=>lines.push("  • "+s));}
-  if(exUpdated===0&&exAdded===0&&habitsUpdated===0&&reorderCount===0&&recsApplied===0&&skipped.length===0&&lifecycleLog.length===0&&reorderLog.length===0&&recsLog.length===0){
+  if(exUpdated===0&&exAdded===0&&habitsUpdated===0&&reorderCount===0&&recsApplied===0&&dayOverrideCount===0&&dayOverrideClearCount===0&&skipped.length===0&&lifecycleLog.length===0&&reorderLog.length===0&&recsLog.length===0&&dayOverrideLog.length===0&&dayOverrideClearLog.length===0){
     res.style.color="var(--accent)";res.textContent="ℹ️ All entries processed — no changes were needed.";return;
   }
-  res.style.color=(exUpdated>0||exAdded>0||habitsUpdated>0||reorderCount>0||recsApplied>0)?((skipped.length>0?"var(--yellow)":"var(--green)")):"var(--yellow)";
+  res.style.color=(exUpdated>0||exAdded>0||habitsUpdated>0||reorderCount>0||recsApplied>0||dayOverrideCount>0||dayOverrideClearCount>0)?((skipped.length>0?"var(--yellow)":"var(--green)")):"var(--yellow)";
   res.textContent=lines.join("\n");
   document.getElementById("syncInput").value="";
 }
