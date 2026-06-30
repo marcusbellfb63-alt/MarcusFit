@@ -3,11 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<<<<<<< HEAD
 <title>MarcusFit 9.4.8.2</title>
-=======
-<title>MarcusFit 9.4.5.3</title>
->>>>>>> 2b63c6b3458bff40ffa2cc81e8d2b83eedd7c9ef
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 :root {
@@ -774,13 +770,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-<<<<<<< HEAD
     <strong style="color:var(--accent);">MarcusFit 9.4.8.2</strong> &mdash; Virtual/Additive Day Rendering + Selectors<br>
     New: Virtual days now render in program overview and workout day selector when a <code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;">dayAddition</code> exists. Adds <code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;">getResolvedDays(gymKey)</code> for unified base+virtual day lists. Virtual day exercise rendering is crash-safe with empty state. Previous: Virtual/Additive Day Engine Foundation (9.4.8.1).
-=======
-    <strong style="color:var(--accent);">MarcusFit 9.4.5.3</strong> &mdash; Progression Diagnostics + AI Export Confidence<br>
-    New: <code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;">mfProgressionDebug(exId)</code> and <code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;">mfProgressionAudit()</code> console helpers for diagnosing progression decisions. Export now includes richer progression context (Last, Best, Status, Suggested, Context) for each exercise. Previous: AI Recommendation Engine (9.4.0) — <code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;">_action:recommendations</code>.
->>>>>>> 2b63c6b3458bff40ffa2cc81e8d2b83eedd7c9ef
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -868,11 +859,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 // ── VERSION ────────────────────────────────────────────────────────────────
-<<<<<<< HEAD
 const APP_VERSION = "9.4.8.2";
-=======
-const APP_VERSION = "9.4.5.3";
->>>>>>> 2b63c6b3458bff40ffa2cc81e8d2b83eedd7c9ef
 const LIFECYCLE_VERSION = APP_VERSION;
 // ── DAILY HABITS DATA ──────────────────────────────────────────────────────
 const HABITS = [
@@ -3529,7 +3516,6 @@ window.mfProgressionAudit = function(){
 var mfProgressionDebug = window.mfProgressionDebug;
 var mfProgressionAudit = window.mfProgressionAudit;
 
-<<<<<<< HEAD
 // ── 9.4.6: DAY OVERRIDE DEBUG HELPER ─────────────────────────────────────────
 // Focused diagnostic for day override state. Returns structure + warnings.
 window.mfDayOverrideDebug = function(){
@@ -3894,8 +3880,6 @@ var mfApplyDay6Specialization = window.mfApplyDay6Specialization;
 
 // ── END PHASE 9.4.7 ──────────────────────────────────────────────────────────
 
-=======
->>>>>>> 2b63c6b3458bff40ffa2cc81e8d2b83eedd7c9ef
 // Smoke test: confirm registration on load
 console.log("[MarcusFit] Progression diagnostics ready:", {
   mfProgressionDebug: typeof window.mfProgressionDebug,
