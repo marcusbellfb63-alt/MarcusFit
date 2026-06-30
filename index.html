@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarcusFit 9.4.8.7</title>
+<title>MarcusFit 9.4.8.7.1</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 :root {
@@ -774,8 +774,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 9.4.8.7</strong> &mdash; Virtual Day Exercise Creation<br>
-    New: Empty virtual/additive days (e.g. Day 7 Core &amp; Abs) now have an in-app <strong>Add Exercise</strong> action, using the existing customExercises lifecycle system &mdash; base P is never touched. AI Sync gained an official <code>_action:"custom_exercise"</code> for creating exercises on base or virtual/additive days with a stable, auto-generated ID. Previous: AI Export + Sync Intelligence Polish (9.4.8.6).
+    <strong style="color:var(--accent);">MarcusFit 9.4.8.7.1</strong> &mdash; Virtual Day Recommendations Fix<br>
+    Fix: AI Sync <code>_action:"recommendations"</code> now validates <code>dayIndex</code> against the resolved day list (base + virtual/additive), so recommendations can target an existing virtual/additive day (e.g. Day 7 Core &amp; Abs) instead of being skipped as "out of range." No change to recommendation storage, rendering, or any other AI Sync action. Previous: Virtual Day Exercise Creation (9.4.8.7).
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -863,7 +863,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 // ── VERSION ────────────────────────────────────────────────────────────────
-const APP_VERSION = "9.4.8.7";
+const APP_VERSION = "9.4.8.7.1";
 const LIFECYCLE_VERSION = APP_VERSION;
 // ── DAILY HABITS DATA ──────────────────────────────────────────────────────
 const HABITS = [
@@ -4771,6 +4771,8 @@ function genExport(){
     +"    ],\n"
     +"    \"reason\": \"User notes indicate knee discomfort.\"\n"
     +"  }\n\n"
+    +"  dayIndex may target a virtual/additive day if a day_addition already exists there (same rule as\n"
+    +"  custom_exercise's dayIdx) — it does not have to be a base program day.\n\n"
     +"RECOMMENDATIONS COACHING GUIDANCE:\n"
     +"- Recommendations are PREFERRED over exercise changes for:\n"
     +"  * Technique adjustments and tempo work\n"
@@ -4788,7 +4790,10 @@ function genExport(){
     +"- If an exercise was previously replaced, _action:reactivate brings back its original ID and history\n"
     +"- To reorder exercises on a day, use _action:reorder — do NOT use remove + re-add\n"
     +"- To add a NEW exercise (base or virtual/added day), use _action:custom_exercise — do NOT invent an\n"
-    +"  exercise ID yourself; the app generates a stable one\n\n"
+    +"  exercise ID yourself; the app generates a stable one\n"
+    +"- FIELD NAMING — do not mix these up: day_addition and custom_exercise use \"dayIdx\"; reorder and\n"
+    +"  recommendations use \"dayIndex\". Both refer to the same day-position concept (base or virtual/\n"
+    +"  additive); only the field name differs by action.\n\n"
     // 9.4.8.6: AI Export + Sync Intelligence Polish — documentation-only addition.
     // Explains decision hierarchy, structural-change rules, coaching blurb quality rules,
     // experiment limits, optional day guidance, and real-life constraints so future AI
@@ -5038,9 +5043,13 @@ function applySync(){
       return false;
     }
     // ── Validate: dayIndex valid ──────────────────────────────────────────────
-    const RP_rec = getResolvedProgram();
+    // 9.4.8.7.1: use getResolvedDays() so recommendations can target virtual/
+    // additive days too, instead of only validating against base P[gym].length
+    // (which previously rejected any dayIndex created via day_addition).
     const dayIdx_r = parseInt(dayIndex, 10);
-    if(isNaN(dayIdx_r) || dayIdx_r < 0 || dayIdx_r >= RP_rec[gymKey].length){
+    const resolvedDays_rec = (isNaN(dayIdx_r) || dayIdx_r < 0) ? [] : getResolvedDays(gymKey);
+    const dayObj_rec = resolvedDays_rec.find(d => d._dayIdx === dayIdx_r);
+    if(isNaN(dayIdx_r) || dayIdx_r < 0 || !dayObj_rec){
       skipped.push("_action recommendations ("+gymKey+"): dayIndex "+dayIndex+" is out of range");
       return false;
     }
@@ -5084,7 +5093,7 @@ function applySync(){
     };
     setRecsForDay(gymKey, dayIdx_r, recObj);
     recsApplied++;
-    const dayName = (RP_rec[gymKey][dayIdx_r]||{}).day || ("Day "+dayIdx_r);
+    const dayName = (dayObj_rec||{}).day || (dayObj_rec||{}).name || ("Day "+dayIdx_r);
     recsLog.push("✓ Recommendations set for "+gymKey+" "+dayName+" ("+validItems.length+" item"+(validItems.length!==1?"s":"")+")"+(reason?" — "+reason:""));
     return false; // consumed — remove from per-exercise loop
   });
