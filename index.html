@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarcusFit 9.4.8.7.1</title>
+<title>MarcusFit 9.4.9</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 :root {
@@ -224,6 +224,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .p5-suggest-line.neutral{color:var(--muted);}
 .p5-suggest-line.go{color:var(--green);}
 .p5-suggest-line.hold{color:var(--yellow);}
+/* ── PHASE 9.4.9: WORKOUT REVIEW AFTER SAVE ── */
+.p949-review-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:12px;margin-bottom:10px;}
+.p949-review-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.p949-review-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--accent);}
+.p949-review-hide{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:700;padding:5px 10px;border-radius:8px;cursor:pointer;}
+.p949-review-hide:active{opacity:.7;}
+.p949-section{margin-top:10px;}
+.p949-section:first-child{margin-top:0;}
+.p949-section-label{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px;}
+.p949-section-label.summary{color:var(--muted);}
+.p949-section-label.wins{color:var(--green);}
+.p949-section-label.watch{color:var(--yellow);}
+.p949-section-label.next{color:var(--accent);}
+.p949-section-label.coach{color:var(--muted);}
+.p949-line{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:4px;padding-left:14px;position:relative;}
+.p949-line:before{content:"\2022";position:absolute;left:2px;color:var(--muted);}
+.p949-line.summary-line{padding-left:0;color:var(--muted);}
+.p949-line.summary-line:before{content:none;}
+.p949-empty-note{font-size:12px;color:var(--muted);font-style:italic;line-height:1.5;}
 /* ── PHASE 9A: PROGRESSION ENGINE ── */
 .p9-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:2px 8px;border-radius:5px;margin-bottom:7px;border:1px solid transparent;}
 .p9-badge.up{color:var(--green);border-color:color-mix(in srgb,var(--green) 35%,transparent);background:color-mix(in srgb,var(--green) 10%,transparent);}
@@ -665,7 +684,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
       <div class="wo-day-selector">
         <label>Which day did you train?</label>
-        <select class="wo-day-select" id="woDaySelect" onchange="renderWoExercises();autoSaveDraft();p6UpdateWorkoutBadge();">
+        <select class="wo-day-select" id="woDaySelect" onchange="renderWoExercises();autoSaveDraft();p6UpdateWorkoutBadge();p949HideReview();">
           <option value="">&#8212; Select Day &#8212;</option>
         </select>
       </div>
@@ -710,6 +729,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
   <!-- Keep old save-btn for desktop, hidden on mobile via CSS -->
   <button class="save-btn" id="saveBtn" onclick="saveDay()">&#9989; SAVE DAY</button>
+
+  <!-- PHASE 9.4.9: Workout Review After Save -->
+  <div id="p949ReviewCard" class="p949-review-card" style="display:none;">
+    <div class="p949-review-header">
+      <span class="p949-review-title">&#127942; Post-Workout Review</span>
+      <button class="p949-review-hide" onclick="p949HideReview()">Hide</button>
+    </div>
+    <div id="p949ReviewBody"></div>
+  </div>
 </div>
 
 <!-- ── PHASE 6: STICKY SAVE BAR (mobile only) ── -->
@@ -774,8 +802,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 9.4.8.7.1</strong> &mdash; Virtual Day Recommendations Fix<br>
-    Fix: AI Sync <code>_action:"recommendations"</code> now validates <code>dayIndex</code> against the resolved day list (base + virtual/additive), so recommendations can target an existing virtual/additive day (e.g. Day 7 Core &amp; Abs) instead of being skipped as "out of range." No change to recommendation storage, rendering, or any other AI Sync action. Previous: Virtual Day Exercise Creation (9.4.8.7).
+    <strong style="color:var(--accent);">MarcusFit 9.4.9</strong> &mdash; Workout Review After Save<br>
+    New: after saving a workout, MarcusFit shows a quick local review of wins, watch items, and next-time guidance using existing logs and progression signals. Deterministic and local only &#8212; no AI call, no new storage. Previous: Exercise Rotation / Swap Candidate Export Intelligence, tuned to be day-type aware (9.4.8.10).
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -800,6 +828,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <textarea class="sync-ta" id="syncInput" rows="8" placeholder="Paste the MARCUSFIT_UPDATE block from your AI here..."></textarea>
     <button class="big-btn btn-sync" style="margin-bottom:0;" onclick="applySync()">&#128260; APPLY UPDATE</button>
     <div class="sync-result" id="syncResult"></div>
+  </div>
+
+  <!-- ── PHASE 9.4.8.8: PERSISTENT AI COACHING PREFERENCES ── -->
+  <hr class="divider">
+  <div class="section-label">&#129504; AI Coaching Preferences</div>
+  <div class="info-box">Saved here and included near the top of future AI exports, so AI Sync doesn't lose your current goals, physique priorities, and training philosophy over time.</div>
+  <div class="sync-box">
+    <div class="sync-box-title">Persistent coaching context</div>
+    <textarea class="sync-ta" id="coachPrefsTa" rows="12" placeholder="e.g. primary goal, physique priorities, programming philosophy, exercise preferences/avoidances, current short-term focus..."></textarea>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button class="big-btn btn-sync" style="margin-bottom:0;" onclick="p9SaveCoachPrefs()">&#128190; SAVE PREFERENCES</button>
+      <button class="big-btn" style="background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;" onclick="p9ResetCoachPrefsTemplate()">&#8635; RESET TO STARTER TEMPLATE</button>
+      <button class="big-btn" style="background:transparent;color:var(--red);border:1px solid var(--red);margin-bottom:0;" onclick="p9ClearCoachPrefs()">&#128465; CLEAR</button>
+    </div>
+    <div class="sync-result" id="coachPrefsResult"></div>
   </div>
 
   <!-- ── PHASE 8: BACKUP & RESTORE ── -->
@@ -863,7 +906,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 // ── VERSION ────────────────────────────────────────────────────────────────
-const APP_VERSION = "9.4.8.7.1";
+const APP_VERSION = "9.4.9";
 const LIFECYCLE_VERSION = APP_VERSION;
 // ── DAILY HABITS DATA ──────────────────────────────────────────────────────
 const HABITS = [
@@ -2495,6 +2538,88 @@ function getDraft(){try{return JSON.parse(localStorage.getItem(DRAFT_KEY)||"null
 function saveDraft(d){localStorage.setItem(DRAFT_KEY,JSON.stringify(d));}
 function clearDraft(){localStorage.removeItem(DRAFT_KEY);}
 
+// ── PHASE 9.4.8.8: PERSISTENT AI COACHING PREFERENCES ────────────────────────
+// Storage key: "mf-ai-coaching-preferences" — plain text, stored raw (no JSON
+// wrapping needed). Read by genExport() and included in the PHASE 8 backup/
+// restore path automatically via p8IsMarcusFitKey(). Does not touch workout
+// logs, progression, lifecycle, or day override/addition data.
+const AI_PREFS_KEY = "mf-ai-coaching-preferences";
+
+const AI_PREFS_STARTER_TEMPLATE =
+"CURRENT AI COACHING PREFERENCES\n\n"+
+"Primary Goal:\n"+
+"- Aesthetics during aggressive fat loss.\n"+
+"- Build an athletic, muscular physique that looks impressive when lean.\n\n"+
+"Current Physique Priorities:\n"+
+"1. Lateral delts\n"+
+"2. Upper chest\n"+
+"3. Lat width\n"+
+"4. Rear delts\n"+
+"5. Long-head triceps\n"+
+"6. Upper back thickness\n"+
+"7. Biceps\n"+
+"8. Core stability\n\n"+
+"Programming Philosophy:\n"+
+"- Treat AI Sync like personal bodybuilding coaching, not just number progression.\n"+
+"- Be proactive but controlled.\n"+
+"- Recommend exercise swaps, reorders, added exercises, removals, and optional days when logs/goals justify them.\n"+
+"- Prioritize biomechanics, stimulus, and physique outcomes over tradition.\n"+
+"- Use machines/cables when they provide better stimulus.\n"+
+"- Keep enough consistency to measure progression, but do not let the program become stale.\n"+
+"- Maintain legs with minimum effective volume while biasing recovery and volume toward upper-body aesthetics.\n\n"+
+"Coaching Style:\n"+
+"- Optimization-forward.\n"+
+"- Evidence-based from logs, recovery, weight trend, notes, and physique goals.\n"+
+"- Push hard when recovery supports it.\n"+
+"- Recommend reductions, deloads, or swaps when recovery/joint health/progress indicates.\n\n"+
+"Current Short-Term Focus:\n"+
+"- More proactive exercise rotation and lift recommendations.\n"+
+"- Prioritize shoulder width, upper chest, and V-taper.";
+
+function p9GetCoachPrefs(){
+  const v = localStorage.getItem(AI_PREFS_KEY);
+  return v===null?"":v;
+}
+function p9SetCoachPrefs(v){
+  localStorage.setItem(AI_PREFS_KEY, v===null||v===undefined?"":v);
+}
+// Sync the textarea (if present on the current screen) with saved state.
+function p9RenderCoachPrefs(){
+  const ta=document.getElementById("coachPrefsTa");
+  if(!ta)return;
+  ta.value=p9GetCoachPrefs();
+}
+function p9ShowCoachPrefsResult(msg,type){
+  const el=document.getElementById("coachPrefsResult");
+  if(!el)return;
+  el.style.display="block";
+  el.style.color=type==="ok"?"var(--green)":type==="err"?"var(--red)":"var(--text)";
+  el.style.whiteSpace="pre-wrap";
+  el.textContent=msg;
+}
+function p9SaveCoachPrefs(){
+  const ta=document.getElementById("coachPrefsTa");
+  if(!ta)return;
+  p9SetCoachPrefs(ta.value);
+  p9ShowCoachPrefsResult("✅ Preferences saved.","ok");
+}
+function p9ResetCoachPrefsTemplate(){
+  const ta=document.getElementById("coachPrefsTa");
+  if(!ta)return;
+  ta.value=AI_PREFS_STARTER_TEMPLATE;
+  p9SetCoachPrefs(AI_PREFS_STARTER_TEMPLATE);
+  p9ShowCoachPrefsResult("✅ Reset to starter template.","ok");
+}
+function p9ClearCoachPrefs(){
+  if(!confirm("Clear your saved AI coaching preferences? This cannot be undone."))return;
+  const ta=document.getElementById("coachPrefsTa");
+  if(!ta)return;
+  ta.value="";
+  p9SetCoachPrefs("");
+  p9ShowCoachPrefsResult("✅ Cleared.","ok");
+}
+// ── END PHASE 9.4.8.8 ─────────────────────────────────────────────────────────
+
 // Show brief "Draft saved HH:MM" toast — debounced so it doesn't spam
 let _draftToastTimer=null;
 function showDraftToast(){
@@ -2701,7 +2826,7 @@ window.addEventListener("load",()=>{
 });
 
 function setGym(g){gym=g;document.querySelectorAll(".gym-btn").forEach(b=>b.classList.remove("active"));document.getElementById("gbtn-"+g).classList.add("active");renderProgram();}
-function setLogGym(g){logGym=g;document.querySelectorAll(".log-gym-btn").forEach(b=>b.classList.remove("active"));document.getElementById("lgbtn-"+g).classList.add("active");populateWoDaySelect();autoSaveDraft();}
+function setLogGym(g){logGym=g;document.querySelectorAll(".log-gym-btn").forEach(b=>b.classList.remove("active"));document.getElementById("lgbtn-"+g).classList.add("active");populateWoDaySelect();autoSaveDraft();p949HideReview();}
 
 function renderProgram(){
   const labels={home:"HOME PROGRAM",partial:"TRANSITION GYM PROGRAM"};
@@ -4374,7 +4499,7 @@ function collectWoData(){
   return{gym:logGym,dayIdx,dayName:day.name,exercises:exData};
 }
 
-function updateTrackerDate(){document.getElementById("trackerDateLabel").textContent=tDate.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});p85CheckFutureDate();loadDay();}
+function updateTrackerDate(){document.getElementById("trackerDateLabel").textContent=tDate.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});p85CheckFutureDate();loadDay();p949HideReview();}
 function shiftDay(d){tDate.setDate(tDate.getDate()+d);updateTrackerDate();}
 function dKey(d){return"day-"+d.toISOString().slice(0,10);}
 
@@ -4397,6 +4522,229 @@ function p85CheckFutureDate(){
   }
 }
 // ── END PHASE 8.5 FUTURE DATE HELPERS ────────────────────────────────────────
+
+// ── PHASE 9.4.9: WORKOUT REVIEW AFTER SAVE ───────────────────────────────────
+// Deterministic, local-only review of the workout that was just saved.
+// Reuses existing history/progression helpers (p9GetExerciseHistory,
+// p9GetProgressionStatus, p9GetTopActualLoad, p5ParseRir, getF, getResolvedDays).
+// No new localStorage keys — this is generated fresh from woData + existing logs
+// every time and is not persisted.
+
+// History for one exercise, excluding the entry that was just saved for tDate.
+// p9GetExerciseHistory() already excludes literal "today" (dKey(new Date())),
+// which covers the common case. This wrapper also excludes dKey(tDate) so
+// back-dated/future-dated logs never get compared against themselves.
+function p949GetPriorHistory(exId){
+  const excludeKey = dKey(tDate);
+  return p9GetExerciseHistory(exId).filter(h => h.dateKey !== excludeKey);
+}
+
+// Build a review object from the woData just saved (see collectWoData()).
+// Returns null if there's nothing to review (no day selected).
+function p949BuildWorkoutReview(woData){
+  if(!woData || !woData.exercises) return null;
+
+  const dayIdxInt = parseInt(woData.dayIdx);
+  const resolvedDays = getResolvedDays(woData.gym);
+  const day = resolvedDays.find(d => d._dayIdx === dayIdxInt) || null;
+
+  const gymLabel = woData.gym === "home" ? "Home" : woData.gym === "partial" ? "Partial" : (woData.gym || "");
+  const dayName = woData.dayName || (day && (day.name || day.day)) || "Workout";
+
+  const loggedIds = Object.keys(woData.exercises);
+  let exercisesLogged = 0, setsLogged = 0;
+  loggedIds.forEach(id => {
+    const entry = woData.exercises[id] || {};
+    const validRows = (entry.sets || []).filter(s => (s.wt && String(s.wt).trim()) || (s.reps && String(s.reps).trim()));
+    if(validRows.length){ exercisesLogged++; setsLogged += validRows.length; }
+  });
+
+  if(exercisesLogged === 0){
+    return { insufficient:true, gymLabel, dayName, exercisesLogged:0, setsLogged:0, wins:[], watch:[], next:[], coachNote:null };
+  }
+
+  const wins = [], watch = [], next = [];
+  let anyHistory = false;
+  const plannedExercises = (day && day.exercises) ? day.exercises : [];
+
+  plannedExercises.forEach(ex => {
+    let nm;
+    try{ nm = getF(ex.id,"name",ex.name); }catch{ nm = ex.name || "Exercise"; }
+    if(!nm) nm = "Exercise";
+
+    const logged = woData.exercises[ex.id];
+    const loggedRows = logged ? (logged.sets || []).filter(s => (s.wt && String(s.wt).trim()) || (s.reps && String(s.reps).trim())) : [];
+
+    if(!loggedRows.length){
+      watch.push(`Missed exercise: ${nm} was planned but not logged.`);
+      return;
+    }
+
+    const validSets = loggedRows.filter(s => !isNaN(parseInt(s.reps)) && parseInt(s.reps) > 0);
+    if(!validSets.length) return; // no numeric rep data (e.g. cardio/duration) — skip deeper analysis, still counted as logged
+
+    let targetReps, targetRir;
+    try{
+      targetReps = getF(ex.id,"reps",ex.reps||"");
+      targetRir  = getF(ex.id,"rir",ex.rir||"");
+    }catch{ targetReps = ex.reps||""; targetRir = ex.rir||""; }
+
+    let status = "build_reps";
+    try{ status = p9GetProgressionStatus(ex.id, validSets, targetReps, targetRir) || "build_reps"; }catch{}
+
+    let priorHist = [];
+    try{ priorHist = p949GetPriorHistory(ex.id); }catch{}
+    const prior = priorHist.length ? priorHist[0] : null;
+    if(prior) anyHistory = true;
+
+    let currTop = null, priorTop = null;
+    try{ currTop = p9GetTopActualLoad(validSets); }catch{}
+    try{ priorTop = prior ? p9GetTopActualLoad(prior.validSets) : null; }catch{}
+
+    const currRirs = validSets.map(s => { try{ return p5ParseRir(s.rir||""); }catch{ return null; } }).filter(n => n !== null);
+    const minCurrRir = currRirs.length ? Math.min(...currRirs) : null;
+    let targetRirMid = null;
+    try{ targetRirMid = p5ParseRir(targetRir); }catch{}
+
+    let flaggedWin = false, flaggedWatch = false;
+
+    // Wins: higher load, or same load with more total reps, than the previous comparable session
+    if(currTop && priorTop && currTop.numeric > priorTop.numeric){
+      wins.push(`${nm}: ${currTop.raw} beats previous top of ${priorTop.raw} — nice jump.`);
+      flaggedWin = true;
+    } else if(currTop && priorTop && currTop.numeric === priorTop.numeric && prior){
+      const currTotalReps = validSets.reduce((a,s) => a + (parseInt(s.reps)||0), 0);
+      const priorTotalReps = (prior.validSets||[]).reduce((a,s) => a + (parseInt(s.reps)||0), 0);
+      if(currTotalReps > priorTotalReps){
+        wins.push(`${nm}: matched load with more total reps than last time — building capacity.`);
+        flaggedWin = true;
+      }
+    }
+    if(!flaggedWin && (status === "progress_load" || status === "top_range_hold") && (minCurrRir === null || targetRirMid === null || minCurrRir >= targetRirMid)){
+      wins.push(status === "progress_load"
+        ? `${nm}: hit target with room to spare — ready to progress.`
+        : `${nm}: reached top of rep range with room — progress candidate.`);
+      flaggedWin = true;
+    }
+
+    // Watch list: tight RIR, failure, or hold/reset statuses
+    if(minCurrRir !== null && targetRirMid !== null && minCurrRir < targetRirMid - 0.5){
+      watch.push(`${nm}: RIR ran tighter than target — form/fatigue check next session.`);
+      flaggedWatch = true;
+    }
+    if(!flaggedWatch && currRirs.length && currRirs.some(r => r <= 0)){
+      watch.push(`${nm}: hit failure/near-failure RIR — keep an eye on recovery.`);
+      flaggedWatch = true;
+    }
+    if(!flaggedWatch && (status === "safer_hold" || status === "target_reset")){
+      watch.push(status === "target_reset"
+        ? `${nm}: target reset — programmed load is below recent best, rebuild clean reps.`
+        : `${nm}: RIR was tight last time — hold load until reps-in-reserve improves.`);
+      flaggedWatch = true;
+    }
+
+    // Next-time guidance, keyed off progression status
+    if(status === "progress_load") next.push(`${nm}: clear to bump load next session.`);
+    else if(status === "build_reps") next.push(`${nm}: hold load, build reps toward top of range.`);
+    else if(status === "safer_hold") next.push(`${nm}: hold load, prioritize RIR before adding weight.`);
+    else if(status === "target_reset") next.push(`${nm}: reset to programmed target and rebuild clean reps.`);
+    else if(status === "top_range_hold") next.push(`${nm}: confirm clean form and RIR before calling it progress.`);
+    else if(status === "capped_hold") next.push(`${nm}: at load ceiling — hold clean, or ask AI Sync for a swap if it's been stale a while.`);
+  });
+
+  // Bodybuilding/physique coach note, day-type aware where possible
+  let coachNote = "Solid session overall. Don't overreact to one off day if sleep or energy was low.";
+  if(day){
+    try{
+      const dayType = (typeof p9489ClassifyDayType === "function") ? p9489ClassifyDayType(day) : "other";
+      const NOTES = {
+        push: "Good push-day bias. Keep lateral delt and upper chest work clean before chasing load.",
+        pull: "Lat width is the priority on pull days — control the stretch before adding weight.",
+        shoulders: "Shoulder-focused day — lateral delt volume is intentional here, not redundant.",
+        pump_taper: "Pump/taper day — control and stimulus matter more than load here.",
+        lower: "Legs are maintenance during the current phase — steady effort is enough.",
+        core: "Core work — control and tension over speed or load.",
+        arms: "Arms day — long-head triceps emphasis is the priority for growth.",
+        cardio: "Cardio session — no load-progression logic applies here."
+      };
+      coachNote = NOTES[dayType] || coachNote;
+    }catch{}
+  }
+
+  return {
+    insufficient:false,
+    noHistoryYet: !anyHistory,
+    gymLabel, dayName, exercisesLogged, setsLogged,
+    wins, watch, next, coachNote
+  };
+}
+
+// Render the review object into the review card and show it.
+function p949RenderReview(review){
+  const card = document.getElementById("p949ReviewCard");
+  const body = document.getElementById("p949ReviewBody");
+  if(!card || !body) return;
+  if(!review){ card.style.display = "none"; return; }
+
+  let html = `<div class="p949-section"><div class="p949-line summary-line">${review.gymLabel} · ${review.dayName}</div>`;
+  if(!review.insufficient){
+    html += `<div class="p949-line summary-line">${review.exercisesLogged} exercise${review.exercisesLogged===1?"":"s"} · ${review.setsLogged} set${review.setsLogged===1?"":"s"} logged</div>`;
+  }
+  html += `</div>`;
+
+  if(review.insufficient){
+    html += `<div class="p949-section"><div class="p949-empty-note">Workout saved. More useful comparisons will appear after another logged session.</div></div>`;
+    body.innerHTML = html;
+    card.style.display = "block";
+    return;
+  }
+
+  if(review.wins.length){
+    html += `<div class="p949-section"><div class="p949-section-label wins">Wins</div>`;
+    review.wins.forEach(w => html += `<div class="p949-line">${w}</div>`);
+    html += `</div>`;
+  }
+  if(review.watch.length){
+    html += `<div class="p949-section"><div class="p949-section-label watch">Watch</div>`;
+    review.watch.forEach(w => html += `<div class="p949-line">${w}</div>`);
+    html += `</div>`;
+  }
+  if(review.next.length){
+    html += `<div class="p949-section"><div class="p949-section-label next">Next time</div>`;
+    review.next.forEach(n => html += `<div class="p949-line">${n}</div>`);
+    html += `</div>`;
+  }
+  if(!review.wins.length && !review.watch.length && !review.next.length){
+    html += `<div class="p949-section"><div class="p949-empty-note">${review.noHistoryYet ? "First logged session for this day — more useful comparisons will appear after another logged session." : "Logged clean — nothing notable to flag this time."}</div></div>`;
+  }
+  if(review.coachNote){
+    html += `<div class="p949-section"><div class="p949-section-label coach">Coach note</div><div class="p949-line">${review.coachNote}</div></div>`;
+  }
+
+  body.innerHTML = html;
+  card.style.display = "block";
+}
+
+function p949HideReview(){
+  const card = document.getElementById("p949ReviewCard");
+  if(card) card.style.display = "none";
+}
+
+// Console-testable global: mfWorkoutReviewDebug() rebuilds a review from
+// whatever is currently in the log form (does not require re-saving).
+window.mfWorkoutReviewDebug = function(){
+  try{
+    const woData = collectWoData();
+    const review = p949BuildWorkoutReview(woData);
+    console.log("[MarcusFit] mfWorkoutReviewDebug():", review);
+    return review;
+  }catch(e){
+    console.warn("[MarcusFit] mfWorkoutReviewDebug() failed safely:", e && e.message);
+    return {error: e && e.message};
+  }
+};
+var mfWorkoutReviewDebug = window.mfWorkoutReviewDebug;
+// ── END PHASE 9.4.9 ──────────────────────────────────────────────────────────
 
 function saveDay(){
   // Feature 3: Show inline confirmation for extreme future dates (native confirm() blocked in iOS PWA)
@@ -4452,6 +4800,21 @@ function p85ExecuteSave(){
   btn.textContent=wasUpdate?"\u270F\uFE0F UPDATED!":"\u2705 SAVED!";
   setTimeout(()=>updateSaveBtn(),1800);
   renderHistory();
+
+  // PHASE 9.4.9: Workout Review After Save — only when a day/workout was actually logged
+  try{
+    if(woData){
+      const review=p949BuildWorkoutReview(woData);
+      p949RenderReview(review);
+      const card=document.getElementById("p949ReviewCard");
+      if(card&&card.style.display!=="none") card.scrollIntoView({behavior:"smooth",block:"nearest"});
+    } else {
+      p949HideReview();
+    }
+  }catch(e){
+    console.warn("[MarcusFit] 9.4.9: workout review failed safely:",e&&e.message);
+    p949HideReview();
+  }
 }
 
 function loadDay(){
@@ -4566,6 +4929,306 @@ function buildLogSection(dkeys,allDkeys){
   return logSection;
 }
 
+// ── PHASE 9.4.8.9/10: EXERCISE ROTATION / SWAP CANDIDATE EXPORT INTELLIGENCE ─
+// Export-intelligence only. Read-only diagnostics for the AI export — does NOT
+// modify the program, exercises, order, lifecycle state, or logging behavior.
+// Reuses existing resolved-program (getResolvedDays), progression
+// (p9GetExerciseHistory / p9GetProgressionStatus), and field-override (getF)
+// systems rather than duplicating them. Wrapped defensively so sparse/missing
+// data degrades to "insufficient data" text instead of throwing.
+
+// Lightweight name-based muscle/pattern classifier. Best-effort heuristic —
+// not a scoring engine. Checked in priority order (most specific first).
+function p9489ClassifyExercise(name){
+  const n = (name||"").toLowerCase();
+  const rules = [
+    ["lateral_delt", /lateral raise|side raise|leaning.*raise/],
+    ["rear_delt", /rear delt|reverse (pec )?deck|rear fly|face pull/],
+    ["upper_chest", /incline (bench|press|fly|cable fly|machine press)|low-to-high cable fly|reverse-grip press/],
+    ["long_head_tricep", /overhead.*extension|pjr pullover|skull crusher|cross-body.*extension|french press/],
+    ["lat_width", /pulldown|pull-?up|chin-?up|straight-arm pulldown|machine pullover|assisted pull/],
+    ["upper_back", /\brow\b|high row|chest-supported row/],
+    ["biceps", /curl/],
+    ["triceps_other", /pushdown|kickback|dip|extension/],
+    ["core", /crunch|plank|\bab(s)?\b|\bcore\b/],
+    ["legs", /squat|leg press|lunge|leg extension|leg curl|calf|deadlift|hip thrust|\brdl\b/],
+    ["chest_press", /bench press|chest press|push-?up|\bpress\b/],
+  ];
+  for(const [cat, re] of rules){ if(re.test(n)) return cat; }
+  return "other";
+}
+
+// Day-type classifier (9.4.8.10). Tag first (reliable on base days), then
+// name-keyword fallback for virtual/added/override days like "CORE & ABS"
+// or "SHOULDERS & ARMS" that don't carry a matching tag. Drives which
+// Priority 1 muscles are relevant to a day and which categories are
+// expected specialization clusters rather than redundancy.
+function p9489ClassifyDayType(day){
+  const tag = ((day.tag)||"").toUpperCase();
+  const nm = ((day.name || day.day || "")+"").toLowerCase();
+  if(tag==="LOWER" || /\blower\b/.test(nm)) return "lower";
+  if(tag==="CARDIO" || /cardio/.test(nm)) return "cardio";
+  if(/core|\babs?\b/.test(nm)) return "core";
+  if(tag==="ARMS" && !/shoulder/.test(nm)) return "arms";
+  if(/shoulder|delt.?cap/.test(nm)) return "shoulders";
+  if(tag==="PUMP" || /taper|pump/.test(nm)) return "pump_taper";
+  if(tag==="PUSH") return "push";
+  if(tag==="PULL") return "pull";
+  return "other";
+}
+
+// Which Priority 1 muscles (lateral delt, upper chest, lat width) are
+// coaching-relevant to check for on a given day type. Lower/core/cardio/
+// arms/specialization days aren't the place to expect these.
+const P9489_RELEVANT_P1_BY_DAYTYPE = {
+  lower: [], core: [], cardio: [], arms: [], shoulders: [], pump_taper: [],
+  push: ["upper_chest","lateral_delt"],
+  pull: ["lat_width"],
+  other: ["lateral_delt","upper_chest","lat_width"]
+};
+
+// Categories that are the intentional signature of a given day type — 3+
+// occurrences here is a specialization cluster, not redundancy.
+const P9489_EXPECTED_CLUSTER_BY_DAYTYPE = {
+  core: ["core"],
+  shoulders: ["lateral_delt"],
+  pump_taper: ["lateral_delt"],
+  arms: ["biceps","triceps_other","long_head_tricep"]
+};
+
+// Pull recent progression signal for one exercise using the existing history
+// + progression-status helpers. Returns {hasData:false} if no valid logged
+// sessions exist yet — callers must treat that as "insufficient data", not
+// as a stale/capped signal.
+function p9489GetRecentExerciseSignals(ex){
+  const hist = p9GetExerciseHistory(ex.id); // already sorted newest-first
+  if(!hist.length) return {hasData:false};
+  const targetReps = getF(ex.id,"reps",ex.reps);
+  const targetRir  = getF(ex.id,"rir",ex.rir);
+  const recent = hist.slice(0,5);
+  const statuses = recent.map(h => p9GetProgressionStatus(ex.id, h.validSets, targetReps, targetRir));
+  return {
+    hasData: true,
+    sessionCount: hist.length,
+    recentCount: recent.length,
+    statuses,
+    progressCount: statuses.filter(s => s==="progress_load").length,
+    cappedCount: statuses.filter(s => s==="capped_hold" || s==="top_range_hold").length
+  };
+}
+
+// Analyze the resolved program (both gyms, base + virtual/additive days) and
+// return candidate rotation/swap signals plus weak-point/order notes.
+// Read-only — uses getResolvedDays() so overrides, custom exercises, and
+// virtual days are all reflected without re-deriving that logic here.
+function p9489AnalyzeExerciseRotation(){
+  const candidates = [];
+  const weakPointNotes = [];
+  let daysAnalyzed = 0;
+  let exercisesWithData = 0;
+  // Result caps — surface only the highest-value issues instead of every
+  // borderline signal. Lists are severity-ranked before slicing.
+  const MAX_CANDIDATES = 8;
+  const MAX_WEAKPOINTS = 6;
+
+  ["home","partial"].forEach(function(g){
+    const days = getResolvedDays(g);
+    days.forEach(function(day){
+      const exercises = day.exercises || [];
+      if(!exercises.length) return;
+      daysAnalyzed++;
+      const dayLabel = (day.name || day.day || "Day") + (day._isVirtual ? " [added]" : "");
+      const dayType = p9489ClassifyDayType(day);
+      const relevantP1 = P9489_RELEVANT_P1_BY_DAYTYPE.hasOwnProperty(dayType)
+        ? P9489_RELEVANT_P1_BY_DAYTYPE[dayType] : P9489_RELEVANT_P1_BY_DAYTYPE.other;
+      const expectedClusters = P9489_EXPECTED_CLUSTER_BY_DAYTYPE[dayType] || [];
+
+      const classified = exercises.map(function(ex, idx){
+        const nm = getF(ex.id,"name",ex.name);
+        return {ex, idx, nm, cat: p9489ClassifyExercise(nm)};
+      });
+
+      // Stale / capped-progression signals per exercise
+      classified.forEach(function(c){
+        const sig = p9489GetRecentExerciseSignals(c.ex);
+        if(!sig.hasData) return; // insufficient data for this exercise — skip silently
+        exercisesWithData++;
+        const capped = sig.recentCount>=2 && sig.cappedCount>=2;
+        const stale  = !capped && sig.recentCount>=3 && sig.progressCount===0;
+        if(capped){
+          candidates.push({
+            name:c.nm, gym:g, day:dayLabel, signal:"capped", severity:3,
+            reason:"Recent sessions show repeated top-range/capped progression status with limited load movement.",
+            action:"replace, or recommendation if a rep-range reset is enough",
+            note:"May need a harder variation, loading change, cable/machine alternative, or rep-range reset."
+          });
+        } else if(stale){
+          candidates.push({
+            name:c.nm, gym:g, day:dayLabel, signal:"stale", severity:2,
+            reason:"Repeated recent exposure ("+sig.recentCount+" of last sessions logged) with no clear progression signal.",
+            action:"replace, reorder, or recommendation",
+            note:"Consider a swap, rep-range change, intensity technique, or order change if this matches Marcus's experience."
+          });
+        }
+      });
+
+      // Literal duplicate-exercise bloat — the SAME exercise (by normalized
+      // name) appearing 2+ times on one day. This is real bloat regardless
+      // of day type/category, so it's checked independent of the
+      // specialization-cluster exemption below.
+      const nameCounts = {};
+      classified.forEach(function(c){
+        const key = c.nm.trim().toLowerCase();
+        (nameCounts[key] = nameCounts[key]||[]).push(c.nm);
+      });
+      Object.keys(nameCounts).forEach(function(key){
+        if(nameCounts[key].length>=2){
+          candidates.push({
+            name: nameCounts[key][0], gym:g, day:dayLabel, signal:"duplicate", severity:4,
+            reason: nameCounts[key].length+" instances of the same exercise appear on this day.",
+            action:"remove duplicate, or replace one instance with a complementary movement",
+            note:"This is likely a real duplication rather than intentional specialization — worth a direct look."
+          });
+        }
+      });
+
+      // Redundant pattern signal — 3+ exercises in the same day sharing a
+      // pattern/muscle category (excluding legs and uncategorized "other").
+      // Day types with an expected specialization cluster for this category
+      // (e.g. lateral delt on a SHOULDERS/TAPER PUMP day, core on a CORE
+      // day, biceps/triceps on an ARMS day) are exempt — that's the day
+      // working as designed, not redundancy.
+      const catCounts = {};
+      classified.forEach(function(c){ catCounts[c.cat] = (catCounts[c.cat]||0)+1; });
+      Object.keys(catCounts).forEach(function(cat){
+        if(catCounts[cat]>=3 && cat!=="other" && cat!=="legs" && expectedClusters.indexOf(cat)===-1){
+          candidates.push({
+            name: classified.filter(function(c){return c.cat===cat;}).map(function(c){return c.nm;}).join(", "),
+            gym:g, day:dayLabel, signal:"redundant", severity:1,
+            reason: catCounts[cat]+" exercises on this day emphasize a similar pattern ("+cat.replace("_"," ")+").",
+            action:"review, reorder, or replace",
+            note:"Consider trimming the overlap in favor of an underemphasized priority muscle."
+          });
+        }
+      });
+
+      // Weak-point gap — a Priority 1 muscle that's actually relevant to
+      // THIS day type is entirely missing from a substantive day (3+
+      // exercises). Lower/core/cardio/arms/specialization days have an
+      // empty relevantP1 list, so they're naturally skipped rather than
+      // flagged for upper-body muscles that were never the point.
+      const presentCats = new Set(classified.map(function(c){return c.cat;}));
+      const missingP1 = relevantP1.filter(function(p){return !presentCats.has(p);});
+      if(missingP1.length && exercises.length>=3){
+        weakPointNotes.push({
+          day:dayLabel, gym:g, severity:3,
+          reason:"Missing priority muscle emphasis: "+missingP1.map(function(m){return m.replace("_"," ");}).join(", ")+".",
+          action:"recommendation, custom_exercise, or day_override"
+        });
+      }
+
+      // Arms-day secondary check — arms days should mostly care about
+      // biceps/triceps, especially long-head triceps (the biggest driver
+      // of arm size). Flag only if that specific emphasis is missing.
+      if(dayType==="arms" && exercises.length>=3 && !presentCats.has("long_head_tricep")){
+        weakPointNotes.push({
+          day:dayLabel, gym:g, severity:2,
+          reason:"Arms day has biceps/triceps volume but no long-head triceps emphasis (e.g., overhead extension, PJR pullover, incline skull crusher) — long-head triceps drives arm size the most.",
+          action:"recommendation, custom_exercise, or reorder"
+        });
+      }
+
+      // Order gap — a relevant-for-this-day-type Priority 1 exercise sitting
+      // in the back half of a longer day (4+ exercises). Restricted to
+      // relevantP1 so this doesn't fire on lower/core/arms/specialization
+      // days where those categories were never the day's point.
+      classified.forEach(function(c){
+        if(relevantP1.indexOf(c.cat)!==-1 && exercises.length>=4 && c.idx >= Math.ceil(exercises.length/2)){
+          weakPointNotes.push({
+            day:dayLabel, gym:g, severity:1,
+            reason:c.nm+" ("+c.cat.replace("_"," ")+") is positioned late in the day (slot "+(c.idx+1)+" of "+exercises.length+").",
+            action:"reorder"
+          });
+        }
+      });
+    });
+  });
+
+  // Rank by severity (highest-value issues first) and cap so the export
+  // stays focused instead of noisy.
+  candidates.sort(function(a,b){ return (b.severity||0)-(a.severity||0); });
+  weakPointNotes.sort(function(a,b){ return (b.severity||0)-(a.severity||0); });
+  const candidatesTotal = candidates.length;
+  const weakPointTotal = weakPointNotes.length;
+
+  return {
+    candidates: candidates.slice(0,MAX_CANDIDATES),
+    weakPointNotes: weakPointNotes.slice(0,MAX_WEAKPOINTS),
+    candidatesTotal, weakPointTotal,
+    daysAnalyzed, exercisesWithData
+  };
+}
+
+// Format the full export section text. Never throws — falls back to an
+// "insufficient data" message on any unexpected error so a sparse-data
+// state can never break export generation.
+function p9489FormatSwapCandidateSection(){
+  const analysis = p9489AnalyzeExerciseRotation();
+  const loggedDayCount = Object.keys(localStorage).filter(function(k){return k.startsWith("day-")&&k.endsWith("-wo");}).length;
+
+  let out = "--- EXERCISE ROTATION / SWAP CANDIDATE INTELLIGENCE ---\n\n";
+  out += "Purpose:\nThis section highlights possible stale movements, capped progressions, redundant patterns, weak-point gaps, and order opportunities. These are not automatic changes. Use them to decide whether AI Sync should recommend, reorder, replace, add custom exercises, override day metadata, or add optional days.\n\n";
+  out += "Persistent Priority Bias:\n- Lateral delts, upper chest, and lat width should receive first-pass attention, but ONLY on days where they're actually relevant (push/pull/general upper days) — lower, core, arms, and shoulder/taper specialization days are evaluated against their own focus instead.\n- Rear delts, long-head triceps, and upper back thickness are secondary; long-head triceps is the primary secondary focus on arms days specifically.\n- Legs should generally be maintained with minimum effective volume unless logs suggest otherwise.\n\n";
+  out += "Recent Data Status:\n- Recent logs available: "+(loggedDayCount>0?"yes":"no")+"\n- Number of recent logged workouts analyzed: "+loggedDayCount+"\n- Number of program days analyzed: "+analysis.daysAnalyzed+"\n\n";
+
+  out += "Potential Swap / Rotation Candidates";
+  out += (analysis.candidatesTotal>analysis.candidates.length ? " (top "+analysis.candidates.length+" of "+analysis.candidatesTotal+", ranked by severity)" : "")+":\n";
+  if(analysis.candidates.length){
+    analysis.candidates.forEach(function(c, i){
+      out += (i+1)+". "+c.name+" ("+c.gym+" / "+c.day+") \u2014 "+c.reason+"\n";
+      out += "   - Signal: "+c.signal+"\n";
+      out += "   - Suggested AI action: "+c.action+"\n";
+      out += "   - Coaching note: "+c.note+"\n";
+    });
+  } else if(analysis.exercisesWithData===0){
+    out += "Insufficient recent data \u2014 no logged sessions yet to evaluate stale/capped movement candidates. Still review Priority 1 muscles for proactive bodybuilding improvements.\n";
+  } else {
+    out += "No strong swap candidates detected from available data. Still review Priority 1 muscles for proactive bodybuilding improvements.\n";
+  }
+  out += "\n";
+
+  out += "Weak-Point / Order Opportunities";
+  out += (analysis.weakPointTotal>analysis.weakPointNotes.length ? " (top "+analysis.weakPointNotes.length+" of "+analysis.weakPointTotal+", ranked by severity)" : "")+":\n";
+  if(analysis.weakPointNotes.length){
+    analysis.weakPointNotes.forEach(function(w, i){
+      out += (i+1)+". "+w.day+" ("+w.gym+") \u2014 "+w.reason+"\n";
+      out += "   - Suggested AI action: "+w.action+"\n";
+    });
+  } else {
+    out += "No obvious weak-point or ordering gaps detected from available program structure.\n";
+  }
+  out += "\n";
+
+  out += "Bodybuilding Swap Ideas To Consider:\n";
+  out += "- Lateral delt: cable lateral raise, machine lateral raise, leaning lateral raise, lengthened partials\n";
+  out += "- Upper chest: incline press, low-to-high cable fly, incline machine press\n";
+  out += "- Lat width: assisted pull-up, neutral pulldown, one-arm cable pulldown, straight-arm pulldown\n";
+  out += "- Long-head triceps: overhead cable extension, PJR pullover, incline skull crusher\n";
+  out += "- Rear delt / upper back: reverse pec deck, cable rear delt fly, chest-supported row, high row\n\n";
+
+  return out;
+}
+
+function p9489BuildSwapCandidateExport(){
+  try{
+    return p9489FormatSwapCandidateSection();
+  }catch(e){
+    console.warn("[MarcusFit] 9.4.8.10: swap candidate export failed safely:", e && e.message);
+    return "--- EXERCISE ROTATION / SWAP CANDIDATE INTELLIGENCE ---\n\nInsufficient data to analyze rotation/swap candidates this export.\n\n";
+  }
+}
+// ── END PHASE 9.4.8.10 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
 function genExport(){
   // 9C: Run lifecycle validation and show export warning if needed
   mfUpdateExportWarningBanner();
@@ -4627,6 +5290,17 @@ function genExport(){
 
   const rangeDesc=val==="program"?"Program templates only":val==="full"?"Full history ("+allDkeys.length+" days)":"Program + last "+val+" days ("+dkeys.length+" of "+allDkeys.length+" total logged days)";
 
+  // 9.4.8.8: Persistent AI Coaching Preferences — surfaced near the top of
+  // every export so AI Sync sessions always see current intent/priorities.
+  const coachPrefsRaw=p9GetCoachPrefs().trim();
+  const coachPrefsBlock="--- PERSISTENT AI COACHING PREFERENCES ---\n"
+    +(coachPrefsRaw?coachPrefsRaw+"\n\n":"No persistent AI coaching preferences saved.\n\n");
+
+  // 9.4.8.9/10: Exercise Rotation / Swap Candidate Export Intelligence — surfaced
+  // after coaching preferences and before the program template snapshot so
+  // AI Sync sees rotation/swap signals before reading the raw program.
+  const swapCandidateBlock=p9489BuildSwapCandidateExport();
+
   const out="=== MARCUSFIT EXPORT ===\n"
     +"Version: "+APP_VERSION+"\n"
     +"Generated: "+today+"\n"
@@ -4634,6 +5308,8 @@ function genExport(){
     +"Total logged days (all time): "+allDkeys.length+"\n"
     +"Weight trend (selected range): "+wTrend+"\n"
     +(wTrendAll?wTrendAll+"\n":"")+"\n"
+    +coachPrefsBlock
+    +swapCandidateBlock
     +progSnap+"\n"
     +logSection+"\n"
     +"=== AI SYNC FORMAT INSTRUCTIONS ===\n\n"
@@ -4805,6 +5481,22 @@ function genExport(){
     +"- Do not go rogue: every change should trace back to a stated reason in the data or goals.\n"
     +"- This is NOT a 'when in doubt, do nothing' policy — the goal is the smallest EFFECTIVE change,\n"
     +"  not no change. Controlled, justified experiments are welcome.\n\n"
+    // 9.4.8.9/10: Exercise Rotation / Swap Candidate Export Intelligence — tells
+    // future AI reviews to actually use the new section instead of only
+    // updating numbers. Documentation-only; does not change sync parsing.
+    +"EXERCISE ROTATION REVIEW (READ THE SWAP-CANDIDATE SECTION):\n"
+    +"- Do not treat a sync review as number-updating only — this export includes an EXERCISE ROTATION /\n"
+    +"  SWAP CANDIDATE INTELLIGENCE section above. Review it every time.\n"
+    +"- Recommend new lifts or exercise swaps when the swap-candidate section (or your own read of the\n"
+    +"  logs/program) justifies it — stale, redundant, capped, or poorly-ordered movements are real signals,\n"
+    +"  not noise to ignore.\n"
+    +"- Be proactive on Priority 1 muscles (lateral delts, upper chest, lat width) specifically — these are\n"
+    +"  the first things to fix when the swap-candidate section flags a gap.\n"
+    +"- Prefer controlled, meaningful changes over random churn — keep enough consistency to measure\n"
+    +"  progression while not letting the program go stale.\n"
+    +"- Use the standard AI Sync action hierarchy for any change this section motivates: 1) recommendation,\n"
+    +"  2) reorder, 3) replace, 4) custom_exercise, 5) day_override, 6) day_addition, 7) code release only\n"
+    +"  if the app's behavior/model itself must change. Never mutate the base program (P) through sync.\n\n"
     +"SUPPORTED AI SYNC ACTIONS — WHEN TO USE EACH:\n"
     +"1. recommendations — coaching notes only. Use when the day/exercise is structurally fine and the\n"
     +"   user just needs a cue, target, experiment, or safety note. No replacement needed.\n"
@@ -6341,7 +7033,7 @@ const SCHEMA_VERSION = 1;
 
 // Identify all localStorage keys owned by MarcusFit
 function p8IsMarcusFitKey(key){
-  return key.startsWith("day-") || key === OVR || key === DRAFT_KEY || key === LIFECYCLE_KEY || key === RECS_KEY;
+  return key.startsWith("day-") || key === OVR || key === DRAFT_KEY || key === LIFECYCLE_KEY || key === RECS_KEY || key === AI_PREFS_KEY;
 }
 
 function p8GetMarcusFitKeys(){
@@ -6497,8 +7189,11 @@ function showScreen(n){
   document.getElementById("gymRow").classList.toggle("visible",n==="program");
   if(n==="history"){p7ApplyFilters();}
   if(n==="analytics"){p7RenderAnalytics();}
-  if(n==="export"){updateExportMeta();mfRenderLifecycleHealth();const ds=document.getElementById("p945DiagSection");if(ds&&ds.classList.contains("open"))p945RenderDiag();}
+  if(n==="export"){updateExportMeta();mfRenderLifecycleHealth();p9RenderCoachPrefs();const ds=document.getElementById("p945DiagSection");if(ds&&ds.classList.contains("open"))p945RenderDiag();}
 }
+// 9.4.8.8: populate the coaching preferences textarea at load in case the
+// export screen becomes active without a showScreen() transition.
+p9RenderCoachPrefs();
 </script>
 </body>
 </html>
