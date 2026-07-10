@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarcusFit 9.4.9</title>
+<title>MarcusFit 9.5.0</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 :root {
@@ -802,8 +802,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 9.4.9</strong> &mdash; Workout Review After Save<br>
-    New: after saving a workout, MarcusFit shows a quick local review of wins, watch items, and next-time guidance using existing logs and progression signals. Deterministic and local only &#8212; no AI call, no new storage. Previous: Exercise Rotation / Swap Candidate Export Intelligence, tuned to be day-type aware (9.4.8.10).
+    <strong style="color:var(--accent);">MarcusFit 9.5.0</strong> &mdash; User Profile &amp; App Preferences Foundation<br>
+    New: versioned <code>mf-user-profile</code> storage with safe Marcus-default initialization/migration, a Sync-tab profile editor, a concise user-profile block in AI exports, and profile coverage in backups, backup summaries, and architecture/backup diagnostics. No workout/program behavior changes. Previous: Backup &amp; Data Safety Polish (9.4.9.2), Architecture Audit / System Map (9.4.9.1), Workout Review After Save (9.4.9), Exercise Rotation / Swap Candidate Export Intelligence (9.4.8.9&ndash;9.4.8.10).
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -828,6 +828,73 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <textarea class="sync-ta" id="syncInput" rows="8" placeholder="Paste the MARCUSFIT_UPDATE block from your AI here..."></textarea>
     <button class="big-btn btn-sync" style="margin-bottom:0;" onclick="applySync()">&#128260; APPLY UPDATE</button>
     <div class="sync-result" id="syncResult"></div>
+  </div>
+
+  <!-- ── PHASE 9.5.0: USER PROFILE & APP PREFERENCES ── -->
+  <hr class="divider">
+  <div class="section-label">&#128100; User Profile &amp; App Preferences</div>
+  <div class="info-box">This general profile is included in AI exports and will support future shared-user setup. Detailed training philosophy remains in AI Coaching Preferences.</div>
+  <div class="sync-box">
+    <div class="sync-box-title">Identity</div>
+    <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Display Name</label>
+    <input type="text" id="p950DisplayName" class="sync-ta" style="font-family:'DM Sans',sans-serif;font-size:13px;" placeholder="Display name">
+
+    <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Height</label>
+    <div style="display:flex;gap:8px;">
+      <input type="number" id="p950HeightFeet" min="0" max="8" class="sync-ta" style="font-family:'DM Sans',sans-serif;font-size:13px;" placeholder="ft">
+      <input type="number" id="p950HeightInches" min="0" max="11" class="sync-ta" style="font-family:'DM Sans',sans-serif;font-size:13px;" placeholder="in">
+    </div>
+
+    <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Primary Goal</label>
+    <input type="text" id="p950PrimaryGoal" class="sync-ta" style="font-family:'DM Sans',sans-serif;font-size:13px;" placeholder="Primary goal">
+
+    <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Physique Outcome</label>
+    <input type="text" id="p950PhysiqueOutcome" class="sync-ta" style="font-family:'DM Sans',sans-serif;font-size:13px;" placeholder="Physique outcome">
+
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;">
+        <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Weight Unit</label>
+        <select id="p950WeightUnit" class="sync-ta" style="font-family:'DM Sans',sans-serif;font-size:13px;">
+          <option value="lb">lb</option>
+          <option value="kg">kg</option>
+        </select>
+      </div>
+      <div style="flex:1;">
+        <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Distance Unit</label>
+        <select id="p950DistanceUnit" class="sync-ta" style="font-family:'DM Sans',sans-serif;font-size:13px;">
+          <option value="mi">mi</option>
+          <option value="km">km</option>
+        </select>
+      </div>
+    </div>
+
+    <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">First Day of Week</label>
+    <select id="p950FirstDayOfWeek" class="sync-ta" style="font-family:'DM Sans',sans-serif;font-size:13px;">
+      <option value="sunday">Sunday</option>
+      <option value="monday">Monday</option>
+    </select>
+
+    <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Home Gym Label</label>
+    <input type="text" id="p950HomeGymLabel" class="sync-ta" style="font-family:'DM Sans',sans-serif;font-size:13px;" placeholder="Home">
+
+    <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Transition/Partial Gym Label</label>
+    <input type="text" id="p950PartialGymLabel" class="sync-ta" style="font-family:'DM Sans',sans-serif;font-size:13px;" placeholder="Transition">
+
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button class="big-btn btn-sync" style="margin-bottom:0;" onclick="p950SaveUserProfileFromUI()">&#128190; SAVE PROFILE</button>
+      <button class="big-btn" style="background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;" onclick="p950ResetUserProfileDefaults()">&#8635; RESET TO MARCUS DEFAULTS</button>
+    </div>
+    <div class="sync-result" id="p950Result"></div>
+
+    <!-- Reset confirmation panel (two-step, same pattern as Restore/Clear) -->
+    <div id="p950ResetConfirmPanel" style="display:none;background:color-mix(in srgb,var(--red) 10%,transparent);border:1px solid color-mix(in srgb,var(--red) 50%,transparent);border-radius:12px;padding:12px 14px;margin-top:10px;">
+      <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px;">&#9888; Reset profile to Marcus defaults?</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">This only affects your profile (name, height, goals, units, gym labels). Logs, workouts, AI coaching preferences, and lifecycle data are not touched.</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="p950ConfirmResetProfile()" style="flex:1;padding:9px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;">&#9989; CONFIRM RESET</button>
+        <button onclick="p950CancelResetProfile()" style="padding:9px 14px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Cancel</button>
+      </div>
+    </div>
   </div>
 
   <!-- ── PHASE 9.4.8.8: PERSISTENT AI COACHING PREFERENCES ── -->
@@ -855,8 +922,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <button class="big-btn" style="background:var(--accent2);color:#000;margin-bottom:0;" onclick="p8RestoreBackup()">&#128229; RESTORE BACKUP</button>
     <button class="big-btn" style="background:transparent;color:var(--red);border:1px solid var(--red);margin-bottom:0;" onclick="p8ClearData()">&#128465; CLEAR APP DATA</button>
   </div>
-  <textarea class="sync-ta" id="p8BackupTa" rows="10" placeholder="Backup JSON will appear here after creating a backup.&#10;&#10;Paste a backup here to restore it."></textarea>
+  <textarea class="sync-ta" id="p8BackupTa" rows="10" placeholder="Backup JSON appears here after Create Backup.&#10;&#10;Paste backup JSON here to preview/restore it." oninput="p8HideRestoreConfirm()"></textarea>
   <div class="sync-result" id="p8BackupResult"></div>
+
+  <!-- PHASE 9.4.9.2: Restore confirmation panel (replaces native confirm() for restore) -->
+  <div id="p8RestoreConfirmPanel" style="display:none;background:color-mix(in srgb,var(--accent2) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent2) 50%,transparent);border-radius:12px;padding:12px 14px;margin-top:10px;">
+    <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">&#9888; Confirm Restore</div>
+    <div id="p8RestoreConfirmBody" style="font-size:12px;color:var(--muted);white-space:pre-wrap;line-height:1.5;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="p8ConfirmRestore()" style="flex:1;padding:9px;background:var(--accent2);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;">&#9989; CONFIRM RESTORE</button>
+      <button onclick="p8CancelRestore()" style="padding:9px 14px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+
+  <!-- PHASE 9.4.9.2: Clear data confirmation panel (replaces native confirm() for clear) -->
+  <div id="p8ClearConfirmPanel" style="display:none;background:color-mix(in srgb,var(--red) 10%,transparent);border:1px solid color-mix(in srgb,var(--red) 50%,transparent);border-radius:12px;padding:12px 14px;margin-top:10px;">
+    <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px;">&#9888; This will permanently delete all MarcusFit data from this browser/device.</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Logs, workouts, drafts, habits, lifecycle state, and custom exercise edits will all be erased. This cannot be undone. Create a backup first if you have not already.</div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="p8ConfirmClearData()" style="flex:1;padding:9px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;">&#128465; CONFIRM DELETE</button>
+      <button onclick="p8CancelClearData()" style="padding:9px 14px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
 
   <!-- ── PHASE 9C: LIFECYCLE HEALTH CHECK ── -->
   <hr class="divider">
@@ -906,7 +993,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 // ── VERSION ────────────────────────────────────────────────────────────────
-const APP_VERSION = "9.4.9";
+const APP_VERSION = "9.5.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 // ── DAILY HABITS DATA ──────────────────────────────────────────────────────
 const HABITS = [
@@ -2619,6 +2706,313 @@ function p9ClearCoachPrefs(){
   p9ShowCoachPrefsResult("✅ Cleared.","ok");
 }
 // ── END PHASE 9.4.8.8 ─────────────────────────────────────────────────────────
+
+// ── PHASE 9.5.0: USER PROFILE & APP PREFERENCES FOUNDATION ───────────────────
+// Storage key: "mf-user-profile" — structured, schema-versioned JSON object.
+// General identity/goals/units/gym-label foundation for future shared-app
+// support. Read by genExport() (concise block) and included in the PHASE 8
+// backup/restore path automatically via p8IsMarcusFitKey(). Does NOT store
+// live/current body weight (owned by daily logs) and does NOT store detailed
+// bodybuilding philosophy (remains in AI_PREFS_KEY / AI Coaching Preferences).
+// Does not control any workout/program/progression behavior in this release.
+const USER_PROFILE_KEY = "mf-user-profile";
+const USER_PROFILE_SCHEMA = 1;
+
+// Returns a fresh, independent default profile object (Marcus's defaults).
+// Never returns a shared mutable reference — safe to call repeatedly.
+function p950GetDefaultUserProfile(){
+  const now = new Date().toISOString();
+  return {
+    schemaVersion: USER_PROFILE_SCHEMA,
+    profileVersion: APP_VERSION,
+    identity: { displayName: "Marcus" },
+    body: { heightInches: 72 },
+    goals: {
+      primaryGoal: "Aesthetics during aggressive fat loss",
+      physiqueOutcome: "Athletic muscular physique when lean"
+    },
+    preferences: { weightUnit: "lb", distanceUnit: "mi", firstDayOfWeek: "sunday" },
+    app: { homeGymLabel: "Home", partialGymLabel: "Transition" },
+    createdAt: now,
+    updatedAt: now
+  };
+}
+
+// Format a total-inches height value as "X ft Y in". Never converts based on
+// weight/distance unit — height is stored and displayed in inches only.
+function p950FormatHeight(totalInches){
+  const n = Number(totalInches);
+  if(!isFinite(n) || n <= 0) return "unknown";
+  const ft = Math.floor(n / 12);
+  const inch = Math.round(n % 12);
+  return ft + " ft " + inch + " in";
+}
+
+// Fills missing/malformed fields from defaults, preserves valid existing
+// values, and preserves unknown top-level/nested fields where practical for
+// forward compatibility. Does not replace the whole object for one bad field.
+// Does NOT bump updatedAt — callers decide when a save is a "real" change.
+function p950NormalizeUserProfile(profile){
+  const def = p950GetDefaultUserProfile();
+  const src = (profile && typeof profile === "object") ? profile : {};
+
+  function str(v, fallback){
+    return (typeof v === "string" && v.trim()) ? v : fallback;
+  }
+  function safeHeight(v, fallback){
+    const n = Number(v);
+    if(typeof v !== "number" && typeof v !== "string") return fallback;
+    if(isNaN(n) || !isFinite(n)) return fallback;
+    if(n < 20 || n > 108) return fallback; // sanity bounds: ~1'8" to 9'0"
+    return n;
+  }
+
+  const out = Object.assign({}, src); // preserve unknown top-level fields
+
+  out.schemaVersion = USER_PROFILE_SCHEMA;
+  out.profileVersion = APP_VERSION; // profileVersion always reflects the app version that normalized/created this profile
+
+  const srcIdentity = (src.identity && typeof src.identity === "object") ? src.identity : {};
+  out.identity = Object.assign({}, srcIdentity, {
+    displayName: str(srcIdentity.displayName, def.identity.displayName)
+  });
+
+  const srcBody = (src.body && typeof src.body === "object") ? src.body : {};
+  out.body = Object.assign({}, srcBody, {
+    heightInches: safeHeight(srcBody.heightInches, def.body.heightInches)
+  });
+
+  const srcGoals = (src.goals && typeof src.goals === "object") ? src.goals : {};
+  out.goals = Object.assign({}, srcGoals, {
+    primaryGoal: str(srcGoals.primaryGoal, def.goals.primaryGoal),
+    physiqueOutcome: str(srcGoals.physiqueOutcome, def.goals.physiqueOutcome)
+  });
+
+  const srcPrefs = (src.preferences && typeof src.preferences === "object") ? src.preferences : {};
+  out.preferences = Object.assign({}, srcPrefs, {
+    weightUnit: srcPrefs.weightUnit === "kg" ? "kg" : "lb",
+    distanceUnit: srcPrefs.distanceUnit === "km" ? "km" : "mi",
+    firstDayOfWeek: srcPrefs.firstDayOfWeek === "monday" ? "monday" : "sunday"
+  });
+
+  const srcApp = (src.app && typeof src.app === "object") ? src.app : {};
+  out.app = Object.assign({}, srcApp, {
+    homeGymLabel: str(srcApp.homeGymLabel, def.app.homeGymLabel),
+    partialGymLabel: str(srcApp.partialGymLabel, def.app.partialGymLabel)
+  });
+
+  const createdAtValid = typeof src.createdAt === "string" && !isNaN(Date.parse(src.createdAt));
+  out.createdAt = createdAtValid ? src.createdAt : def.createdAt;
+
+  const updatedAtValid = typeof src.updatedAt === "string" && !isNaN(Date.parse(src.updatedAt));
+  out.updatedAt = updatedAtValid ? src.updatedAt : out.createdAt;
+
+  return out;
+}
+
+// Safely reads + parses mf-user-profile. Never throws. Returns a normalized
+// valid profile even if storage is empty/malformed. Does not write storage.
+function p950GetUserProfile(){
+  try {
+    const raw = localStorage.getItem(USER_PROFILE_KEY);
+    if(raw === null) return p950GetDefaultUserProfile();
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch(e){
+      console.warn("[MarcusFit] mf-user-profile is malformed JSON — using safe defaults for this read.");
+      return p950GetDefaultUserProfile();
+    }
+    return p950NormalizeUserProfile(parsed);
+  } catch(e){
+    console.warn("[MarcusFit] p950GetUserProfile failed, using safe defaults:", e && e.message);
+    return p950GetDefaultUserProfile();
+  }
+}
+
+// Normalizes, preserves createdAt, sets updatedAt (a real edit/migration is
+// being persisted), and safely writes to localStorage.
+function p950SaveUserProfile(profile){
+  try {
+    const normalized = p950NormalizeUserProfile(profile);
+    normalized.updatedAt = new Date().toISOString();
+    localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(normalized));
+    return { ok: true, profile: normalized };
+  } catch(e){
+    console.warn("[MarcusFit] p950SaveUserProfile failed:", e && e.message);
+    return { ok: false, error: (e && e.message) || "Unknown error" };
+  }
+}
+
+// Idempotent page-load initializer. Creates Marcus's default profile once if
+// missing, safely migrates/fills malformed or older data, and recovers to
+// defaults on corrupt JSON without crashing. Only writes storage when the
+// stored data actually needed to change — refreshing repeatedly must not
+// overwrite edits or keep bumping updatedAt.
+function p950InitUserProfile(){
+  try {
+    const raw = localStorage.getItem(USER_PROFILE_KEY);
+    if(raw === null){
+      const def = p950GetDefaultUserProfile();
+      localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(def));
+      console.log("[MarcusFit] Initialized default user profile (mf-user-profile).");
+      return;
+    }
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch(e){
+      console.warn("[MarcusFit] mf-user-profile was malformed JSON — recovering to Marcus defaults.");
+      localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(p950GetDefaultUserProfile()));
+      return;
+    }
+    const normalized = p950NormalizeUserProfile(parsed);
+    if(JSON.stringify(normalized) !== JSON.stringify(parsed)){
+      localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(normalized));
+      console.log("[MarcusFit] Migrated/normalized existing user profile.");
+    }
+  } catch(e){
+    console.warn("[MarcusFit] p950InitUserProfile failed:", e && e.message);
+  }
+}
+
+// Populate the Sync-tab profile card inputs from stored state. Safe no-op if
+// the profile card is not present in the current DOM.
+function p950RenderUserProfile(){
+  const nameEl = document.getElementById("p950DisplayName");
+  if(!nameEl) return;
+  const profile = p950GetUserProfile();
+  nameEl.value = profile.identity.displayName;
+  const totalIn = profile.body.heightInches;
+  document.getElementById("p950HeightFeet").value = Math.floor(totalIn / 12);
+  document.getElementById("p950HeightInches").value = totalIn % 12;
+  document.getElementById("p950PrimaryGoal").value = profile.goals.primaryGoal;
+  document.getElementById("p950PhysiqueOutcome").value = profile.goals.physiqueOutcome;
+  document.getElementById("p950WeightUnit").value = profile.preferences.weightUnit;
+  document.getElementById("p950DistanceUnit").value = profile.preferences.distanceUnit;
+  document.getElementById("p950FirstDayOfWeek").value = profile.preferences.firstDayOfWeek;
+  document.getElementById("p950HomeGymLabel").value = profile.app.homeGymLabel;
+  document.getElementById("p950PartialGymLabel").value = profile.app.partialGymLabel;
+}
+
+function p950ShowProfileResult(msg, type){
+  const el = document.getElementById("p950Result");
+  if(!el) return;
+  el.style.display = "block";
+  el.style.color = type === "ok" ? "var(--green)" : type === "err" ? "var(--red)" : type === "warn" ? "var(--yellow)" : "var(--text)";
+  el.style.whiteSpace = "pre-wrap";
+  el.textContent = msg;
+}
+
+// Reads Sync-tab inputs, validates, and saves. Preserves the previous saved
+// profile if validation fails — never partially overwrites on bad input.
+// Renders values via .value/textContent only — never innerHTML with
+// user-entered profile strings.
+function p950SaveUserProfileFromUI(){
+  const nameEl = document.getElementById("p950DisplayName");
+  if(!nameEl) return;
+
+  const displayName = nameEl.value.trim();
+  if(!displayName){
+    p950ShowProfileResult("❌ Display name cannot be empty. Your previous profile was not changed.", "err");
+    return;
+  }
+
+  let feet = parseInt(document.getElementById("p950HeightFeet").value, 10);
+  let inches = parseInt(document.getElementById("p950HeightInches").value, 10);
+  if(isNaN(feet) || feet < 0) feet = 0;
+  if(isNaN(inches) || inches < 0) inches = 0;
+  if(inches > 11) inches = 11;
+  const totalInches = (feet * 12) + inches;
+  if(totalInches < 20 || totalInches > 108){
+    p950ShowProfileResult("❌ Height looks invalid. Your previous profile was not changed.", "err");
+    return;
+  }
+
+  const weightUnit = document.getElementById("p950WeightUnit").value === "kg" ? "kg" : "lb";
+  const distanceUnit = document.getElementById("p950DistanceUnit").value === "km" ? "km" : "mi";
+  const firstDayOfWeek = document.getElementById("p950FirstDayOfWeek").value === "monday" ? "monday" : "sunday";
+  const primaryGoal = document.getElementById("p950PrimaryGoal").value.trim();
+  const physiqueOutcome = document.getElementById("p950PhysiqueOutcome").value.trim();
+  const homeGymLabel = document.getElementById("p950HomeGymLabel").value.trim();
+  const partialGymLabel = document.getElementById("p950PartialGymLabel").value.trim();
+
+  const current = p950GetUserProfile();
+  const updated = Object.assign({}, current, {
+    identity: Object.assign({}, current.identity, { displayName: displayName }),
+    body: Object.assign({}, current.body, { heightInches: totalInches }),
+    goals: Object.assign({}, current.goals, {
+      primaryGoal: primaryGoal || current.goals.primaryGoal,
+      physiqueOutcome: physiqueOutcome || current.goals.physiqueOutcome
+    }),
+    preferences: Object.assign({}, current.preferences, {
+      weightUnit: weightUnit,
+      distanceUnit: distanceUnit,
+      firstDayOfWeek: firstDayOfWeek
+    }),
+    app: Object.assign({}, current.app, {
+      homeGymLabel: homeGymLabel || current.app.homeGymLabel,
+      partialGymLabel: partialGymLabel || current.app.partialGymLabel
+    })
+  });
+
+  const result = p950SaveUserProfile(updated);
+  if(result.ok){
+    p950RenderUserProfile();
+    p950ShowProfileResult("✅ Profile saved.", "ok");
+  } else {
+    p950ShowProfileResult("❌ Failed to save profile: " + result.error, "err");
+  }
+}
+
+// Two-step in-app confirmation (same pattern as Restore/Clear App Data —
+// avoids native confirm(), which iOS home-screen PWA mode silently blocks).
+// Resets ONLY mf-user-profile. Does not touch logs, AI coaching preferences,
+// lifecycle data, the program, or workouts, and does not reload the page.
+function p950ResetUserProfileDefaults(){
+  const panel = document.getElementById("p950ResetConfirmPanel");
+  if(panel){
+    panel.style.display = "block";
+    panel.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+  p950ShowProfileResult("⚠ This will reset your profile to Marcus defaults. Confirm below to proceed.", "warn");
+}
+function p950ConfirmResetProfile(){
+  const panel = document.getElementById("p950ResetConfirmPanel");
+  if(panel) panel.style.display = "none";
+  const def = p950GetDefaultUserProfile();
+  const result = p950SaveUserProfile(def);
+  if(result.ok){
+    p950RenderUserProfile();
+    p950ShowProfileResult("✅ Profile reset to Marcus defaults.", "ok");
+  } else {
+    p950ShowProfileResult("❌ Reset failed: " + result.error, "err");
+  }
+}
+function p950CancelResetProfile(){
+  const panel = document.getElementById("p950ResetConfirmPanel");
+  if(panel) panel.style.display = "none";
+  p950ShowProfileResult("Reset cancelled. No changes made.", "ok");
+}
+
+// Concise, human-readable profile block for AI exports. No raw JSON dump.
+// Gracefully falls back if profile storage is absent/malformed.
+function p950BuildUserProfileExport(){
+  try {
+    const profile = p950GetUserProfile();
+    const lines = ["--- USER PROFILE ---", ""];
+    lines.push("Display Name: " + (profile.identity.displayName || "Marcus"));
+    lines.push("Height: " + p950FormatHeight(profile.body.heightInches));
+    if(profile.goals.primaryGoal) lines.push("Primary Goal: " + profile.goals.primaryGoal);
+    if(profile.goals.physiqueOutcome) lines.push("Physique Outcome: " + profile.goals.physiqueOutcome);
+    lines.push("Units: " + profile.preferences.weightUnit + " / " + profile.preferences.distanceUnit);
+    lines.push("First Day of Week: " + (profile.preferences.firstDayOfWeek === "monday" ? "Monday" : "Sunday"));
+    lines.push("Program Labels: " + profile.app.homeGymLabel + " / " + profile.app.partialGymLabel);
+    lines.push("", "");
+    return lines.join("\n");
+  } catch(e){
+    return "--- USER PROFILE ---\n\n(Profile unavailable: " + ((e && e.message) || "unknown error") + ")\n\n";
+  }
+}
+// ── END PHASE 9.5.0 ────────────────────────────────────────────────────────────
 
 // Show brief "Draft saved HH:MM" toast — debounced so it doesn't spam
 let _draftToastTimer=null;
@@ -5290,6 +5684,12 @@ function genExport(){
 
   const rangeDesc=val==="program"?"Program templates only":val==="full"?"Full history ("+allDkeys.length+" days)":"Program + last "+val+" days ("+dkeys.length+" of "+allDkeys.length+" total logged days)";
 
+  // 9.5.0: User Profile — concise, human-readable identity/goals/units/gym-
+  // label block, surfaced near the top of every export just after the
+  // header. Built by p950BuildUserProfileExport(); safe fallback if profile
+  // storage is absent or malformed. Does not duplicate AI Coaching Prefs.
+  const userProfileBlock=p950BuildUserProfileExport();
+
   // 9.4.8.8: Persistent AI Coaching Preferences — surfaced near the top of
   // every export so AI Sync sessions always see current intent/priorities.
   const coachPrefsRaw=p9GetCoachPrefs().trim();
@@ -5308,6 +5708,7 @@ function genExport(){
     +"Total logged days (all time): "+allDkeys.length+"\n"
     +"Weight trend (selected range): "+wTrend+"\n"
     +(wTrendAll?wTrendAll+"\n":"")+"\n"
+    +userProfileBlock
     +coachPrefsBlock
     +swapCandidateBlock
     +progSnap+"\n"
@@ -7033,7 +7434,7 @@ const SCHEMA_VERSION = 1;
 
 // Identify all localStorage keys owned by MarcusFit
 function p8IsMarcusFitKey(key){
-  return key.startsWith("day-") || key === OVR || key === DRAFT_KEY || key === LIFECYCLE_KEY || key === RECS_KEY || key === AI_PREFS_KEY;
+  return key.startsWith("day-") || key === OVR || key === DRAFT_KEY || key === LIFECYCLE_KEY || key === RECS_KEY || key === AI_PREFS_KEY || key === USER_PROFILE_KEY;
 }
 
 function p8GetMarcusFitKeys(){
@@ -7055,12 +7456,122 @@ function p8BuildBackup(){
   };
 }
 
+// ── PHASE 9.4.9.2: Backup summary parser ──────────────────────────────────────
+// Safely summarizes a backup (object or raw JSON string) without dumping raw
+// data. Used by both p8CreateBackup() (create flow) and p8RestoreBackup()
+// (restore preview flow). Never mutates anything — pure read/parse only.
+function p8492SummarizeBackup(rawOrObj){
+  const result = {
+    valid: false,
+    schemaVersion: null,
+    appVersion: null,
+    createdAt: null,
+    keyCount: 0,
+    dailyLogCount: 0,
+    workoutLogCount: 0,
+    hasLifecycle: false,
+    hasOverrides: false,
+    hasDraft: false,
+    hasRecommendations: false,
+    hasAiPrefs: false,
+    hasUserProfile: false,
+    userProfileSchemaVersion: null,
+    userProfileDisplayName: null,
+    unknownKeyCount: 0,
+    approxSizeBytes: 0,
+    approxSizeKB: 0,
+    warnings: [],
+    errors: []
+  };
+  try {
+    let backup = rawOrObj;
+    if(typeof rawOrObj === "string"){
+      try { backup = JSON.parse(rawOrObj); }
+      catch(e){ result.errors.push("Invalid backup JSON."); return result; }
+    }
+    if(!backup || typeof backup !== "object"){
+      result.errors.push("Backup is not a valid object.");
+      return result;
+    }
+    if(backup.app !== "MarcusFit"){
+      result.errors.push("Backup does not belong to MarcusFit.");
+      return result;
+    }
+    result.schemaVersion = (backup.schemaVersion != null) ? backup.schemaVersion : null;
+    result.appVersion = backup.appVersion || null;
+    result.createdAt = backup.exportedAt || null;
+
+    const data = backup.data || {};
+    const keys = Object.keys(data);
+    result.keyCount = keys.length;
+
+    keys.forEach(function(k){
+      if(k.startsWith("day-") && k.endsWith("-wo")) result.workoutLogCount++;
+      else if(k.startsWith("day-")) result.dailyLogCount++;
+      else if(k === OVR) result.hasOverrides = true;
+      else if(k === DRAFT_KEY) result.hasDraft = true;
+      else if(k === LIFECYCLE_KEY) result.hasLifecycle = true;
+      else if(k === RECS_KEY) result.hasRecommendations = true;
+      else if(k === AI_PREFS_KEY) result.hasAiPrefs = true;
+      else if(k === USER_PROFILE_KEY){
+        result.hasUserProfile = true;
+        try {
+          const pv = data[k];
+          const profileObj = typeof pv === "string" ? JSON.parse(pv) : pv;
+          const norm = p950NormalizeUserProfile(profileObj);
+          result.userProfileSchemaVersion = norm.schemaVersion;
+          result.userProfileDisplayName = norm.identity.displayName;
+        } catch(e){
+          result.warnings.push("User profile in this backup could not be parsed.");
+        }
+      }
+      else result.unknownKeyCount++;
+      try {
+        const v = data[k];
+        result.approxSizeBytes += (typeof v === "string" ? v : JSON.stringify(v) || "").length;
+      } catch(e){ /* ignore size errors for a single key */ }
+    });
+    result.approxSizeKB = Math.round((result.approxSizeBytes / 1024) * 10) / 10;
+
+    if(!backup.exportedAt) result.warnings.push("Backup has no createdAt/exportedAt timestamp.");
+    if(result.keyCount === 0) result.warnings.push("Backup contains no MarcusFit data keys.");
+    if(result.unknownKeyCount > 0) result.warnings.push(result.unknownKeyCount + " key(s) in this backup are not recognized by the current app version.");
+
+    result.valid = true;
+  } catch(e){
+    result.errors.push("Failed to summarize backup: " + (e && e.message));
+  }
+  return result;
+}
+
+// Build a readable multi-line summary block from a p8492SummarizeBackup() result
+function p8492FormatSummaryLines(s){
+  const lines = [
+    "App version: " + (s.appVersion || "unknown"),
+    "Created: " + (s.createdAt || "unknown"),
+    "Total keys: " + s.keyCount,
+    "Daily logs: " + s.dailyLogCount + " | Workout logs: " + s.workoutLogCount,
+    "Lifecycle: " + (s.hasLifecycle ? "yes" : "no") + " | Overrides: " + (s.hasOverrides ? "yes" : "no") + " | Draft: " + (s.hasDraft ? "yes" : "no"),
+    "Recommendations: " + (s.hasRecommendations ? "yes" : "no") + " | AI coaching prefs: " + (s.hasAiPrefs ? "yes" : "no"),
+    "User Profile: " + (s.hasUserProfile ? ("Yes — " + (s.userProfileDisplayName || "unknown") + " (schema v" + (s.userProfileSchemaVersion != null ? s.userProfileSchemaVersion : "?") + ")") : "Not included"),
+    "Approx size: " + s.approxSizeKB + " KB"
+  ];
+  if(s.warnings && s.warnings.length){
+    lines.push("", "⚠ Warnings:");
+    s.warnings.forEach(function(w){ lines.push("• " + w); });
+  }
+  return lines;
+}
+// ── END PHASE 9.4.9.2 BACKUP SUMMARY PARSER ───────────────────────────────────
+
 // Render the backup object into the textarea
 function p8CreateBackup(){
   const backup = p8BuildBackup();
   const json = JSON.stringify(backup, null, 2);
   document.getElementById("p8BackupTa").value = json;
-  p8ShowResult("✅ Backup created successfully. Copy it and save somewhere safe.", "ok");
+  const s = p8492SummarizeBackup(backup);
+  const lines = ["✅ Backup created successfully. Copy it and save somewhere safe.", ""].concat(p8492FormatSummaryLines(s));
+  p8ShowResult(lines.join("\n"), "ok");
   console.log("[MarcusFit] Backup created");
 }
 
@@ -7109,8 +7620,19 @@ function p8MigrateBackup(backup){
   }
 }
 
-// Full restore flow
+// ── PHASE 9.4.9.2: Restore preview / two-step confirmation ───────────────────
+// native confirm() is blocked/unreliable in iOS home-screen PWA mode (same
+// issue documented for saveDay()'s future-date confirm — see p85ConfirmFutureSave
+// pattern). Restore now uses that same in-app panel pattern instead.
+//
+// In-memory only — never persisted — holds the parsed+migrated backup between
+// the initial RESTORE BACKUP click (preview) and the explicit CONFIRM RESTORE
+// click (apply). Cleared on cancel, on apply, or if the textarea is edited.
+let p8PendingRestoreBackup = null;
+
+// Step 1: parse, validate, migrate, and show a preview — does NOT apply anything
 function p8RestoreBackup(){
+  p8HideRestoreConfirm();
   const raw = document.getElementById("p8BackupTa").value.trim();
   if(!raw){ p8ShowResult("❌ Paste a backup into the text area first.", "err"); return; }
 
@@ -7123,18 +7645,48 @@ function p8RestoreBackup(){
   try { backup = p8MigrateBackup(backup); }
   catch(e){ p8ShowResult(e.message, "err"); return; }
 
-  // Step 3: Confirm
-  const confirmed = confirm(
-    "This will overwrite your current MarcusFit data.\n\n" +
-    "A safety backup will be created first and shown in the backup box if anything goes wrong.\n\n" +
-    "Continue?"
-  );
-  if(!confirmed){ return; }
+  // Step 3: Preview — hold the parsed backup and show summary + confirm panel
+  p8PendingRestoreBackup = backup;
+  const s = p8492SummarizeBackup(backup);
+  const body = document.getElementById("p8RestoreConfirmBody");
+  if(body){
+    const lines = ["This backup contains:", ""].concat(p8492FormatSummaryLines(s));
+    lines.push("", "Restoring will overwrite your current MarcusFit data on this device. A safety copy of your current data will be shown here automatically if anything goes wrong.");
+    body.textContent = lines.join("\n");
+  }
+  const panel = document.getElementById("p8RestoreConfirmPanel");
+  if(panel){
+    panel.style.display = "block";
+    panel.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+  p8ShowResult("⚠ Restore preview ready. Review the summary below, then confirm to proceed.", "warn");
+}
 
-  // Step 4: Safety backup (in memory — shown in textarea on failure)
+function p8HideRestoreConfirm(){
+  const panel = document.getElementById("p8RestoreConfirmPanel");
+  if(panel) panel.style.display = "none";
+  p8PendingRestoreBackup = null;
+}
+
+function p8CancelRestore(){
+  p8HideRestoreConfirm();
+  p8ShowResult("Restore cancelled. No data was changed.", "ok");
+}
+
+// Step 2 (explicit second click): actually apply the previously-previewed backup
+function p8ConfirmRestore(){
+  const backup = p8PendingRestoreBackup;
+  p8HideRestoreConfirm();
+  if(!backup){ p8ShowResult("❌ Nothing to restore. Paste a backup and click Restore Backup again.", "err"); return; }
+  p8ExecuteRestore(backup);
+}
+
+// Applies a validated+migrated backup object. Unchanged from prior restore
+// logic — only the confirmation step that gates entry to this function changed.
+function p8ExecuteRestore(backup){
+  // Safety backup (in memory — shown in textarea on failure)
   const safetyBackup = JSON.stringify(p8BuildBackup(), null, 2);
 
-  // Step 5–7: Remove existing MarcusFit keys, restore from backup
   try {
     // Remove existing MarcusFit keys
     p8GetMarcusFitKeys().forEach(k => localStorage.removeItem(k));
@@ -7157,31 +7709,450 @@ function p8RestoreBackup(){
     p8ShowResult("❌ Restore failed: " + e.message + "\n\nYour original data has been shown above. Copy it before refreshing.", "err");
   }
 }
+// ── END PHASE 9.4.9.2 RESTORE PREVIEW/CONFIRM ─────────────────────────────────
 
-// Clear all MarcusFit data with confirmation
+// ── PHASE 9.4.9.2: Clear data two-step confirmation ───────────────────────────
+// Step 1: show warning panel only — clears nothing yet
 function p8ClearData(){
-  const confirmed = confirm(
-    "Delete all MarcusFit logs, workouts, drafts, habits, and custom exercise edits?\n\n" +
-    "This cannot be undone.\n\n" +
-    "Create a backup first if you have not already."
-  );
-  if(!confirmed){ return; }
+  p8HideRestoreConfirm();
+  const panel = document.getElementById("p8ClearConfirmPanel");
+  if(panel){
+    panel.style.display = "block";
+    panel.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+  p8ShowResult("⚠ This will permanently delete all MarcusFit data from this browser/device. Confirm below to proceed.", "warn");
+}
+
+// Step 2 (explicit second click): actually clear
+function p8ConfirmClearData(){
+  const panel = document.getElementById("p8ClearConfirmPanel");
+  if(panel) panel.style.display = "none";
   p8GetMarcusFitKeys().forEach(k => localStorage.removeItem(k));
   p8ShowResult("✅ All MarcusFit data cleared. Reloading...", "ok");
   setTimeout(() => location.reload(), 1200);
 }
+
+function p8CancelClearData(){
+  const panel = document.getElementById("p8ClearConfirmPanel");
+  if(panel) panel.style.display = "none";
+  p8ShowResult("Clear cancelled. No data was changed.", "ok");
+}
+// ── END PHASE 9.4.9.2 CLEAR DATA TWO-STEP CONFIRM ─────────────────────────────
 
 // Show a result message in the backup result div
 function p8ShowResult(msg, type){
   const el = document.getElementById("p8BackupResult");
   if(!el) return;
   el.style.display = "block";
-  el.style.color = type === "ok" ? "var(--green)" : type === "err" ? "var(--red)" : "var(--text)";
+  el.style.color = type === "ok" ? "var(--green)" : type === "err" ? "var(--red)" : type === "warn" ? "var(--yellow)" : "var(--text)";
   el.style.whiteSpace = "pre-wrap";
   el.textContent = msg;
 }
 
+// ── PHASE 9.4.9.2: BACKUP HEALTH CHECK (read-only) ────────────────────────────
+// Console diagnostic helper. Reports current backup readiness — recognized
+// keys, coverage gaps in the p8IsMarcusFitKey() allowlist, and an in-memory
+// preview of what a backup created right now would contain. Never writes
+// localStorage, never mutates data, never touches the UI. Each section is
+// wrapped so one broken section cannot crash the whole helper.
+window.mfBackupDebug = function(){
+  const summary = {
+    appVersion: APP_VERSION,
+    backupKeyFilter: {},
+    currentStorage: {},
+    backupPreview: {},
+    coverage: {},
+    warnings: [],
+    risks: [],
+    errors: []
+  };
+
+  try {
+    summary.backupKeyFilter = {
+      description: "p8IsMarcusFitKey() is a manual allowlist — recognized patterns below.",
+      recognizedPatterns: ["day-* (daily logs)", "day-*-wo (workout logs)", OVR, DRAFT_KEY, LIFECYCLE_KEY, RECS_KEY, AI_PREFS_KEY, USER_PROFILE_KEY]
+    };
+  } catch(e){ summary.errors.push("backupKeyFilter section failed: " + (e && e.message)); }
+
+  try {
+    const keys = p8GetMarcusFitKeys();
+    let dailyLogCount = 0, workoutLogCount = 0;
+    keys.forEach(function(k){
+      if(k.startsWith("day-") && k.endsWith("-wo")) workoutLogCount++;
+      else if(k.startsWith("day-")) dailyLogCount++;
+    });
+    let lifecycleParseStatus = "not-present";
+    try {
+      const raw = localStorage.getItem(LIFECYCLE_KEY);
+      if(raw){
+        try { JSON.parse(raw); lifecycleParseStatus = "ok"; }
+        catch(e){ lifecycleParseStatus = "parse-error"; }
+      }
+    } catch(e){ lifecycleParseStatus = "error"; }
+    summary.currentStorage = {
+      recognizedKeyCount: keys.length,
+      dailyLogCount: dailyLogCount,
+      workoutLogCount: workoutLogCount,
+      lifecyclePresent: keys.indexOf(LIFECYCLE_KEY) !== -1,
+      lifecycleParseStatus: lifecycleParseStatus,
+      overridesPresent: keys.indexOf(OVR) !== -1,
+      draftPresent: keys.indexOf(DRAFT_KEY) !== -1,
+      recommendationsPresent: keys.indexOf(RECS_KEY) !== -1,
+      aiPrefsPresent: keys.indexOf(AI_PREFS_KEY) !== -1,
+      userProfilePresent: keys.indexOf(USER_PROFILE_KEY) !== -1
+    };
+  } catch(e){ summary.errors.push("currentStorage section failed: " + (e && e.message)); }
+
+  try {
+    const raw = localStorage.getItem(USER_PROFILE_KEY);
+    const profileStatus = { exists: raw !== null, parses: false, schemaVersion: null, displayName: null };
+    if(raw !== null){
+      try {
+        const parsed = JSON.parse(raw);
+        profileStatus.parses = true;
+        const norm = p950NormalizeUserProfile(parsed);
+        profileStatus.schemaVersion = norm.schemaVersion;
+        profileStatus.displayName = norm.identity.displayName;
+      } catch(e){
+        summary.warnings.push("mf-user-profile exists but is not valid JSON.");
+      }
+    } else {
+      summary.warnings.push("mf-user-profile does not exist yet — p950InitUserProfile() should create it on next load.");
+    }
+    profileStatus.includedByKeyFilter = p8IsMarcusFitKey(USER_PROFILE_KEY);
+    summary.userProfile = profileStatus;
+  } catch(e){ summary.errors.push("userProfile section failed: " + (e && e.message)); }
+
+  try {
+    // In-memory only — builds the same object p8CreateBackup() would write to
+    // the textarea, but never touches the DOM or writes anything to disk.
+    const backup = p8BuildBackup();
+    summary.backupPreview = p8492SummarizeBackup(backup);
+  } catch(e){ summary.errors.push("backupPreview section failed: " + (e && e.message)); }
+
+  try {
+    const allKeys = Object.keys(localStorage);
+    const excluded = allKeys.filter(function(k){
+      return (k.startsWith("mf-") || k.startsWith("day-")) && !p8IsMarcusFitKey(k);
+    });
+    summary.coverage = {
+      totalLocalStorageKeys: allKeys.length,
+      marcusFitRecognizedKeys: p8GetMarcusFitKeys().length,
+      marcusFitLookingExcludedKeys: excluded
+    };
+    if(excluded.length){
+      summary.warnings.push(excluded.length + " MarcusFit-looking key(s) exist but are NOT included in backups: " + excluded.join(", "));
+    }
+  } catch(e){ summary.errors.push("coverage section failed: " + (e && e.message)); }
+
+  summary.risks = [
+    "p8IsMarcusFitKey() is a manual allowlist — any new localStorage key added in a future release must be added there or it silently falls outside backup/restore coverage.",
+    "This helper is read-only: it never writes localStorage, never mutates data, and never creates an actual backup file — backupPreview is computed in memory only."
+  ];
+
+  console.log("[MarcusFit] mfBackupDebug():", summary);
+  return summary;
+};
+var mfBackupDebug = window.mfBackupDebug;
+// ── END PHASE 9.4.9.2 BACKUP HEALTH CHECK ─────────────────────────────────────
+
+// ── PHASE 9.5.0: USER PROFILE DEBUG (read-only) ───────────────────────────────
+// Console diagnostic helper for mf-user-profile. Reports existence/parse
+// status, normalized field values, whether the key is covered by the backup
+// allowlist, and a preview of its AI export block. Never writes localStorage,
+// never "repairs" stored data — purely read/normalize-in-memory only.
+window.mfUserProfileDebug = function(){
+  const result = {
+    key: USER_PROFILE_KEY,
+    exists: false,
+    parses: false,
+    schemaVersion: null,
+    profileVersion: null,
+    displayName: null,
+    heightInches: null,
+    formattedHeight: null,
+    primaryGoal: null,
+    physiqueOutcome: null,
+    preferences: {},
+    appLabels: {},
+    createdAt: null,
+    updatedAt: null,
+    backupIncluded: false,
+    exportPreview: "",
+    warnings: []
+  };
+  try {
+    const raw = localStorage.getItem(USER_PROFILE_KEY);
+    result.exists = raw !== null;
+    if(!result.exists){
+      result.warnings.push("mf-user-profile does not exist yet — p950InitUserProfile() should create it on next page load.");
+    } else {
+      let parsed = null;
+      try { parsed = JSON.parse(raw); result.parses = true; }
+      catch(e){ result.warnings.push("mf-user-profile exists but is not valid JSON."); }
+      const profile = p950NormalizeUserProfile(parsed || {});
+      result.schemaVersion = profile.schemaVersion;
+      result.profileVersion = profile.profileVersion;
+      result.displayName = profile.identity.displayName;
+      result.heightInches = profile.body.heightInches;
+      result.formattedHeight = p950FormatHeight(profile.body.heightInches);
+      result.primaryGoal = profile.goals.primaryGoal;
+      result.physiqueOutcome = profile.goals.physiqueOutcome;
+      result.preferences = profile.preferences;
+      result.appLabels = { homeGymLabel: profile.app.homeGymLabel, partialGymLabel: profile.app.partialGymLabel };
+      result.createdAt = profile.createdAt;
+      result.updatedAt = profile.updatedAt;
+    }
+    result.backupIncluded = p8IsMarcusFitKey(USER_PROFILE_KEY);
+    if(!result.backupIncluded){
+      result.warnings.push("mf-user-profile is NOT currently recognized by p8IsMarcusFitKey() — it would be excluded from backups.");
+    }
+    try { result.exportPreview = p950BuildUserProfileExport(); }
+    catch(e){ result.warnings.push("Failed to build export preview: " + (e && e.message)); }
+  } catch(e){
+    result.warnings.push("mfUserProfileDebug failed: " + (e && e.message));
+  }
+  console.log("[MarcusFit] mfUserProfileDebug():", result);
+  return result;
+};
+var mfUserProfileDebug = window.mfUserProfileDebug;
+// ── END PHASE 9.5.0 USER PROFILE DEBUG ────────────────────────────────────────
+
 // ── END PHASE 8 ───────────────────────────────────────────────────────────────
+
+// ── PHASE 9.4.9.1: ARCHITECTURE AUDIT / SYSTEM MAP ────────────────────────────
+// Read-only console/debug helper. Documents current systems, storage, export/
+// sync architecture, and hardcoded assumptions ahead of profile/intake/
+// custom-habit/shareable-user work. Never mutates data, never calls save
+// functions, never writes localStorage. Each section is wrapped so one
+// broken section cannot crash the whole helper.
+window.mfArchitectureDebug = function(){
+  const summary = {
+    app: {},
+    storage: {},
+    systems: {},
+    dataSchemas: {},
+    backupRestore: {},
+    aiExportSync: {},
+    programArchitecture: {},
+    hardcodedAssumptions: {},
+    debugHelpers: {},
+    risksAndNextAbstractions: [],
+    errors: []
+  };
+
+  // 1. App metadata
+  try {
+    const lc = getLifecycle();
+    const gyms = Object.keys(P);
+    const baseDayCounts = {}, resolvedDayCounts = {}, activeExerciseCounts = {};
+    let virtualDayCount = 0;
+    gyms.forEach(function(g){
+      baseDayCounts[g] = (P[g]||[]).length;
+      const resolvedDays = getResolvedDays(g);
+      resolvedDayCounts[g] = resolvedDays.length;
+      activeExerciseCounts[g] = resolvedDays.reduce(function(sum,d){return sum+((d.exercises||[]).length);},0);
+      virtualDayCount += Object.keys((lc.dayAdditions||{})[g]||{}).length;
+    });
+    summary.app = {
+      appVersion: APP_VERSION,
+      lifecycleVersion: LIFECYCLE_VERSION,
+      lifecycleSchema: (typeof LIFECYCLE_SCHEMA!=="undefined")?LIFECYCLE_SCHEMA:null,
+      platform: "Single-file HTML / vanilla JS / localStorage / no backend / GitHub Pages hosted / iOS home-screen PWA",
+      gyms: gyms,
+      baseDayCountsByGym: baseDayCounts,
+      resolvedDayCountsByGym: resolvedDayCounts,
+      activeExerciseCountsByGym: activeExerciseCounts,
+      customExerciseCount: Object.keys(lc.customExercises||{}).length,
+      virtualAdditiveDayCount: virtualDayCount
+    };
+  } catch(e){ summary.errors.push("app section failed: "+(e&&e.message)); }
+
+  // 2. localStorage inventory (summaries only — no raw log dumps)
+  try {
+    const keys = p8GetMarcusFitKeys();
+    const categories = {};
+    const unrecognized = [];
+    function bump(cat){ categories[cat] = (categories[cat]||0)+1; }
+    keys.forEach(function(k){
+      if(k.startsWith("day-") && k.endsWith("-wo")) bump("workout logs");
+      else if(k.startsWith("day-")) bump("daily logs (metrics/habits)");
+      else if(k===OVR) bump("field overrides");
+      else if(k===DRAFT_KEY) bump("drafts");
+      else if(k===LIFECYCLE_KEY) bump("lifecycle state");
+      else if(k===RECS_KEY) bump("recommendations");
+      else if(k===AI_PREFS_KEY) bump("AI coaching preferences");
+      else if(k===USER_PROFILE_KEY) bump("user profile");
+      else bump("other");
+    });
+    Object.keys(localStorage).forEach(function(k){
+      if((k.startsWith("mf-") || k.startsWith("day-")) && !p8IsMarcusFitKey(k)) unrecognized.push(k);
+    });
+    let approxTotalSizeBytes = 0;
+    const approxSizeByCategory = {};
+    keys.forEach(function(k){
+      try{
+        const len = (localStorage.getItem(k)||"").length;
+        approxTotalSizeBytes += len;
+      }catch(e){}
+    });
+    summary.storage = {
+      totalRecognizedKeys: keys.length,
+      categoryCounts: categories,
+      unrecognizedMarcusFitLookingKeys: unrecognized,
+      approxTotalSizeBytes: approxTotalSizeBytes,
+      allKeysBackupCovered: true,
+      note: "All recognized keys are backup-covered via p8GetMarcusFitKeys(). Raw log/workout contents are not dumped — counts and categories only."
+    };
+  } catch(e){ summary.errors.push("storage section failed: "+(e&&e.message)); }
+
+  // 3. Known systems/modules
+  try {
+    summary.systems = {
+      baseProgram_P: { storageKeys:["(hardcoded const P, not in localStorage)"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:true, purpose:"Source-of-truth workout templates per gym/day/exercise. Never mutated at runtime." },
+      fieldOverrides: { storageKeys:[OVR], functions:["getOvr","setOvr","resetOvr","getF"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"Per-exercise field overrides (name/load/rir/sets/reps) layered on top of base P." },
+      exerciseLifecycle: { storageKeys:[LIFECYCLE_KEY], functions:["getLifecycle","saveLifecycle","exLifecycleDefault"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Central state object: inactiveIds, replacements, orderOverrides, dayOverrides, dayAdditions, customExercises." },
+      customExercises: { storageKeys:[LIFECYCLE_KEY+" → customExercises"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"AI/user-added exercises (base or virtual day) not present in base P, stable generated IDs." },
+      orderOverrides: { storageKeys:[LIFECYCLE_KEY+" → orderOverrides"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"AI-driven exercise reordering per gym+day, applied inside getResolvedProgram()/getResolvedDays()." },
+      dayOverrideEngine: { storageKeys:[LIFECYCLE_KEY+" → dayOverrides"], functions:["getDayOverride","getEffectiveDayMeta","mfDayOverrideDebug"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Overrides day-level metadata (name/subtitle/focus/note/tag/meta) on base days." },
+      virtualAdditiveDayEngine: { storageKeys:[LIFECYCLE_KEY+" → dayAdditions"], functions:["getResolvedDays","getSafeDayDisplayName","getSafeDayForLog","mfDayAdditionDebug"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Virtual/additive days appended after base days (e.g. optional Day 7+)." },
+      recommendationsEngine: { storageKeys:[RECS_KEY], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Short-term AI Sync coaching experiments/guidance, works on base and virtual days." },
+      workoutLogging: { storageKeys:["day-YYYY-MM-DD-wo"], functions:["getTodayWoData","dKey"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Per-day logged sets/loads/RIR for completed workouts." },
+      dailyMetrics: { storageKeys:["day-YYYY-MM-DD"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Daily vitals: weight, water, Zepbound dose, BM, hunger/recovery, etc." },
+      dailyHabits: { storageKeys:["day-YYYY-MM-DD (habit sub-fields, see HABITS array)"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"Habit checklist completion (posture, breathing, kegels, steps, water, BM)." },
+      draftSystem: { storageKeys:[DRAFT_KEY], functions:["getDraft","saveDraft"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"In-progress/unsaved workout entry state." },
+      historyRenderingFiltering: { storageKeys:["day-* (read-only)"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:false, purpose:"Phase 7 history screen: filters/renders past logs. Read-only consumer, not its own storage system." },
+      analytics: { storageKeys:["day-* (read-only)"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:false, purpose:"Phase 7 analytics screen: aggregates weight/recovery trends. Read-only consumer." },
+      backupRestoreSystem: { storageKeys:["(all keys matched by p8IsMarcusFitKey)"], functions:["p8BuildBackup","p8CreateBackup","p8CopyBackup","p8ValidateBackup","p8MigrateBackup","p8RestoreBackup","p8ClearData"], mutatesBaseP:false, backupCovered:"n/a — this is the backup system itself", exportSyncRelated:false, purpose:"Full JSON export/import of all MarcusFit-owned localStorage keys, raw-string round-trip, schema-versioned." },
+      aiExport: { storageKeys:["(reads multiple keys, writes none)"], functions:["genExport","p9489BuildSwapCandidateExport","p9489FormatSwapCandidateSection"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:true, purpose:"Builds the full text block (coaching prefs + swap intelligence + program snapshot + logs + AI Sync format instructions) for pasting into an external AI." },
+      aiSyncImport: { storageKeys:["(writes lifecycle/recommendations/overrides only)"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Parses MARCUSFIT_UPDATE JSON blocks and applies safe lifecycle operations via _action types. Never touches base P." },
+      progressionEngine: { storageKeys:["day-*-wo (read-only)"], functions:["p9GetExerciseHistory","p9GetProgressionStatus","p9BuildProgressionExport","p9GetTopActualLoad","p5ParseRir"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:true, purpose:"Derives per-exercise progression status (7 statuses) from logged history." },
+      swapCandidateIntelligence: { storageKeys:["day-*-wo (read-only)"], functions:["p9489AnalyzeExerciseRotation","p9489FormatSwapCandidateSection","p9489BuildSwapCandidateExport"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:true, purpose:"Day-type-aware analysis surfacing stale/capped/redundant exercises as swap candidates in exports." },
+      workoutReviewAfterSave: { storageKeys:["(derived at save time, no new key)"], functions:["p949BuildWorkoutReview","p949RenderReview","p949HideReview","p949GetPriorHistory"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:false, purpose:"Local deterministic post-save summary of wins/watch items using existing logs and progression signals." },
+      userProfile: { storageKeys:[USER_PROFILE_KEY], functions:["p950GetDefaultUserProfile","p950GetUserProfile","p950SaveUserProfile","p950NormalizeUserProfile","p950InitUserProfile","p950RenderUserProfile","p950SaveUserProfileFromUI","p950ResetUserProfileDefaults","p950BuildUserProfileExport","mfUserProfileDebug"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Structured, schema-versioned general identity/goals/units/gym-label foundation for future shared-app support (added 9.5.0). Does not store live/current weight (owned by daily logs) or detailed bodybuilding philosophy (remains in AI_PREFS_KEY). Does not control workout/program behavior in this release; gym labels are stored but not globally applied yet." }
+    };
+  } catch(e){ summary.errors.push("systems section failed: "+(e&&e.message)); }
+
+  // 4. High-level data schema summaries (shapes only — no raw dumps)
+  try {
+    summary.dataSchemas = {
+      "day-YYYY-MM-DD": { type:"object", shape:"Daily metrics: {date, weight?, water?, zep?, bm?, recovery:{...}, habits:{...}}", missingIsValid:true, corruptJsonHandled:"Yes — reads wrapped in try/catch with {} fallback throughout the app." },
+      "day-YYYY-MM-DD-wo": { type:"object", shape:"Workout log: {gym, dayIdx, exercises:[{id, sets:[{load,reps,rir}, ...]}, ...]}", missingIsValid:true, corruptJsonHandled:"Yes — getTodayWoData() and history readers use try/catch with {} fallback." },
+      "mf-current-draft (DRAFT_KEY)": { type:"object|null", shape:"In-progress unsaved workout entry, same rough shape as a workout log.", missingIsValid:true, corruptJsonHandled:"Yes — getDraft() try/catch returns null on parse failure." },
+      "mf-overrides (OVR)": { type:"object", shape:"{ exerciseId: { field: value, ... }, ... } — sparse, only overridden fields present.", missingIsValid:true, corruptJsonHandled:"Yes — getOvr() try/catch returns {} on parse failure." },
+      "mf-exercise-state (LIFECYCLE_KEY)": { type:"object", shape:"{schemaVersion, lifecycleVersion, customExercises, inactiveIds, replacements, orderOverrides, dayOverrides, dayAdditions}", missingIsValid:true, corruptJsonHandled:"Yes — getLifecycle() try/catch and missing schemaVersion both fall back to exLifecycleDefault()." },
+      "mf-recommendations (RECS_KEY)": { type:"object", shape:"{ \"gymKey:dayIdx\": { items:[...], strategy, experimentTag, expiresAfterSessions, ... }, ... }", missingIsValid:true, corruptJsonHandled:"Yes — try/catch with {} fallback." },
+      "mf-ai-coaching-preferences (AI_PREFS_KEY)": { type:"string", shape:"Free-text persistent coaching preferences block, defaults to AI_PREFS_STARTER_TEMPLATE when reset.", missingIsValid:true, corruptJsonHandled:"N/A — stored as raw string, not JSON." },
+      "mf-user-profile (USER_PROFILE_KEY)": { type:"object", shape:"{schemaVersion, profileVersion, identity:{displayName}, body:{heightInches}, goals:{primaryGoal,physiqueOutcome}, preferences:{weightUnit,distanceUnit,firstDayOfWeek}, app:{homeGymLabel,partialGymLabel}, createdAt, updatedAt}", missingIsValid:true, corruptJsonHandled:"Yes — p950GetUserProfile()/p950InitUserProfile() try/catch, malformed JSON recovers to Marcus defaults without crashing." }
+    };
+  } catch(e){ summary.errors.push("dataSchemas section failed: "+(e&&e.message)); }
+
+  // 5. Backup/restore coverage (documentation only — behavior unchanged)
+  try {
+    summary.backupRestore = {
+      includedKeys: "Any key matched by p8IsMarcusFitKey(): day-* logs/workouts, "+OVR+", "+DRAFT_KEY+", "+LIFECYCLE_KEY+", "+RECS_KEY+", "+AI_PREFS_KEY+", "+USER_PROFILE_KEY+" (added 9.5.0).",
+      excludedKeys: "Any non-MarcusFit localStorage key, and any future 'mf-*' key not yet added to p8IsMarcusFitKey() (see storage.unrecognizedMarcusFitLookingKeys above).",
+      detectionMechanism: "p8IsMarcusFitKey(key) allowlist checked against Object.keys(localStorage); p8GetMarcusFitKeys() filters the full key list through it.",
+      restoreFlow: "p8ValidateBackup → p8MigrateBackup (schemaVersion switch, currently only v1) → p8492SummarizeBackup preview + in-app confirm panel (p8RestoreConfirmPanel, replaces native confirm() as of 9.4.9.2) → p8ExecuteRestore: remove existing MarcusFit keys → restore raw strings → mfRunPostRestoreValidation() → reload.",
+      riskAreas: [
+        "p8IsMarcusFitKey() is a manual allowlist — any new localStorage key added in a future release must be added here or it silently falls outside backup/restore coverage. mfBackupDebug() (9.4.9.2) surfaces this gap at runtime.",
+        "Migration framework (p8MigrateBackup) only handles schemaVersion 1 today; a real future schema bump has no tested migration path yet.",
+        "p8ClearData() now uses the same in-app two-step confirm pattern (p8ClearConfirmPanel) as restore, as of 9.4.9.2 — resolved native-confirm() risk for both flows."
+      ]
+    };
+  } catch(e){ summary.errors.push("backupRestore section failed: "+(e&&e.message)); }
+
+  // 6. AI export/sync map
+  try {
+    summary.aiExportSync = {
+      mainExportFunction: "genExport()",
+      majorExportSections: [
+        "Header (version, generated date, export range, total logged days, weight trend)",
+        "User Profile block (p950BuildUserProfileExport, added 9.5.0 — concise identity/goals/units/gym-labels, no raw JSON)",
+        "Persistent AI Coaching Preferences block (p9GetCoachPrefs)",
+        "Exercise Rotation / Swap Candidate Intelligence block (p9489BuildSwapCandidateExport)",
+        "Current Program Templates snapshot (base + virtual/additive days, via getResolvedProgram/getResolvedDays)",
+        "Log section (buildLogSection)",
+        "AI Sync Format Instructions + supported _action reference + AI Sync philosophy/action-hierarchy guidance"
+      ],
+      aiCoachingPreferencesInclusion: "Always included near the top of every export, from AI_PREFS_KEY, defaulting to 'No persistent AI coaching preferences saved.' if empty.",
+      swapCandidateSection: "p9489BuildSwapCandidateExport() → p9489FormatSwapCandidateSection(), day-type-aware, self-contained try/catch with a safe fallback string.",
+      progressionExport: "p9BuildProgressionExport(ex) appended per-exercise inside the program snapshot.",
+      aiSyncApplyFunction: "Main AI Sync parser (Phase 4, ~line 5626) processes MARCUSFIT_UPDATE JSON blocks in ordered pre-passes.",
+      supportedActionTypes: ["replace","reactivate","remove","reorder","day_override","day_override_clear","day_addition","day_addition_clear","custom_exercise","recommendations"],
+      noBaseP_MutationRule: "Explicitly documented in the export instructions themselves ('Never mutate the base program (P) through AI Sync') and enforced structurally — all AI Sync actions write to LIFECYCLE_KEY, RECS_KEY, or OVR, never to P.",
+      virtualAdditiveDayCompatibility: "Program snapshot and recommendations both include/target virtual days explicitly (day_addition/day_addition_clear actions, _isVirtual flag).",
+      recommendationsCompatibility: "recommendations action works on base and virtual Day 7+ via the same gymKey/dayIndex validation against getResolvedProgram()."
+    };
+  } catch(e){ summary.errors.push("aiExportSync section failed: "+(e&&e.message)); }
+
+  // 7. Program architecture map
+  try {
+    summary.programArchitecture = {
+      baseP: "Hardcoded source-of-truth templates per gym/day/exercise. Read-only at runtime.",
+      resolvedProgram: "getResolvedProgram() — deep-derives from P + lifecycle (inactiveIds, customExercises, orderOverrides). Never mutates P or lifecycle.",
+      resolvedDays: "getResolvedDays(gymKey) — resolvedProgram's base days plus virtual/additive days from dayAdditions, in display order.",
+      overrides: "mf-overrides (OVR) — sparse per-exercise field overrides, applied via getF() at render/export time, layered on top of P.",
+      customExerciseRole: "Exercises that don't exist in base P, created via AI Sync _action:custom_exercise or manual UI, stored in lifecycle.customExercises, addressable on base or virtual days.",
+      orderOverrideRole: "Reorders (never adds/removes) exercises within a resolved day, stored per 'gym:dayIdx' key in lifecycle.orderOverrides.",
+      dayOverrideRole: "Overrides day-level metadata (name/subtitle/focus/note/tag/meta) on base days only, via getEffectiveDayMeta().",
+      dayAdditionRole: "Defines entirely new virtual days appended after the base program's day count, surfaced through getResolvedDays().",
+      knownRule: "Base P must never be mutated by AI Sync or any runtime code — all dynamic behavior is layered through lifecycle state, overrides, and recommendations."
+    };
+  } catch(e){ summary.errors.push("programArchitecture section failed: "+(e&&e.message)); }
+
+  // 8. Hardcoded Marcus-specific assumptions (mapped only — not removed in this release)
+  try {
+    summary.hardcodedAssumptions = {
+      branding: "App name 'MarcusFit' hardcoded in <title>, Sync tab version box, and export header text.",
+      gymNaming: "Gym keys/labels are personal: 'home' → HOME PROGRAM, 'partial' → TRANSITION GYM PROGRAM — not generic 'Gym A/B' naming.",
+      programDefaults: "Base P exercise selection, loads, and rep ranges are tuned to Marcus's specific equipment access and current strength levels (e.g. specific DB weights, specific machines).",
+      fixedDailyHabits: "HABITS array is Marcus-specific: Jawline/Posture, Desk Posture, Box Breathing, Kegel Holds, Water Intake, BM Tracking, Steps — not a general/customizable habit list.",
+      fixedDailyMetrics: "Daily vitals fields include Zepbound dose tracking (d.zep) and BM tracking, both tied to Marcus's specific GLP-1/health context; would not apply to all users.",
+      aiCoachingPreferencesDefaultTemplate: "AI_PREFS_STARTER_TEMPLATE hardcodes Marcus's specific physique priorities (lateral delts, upper chest, lat width, etc.) and programming philosophy as the reset/default text.",
+      exportWording: "genExport()/AI Sync instructions hardcode 'Marcus is on Zepbound (GLP-1), down 60+ lbs, goal: fat loss + muscle retention' directly into the AI Sync philosophy guidance.",
+      physiquePriorities: "Physique/aesthetic priority ordering (delts > chest > lats > rear delts > triceps > back > biceps > core) is Marcus's personal goal, hardcoded into the starter coaching template.",
+      personalTrainingAssumptions: "Notes like 'warehouse' stair-climbing in the Steps habit instructions and workplace-specific phrasing assume Marcus's specific job/environment."
+    };
+  } catch(e){ summary.errors.push("hardcodedAssumptions section failed: "+(e&&e.message)); }
+
+  // 9. Risks and suggested next abstractions
+  try {
+    summary.risksAndNextAbstractions = [
+      "Profile/preferences foundation (name, height, goals, units, gym labels) landed in 9.5.0 via mf-user-profile — it does not yet drive any workout/program behavior or globally rename Home/Transition UI surfaces; that remains future work.",
+      "Custom/user-defined habits are needed before this becomes a shareable app — HABITS is currently a fixed array.",
+      "Backup polish (see backupRestore.riskAreas) should land before any real schema migration is attempted.",
+      "A compact export mode may eventually be needed for lower-tier/free-plan users with large history.",
+      "If a custom-program foundation grows much further, consider a multi-file/module split before it does — current single-file size is already large.",
+      "Hardcoded Marcus assumptions (branding, habits, daily metrics, AI coaching template, export wording) should move into a profile/settings system before sharing the app with anyone else.",
+      "p8IsMarcusFitKey() allowlist should be reviewed any time a new localStorage key is introduced, to avoid silent backup/restore gaps."
+    ];
+  } catch(e){ summary.errors.push("risksAndNextAbstractions section failed: "+(e&&e.message)); }
+
+  // 10. Debug helper registry
+  try {
+    summary.debugHelpers = {
+      APP_VERSION: { type: typeof APP_VERSION, purpose:"Current app version string." },
+      mfLifecycleDebug: { available: typeof window.mfLifecycleDebug==="function", purpose:"Inspects/validates exercise lifecycle state (inactiveIds, replacements, orderOverrides, dayOverrides, dayAdditions)." },
+      mfProgressionDebug: { available: typeof window.mfProgressionDebug==="function", purpose:"Per-exercise progression status/history debug (mfProgressionDebug(exId))." },
+      mfProgressionAudit: { available: typeof window.mfProgressionAudit==="function", purpose:"Audits progression status across all active exercises." },
+      mfDayOverrideDebug: { available: typeof window.mfDayOverrideDebug==="function", purpose:"Inspects day-level metadata overrides." },
+      mfDayAdditionDebug: { available: typeof window.mfDayAdditionDebug==="function", purpose:"Inspects virtual/additive day state." },
+      mfFixOrderOverrideIntegrity: { available: typeof window.mfFixOrderOverrideIntegrity==="function", purpose:"Repairs order override integrity issues (mutating — not read-only)." },
+      p9489BuildSwapCandidateExport: { available: typeof window.p9489BuildSwapCandidateExport==="function", purpose:"Builds the exercise rotation/swap candidate export section." },
+      mfWorkoutReviewDebug: { available: typeof window.mfWorkoutReviewDebug==="function", purpose:"Inspects the most recent workout-review-after-save computation." },
+      mfArchitectureDebug: { available: true, purpose:"Read-only architecture/system inventory (added 9.4.9.1)." },
+      mfBackupDebug: { available: typeof window.mfBackupDebug==="function", purpose:"Read-only backup readiness/coverage check — recognized keys, excluded MarcusFit-looking keys, in-memory backup preview (added 9.4.9.2)." },
+      mfUserProfileDebug: { available: typeof window.mfUserProfileDebug==="function", purpose:"Read-only mf-user-profile inspection — existence/parse status, schema version, normalized field values, backup coverage, export preview (added 9.5.0)." }
+    };
+  } catch(e){ summary.errors.push("debugHelpers section failed: "+(e&&e.message)); }
+
+  console.log("[MarcusFit] mfArchitectureDebug():", summary);
+  return summary;
+};
+var mfArchitectureDebug = window.mfArchitectureDebug;
+// ── END PHASE 9.4.9.1 ──────────────────────────────────────────────────────────
+
 
 function showScreen(n){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
@@ -7189,11 +8160,16 @@ function showScreen(n){
   document.getElementById("gymRow").classList.toggle("visible",n==="program");
   if(n==="history"){p7ApplyFilters();}
   if(n==="analytics"){p7RenderAnalytics();}
-  if(n==="export"){updateExportMeta();mfRenderLifecycleHealth();p9RenderCoachPrefs();const ds=document.getElementById("p945DiagSection");if(ds&&ds.classList.contains("open"))p945RenderDiag();}
+  if(n==="export"){updateExportMeta();mfRenderLifecycleHealth();p9RenderCoachPrefs();p950RenderUserProfile();const ds=document.getElementById("p945DiagSection");if(ds&&ds.classList.contains("open"))p945RenderDiag();}
 }
 // 9.4.8.8: populate the coaching preferences textarea at load in case the
 // export screen becomes active without a showScreen() transition.
 p9RenderCoachPrefs();
+// 9.5.0: initialize/migrate the user profile early in the load sequence, then
+// populate the Sync-tab profile card in case the export screen becomes
+// active without a showScreen() transition.
+p950InitUserProfile();
+p950RenderUserProfile();
 </script>
 </body>
 </html>
