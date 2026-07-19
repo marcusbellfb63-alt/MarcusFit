@@ -5126,28 +5126,16 @@ function p954ValidateProgramProposal(proposal){
       proposal.dayPlans.forEach(function(dp, i){
         if(!dp || typeof dp !== "object"){ errors.push("dayPlans[" + i + "] is not an object."); return; }
         if(recognizedGymKeys.indexOf(dp.gymKey) === -1) errors.push("dayPlans[" + i + "] has unrecognized gymKey: " + dp.gymKey);
-        // 9.5.4B.2: dayIdx must be an actual integer number — not a numeric
-        // string ("2"), not a fractional value (1.5), and not anything else
-        // merely coercible via Number(...). isFinite(dp.dayIdx) alone would
-        // accept all of those, since isFinite() coerces its argument.
-        const dayIdxValid = (typeof dp.dayIdx === "number") && Number.isInteger(dp.dayIdx) && dp.dayIdx >= 0;
-        if(!dayIdxValid) errors.push("dayPlans[" + i + "] has invalid dayIdx: " + JSON.stringify(dp.dayIdx));
+        if(!isFinite(dp.dayIdx) || dp.dayIdx < 0) errors.push("dayPlans[" + i + "] has invalid dayIdx: " + dp.dayIdx);
         if(PROGRAM_PROPOSAL_DAY_ACTIONS.indexOf(dp.action) === -1) errors.push("dayPlans[" + i + "] has invalid action: " + dp.action);
-        // 9.5.4.2 / 9.5.4B.1: role must be one of the recognized day-plan
-        // roles. This function is now also used to validate the RAW stored
-        // structure before normalization (see p954InspectStoredProposal), so
-        // a missing role (undefined) — expected from proposals saved before
-        // 9.5.4.2 — is treated as a legacy omission, not corruption; it will
-        // safely normalize to "optional". An explicit-but-unrecognized role
-        // is still reported as a genuine error either way.
-        if(dp.role !== undefined && PROGRAM_PROPOSAL_DAY_ROLES.indexOf(dp.role) === -1) errors.push("dayPlans[" + i + "] has invalid role: " + dp.role);
+        // 9.5.4.2: role must be one of the recognized day-plan roles. Older
+        // proposals are normalized to the "optional" fallback before ever
+        // reaching this check, so this only fires on genuinely malformed data.
+        if(PROGRAM_PROPOSAL_DAY_ROLES.indexOf(dp.role) === -1) errors.push("dayPlans[" + i + "] has invalid role: " + dp.role);
         // 9.5.4.2: reject duplicate gymKey/dayIdx combinations — this catches
         // accidental collisions between an existing day and a proposed
-        // optional_add (or any other duplicate day-plan entry). Only build
-        // the key from a dayIdx that actually passed strict validation above
-        // — an invalid dayIdx is already reported by the check above and
-        // must not also be silently coerced into a duplicate-key comparison.
-        if(typeof dp.gymKey === "string" && dayIdxValid){
+        // optional_add (or any other duplicate day-plan entry).
+        if(typeof dp.gymKey === "string" && isFinite(dp.dayIdx)){
           const key = dp.gymKey + "|" + dp.dayIdx;
           if(seenGymDayKeys[key]) errors.push("dayPlans[" + i + "] duplicates gymKey/dayIdx already used at another entry: " + key);
           else seenGymDayKeys[key] = true;
@@ -5159,91 +5147,6 @@ function p954ValidateProgramProposal(proposal){
     errors.push("Validation failed safely: " + (e && e.message));
   }
   return { valid: errors.length === 0, errors: errors };
-}
-
-// ── 9.5.4B.1: read-only raw storage inspection ───────────────────────────────
-// Unlike p954GetProposal() (which normalizes before returning, silently
-// repairing invalid stored fields), this reads mf-onboarding-program-proposal
-// as-is and validates the ORIGINAL parsed structure before any repair, so a
-// genuinely invalid or malformed stored proposal can be reliably identified.
-// Never writes/modifies localStorage. Never throws.
-//
-// Returns:
-//   {
-//     exists: boolean,            // key present in localStorage
-//     parses: boolean,            // stored text is valid JSON (false if absent too)
-//     rawText: string|null,       // exact stored text, or null if absent
-//     parsed: object|null,        // JSON.parse() of rawText, or null if absent/malformed
-//     normalized: object|null,    // p954NormalizeProposal(parsed) read model, or null if absent/malformed
-//     validation: {valid, errors},// p954ValidateProgramProposal() run on the RAW parsed object
-//     storageError: string|null   // set only if localStorage itself could not be read
-//   }
-function p954InspectStoredProposal(){
-  const result = {
-    exists: false,
-    parses: false,
-    rawText: null,
-    parsed: null,
-    normalized: null,
-    validation: { valid: false, errors: [] },
-    storageError: null
-  };
-  try {
-    let raw;
-    try {
-      raw = localStorage.getItem(PROGRAM_PROPOSAL_KEY);
-    } catch(e){
-      result.storageError = (e && e.message) || "Unknown storage error";
-      result.validation = { valid: false, errors: ["Unable to read stored proposal: " + result.storageError] };
-      return result;
-    }
-
-    if(raw === null){
-      // Absent key: exists/parses false, parsed/normalized null — matches
-      // p954GetProposal()'s "no proposal" case exactly.
-      result.validation = { valid: false, errors: ["No proposal saved."] };
-      return result;
-    }
-
-    result.exists = true;
-    result.rawText = raw;
-
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch(e){
-      // Malformed JSON: exists true, parses false, rawText preserved,
-      // parsed/normalized stay null. A clear validation error is returned
-      // rather than silently treating this as "no proposal".
-      result.parses = false;
-      result.validation = { valid: false, errors: ["Stored proposal is not valid JSON: " + ((e && e.message) || "parse error")] };
-      return result;
-    }
-
-    result.parses = true;
-    result.parsed = parsed;
-
-    // Validate the ORIGINAL parsed structure before normalization — this is
-    // what actually catches explicit invalid status/action/role values,
-    // invalid/negative dayIdx, invalid gymKey, duplicate gymKey/dayIdx, and
-    // non-array dayPlans, none of which normalization would preserve.
-    result.validation = p954ValidateProgramProposal(parsed);
-
-    // Also produce the normalized read model separately, purely for display
-    // purposes when the raw proposal is valid — this never affects the
-    // validation verdict above and never writes storage.
-    try {
-      result.normalized = p954NormalizeProposal(parsed);
-    } catch(e){
-      result.normalized = null;
-    }
-
-    return result;
-  } catch(e){
-    result.storageError = (e && e.message) || "Unknown error";
-    result.validation = { valid: false, errors: ["Inspection failed safely: " + result.storageError] };
-    return result;
-  }
 }
 
 // ── Deterministic in-memory builder ──────────────────────────────────────────
@@ -5669,17 +5572,7 @@ function p954CheckProgramCompatibility(proposal){
 window.mfOnboardingProgramProposalDebug = function(){
   try {
     const proposal = p954GetProposal();
-    // 9.5.4B.1: raw-storage inspection drives validity/reviewability now —
-    // p954ValidateProgramProposal() on the already-normalized proposal would
-    // always look valid, since normalization repairs invalid fields first.
-    const inspection = p954InspectStoredProposal();
-    const validation = inspection.validation;
-    // 9.5.4B.2: storedProposalNormalizedValid must reflect actual structural
-    // validation of the normalized read model, not merely that normalization
-    // returned an object (normalization always "succeeds" by coercing to
-    // safe defaults, so !!inspection.normalized was true even for corrupted
-    // structures where normalization also failed for unrelated reasons).
-    const normalizedValidation = inspection.normalized ? p954ValidateProgramProposal(inspection.normalized) : { valid: false, errors: [] };
+    const validation = proposal ? p954ValidateProgramProposal(proposal) : { valid: false, errors: ["No proposal saved."] };
     const compatibility = proposal ? p954CheckProgramCompatibility(proposal) : null;
     // 9.5.4B: review-layer fields — UI-state only, never persisted.
     const canReview = !!proposal && validation.valid;
@@ -5700,14 +5593,7 @@ window.mfOnboardingProgramProposalDebug = function(){
       canDismiss: canDismiss,
       dismissedAt: proposal ? proposal.dismissedAt : null,
       renderedGymGroups: p954RLastRenderedGymGroups,
-      renderedDayCount: p954RLastRenderedDayCount,
-      // 9.5.4B.1: concise raw-storage inspection fields only — no raw text,
-      // no full parsed/normalized object dumps.
-      storedProposalExists: inspection.exists,
-      storedProposalParses: inspection.parses,
-      storedProposalRawValid: inspection.validation.valid,
-      storedProposalNormalizedValid: normalizedValidation.valid,
-      storedProposalErrors: inspection.validation.errors
+      renderedDayCount: p954RLastRenderedDayCount
     };
     console.log("[MarcusFit] mfOnboardingProgramProposalDebug():", result);
     return result;
@@ -5862,13 +5748,9 @@ function p954RenderProgramPersonalization(){
   if(!container) return;
   container.innerHTML = ""; // clears app-authored placeholder only, not user data
 
-  // REQUIREMENT 4 (9.5.4B.1): inspect the RAW stored proposal read-only on
-  // every render — including page load, before the user ever taps REVIEW —
-  // so a malformed or genuinely invalid stored proposal is never presented
-  // as a normal draft/no-proposal record. Never writes storage.
-  const inspection = p954InspectStoredProposal();
+  const proposal = p954GetProposal();
 
-  if(!inspection.exists){
+  if(!proposal){
     p954ReviewInvalid = false;
     p954ReviewInvalidErrors = [];
     const btn = document.createElement("button");
@@ -5884,18 +5766,9 @@ function p954RenderProgramPersonalization(){
     return;
   }
 
-  if(!inspection.parses || !inspection.validation.valid){
-    p954ReviewInvalid = true;
-    p954ReviewInvalidErrors = inspection.validation.errors;
-  } else {
-    p954ReviewInvalid = false;
-    p954ReviewInvalidErrors = [];
-  }
-
-  // REQUIREMENT 6: a stored proposal that failed validation gets a dedicated
-  // error state instead of draft/dismissed controls — the proposal stays
-  // stored untouched (for debugging/regeneration), only regenerate/clear are
-  // offered. Do NOT auto-repair or overwrite invalid storage.
+  // REQUIREMENT 6: a stored proposal that failed validation at open-time gets
+  // a dedicated error state instead of draft/dismissed controls — the
+  // proposal stays stored (for debugging), only regenerate/clear are offered.
   if(p954ReviewInvalid){
     const errBox = document.createElement("div");
     errBox.className = "p954r-error-box";
@@ -5932,8 +5805,6 @@ function p954RenderProgramPersonalization(){
     container.appendChild(errResultEl);
     return;
   }
-
-  const proposal = inspection.normalized;
 
   const btnRow = document.createElement("div");
   btnRow.style.cssText = "display:flex;flex-direction:column;gap:8px;";
@@ -6356,28 +6227,22 @@ function p954RBuildReviewContent(proposal){
 // reset first, so repeated opens never duplicate DOM (REQUIREMENT 10).
 function p954ROpenReview(){
   try {
-    // REQUIREMENT 3 (9.5.4B.1): inspect the RAW stored proposal — not the
-    // already-normalized/repaired one — so an invalid stored record can't be
-    // silently repaired before we decide whether it's safe to review.
-    const inspection = p954InspectStoredProposal();
-    if(!inspection.exists){
+    const proposal = p954GetProposal();
+    if(!proposal){
       p954ReviewInvalid = true;
       p954ReviewInvalidErrors = ["No proposal found to review."];
       p954RenderProgramPersonalization();
       return;
     }
-    if(!inspection.parses || !inspection.validation.valid){
+    const validation = p954ValidateProgramProposal(proposal);
+    if(!validation.valid){
       p954ReviewInvalid = true;
-      p954ReviewInvalidErrors = inspection.validation.errors;
+      p954ReviewInvalidErrors = validation.errors;
       p954RenderProgramPersonalization();
       return;
     }
     p954ReviewInvalid = false;
     p954ReviewInvalidErrors = [];
-
-    // Raw proposal is genuinely valid — safe to render the normalized read
-    // model (fills in expected legacy omissions like role/frequency/counts).
-    const proposal = inspection.normalized;
 
     const overlay = document.getElementById("p954ReviewOverlay");
     const body = document.getElementById("p954ReviewBody");
@@ -6421,37 +6286,22 @@ function p954RCancelKeepConfirm(){
   if(backdrop) backdrop.classList.remove("open");
 }
 
-// KEEP CURRENT PROGRAM, confirmed. 9.5.4B.2: re-inspects the RAW stored
-// proposal (not the normalizing getter) immediately before dismissal, so
-// storage that was altered or corrupted after the review opened can't be
-// silently repaired and then saved as dismissed. Absent, malformed-JSON, and
-// raw-invalid proposals all keep the review/confirmation open with an error
-// and never write. Only once the raw proposal is confirmed genuinely valid
-// does this proceed, using inspection.normalized as the working proposal.
-// REQUIREMENT 10: idempotent — if already dismissed, this closes out safely
+// KEEP CURRENT PROGRAM, confirmed. REQUIREMENT 6: re-verifies the proposal
+// still exists and is in a dismissible status, saves via p954SaveProposal(),
+// and — if saving fails — keeps both the confirmation and the review open
+// with an error rather than silently losing the action. REQUIREMENT 10:
+// idempotent — if the proposal is already dismissed, this closes out safely
 // without bumping dismissedAt again or writing anything. Never touches the
 // active workout program.
 function p954RConfirmKeepCurrentProgram(){
   const backdrop = document.getElementById("p954ConfirmBackdrop");
   const errEl = document.getElementById("p954ConfirmError");
   try {
-    const inspection = p954InspectStoredProposal();
-
-    if(!inspection.exists){
+    const proposal = p954GetProposal();
+    if(!proposal){
       if(errEl){ errEl.style.display = "block"; errEl.textContent = "No proposal found — there's nothing to dismiss."; }
-      return; // keep confirm + review open, no write
+      return;
     }
-    if(!inspection.parses){
-      if(errEl){ errEl.style.display = "block"; errEl.textContent = "The stored proposal is corrupted and can't be dismissed safely. Please regenerate or clear it."; }
-      return; // keep confirm + review open, no write
-    }
-    if(!inspection.validation.valid){
-      if(errEl){ errEl.style.display = "block"; errEl.textContent = "The stored proposal failed validation and can't be dismissed safely. Please regenerate or clear it."; }
-      return; // keep confirm + review open, no write
-    }
-
-    const proposal = inspection.normalized;
-
     if(proposal.status !== "draft" && proposal.status !== "dismissed"){
       if(errEl){ errEl.style.display = "block"; errEl.textContent = "This proposal is not in a state that can be dismissed right now."; }
       return;
@@ -6490,14 +6340,7 @@ window.mfOnboardingProgramProposalReviewDebug = function(){
     const overlay = document.getElementById("p954ReviewOverlay");
     const backdrop = document.getElementById("p954ConfirmBackdrop");
     const proposal = p954GetProposal();
-    // 9.5.4B.1: raw-storage inspection — this is what actually determines
-    // whether the stored proposal is safe to review (see p954ROpenReview).
-    const inspection = p954InspectStoredProposal();
-    const validation = inspection.validation;
-    // 9.5.4B.2: storedProposalNormalizedValid must reflect actual structural
-    // validation of the normalized read model, not merely that normalization
-    // returned an object.
-    const normalizedValidation = inspection.normalized ? p954ValidateProgramProposal(inspection.normalized) : { valid: false, errors: [] };
+    const validation = proposal ? p954ValidateProgramProposal(proposal) : { valid: false, errors: ["No proposal saved."] };
     const result = {
       overlayExists: !!overlay,
       overlayOpen: !!(overlay && overlay.classList.contains("open")),
@@ -6507,14 +6350,7 @@ window.mfOnboardingProgramProposalReviewDebug = function(){
       renderedDayCount: p954RLastRenderedDayCount,
       renderedExerciseCount: p954RLastRenderedExerciseCount,
       visibleWarnings: proposal ? (proposal.warnings || []) : [],
-      currentConfirmationState: !!(backdrop && backdrop.classList.contains("open")),
-      // 9.5.4B.1: concise raw-storage inspection fields only — no raw text,
-      // no full parsed/normalized object dumps.
-      storedProposalExists: inspection.exists,
-      storedProposalParses: inspection.parses,
-      storedProposalRawValid: inspection.validation.valid,
-      storedProposalNormalizedValid: normalizedValidation.valid,
-      storedProposalErrors: inspection.validation.errors
+      currentConfirmationState: !!(backdrop && backdrop.classList.contains("open"))
     };
     console.log("[MarcusFit] mfOnboardingProgramProposalReviewDebug():", result);
     return result;
@@ -11582,7 +11418,7 @@ window.mfArchitectureDebug = function(){
       workoutReviewAfterSave: { storageKeys:["(derived at save time, no new key)"], functions:["p949BuildWorkoutReview","p949RenderReview","p949HideReview","p949GetPriorHistory"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:false, purpose:"Local deterministic post-save summary of wins/watch items using existing logs and progression signals." },
       userProfile: { storageKeys:[USER_PROFILE_KEY], functions:["p950GetDefaultUserProfile","p950GetUserProfile","p950SaveUserProfile","p950NormalizeUserProfile","p950InitUserProfile","p950RenderUserProfile","p950SaveUserProfileFromUI","p950ResetUserProfileDefaults","p950BuildUserProfileExport","mfUserProfileDebug"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Structured, schema-versioned general identity/goals/units/gym-label foundation for future shared-app support (added 9.5.0). Does not store live/current weight (owned by daily logs) or detailed bodybuilding philosophy (remains in AI_PREFS_KEY). Does not control workout/program behavior in this release; gym labels are stored but not globally applied yet." },
       onboardingState: { storageKeys:[ONBOARDING_KEY], functions:["p951GetDefaultOnboardingState","p951NormalizeOnboardingState","p951GetOnboardingState","p951SaveOnboardingState","p951HasMeaningfulExistingData","p951IsFreshInstall","p951InitOnboardingState","mfOnboardingDebug"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"Versioned onboarding-state storage + conservative fresh-install detection foundation (added 9.5.1). Storage-only in this release — no visible onboarding UI yet. Separate from and never merged into mf-user-profile. Existing/established installs are safely migrated straight to status 'completed' on first load so they are never shown onboarding they don't need; genuinely fresh installs start at 'not_started'. Not included in AI exports." },
-      programProposal: { storageKeys:[PROGRAM_PROPOSAL_KEY], functions:["p954GetDefaultProposal","p954NormalizeProposal","p954GetProposal","p954InspectStoredProposal","p954SaveProposal","p954ClearProposal","p954ValidateProgramProposal","p954BuildProgramProposal","p954GenerateAndSaveProposal","p954RenderProgramPersonalization","p954ROpenReview","p954RCloseReview","p954RShowKeepConfirm","p954RCancelKeepConfirm","p954RConfirmKeepCurrentProgram","p954RBuildReviewContent","mfOnboardingProgramProposalDebug","mfOnboardingProgramProposalReviewDebug","mfGenerateOnboardingProgramProposalPreview"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"Personalized program proposal foundation (added 9.5.4) plus a detailed, read-only day-by-day and exercise-by-exercise review overlay (added 9.5.4B). Deterministic, read-only-with-respect-to-the-program: describes suggested kept/modified/reordered/replaced/added/removed days and exercise tweaks based on onboarding answers + profile + current resolved program, but never applies any of them — no writes to P, mf-overrides, mf-exercise-state, mf-recommendations, workout logs/history, or onboarding answers. A draft proposal is auto-generated (not applied) after successful real onboarding completion; existing completed users generate one manually via the Sync tab. Preview generation (mfGenerateOnboardingProgramProposalPreview) never saves. The 9.5.4B review overlay's only write path is p954RConfirmKeepCurrentProgram(), which only ever changes status to 'dismissed' and sets dismissedAt — there is still no 'apply this proposal' write path (which would touch lifecycle/day-override/day-addition state, never base P)." }
+      programProposal: { storageKeys:[PROGRAM_PROPOSAL_KEY], functions:["p954GetDefaultProposal","p954NormalizeProposal","p954GetProposal","p954SaveProposal","p954ClearProposal","p954ValidateProgramProposal","p954BuildProgramProposal","p954GenerateAndSaveProposal","p954RenderProgramPersonalization","p954ROpenReview","p954RCloseReview","p954RShowKeepConfirm","p954RCancelKeepConfirm","p954RConfirmKeepCurrentProgram","p954RBuildReviewContent","mfOnboardingProgramProposalDebug","mfOnboardingProgramProposalReviewDebug","mfGenerateOnboardingProgramProposalPreview"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"Personalized program proposal foundation (added 9.5.4) plus a detailed, read-only day-by-day and exercise-by-exercise review overlay (added 9.5.4B). Deterministic, read-only-with-respect-to-the-program: describes suggested kept/modified/reordered/replaced/added/removed days and exercise tweaks based on onboarding answers + profile + current resolved program, but never applies any of them — no writes to P, mf-overrides, mf-exercise-state, mf-recommendations, workout logs/history, or onboarding answers. A draft proposal is auto-generated (not applied) after successful real onboarding completion; existing completed users generate one manually via the Sync tab. Preview generation (mfGenerateOnboardingProgramProposalPreview) never saves. The 9.5.4B review overlay's only write path is p954RConfirmKeepCurrentProgram(), which only ever changes status to 'dismissed' and sets dismissedAt — there is still no 'apply this proposal' write path (which would touch lifecycle/day-override/day-addition state, never base P)." }
     };
   } catch(e){ summary.errors.push("systems section failed: "+(e&&e.message)); }
 
@@ -11598,7 +11434,7 @@ window.mfArchitectureDebug = function(){
       "mf-ai-coaching-preferences (AI_PREFS_KEY)": { type:"string", shape:"Free-text persistent coaching preferences block, defaults to AI_PREFS_STARTER_TEMPLATE when reset.", missingIsValid:true, corruptJsonHandled:"N/A — stored as raw string, not JSON." },
       "mf-user-profile (USER_PROFILE_KEY)": { type:"object", shape:"{schemaVersion, profileVersion, identity:{displayName}, body:{heightInches}, goals:{primaryGoal,physiqueOutcome}, preferences:{weightUnit,distanceUnit,firstDayOfWeek}, app:{homeGymLabel,partialGymLabel}, createdAt, updatedAt}", missingIsValid:true, corruptJsonHandled:"Yes — p950GetUserProfile()/p950InitUserProfile() try/catch, malformed JSON recovers to Marcus defaults without crashing." },
       "mf-onboarding-state (ONBOARDING_KEY)": { type:"object", shape:"{schemaVersion, onboardingVersion, status:'not_started'|'in_progress'|'completed'|'skipped', currentStep, startedAt, completedAt, skippedAt, updatedAt, draft:{}}", missingIsValid:true, corruptJsonHandled:"Yes — p951GetOnboardingState()/p951InitOnboardingState() try/catch; malformed JSON is recovered conservatively (re-runs fresh-install evaluation rather than blindly resetting to not_started), added 9.5.1." },
-      "mf-onboarding-program-proposal (PROGRAM_PROPOSAL_KEY)": { type:"object|absent", shape:"{schemaVersion, proposalVersion, status:'draft'|'applied'|'dismissed', source, generatedAt, appliedAt, dismissedAt, onboardingUpdatedAt, profileUpdatedAt, summary:{recommendedFrequency, gymModes, estimatedSessionDurationMinutes, rationale, affectedDayCount, actionCounts}, dayPlans:[{gymKey,dayIdx,dayName,isVirtual,action,tweaks,notes}], warnings:[]}", missingIsValid:true, corruptJsonHandled:"Yes — p954GetProposal() try/catch still treats absent/malformed data as 'no proposal' (returns null) for normal reads, added 9.5.4. But p954InspectStoredProposal() (added 9.5.4B.1) reads the raw stored text separately and reports malformed JSON / genuinely invalid explicit values as a distinct error state (not silently repaired or treated as absent), which is what p954ROpenReview() and p954RenderProgramPersonalization() now use to decide whether the stored proposal is safe to review." }
+      "mf-onboarding-program-proposal (PROGRAM_PROPOSAL_KEY)": { type:"object|absent", shape:"{schemaVersion, proposalVersion, status:'draft'|'applied'|'dismissed', source, generatedAt, appliedAt, dismissedAt, onboardingUpdatedAt, profileUpdatedAt, summary:{recommendedFrequency, gymModes, estimatedSessionDurationMinutes, rationale, affectedDayCount, actionCounts}, dayPlans:[{gymKey,dayIdx,dayName,isVirtual,action,tweaks,notes}], warnings:[]}", missingIsValid:true, corruptJsonHandled:"Yes — p954GetProposal() try/catch treats absent/malformed data as 'no proposal' (returns null) rather than crashing, added 9.5.4." }
     };
   } catch(e){ summary.errors.push("dataSchemas section failed: "+(e&&e.message)); }
 

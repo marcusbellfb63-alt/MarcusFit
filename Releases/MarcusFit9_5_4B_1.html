@@ -5126,12 +5126,7 @@ function p954ValidateProgramProposal(proposal){
       proposal.dayPlans.forEach(function(dp, i){
         if(!dp || typeof dp !== "object"){ errors.push("dayPlans[" + i + "] is not an object."); return; }
         if(recognizedGymKeys.indexOf(dp.gymKey) === -1) errors.push("dayPlans[" + i + "] has unrecognized gymKey: " + dp.gymKey);
-        // 9.5.4B.2: dayIdx must be an actual integer number — not a numeric
-        // string ("2"), not a fractional value (1.5), and not anything else
-        // merely coercible via Number(...). isFinite(dp.dayIdx) alone would
-        // accept all of those, since isFinite() coerces its argument.
-        const dayIdxValid = (typeof dp.dayIdx === "number") && Number.isInteger(dp.dayIdx) && dp.dayIdx >= 0;
-        if(!dayIdxValid) errors.push("dayPlans[" + i + "] has invalid dayIdx: " + JSON.stringify(dp.dayIdx));
+        if(!isFinite(dp.dayIdx) || dp.dayIdx < 0) errors.push("dayPlans[" + i + "] has invalid dayIdx: " + dp.dayIdx);
         if(PROGRAM_PROPOSAL_DAY_ACTIONS.indexOf(dp.action) === -1) errors.push("dayPlans[" + i + "] has invalid action: " + dp.action);
         // 9.5.4.2 / 9.5.4B.1: role must be one of the recognized day-plan
         // roles. This function is now also used to validate the RAW stored
@@ -5143,11 +5138,8 @@ function p954ValidateProgramProposal(proposal){
         if(dp.role !== undefined && PROGRAM_PROPOSAL_DAY_ROLES.indexOf(dp.role) === -1) errors.push("dayPlans[" + i + "] has invalid role: " + dp.role);
         // 9.5.4.2: reject duplicate gymKey/dayIdx combinations — this catches
         // accidental collisions between an existing day and a proposed
-        // optional_add (or any other duplicate day-plan entry). Only build
-        // the key from a dayIdx that actually passed strict validation above
-        // — an invalid dayIdx is already reported by the check above and
-        // must not also be silently coerced into a duplicate-key comparison.
-        if(typeof dp.gymKey === "string" && dayIdxValid){
+        // optional_add (or any other duplicate day-plan entry).
+        if(typeof dp.gymKey === "string" && isFinite(dp.dayIdx)){
           const key = dp.gymKey + "|" + dp.dayIdx;
           if(seenGymDayKeys[key]) errors.push("dayPlans[" + i + "] duplicates gymKey/dayIdx already used at another entry: " + key);
           else seenGymDayKeys[key] = true;
@@ -5674,12 +5666,6 @@ window.mfOnboardingProgramProposalDebug = function(){
     // always look valid, since normalization repairs invalid fields first.
     const inspection = p954InspectStoredProposal();
     const validation = inspection.validation;
-    // 9.5.4B.2: storedProposalNormalizedValid must reflect actual structural
-    // validation of the normalized read model, not merely that normalization
-    // returned an object (normalization always "succeeds" by coercing to
-    // safe defaults, so !!inspection.normalized was true even for corrupted
-    // structures where normalization also failed for unrelated reasons).
-    const normalizedValidation = inspection.normalized ? p954ValidateProgramProposal(inspection.normalized) : { valid: false, errors: [] };
     const compatibility = proposal ? p954CheckProgramCompatibility(proposal) : null;
     // 9.5.4B: review-layer fields — UI-state only, never persisted.
     const canReview = !!proposal && validation.valid;
@@ -5706,7 +5692,7 @@ window.mfOnboardingProgramProposalDebug = function(){
       storedProposalExists: inspection.exists,
       storedProposalParses: inspection.parses,
       storedProposalRawValid: inspection.validation.valid,
-      storedProposalNormalizedValid: normalizedValidation.valid,
+      storedProposalNormalizedValid: !!inspection.normalized,
       storedProposalErrors: inspection.validation.errors
     };
     console.log("[MarcusFit] mfOnboardingProgramProposalDebug():", result);
@@ -6421,37 +6407,22 @@ function p954RCancelKeepConfirm(){
   if(backdrop) backdrop.classList.remove("open");
 }
 
-// KEEP CURRENT PROGRAM, confirmed. 9.5.4B.2: re-inspects the RAW stored
-// proposal (not the normalizing getter) immediately before dismissal, so
-// storage that was altered or corrupted after the review opened can't be
-// silently repaired and then saved as dismissed. Absent, malformed-JSON, and
-// raw-invalid proposals all keep the review/confirmation open with an error
-// and never write. Only once the raw proposal is confirmed genuinely valid
-// does this proceed, using inspection.normalized as the working proposal.
-// REQUIREMENT 10: idempotent — if already dismissed, this closes out safely
+// KEEP CURRENT PROGRAM, confirmed. REQUIREMENT 6: re-verifies the proposal
+// still exists and is in a dismissible status, saves via p954SaveProposal(),
+// and — if saving fails — keeps both the confirmation and the review open
+// with an error rather than silently losing the action. REQUIREMENT 10:
+// idempotent — if the proposal is already dismissed, this closes out safely
 // without bumping dismissedAt again or writing anything. Never touches the
 // active workout program.
 function p954RConfirmKeepCurrentProgram(){
   const backdrop = document.getElementById("p954ConfirmBackdrop");
   const errEl = document.getElementById("p954ConfirmError");
   try {
-    const inspection = p954InspectStoredProposal();
-
-    if(!inspection.exists){
+    const proposal = p954GetProposal();
+    if(!proposal){
       if(errEl){ errEl.style.display = "block"; errEl.textContent = "No proposal found — there's nothing to dismiss."; }
-      return; // keep confirm + review open, no write
+      return;
     }
-    if(!inspection.parses){
-      if(errEl){ errEl.style.display = "block"; errEl.textContent = "The stored proposal is corrupted and can't be dismissed safely. Please regenerate or clear it."; }
-      return; // keep confirm + review open, no write
-    }
-    if(!inspection.validation.valid){
-      if(errEl){ errEl.style.display = "block"; errEl.textContent = "The stored proposal failed validation and can't be dismissed safely. Please regenerate or clear it."; }
-      return; // keep confirm + review open, no write
-    }
-
-    const proposal = inspection.normalized;
-
     if(proposal.status !== "draft" && proposal.status !== "dismissed"){
       if(errEl){ errEl.style.display = "block"; errEl.textContent = "This proposal is not in a state that can be dismissed right now."; }
       return;
@@ -6494,10 +6465,6 @@ window.mfOnboardingProgramProposalReviewDebug = function(){
     // whether the stored proposal is safe to review (see p954ROpenReview).
     const inspection = p954InspectStoredProposal();
     const validation = inspection.validation;
-    // 9.5.4B.2: storedProposalNormalizedValid must reflect actual structural
-    // validation of the normalized read model, not merely that normalization
-    // returned an object.
-    const normalizedValidation = inspection.normalized ? p954ValidateProgramProposal(inspection.normalized) : { valid: false, errors: [] };
     const result = {
       overlayExists: !!overlay,
       overlayOpen: !!(overlay && overlay.classList.contains("open")),
@@ -6513,7 +6480,7 @@ window.mfOnboardingProgramProposalReviewDebug = function(){
       storedProposalExists: inspection.exists,
       storedProposalParses: inspection.parses,
       storedProposalRawValid: inspection.validation.valid,
-      storedProposalNormalizedValid: normalizedValidation.valid,
+      storedProposalNormalizedValid: !!inspection.normalized,
       storedProposalErrors: inspection.validation.errors
     };
     console.log("[MarcusFit] mfOnboardingProgramProposalReviewDebug():", result);

@@ -600,65 +600,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .p952-skip-modal-row{display:flex;flex-direction:column;gap:8px;}
 .p952-skip-btn-confirm{padding:12px;background:var(--accent2);color:#fff;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;min-height:44px;}
 .p952-skip-btn-cancel{padding:12px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;}
-
-/* ── PHASE 9.5.4B: DETAILED PROPOSAL REVIEW OVERLAY (read-only) ── */
-.p954r-overlay{display:none;position:fixed;inset:0;z-index:9998;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;}
-.p954r-overlay.open{display:block;}
-.p954r-inner{width:100%;max-width:480px;margin:0 auto;min-height:100%;box-sizing:border-box;padding:16px 16px calc(16px + env(safe-area-inset-bottom));overflow-wrap:anywhere;}
-.p954r-topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2;}
-.p954r-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--text);}
-.p954r-close-x{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:9px 14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;min-width:44px;flex-shrink:0;}
-.p954r-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;box-sizing:border-box;}
-.p954r-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px;}
-.p954r-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
-.p954r-row:last-child{border-bottom:none;}
-.p954r-row-label{color:var(--muted);font-weight:600;flex-shrink:0;}
-.p954r-row-value{color:var(--text);text-align:right;word-break:break-word;}
-.p954r-list-item{font-size:12px;color:var(--text);line-height:1.55;margin-bottom:4px;padding-left:12px;position:relative;}
-.p954r-list-item:before{content:"•";position:absolute;left:0;color:var(--muted);}
-.p954r-list-item.warn{color:var(--red);}
-.p954r-gym-header{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;color:var(--accent);margin:16px 0 8px;}
-.p954r-gym-header:first-child{margin-top:0;}
-.p954r-day-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;box-sizing:border-box;}
-.p954r-day-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px;flex-wrap:wrap;}
-.p954r-day-name{font-weight:700;font-size:14px;color:var(--text);}
-.p954r-day-name-proposed{font-size:11px;color:var(--accent);margin-top:2px;}
-.p954r-day-meta{font-size:11px;color:var(--muted);margin:4px 0 6px;line-height:1.5;}
-.p954r-note{font-size:12px;color:var(--muted);line-height:1.55;margin-top:6px;}
-.p954r-ex-row{border-top:1px solid var(--border);padding:8px 0;font-size:12px;}
-.p954r-ex-row:first-child{border-top:none;}
-.p954r-ex-name{font-weight:700;color:var(--text);margin-bottom:3px;}
-.p954r-ex-name-proposed{color:var(--accent);}
-.p954r-ex-meta{color:var(--muted);line-height:1.5;}
-.p954r-ex-rationale{color:var(--muted);font-style:italic;margin-top:3px;line-height:1.5;}
-.p954r-empty-note{font-size:12px;color:var(--muted);font-style:italic;padding:4px 0;}
-.p954r-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:3px 8px;border-radius:20px;margin-right:6px;white-space:nowrap;}
-.p954r-badge-keep{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green);border:1px solid color-mix(in srgb,var(--green) 45%,transparent);}
-.p954r-badge-modify{background:color-mix(in srgb,var(--yellow) 18%,transparent);color:var(--yellow);border:1px solid color-mix(in srgb,var(--yellow) 45%,transparent);}
-.p954r-badge-reorder{background:color-mix(in srgb,var(--accent2) 18%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 45%,transparent);}
-.p954r-badge-replace{background:color-mix(in srgb,var(--accent2) 18%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 45%,transparent);}
-.p954r-badge-add{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
-.p954r-badge-optional_add{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
-.p954r-badge-remove{background:color-mix(in srgb,var(--red) 18%,transparent);color:var(--red);border:1px solid color-mix(in srgb,var(--red) 45%,transparent);}
-.p954r-footer{position:sticky;bottom:0;background:var(--bg);padding:12px 0 4px;display:flex;flex-direction:column;gap:8px;margin-top:6px;}
-.p954r-btn-later{padding:15px;background:var(--accent);color:#000;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;min-height:48px;width:100%;box-sizing:border-box;}
-.p954r-btn-later:active{opacity:.8;}
-.p954r-btn-keep{padding:15px;background:transparent;color:var(--red);border:1px solid var(--red);border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;min-height:48px;width:100%;box-sizing:border-box;}
-.p954r-btn-keep:active{opacity:.8;}
-.p954r-error-box{background:var(--surface2);border:1px solid var(--red);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:12px;color:var(--red);line-height:1.6;}
-.p954r-confirm-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10002;align-items:center;justify-content:center;padding:20px;}
-.p954r-confirm-backdrop.open{display:flex;}
-.p954r-confirm-modal{background:var(--surface);border:1px solid var(--red);border-radius:14px;padding:18px;max-width:400px;width:100%;box-sizing:border-box;}
-.p954r-confirm-title{font-size:14px;font-weight:700;color:var(--red);margin-bottom:8px;}
-.p954r-confirm-body{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:14px;}
-.p954r-confirm-row{display:flex;flex-direction:column;gap:8px;}
-.p954r-confirm-btn-confirm{padding:12px;background:var(--red);color:#fff;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;min-height:44px;}
-.p954r-confirm-btn-cancel{padding:12px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;}
-.p954r-confirm-error{font-size:12px;color:var(--red);margin-top:8px;line-height:1.5;}
-@media (max-width:380px){
-  .p954r-row{flex-direction:column;}
-  .p954r-row-value{text-align:left;}
-}
 </style>
 </head>
 <body>
@@ -682,32 +623,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <button type="button" class="p952-skip-btn-confirm" onclick="p952ConfirmSkip()">SKIP FOR NOW</button>
       <button type="button" class="p952-skip-btn-cancel" onclick="p952CancelSkip()">KEEP SETTING UP</button>
     </div>
-  </div>
-</div>
-
-<!-- ── PHASE 9.5.4B: DETAILED PROPOSAL REVIEW (read-only) ── -->
-<div class="p954r-overlay" id="p954ReviewOverlay" role="dialog" aria-modal="true" aria-label="Program proposal review">
-  <div class="p954r-inner">
-    <div class="p954r-topbar">
-      <div class="p954r-title" id="p954ReviewTitle">Proposal Review</div>
-      <button type="button" class="p954r-close-x" id="p954ReviewCloseX" onclick="p954RCloseReview()" aria-label="Close review">✕</button>
-    </div>
-    <div id="p954ReviewBody"></div>
-    <div class="p954r-footer">
-      <button type="button" class="p954r-btn-later" onclick="p954RCloseReview()">CLOSE / REVIEW LATER</button>
-      <button type="button" class="p954r-btn-keep" onclick="p954RShowKeepConfirm()">KEEP CURRENT PROGRAM</button>
-    </div>
-  </div>
-</div>
-<div class="p954r-confirm-backdrop" id="p954ConfirmBackdrop">
-  <div class="p954r-confirm-modal">
-    <div class="p954r-confirm-title">Keep your current program?</div>
-    <div class="p954r-confirm-body">This dismisses the proposal as a draft you'd like to revisit later. Your active workout program and history stay exactly as they are &mdash; nothing is changed or applied.</div>
-    <div class="p954r-confirm-row">
-      <button type="button" class="p954r-confirm-btn-confirm" onclick="p954RConfirmKeepCurrentProgram()">YES, KEEP CURRENT PROGRAM</button>
-      <button type="button" class="p954r-confirm-btn-cancel" onclick="p954RCancelKeepConfirm()">CANCEL</button>
-    </div>
-    <div class="p954r-confirm-error" id="p954ConfirmError" style="display:none;"></div>
   </div>
 </div>
 
@@ -964,8 +879,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 9.5.4</strong> &mdash; Personalized Program Proposal Review<br>
-    New: the program proposal under Program Personalization below now opens into a full day-by-day and exercise-by-exercise review, so you can see exactly what a proposal describes before deciding anything. Use <strong>Review Later</strong> to close it and come back anytime, or <strong>Keep Current Program</strong> to dismiss the proposal (with a confirmation step first). Either way, <strong>no program changes can be applied yet</strong> &mdash; your base program and workout history remain completely protected. Previous: Personalized Program Proposal Foundation (9.5.4A), Onboarding Answer Application &amp; Setup Completion (9.5.3), Visible Onboarding UI &amp; Step Navigation (9.5.2), Onboarding State &amp; Fresh-Install Detection Foundation (9.5.1), User Profile &amp; App Preferences Foundation (9.5.0), Backup &amp; Data Safety Polish (9.4.9.2), Architecture Audit / System Map (9.4.9.1), Workout Review After Save (9.4.9), Exercise Rotation / Swap Candidate Export Intelligence (9.4.8.9&ndash;9.4.8.10).
+    <strong style="color:var(--accent);">MarcusFit 9.5.4</strong> &mdash; Personalized Program Proposal Foundation<br>
+    New: Onboarding can now generate a reviewable program proposal summary (recommended frequency, gym modes, estimated session length, rationale, and any suggested day/exercise changes) under Program Personalization below. This is descriptive only &mdash; <strong>no workout changes are applied yet</strong>. Your base program and workout history remain completely untouched; a proposal is just a draft summary you can view, regenerate, or clear. Previous: Onboarding Answer Application &amp; Setup Completion (9.5.3), Visible Onboarding UI &amp; Step Navigation (9.5.2), Onboarding State &amp; Fresh-Install Detection Foundation (9.5.1), User Profile &amp; App Preferences Foundation (9.5.0), Backup &amp; Data Safety Polish (9.4.9.2), Architecture Audit / System Map (9.4.9.1), Workout Review After Save (9.4.9), Exercise Rotation / Swap Candidate Export Intelligence (9.4.8.9&ndash;9.4.8.10).
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -4930,21 +4845,6 @@ const PROGRAM_PROPOSAL_KEY = "mf-onboarding-program-proposal";
 const PROGRAM_PROPOSAL_SCHEMA = 1;
 const PROGRAM_PROPOSAL_STATUSES = ["draft", "applied", "dismissed"];
 const PROGRAM_PROPOSAL_DAY_ACTIONS = ["keep", "modify", "reorder", "replace", "add", "remove", "optional_add"];
-// 9.5.4.2: recognized day-plan roles produced by p954ClassifyProposalDay().
-// "optional" doubles as the safe fallback for older proposals saved before
-// this field existed.
-const PROGRAM_PROPOSAL_DAY_ROLES = ["lifting", "cardio", "recovery", "optional"];
-
-// Recognized gym modes for proposal purposes. Falls back to the known
-// "home"/"partial" pair if P isn't available for any reason — never throws.
-function p954GetRecognizedProposalGymKeys(){
-  try {
-    const keys = Object.keys(P);
-    return keys.length ? keys : ["home","partial"];
-  } catch(e){
-    return ["home","partial"];
-  }
-}
 
 // Returns a fresh, independent default proposal object. Never returns a
 // shared mutable reference — safe to call repeatedly. status defaults to
@@ -4968,10 +4868,7 @@ function p954GetDefaultProposal(){
       estimatedSessionDurationMinutes: null,
       rationale: [],
       affectedDayCount: 0,
-      actionCounts: { keep:0, modify:0, reorder:0, replace:0, add:0, remove:0, optional_add:0 },
-      // 9.5.4.2: preserve these through normalization so they survive save/load.
-      requestedLiftingFrequency: null,
-      currentLiftingDayCounts: {}
+      actionCounts: { keep:0, modify:0, reorder:0, replace:0, add:0, remove:0, optional_add:0 }
     },
     dayPlans: [],
     warnings: []
@@ -5011,30 +4908,13 @@ function p954NormalizeProposal(proposal){
   const freq = Number(srcSummary.recommendedFrequency);
   const dur = Number(srcSummary.estimatedSessionDurationMinutes);
   const affected = Number(srcSummary.affectedDayCount);
-
-  // 9.5.4.2: requestedLiftingFrequency — integer 2–6 or null.
-  const reqLiftFreq = Number(srcSummary.requestedLiftingFrequency);
-  const requestedLiftingFrequency = (isFinite(reqLiftFreq) && reqLiftFreq >= 2 && reqLiftFreq <= 6) ? Math.floor(reqLiftFreq) : null;
-
-  // 9.5.4.2: currentLiftingDayCounts — object keyed only by recognized gym
-  // modes, each value a non-negative integer. Unrecognized keys are dropped.
-  const recognizedGymKeys = p954GetRecognizedProposalGymKeys();
-  const srcLiftingCounts = (srcSummary.currentLiftingDayCounts && typeof srcSummary.currentLiftingDayCounts === "object" && !Array.isArray(srcSummary.currentLiftingDayCounts)) ? srcSummary.currentLiftingDayCounts : {};
-  const currentLiftingDayCounts = {};
-  recognizedGymKeys.forEach(function(g){
-    const n = Number(srcLiftingCounts[g]);
-    if(isFinite(n) && n >= 0) currentLiftingDayCounts[g] = Math.floor(n);
-  });
-
   out.summary = {
     recommendedFrequency: (isFinite(freq) && freq > 0) ? freq : null,
     gymModes: Array.isArray(srcSummary.gymModes) ? srcSummary.gymModes.filter(function(g){ return typeof g === "string"; }) : [],
     estimatedSessionDurationMinutes: (isFinite(dur) && dur > 0) ? dur : null,
     rationale: Array.isArray(srcSummary.rationale) ? srcSummary.rationale.filter(function(r){ return typeof r === "string"; }) : [],
     affectedDayCount: (isFinite(affected) && affected >= 0) ? Math.floor(affected) : 0,
-    actionCounts: actionCounts,
-    requestedLiftingFrequency: requestedLiftingFrequency,
-    currentLiftingDayCounts: currentLiftingDayCounts
+    actionCounts: actionCounts
   };
 
   out.dayPlans = Array.isArray(src.dayPlans) ? src.dayPlans.filter(function(dp){
@@ -5045,10 +4925,6 @@ function p954NormalizeProposal(proposal){
       dayIdx: Math.floor(Number(dp.dayIdx)),
       dayName: (typeof dp.dayName === "string") ? dp.dayName : ("Day " + (Math.floor(Number(dp.dayIdx)) + 1)),
       isVirtual: !!dp.isVirtual,
-      // 9.5.4.2: role — one of PROGRAM_PROPOSAL_DAY_ROLES, falling back to
-      // "optional" (the safe default) for older proposals saved before this
-      // field existed or for any unrecognized value.
-      role: PROGRAM_PROPOSAL_DAY_ROLES.indexOf(dp.role) !== -1 ? dp.role : "optional",
       action: PROGRAM_PROPOSAL_DAY_ACTIONS.indexOf(dp.action) !== -1 ? dp.action : "keep",
       tweaks: Array.isArray(dp.tweaks) ? dp.tweaks.filter(function(t){ return typeof t === "string"; }) : [],
       notes: (typeof dp.notes === "string") ? dp.notes : ""
@@ -5121,37 +4997,11 @@ function p954ValidateProgramProposal(proposal){
     if(!proposal.summary || typeof proposal.summary !== "object") errors.push("Missing summary object.");
     if(!Array.isArray(proposal.dayPlans)) errors.push("dayPlans is not an array.");
     else {
-      const recognizedGymKeys = p954GetRecognizedProposalGymKeys();
-      const seenGymDayKeys = {};
       proposal.dayPlans.forEach(function(dp, i){
         if(!dp || typeof dp !== "object"){ errors.push("dayPlans[" + i + "] is not an object."); return; }
-        if(recognizedGymKeys.indexOf(dp.gymKey) === -1) errors.push("dayPlans[" + i + "] has unrecognized gymKey: " + dp.gymKey);
-        // 9.5.4B.2: dayIdx must be an actual integer number — not a numeric
-        // string ("2"), not a fractional value (1.5), and not anything else
-        // merely coercible via Number(...). isFinite(dp.dayIdx) alone would
-        // accept all of those, since isFinite() coerces its argument.
-        const dayIdxValid = (typeof dp.dayIdx === "number") && Number.isInteger(dp.dayIdx) && dp.dayIdx >= 0;
-        if(!dayIdxValid) errors.push("dayPlans[" + i + "] has invalid dayIdx: " + JSON.stringify(dp.dayIdx));
+        if(["home","partial"].indexOf(dp.gymKey) === -1) errors.push("dayPlans[" + i + "] has unrecognized gymKey: " + dp.gymKey);
+        if(!isFinite(dp.dayIdx) || dp.dayIdx < 0) errors.push("dayPlans[" + i + "] has invalid dayIdx: " + dp.dayIdx);
         if(PROGRAM_PROPOSAL_DAY_ACTIONS.indexOf(dp.action) === -1) errors.push("dayPlans[" + i + "] has invalid action: " + dp.action);
-        // 9.5.4.2 / 9.5.4B.1: role must be one of the recognized day-plan
-        // roles. This function is now also used to validate the RAW stored
-        // structure before normalization (see p954InspectStoredProposal), so
-        // a missing role (undefined) — expected from proposals saved before
-        // 9.5.4.2 — is treated as a legacy omission, not corruption; it will
-        // safely normalize to "optional". An explicit-but-unrecognized role
-        // is still reported as a genuine error either way.
-        if(dp.role !== undefined && PROGRAM_PROPOSAL_DAY_ROLES.indexOf(dp.role) === -1) errors.push("dayPlans[" + i + "] has invalid role: " + dp.role);
-        // 9.5.4.2: reject duplicate gymKey/dayIdx combinations — this catches
-        // accidental collisions between an existing day and a proposed
-        // optional_add (or any other duplicate day-plan entry). Only build
-        // the key from a dayIdx that actually passed strict validation above
-        // — an invalid dayIdx is already reported by the check above and
-        // must not also be silently coerced into a duplicate-key comparison.
-        if(typeof dp.gymKey === "string" && dayIdxValid){
-          const key = dp.gymKey + "|" + dp.dayIdx;
-          if(seenGymDayKeys[key]) errors.push("dayPlans[" + i + "] duplicates gymKey/dayIdx already used at another entry: " + key);
-          else seenGymDayKeys[key] = true;
-        }
       });
     }
     if(!Array.isArray(proposal.warnings)) errors.push("warnings is not an array.");
@@ -5159,91 +5009,6 @@ function p954ValidateProgramProposal(proposal){
     errors.push("Validation failed safely: " + (e && e.message));
   }
   return { valid: errors.length === 0, errors: errors };
-}
-
-// ── 9.5.4B.1: read-only raw storage inspection ───────────────────────────────
-// Unlike p954GetProposal() (which normalizes before returning, silently
-// repairing invalid stored fields), this reads mf-onboarding-program-proposal
-// as-is and validates the ORIGINAL parsed structure before any repair, so a
-// genuinely invalid or malformed stored proposal can be reliably identified.
-// Never writes/modifies localStorage. Never throws.
-//
-// Returns:
-//   {
-//     exists: boolean,            // key present in localStorage
-//     parses: boolean,            // stored text is valid JSON (false if absent too)
-//     rawText: string|null,       // exact stored text, or null if absent
-//     parsed: object|null,        // JSON.parse() of rawText, or null if absent/malformed
-//     normalized: object|null,    // p954NormalizeProposal(parsed) read model, or null if absent/malformed
-//     validation: {valid, errors},// p954ValidateProgramProposal() run on the RAW parsed object
-//     storageError: string|null   // set only if localStorage itself could not be read
-//   }
-function p954InspectStoredProposal(){
-  const result = {
-    exists: false,
-    parses: false,
-    rawText: null,
-    parsed: null,
-    normalized: null,
-    validation: { valid: false, errors: [] },
-    storageError: null
-  };
-  try {
-    let raw;
-    try {
-      raw = localStorage.getItem(PROGRAM_PROPOSAL_KEY);
-    } catch(e){
-      result.storageError = (e && e.message) || "Unknown storage error";
-      result.validation = { valid: false, errors: ["Unable to read stored proposal: " + result.storageError] };
-      return result;
-    }
-
-    if(raw === null){
-      // Absent key: exists/parses false, parsed/normalized null — matches
-      // p954GetProposal()'s "no proposal" case exactly.
-      result.validation = { valid: false, errors: ["No proposal saved."] };
-      return result;
-    }
-
-    result.exists = true;
-    result.rawText = raw;
-
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch(e){
-      // Malformed JSON: exists true, parses false, rawText preserved,
-      // parsed/normalized stay null. A clear validation error is returned
-      // rather than silently treating this as "no proposal".
-      result.parses = false;
-      result.validation = { valid: false, errors: ["Stored proposal is not valid JSON: " + ((e && e.message) || "parse error")] };
-      return result;
-    }
-
-    result.parses = true;
-    result.parsed = parsed;
-
-    // Validate the ORIGINAL parsed structure before normalization — this is
-    // what actually catches explicit invalid status/action/role values,
-    // invalid/negative dayIdx, invalid gymKey, duplicate gymKey/dayIdx, and
-    // non-array dayPlans, none of which normalization would preserve.
-    result.validation = p954ValidateProgramProposal(parsed);
-
-    // Also produce the normalized read model separately, purely for display
-    // purposes when the raw proposal is valid — this never affects the
-    // validation verdict above and never writes storage.
-    try {
-      result.normalized = p954NormalizeProposal(parsed);
-    } catch(e){
-      result.normalized = null;
-    }
-
-    return result;
-  } catch(e){
-    result.storageError = (e && e.message) || "Unknown error";
-    result.validation = { valid: false, errors: ["Inspection failed safely: " + result.storageError] };
-    return result;
-  }
 }
 
 // ── Deterministic in-memory builder ──────────────────────────────────────────
@@ -5466,24 +5231,8 @@ function p954BuildProgramProposal(onboardingState, profile, currentProgram){
       // REQUIREMENT 4: only add the number of optional LIFTING day proposals
       // needed to reach the requested lifting frequency — never based on the
       // raw total day count.
-      // 9.5.4.2: guard against dayIdx collisions. A customized program can
-      // already have virtual days at or above baseLen, so "baseLen + i" can
-      // land on an index that's already in use. Gather every dayIdx already
-      // present for this gym mode and walk forward from baseLen to find the
-      // next truly unused integer for each optional_add, reserving it
-      // immediately so multiple additions in the same gym mode never collide
-      // with each other either. Purely descriptive — no day is ever created.
-      const usedDayIdx = {};
-      days.forEach(function(d){
-        const n = Number(d && d._dayIdx);
-        if(isFinite(n)) usedDayIdx[n] = true;
-      });
-      let nextIdx = baseLen;
       for(let i = 0; i < delta; i++){
-        while(usedDayIdx[nextIdx]) nextIdx++;
-        const newIdx = nextIdx;
-        usedDayIdx[newIdx] = true;
-        nextIdx++;
+        const newIdx = baseLen + i;
         dayPlans.push({
           gymKey: gymKey,
           dayIdx: newIdx,
@@ -5669,21 +5418,8 @@ function p954CheckProgramCompatibility(proposal){
 window.mfOnboardingProgramProposalDebug = function(){
   try {
     const proposal = p954GetProposal();
-    // 9.5.4B.1: raw-storage inspection drives validity/reviewability now —
-    // p954ValidateProgramProposal() on the already-normalized proposal would
-    // always look valid, since normalization repairs invalid fields first.
-    const inspection = p954InspectStoredProposal();
-    const validation = inspection.validation;
-    // 9.5.4B.2: storedProposalNormalizedValid must reflect actual structural
-    // validation of the normalized read model, not merely that normalization
-    // returned an object (normalization always "succeeds" by coercing to
-    // safe defaults, so !!inspection.normalized was true even for corrupted
-    // structures where normalization also failed for unrelated reasons).
-    const normalizedValidation = inspection.normalized ? p954ValidateProgramProposal(inspection.normalized) : { valid: false, errors: [] };
+    const validation = proposal ? p954ValidateProgramProposal(proposal) : { valid: false, errors: ["No proposal saved."] };
     const compatibility = proposal ? p954CheckProgramCompatibility(proposal) : null;
-    // 9.5.4B: review-layer fields — UI-state only, never persisted.
-    const canReview = !!proposal && validation.valid;
-    const canDismiss = !!proposal && (proposal.status === "draft" || proposal.status === "dismissed");
     const result = {
       proposalExists: !!proposal,
       proposalStatus: proposal ? proposal.status : null,
@@ -5694,20 +5430,7 @@ window.mfOnboardingProgramProposalDebug = function(){
       actionCounts: proposal ? proposal.summary.actionCounts : null,
       currentProgramCompatibility: compatibility,
       warnings: proposal ? proposal.warnings : [],
-      backupIncluded: p8IsMarcusFitKey(PROGRAM_PROPOSAL_KEY),
-      reviewOpen: p954ReviewOpenFlag,
-      canReview: canReview,
-      canDismiss: canDismiss,
-      dismissedAt: proposal ? proposal.dismissedAt : null,
-      renderedGymGroups: p954RLastRenderedGymGroups,
-      renderedDayCount: p954RLastRenderedDayCount,
-      // 9.5.4B.1: concise raw-storage inspection fields only — no raw text,
-      // no full parsed/normalized object dumps.
-      storedProposalExists: inspection.exists,
-      storedProposalParses: inspection.parses,
-      storedProposalRawValid: inspection.validation.valid,
-      storedProposalNormalizedValid: normalizedValidation.valid,
-      storedProposalErrors: inspection.validation.errors
+      backupIncluded: p8IsMarcusFitKey(PROGRAM_PROPOSAL_KEY)
     };
     console.log("[MarcusFit] mfOnboardingProgramProposalDebug():", result);
     return result;
@@ -5736,14 +5459,6 @@ function p954MaybeGenerateProposalAfterRealCompletion(){
 // with onboarding-, profile-, or program-derived strings (day names, goal
 // text, equipment notes, etc. are all user-entered).
 let p954SummaryVisible = false;
-
-// ── 9.5.4B: detailed review overlay state (UI-layer only — never persisted) ──
-let p954ReviewOpenFlag = false;      // true while the review overlay is open
-let p954ReviewInvalid = false;       // true when the stored proposal failed validation at open-time
-let p954ReviewInvalidErrors = [];    // validation error strings for the error state
-let p954RLastRenderedGymGroups = 0;  // debug: gym groups rendered in the last built review
-let p954RLastRenderedDayCount = 0;   // debug: day cards rendered in the last built review
-let p954RLastRenderedExerciseCount = 0; // debug: exercise rows rendered in the last built review
 
 function p954ShowResult(msg, type){
   const el = document.getElementById("p954Result");
@@ -5822,38 +5537,6 @@ function p954BuildSummaryCard(proposal){
   return card;
 }
 
-// Compact, non-toggling summary shown under the dismissed state. Deliberately
-// smaller than p954BuildSummaryCard (no rationale/warnings list) — the full
-// detail is only ever a VIEW DISMISSED PROPOSAL tap away, and that view stays
-// read-only. Uses textContent only.
-function p954BuildDismissedSummary(proposal){
-  const card = document.createElement("div");
-  card.style.cssText = "background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:12px;line-height:1.6;";
-  const s = proposal.summary || {};
-
-  const line1 = document.createElement("div");
-  line1.style.cssText = "font-weight:700;color:var(--green);margin-bottom:6px;";
-  line1.textContent = "✓ Current program kept";
-  card.appendChild(line1);
-
-  const line2 = document.createElement("div");
-  line2.style.cssText = "color:var(--muted);margin-bottom:6px;";
-  line2.textContent = "Proposal generated: " + (proposal.generatedAt ? new Date(proposal.generatedAt).toLocaleString() : "—")
-    + (proposal.dismissedAt ? (" · Dismissed: " + new Date(proposal.dismissedAt).toLocaleString()) : "");
-  card.appendChild(line2);
-
-  const ac = s.actionCounts || {};
-  const addTotal = (ac.add || 0) + (ac.optional_add || 0);
-  const line3 = document.createElement("div");
-  line3.style.color = "var(--text)";
-  line3.textContent = (s.recommendedFrequency ? (s.recommendedFrequency + "/week lifting requested · ") : "")
-    + "affected days: " + (s.affectedDayCount || 0)
-    + " · keep " + (ac.keep||0) + " · modify " + (ac.modify||0) + " · remove " + (ac.remove||0) + " · add " + addTotal;
-  card.appendChild(line3);
-
-  return card;
-}
-
 // Renders the Program Personalization section in the Sync tab based on
 // current proposal state. Never generates a proposal itself — purely reads
 // p954GetProposal() and reflects what's there.
@@ -5862,15 +5545,9 @@ function p954RenderProgramPersonalization(){
   if(!container) return;
   container.innerHTML = ""; // clears app-authored placeholder only, not user data
 
-  // REQUIREMENT 4 (9.5.4B.1): inspect the RAW stored proposal read-only on
-  // every render — including page load, before the user ever taps REVIEW —
-  // so a malformed or genuinely invalid stored proposal is never presented
-  // as a normal draft/no-proposal record. Never writes storage.
-  const inspection = p954InspectStoredProposal();
+  const proposal = p954GetProposal();
 
-  if(!inspection.exists){
-    p954ReviewInvalid = false;
-    p954ReviewInvalidErrors = [];
+  if(!proposal){
     const btn = document.createElement("button");
     btn.className = "big-btn btn-sync";
     btn.style.marginBottom = "0";
@@ -5884,122 +5561,34 @@ function p954RenderProgramPersonalization(){
     return;
   }
 
-  if(!inspection.parses || !inspection.validation.valid){
-    p954ReviewInvalid = true;
-    p954ReviewInvalidErrors = inspection.validation.errors;
-  } else {
-    p954ReviewInvalid = false;
-    p954ReviewInvalidErrors = [];
-  }
-
-  // REQUIREMENT 6: a stored proposal that failed validation gets a dedicated
-  // error state instead of draft/dismissed controls — the proposal stays
-  // stored untouched (for debugging/regeneration), only regenerate/clear are
-  // offered. Do NOT auto-repair or overwrite invalid storage.
-  if(p954ReviewInvalid){
-    const errBox = document.createElement("div");
-    errBox.className = "p954r-error-box";
-    const title = document.createElement("div");
-    title.style.cssText = "font-weight:700;margin-bottom:6px;";
-    title.textContent = "⚠ This stored proposal failed validation and can't be reviewed safely.";
-    errBox.appendChild(title);
-    (p954ReviewInvalidErrors || []).forEach(function(e){
-      const line = document.createElement("div");
-      line.textContent = "• " + e;
-      errBox.appendChild(line);
-    });
-    container.appendChild(errBox);
-
-    const errBtnRow = document.createElement("div");
-    errBtnRow.style.cssText = "display:flex;flex-direction:column;gap:8px;margin-top:10px;";
-    const regenBtn2 = document.createElement("button");
-    regenBtn2.className = "big-btn";
-    regenBtn2.style.cssText = "background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";
-    regenBtn2.textContent = "🔄 REGENERATE PROPOSAL";
-    regenBtn2.onclick = p954HandleGenerateClick;
-    errBtnRow.appendChild(regenBtn2);
-    const clearBtn2 = document.createElement("button");
-    clearBtn2.className = "big-btn";
-    clearBtn2.style.cssText = "background:transparent;color:var(--red);border:1px solid var(--red);margin-bottom:0;";
-    clearBtn2.textContent = "🗑 CLEAR PROPOSAL";
-    clearBtn2.onclick = p954HandleClearClick;
-    errBtnRow.appendChild(clearBtn2);
-    container.appendChild(errBtnRow);
-
-    const errResultEl = document.createElement("div");
-    errResultEl.className = "sync-result";
-    errResultEl.id = "p954Result";
-    container.appendChild(errResultEl);
-    return;
-  }
-
-  const proposal = inspection.normalized;
-
   const btnRow = document.createElement("div");
   btnRow.style.cssText = "display:flex;flex-direction:column;gap:8px;";
 
-  if(proposal.status === "dismissed"){
-    // REQUIREMENT 4: dismissed state controls.
-    const viewBtn = document.createElement("button");
-    viewBtn.className = "big-btn btn-sync";
-    viewBtn.style.marginBottom = "0";
-    viewBtn.textContent = "👁 VIEW DISMISSED PROPOSAL";
-    viewBtn.onclick = p954ROpenReview;
-    btnRow.appendChild(viewBtn);
+  const viewBtn = document.createElement("button");
+  viewBtn.className = "big-btn btn-sync";
+  viewBtn.style.marginBottom = "0";
+  viewBtn.textContent = p954SummaryVisible ? "🙈 HIDE PROPOSAL SUMMARY" : "👁 VIEW PROPOSAL SUMMARY";
+  viewBtn.onclick = p954ToggleSummary;
+  btnRow.appendChild(viewBtn);
 
-    const genNewBtn = document.createElement("button");
-    genNewBtn.className = "big-btn";
-    genNewBtn.style.cssText = "background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";
-    genNewBtn.textContent = "🧭 GENERATE NEW PROPOSAL";
-    genNewBtn.onclick = p954HandleGenerateClick;
-    btnRow.appendChild(genNewBtn);
+  const regenBtn = document.createElement("button");
+  regenBtn.className = "big-btn";
+  regenBtn.style.cssText = "background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";
+  regenBtn.textContent = "🔄 REGENERATE PROPOSAL";
+  regenBtn.onclick = p954HandleGenerateClick;
+  btnRow.appendChild(regenBtn);
 
-    const clearBtn = document.createElement("button");
-    clearBtn.className = "big-btn";
-    clearBtn.style.cssText = "background:transparent;color:var(--red);border:1px solid var(--red);margin-bottom:0;";
-    clearBtn.textContent = "🗑 CLEAR PROPOSAL";
-    clearBtn.onclick = p954HandleClearClick;
-    btnRow.appendChild(clearBtn);
+  const clearBtn = document.createElement("button");
+  clearBtn.className = "big-btn";
+  clearBtn.style.cssText = "background:transparent;color:var(--red);border:1px solid var(--red);margin-bottom:0;";
+  clearBtn.textContent = "🗑 CLEAR PROPOSAL";
+  clearBtn.onclick = p954HandleClearClick;
+  btnRow.appendChild(clearBtn);
 
-    container.appendChild(btnRow);
-    container.appendChild(p954BuildDismissedSummary(proposal));
-  } else {
-    // REQUIREMENT 5: draft (default) state controls. Any legacy/unrecognized
-    // status is normalized to "draft" by p954NormalizeProposal before this
-    // ever runs, so this branch is the safe default.
-    const reviewBtn = document.createElement("button");
-    reviewBtn.className = "big-btn btn-sync";
-    reviewBtn.style.marginBottom = "0";
-    reviewBtn.textContent = "🔍 REVIEW FULL PROPOSAL";
-    reviewBtn.onclick = p954ROpenReview;
-    btnRow.appendChild(reviewBtn);
+  container.appendChild(btnRow);
 
-    const viewBtn = document.createElement("button");
-    viewBtn.className = "big-btn";
-    viewBtn.style.cssText = "background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";
-    viewBtn.textContent = p954SummaryVisible ? "🙈 HIDE PROPOSAL SUMMARY" : "👁 VIEW PROPOSAL SUMMARY";
-    viewBtn.onclick = p954ToggleSummary;
-    btnRow.appendChild(viewBtn);
-
-    const regenBtn = document.createElement("button");
-    regenBtn.className = "big-btn";
-    regenBtn.style.cssText = "background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";
-    regenBtn.textContent = "🔄 REGENERATE PROPOSAL";
-    regenBtn.onclick = p954HandleGenerateClick;
-    btnRow.appendChild(regenBtn);
-
-    const clearBtn = document.createElement("button");
-    clearBtn.className = "big-btn";
-    clearBtn.style.cssText = "background:transparent;color:var(--red);border:1px solid var(--red);margin-bottom:0;";
-    clearBtn.textContent = "🗑 CLEAR PROPOSAL";
-    clearBtn.onclick = p954HandleClearClick;
-    btnRow.appendChild(clearBtn);
-
-    container.appendChild(btnRow);
-
-    if(p954SummaryVisible){
-      container.appendChild(p954BuildSummaryCard(proposal));
-    }
+  if(p954SummaryVisible){
+    container.appendChild(p954BuildSummaryCard(proposal));
   }
 
   const resultEl = document.createElement("div");
@@ -6014,9 +5603,6 @@ function p954ToggleSummary(){
 }
 
 function p954HandleGenerateClick(){
-  p954ReviewInvalid = false;
-  p954ReviewInvalidErrors = [];
-  if(p954ReviewOpenFlag) p954RCloseReview();
   const result = p954GenerateAndSaveProposal();
   p954SummaryVisible = true;
   p954RenderProgramPersonalization();
@@ -6025,506 +5611,13 @@ function p954HandleGenerateClick(){
 }
 
 function p954HandleClearClick(){
-  p954ReviewInvalid = false;
-  p954ReviewInvalidErrors = [];
-  if(p954ReviewOpenFlag) p954RCloseReview();
   const result = p954ClearProposal();
   p954SummaryVisible = false;
   p954RenderProgramPersonalization();
   if(result.ok) p954ShowResult("Proposal cleared.", "ok");
   else p954ShowResult("❌ Could not clear proposal: " + (result.error || "Unknown error"), "err");
 }
-
-// ── PHASE 9.5.4B: DETAILED REVIEW OVERLAY ────────────────────────────────────
-// Everything below is strictly read-only with respect to the active workout
-// program. The ONLY write path in this whole block is
-// p954RConfirmKeepCurrentProgram(), and the only fields it ever changes are
-// proposal.status ("dismissed") and proposal.dismissedAt — never P,
-// mf-overrides, mf-exercise-state, mf-recommendations, logs, history, day
-// overrides/additions, custom exercises, inactive IDs, or replacements.
-
-// Maps a proposal-day-plan action to its visual badge label. Falls back to
-// "keep" for any unrecognized value so a badge always renders safely.
-function p954RMakeBadge(action){
-  const span = document.createElement("span");
-  const safeAction = (typeof action === "string" && PROGRAM_PROPOSAL_DAY_ACTIONS.indexOf(action) !== -1) ? action : "keep";
-  span.className = "p954r-badge p954r-badge-" + safeAction;
-  const labels = { keep:"KEEP", modify:"TWEAK", reorder:"REORDER", replace:"REPLACE", add:"ADD", remove:"REMOVE", optional_add:"OPTIONAL ADD" };
-  span.textContent = labels[safeAction] || safeAction.toUpperCase();
-  return span;
-}
-
-// Best-effort, read-only extraction of a single free-text rationale line
-// (e.g. "Primary goal on file: ...") out of proposal.summary.rationale. The
-// builder only stores rationale as prose strings today, so this is a display
-// convenience only — it never writes anything back and simply returns null
-// if no matching line exists.
-function p954RExtractRationaleField(rationale, prefixes){
-  if(!Array.isArray(rationale)) return null;
-  for(let i = 0; i < rationale.length; i++){
-    const r = rationale[i];
-    if(typeof r !== "string") continue;
-    for(let j = 0; j < prefixes.length; j++){
-      const prefix = prefixes[j];
-      if(r.indexOf(prefix) === 0){
-        let rest = r.slice(prefix.length).trim();
-        rest = rest.replace(/\.$/, "");
-        rest = rest.replace(/^"(.*)"$/, "$1");
-        return rest || null;
-      }
-    }
-  }
-  return null;
-}
-
-// Read-only lookup of the CURRENT resolved day for a day plan, so the review
-// can show real current exercise data next to the proposal's description.
-// Virtual/optional_add day plans have no current day to resolve — returns
-// null for those, never throws.
-function p954RGetCurrentDayForPlan(dp){
-  try {
-    if(!dp || dp.isVirtual) return null;
-    const days = getResolvedDays(dp.gymKey);
-    const match = days.find(function(d){ return d._dayIdx === dp.dayIdx; });
-    return match || null;
-  } catch(e){
-    return null;
-  }
-}
-
-// The builder currently records duplicate-exercise findings as a prose tweak
-// string ("Remove duplicate active exercise \"X\" (keep the first
-// occurrence)."), not as structured per-exercise proposal data. This helper
-// extracts just the exercise name(s) so the exercise-level rows below can
-// render a real REMOVE badge on the later occurrence — read-only, never
-// mutates the day plan or tweaks array.
-function p954RExtractDuplicateNamesFromTweaks(tweaks){
-  const set = new Set();
-  if(!Array.isArray(tweaks)) return set;
-  const re = /Remove duplicate active exercise "([^"]+)"/;
-  tweaks.forEach(function(t){
-    if(typeof t !== "string") return;
-    const m = re.exec(t);
-    if(m && m[1]) set.add(m[1]);
-  });
-  return set;
-}
-
-// Renders one current exercise row. `seenDupeNames` tracks which duplicate
-// names have already been shown once (KEEP) within this day, so only the
-// later occurrence(s) get the REMOVE badge — matching the builder's own
-// "keep the first occurrence" language. All text uses textContent.
-function p954RBuildExerciseRow(ex, dupeNames, seenDupeNames){
-  const row = document.createElement("div");
-  row.className = "p954r-ex-row";
-
-  const name = ex && typeof ex.name === "string" ? ex.name : "";
-  let action = "keep";
-  if(name && dupeNames && dupeNames.has(name)){
-    if(seenDupeNames[name]) action = "remove";
-    else seenDupeNames[name] = true;
-  }
-
-  const nameLine = document.createElement("div");
-  nameLine.className = "p954r-ex-name";
-  nameLine.appendChild(p954RMakeBadge(action));
-  const nameText = document.createElement("span");
-  nameText.textContent = name || "(unnamed exercise)";
-  nameLine.appendChild(nameText);
-  row.appendChild(nameLine);
-
-  const metaLine = document.createElement("div");
-  metaLine.className = "p954r-ex-meta";
-  const parts = [];
-  if(ex && ex.sets !== undefined && ex.sets !== null && ex.sets !== "") parts.push("Sets: " + ex.sets);
-  if(ex && ex.reps !== undefined && ex.reps !== null && ex.reps !== "") parts.push("Reps: " + ex.reps);
-  if(ex && ex.load !== undefined && ex.load !== null && ex.load !== "") parts.push("Load: " + ex.load);
-  if(ex && ex.rir !== undefined && ex.rir !== null && ex.rir !== "") parts.push("RIR: " + ex.rir);
-  metaLine.textContent = parts.length ? parts.join(" · ") : "—";
-  row.appendChild(metaLine);
-
-  if(action === "remove"){
-    const rationale = document.createElement("div");
-    rationale.className = "p954r-ex-rationale";
-    rationale.textContent = "Duplicate active exercise on this day — proposal suggests removing this later occurrence and keeping the first.";
-    row.appendChild(rationale);
-  }
-
-  return row;
-}
-
-// Builds one day card: gym-agnostic (gym grouping happens one level up),
-// current vs proposed day name, role/focus meta, day-level rationale
-// (notes), and every current exercise on that day (or a clear empty note for
-// not-yet-created optional/virtual days). Returns {el, exerciseCount} so the
-// caller can accumulate debug counts without a second DOM walk.
-function p954RBuildDayCard(dp){
-  const card = document.createElement("div");
-  card.className = "p954r-day-card";
-
-  const currentDay = p954RGetCurrentDayForPlan(dp);
-  const currentName = currentDay ? (currentDay.name || currentDay.day || "") : null;
-
-  const head = document.createElement("div");
-  head.className = "p954r-day-head";
-  const nameWrap = document.createElement("div");
-  const nameEl = document.createElement("div");
-  nameEl.className = "p954r-day-name";
-  nameEl.textContent = "Day " + (dp.dayIdx + 1) + (currentName ? (": " + currentName) : (": " + dp.dayName));
-  nameWrap.appendChild(nameEl);
-  if(currentName && dp.dayName && currentName !== dp.dayName){
-    const propNameEl = document.createElement("div");
-    propNameEl.className = "p954r-day-name-proposed";
-    propNameEl.textContent = "Proposed name: " + dp.dayName;
-    nameWrap.appendChild(propNameEl);
-  }
-  head.appendChild(nameWrap);
-  head.appendChild(p954RMakeBadge(dp.action));
-  card.appendChild(head);
-
-  const meta = document.createElement("div");
-  meta.className = "p954r-day-meta";
-  const roleLabel = (typeof dp.role === "string" && dp.role) ? (dp.role.charAt(0).toUpperCase() + dp.role.slice(1)) : "Optional";
-  const focusText = (currentDay && typeof currentDay.focus === "string") ? currentDay.focus : "";
-  meta.textContent = "Role: " + roleLabel
-    + (focusText ? (" · Focus: " + focusText) : "")
-    + (dp.isVirtual ? " · Not created yet — describes a possibility only" : "");
-  card.appendChild(meta);
-
-  if(dp.notes){
-    const note = document.createElement("div");
-    note.className = "p954r-note";
-    note.textContent = dp.notes;
-    card.appendChild(note);
-  }
-
-  let exerciseCount = 0;
-  const dupeNames = p954RExtractDuplicateNamesFromTweaks(dp.tweaks);
-  if(currentDay && Array.isArray(currentDay.exercises) && currentDay.exercises.length){
-    const seenDupeNames = {};
-    currentDay.exercises.forEach(function(ex){
-      exerciseCount++;
-      card.appendChild(p954RBuildExerciseRow(ex, dupeNames, seenDupeNames));
-    });
-  } else if(dp.isVirtual){
-    const empty = document.createElement("div");
-    empty.className = "p954r-empty-note";
-    empty.textContent = "This day doesn't exist yet — no exercises to preview.";
-    card.appendChild(empty);
-  } else if(Array.isArray(dp.tweaks) && dp.tweaks.length){
-    dp.tweaks.forEach(function(t){
-      const item = document.createElement("div");
-      item.className = "p954r-list-item";
-      item.textContent = t;
-      card.appendChild(item);
-    });
-  } else {
-    const empty = document.createElement("div");
-    empty.className = "p954r-empty-note";
-    empty.textContent = "No exercises found for this day.";
-    card.appendChild(empty);
-  }
-
-  return { el: card, exerciseCount: exerciseCount };
-}
-
-// Builds the full detailed review body for a validated proposal: top summary
-// (REQUIREMENT 1's first list), rationale, warnings, then every day plan
-// grouped by gym mode with per-exercise detail. Updates the debug counters
-// (p954RLastRendered*) as a side effect — read-only otherwise.
-function p954RBuildReviewContent(proposal){
-  const frag = document.createDocumentFragment();
-  const s = proposal.summary || {};
-
-  function addRow(parent, label, value){
-    if(value === null || value === undefined || value === "") return;
-    const row = document.createElement("div");
-    row.className = "p954r-row";
-    const l = document.createElement("span");
-    l.className = "p954r-row-label";
-    l.textContent = label;
-    const v = document.createElement("span");
-    v.className = "p954r-row-value";
-    v.textContent = String(value);
-    row.appendChild(l);
-    row.appendChild(v);
-    parent.appendChild(row);
-  }
-
-  const sumSection = document.createElement("div");
-  sumSection.className = "p954r-section";
-  const sumTitle = document.createElement("div");
-  sumTitle.className = "p954r-section-title";
-  sumTitle.textContent = "Summary";
-  sumSection.appendChild(sumTitle);
-
-  addRow(sumSection, "Status", proposal.status);
-  addRow(sumSection, "Generated", proposal.generatedAt ? new Date(proposal.generatedAt).toLocaleString() : "—");
-  addRow(sumSection, "Recommended lifting frequency", s.recommendedFrequency ? (s.recommendedFrequency + "/week") : "No specific answer on file");
-  const clc = s.currentLiftingDayCounts || {};
-  const clcKeys = Object.keys(clc);
-  if(clcKeys.length){
-    addRow(sumSection, "Current lifting days by gym mode", clcKeys.map(function(k){ return k + ": " + clc[k]; }).join(" · "));
-  }
-  addRow(sumSection, "Gym mode(s) included", (s.gymModes && s.gymModes.length) ? s.gymModes.join(", ") : "—");
-  addRow(sumSection, "Est. session duration", s.estimatedSessionDurationMinutes ? (s.estimatedSessionDurationMinutes + " min") : "—");
-  const primaryGoal = p954RExtractRationaleField(s.rationale, ["Primary goal on file:", "Primary goal on file (from profile):"]);
-  addRow(sumSection, "Primary goal", primaryGoal || "No specific answer on file");
-  addRow(sumSection, "Affected day count", s.affectedDayCount);
-  const ac = s.actionCounts || {};
-  const addTotal = (ac.add || 0) + (ac.optional_add || 0);
-  addRow(sumSection, "Action counts", "keep " + (ac.keep||0) + " · modify " + (ac.modify||0) + " · reorder " + (ac.reorder||0) + " · replace " + (ac.replace||0) + " · add " + addTotal + " · remove " + (ac.remove||0));
-  frag.appendChild(sumSection);
-
-  if((s.rationale || []).length){
-    const rSection = document.createElement("div");
-    rSection.className = "p954r-section";
-    const rTitle = document.createElement("div");
-    rTitle.className = "p954r-section-title";
-    rTitle.textContent = "Rationale";
-    rSection.appendChild(rTitle);
-    s.rationale.forEach(function(r){
-      const item = document.createElement("div");
-      item.className = "p954r-list-item";
-      item.textContent = r;
-      rSection.appendChild(item);
-    });
-    frag.appendChild(rSection);
-  }
-
-  if((proposal.warnings || []).length){
-    const wSection = document.createElement("div");
-    wSection.className = "p954r-section";
-    const wTitle = document.createElement("div");
-    wTitle.className = "p954r-section-title";
-    wTitle.textContent = "Warnings";
-    wSection.appendChild(wTitle);
-    proposal.warnings.forEach(function(w){
-      const item = document.createElement("div");
-      item.className = "p954r-list-item warn";
-      item.textContent = "⚠ " + w;
-      wSection.appendChild(item);
-    });
-    frag.appendChild(wSection);
-  }
-
-  const dayPlans = Array.isArray(proposal.dayPlans) ? proposal.dayPlans.slice() : [];
-  const gymGroups = {};
-  const gymOrder = [];
-  dayPlans.forEach(function(dp){
-    if(!gymGroups[dp.gymKey]){ gymGroups[dp.gymKey] = []; gymOrder.push(dp.gymKey); }
-    gymGroups[dp.gymKey].push(dp);
-  });
-
-  let renderedDayCount = 0;
-  let renderedExerciseCount = 0;
-
-  gymOrder.forEach(function(gymKey){
-    const header = document.createElement("div");
-    header.className = "p954r-gym-header";
-    header.textContent = gymKey.toUpperCase() + " — day by day";
-    frag.appendChild(header);
-
-    const plans = gymGroups[gymKey].slice().sort(function(a, b){ return a.dayIdx - b.dayIdx; });
-    plans.forEach(function(dp){
-      renderedDayCount++;
-      const built = p954RBuildDayCard(dp);
-      renderedExerciseCount += built.exerciseCount;
-      frag.appendChild(built.el);
-    });
-  });
-
-  if(!gymOrder.length){
-    const empty = document.createElement("div");
-    empty.className = "p954r-empty-note";
-    empty.textContent = "No day plans in this proposal.";
-    frag.appendChild(empty);
-  }
-
-  p954RLastRenderedGymGroups = gymOrder.length;
-  p954RLastRenderedDayCount = renderedDayCount;
-  p954RLastRenderedExerciseCount = renderedExerciseCount;
-
-  return frag;
-}
-
-// Opens the detailed review. REQUIREMENT 6: validates the stored proposal
-// first — on failure, switches Program Personalization into the error state
-// (via p954RenderProgramPersonalization) instead of rendering a misleading
-// review, and never opens the overlay. On success, clears any prior error
-// state and (re)builds the review body fresh each time — body.innerHTML is
-// reset first, so repeated opens never duplicate DOM (REQUIREMENT 10).
-function p954ROpenReview(){
-  try {
-    // REQUIREMENT 3 (9.5.4B.1): inspect the RAW stored proposal — not the
-    // already-normalized/repaired one — so an invalid stored record can't be
-    // silently repaired before we decide whether it's safe to review.
-    const inspection = p954InspectStoredProposal();
-    if(!inspection.exists){
-      p954ReviewInvalid = true;
-      p954ReviewInvalidErrors = ["No proposal found to review."];
-      p954RenderProgramPersonalization();
-      return;
-    }
-    if(!inspection.parses || !inspection.validation.valid){
-      p954ReviewInvalid = true;
-      p954ReviewInvalidErrors = inspection.validation.errors;
-      p954RenderProgramPersonalization();
-      return;
-    }
-    p954ReviewInvalid = false;
-    p954ReviewInvalidErrors = [];
-
-    // Raw proposal is genuinely valid — safe to render the normalized read
-    // model (fills in expected legacy omissions like role/frequency/counts).
-    const proposal = inspection.normalized;
-
-    const overlay = document.getElementById("p954ReviewOverlay");
-    const body = document.getElementById("p954ReviewBody");
-    if(!overlay || !body) return;
-    body.innerHTML = ""; // safe: clears only app-authored review DOM, rebuilt below
-    body.appendChild(p954RBuildReviewContent(proposal));
-
-    const title = document.getElementById("p954ReviewTitle");
-    if(title) title.textContent = (proposal.status === "dismissed") ? "Dismissed Proposal (read-only)" : "Proposal Review";
-
-    overlay.classList.add("open");
-    document.documentElement.style.overflow = "hidden";
-    p954ReviewOpenFlag = true;
-  } catch(e){
-    console.warn("[MarcusFit] p954ROpenReview failed:", e && e.message);
-  }
-}
-
-// CLOSE / REVIEW LATER: closes the overlay, restores page scroll, and
-// performs NO writes of any kind — the proposal (and its status) is left
-// exactly as it was.
-function p954RCloseReview(){
-  const overlay = document.getElementById("p954ReviewOverlay");
-  if(overlay) overlay.classList.remove("open");
-  document.documentElement.style.overflow = "";
-  p954ReviewOpenFlag = false;
-}
-
-// Opens the custom (non-native) KEEP CURRENT PROGRAM confirmation panel.
-function p954RShowKeepConfirm(){
-  const errEl = document.getElementById("p954ConfirmError");
-  if(errEl){ errEl.style.display = "none"; errEl.textContent = ""; }
-  const backdrop = document.getElementById("p954ConfirmBackdrop");
-  if(backdrop) backdrop.classList.add("open");
-}
-
-// Canceling leaves the proposal draft completely unchanged — this only
-// closes the confirmation panel.
-function p954RCancelKeepConfirm(){
-  const backdrop = document.getElementById("p954ConfirmBackdrop");
-  if(backdrop) backdrop.classList.remove("open");
-}
-
-// KEEP CURRENT PROGRAM, confirmed. 9.5.4B.2: re-inspects the RAW stored
-// proposal (not the normalizing getter) immediately before dismissal, so
-// storage that was altered or corrupted after the review opened can't be
-// silently repaired and then saved as dismissed. Absent, malformed-JSON, and
-// raw-invalid proposals all keep the review/confirmation open with an error
-// and never write. Only once the raw proposal is confirmed genuinely valid
-// does this proceed, using inspection.normalized as the working proposal.
-// REQUIREMENT 10: idempotent — if already dismissed, this closes out safely
-// without bumping dismissedAt again or writing anything. Never touches the
-// active workout program.
-function p954RConfirmKeepCurrentProgram(){
-  const backdrop = document.getElementById("p954ConfirmBackdrop");
-  const errEl = document.getElementById("p954ConfirmError");
-  try {
-    const inspection = p954InspectStoredProposal();
-
-    if(!inspection.exists){
-      if(errEl){ errEl.style.display = "block"; errEl.textContent = "No proposal found — there's nothing to dismiss."; }
-      return; // keep confirm + review open, no write
-    }
-    if(!inspection.parses){
-      if(errEl){ errEl.style.display = "block"; errEl.textContent = "The stored proposal is corrupted and can't be dismissed safely. Please regenerate or clear it."; }
-      return; // keep confirm + review open, no write
-    }
-    if(!inspection.validation.valid){
-      if(errEl){ errEl.style.display = "block"; errEl.textContent = "The stored proposal failed validation and can't be dismissed safely. Please regenerate or clear it."; }
-      return; // keep confirm + review open, no write
-    }
-
-    const proposal = inspection.normalized;
-
-    if(proposal.status !== "draft" && proposal.status !== "dismissed"){
-      if(errEl){ errEl.style.display = "block"; errEl.textContent = "This proposal is not in a state that can be dismissed right now."; }
-      return;
-    }
-
-    if(proposal.status === "dismissed"){
-      // Already dismissed — idempotent no-op write, just close out.
-      if(backdrop) backdrop.classList.remove("open");
-      p954RCloseReview();
-      p954RenderProgramPersonalization();
-      return;
-    }
-
-    proposal.status = "dismissed";
-    proposal.dismissedAt = new Date().toISOString();
-    const result = p954SaveProposal(proposal);
-    if(!result.ok){
-      if(errEl){ errEl.style.display = "block"; errEl.textContent = "Could not save: " + (result.error || "Unknown error") + ". Nothing has changed — please try again."; }
-      return; // keep confirm + review open per REQUIREMENT 6
-    }
-
-    if(backdrop) backdrop.classList.remove("open");
-    p954RCloseReview();
-    p954RenderProgramPersonalization();
-    p954ShowResult("Current program kept. Proposal dismissed — no program changes were made.", "ok");
-  } catch(e){
-    console.warn("[MarcusFit] p954RConfirmKeepCurrentProgram failed:", e && e.message);
-    if(errEl){ errEl.style.display = "block"; errEl.textContent = "Unexpected error — the proposal has not been changed."; }
-  }
-}
-
-// REQUIREMENT 9: read-only review-layer debug helper. Never mutates
-// anything — safe to call at any time, including while the review is closed.
-window.mfOnboardingProgramProposalReviewDebug = function(){
-  try {
-    const overlay = document.getElementById("p954ReviewOverlay");
-    const backdrop = document.getElementById("p954ConfirmBackdrop");
-    const proposal = p954GetProposal();
-    // 9.5.4B.1: raw-storage inspection — this is what actually determines
-    // whether the stored proposal is safe to review (see p954ROpenReview).
-    const inspection = p954InspectStoredProposal();
-    const validation = inspection.validation;
-    // 9.5.4B.2: storedProposalNormalizedValid must reflect actual structural
-    // validation of the normalized read model, not merely that normalization
-    // returned an object.
-    const normalizedValidation = inspection.normalized ? p954ValidateProgramProposal(inspection.normalized) : { valid: false, errors: [] };
-    const result = {
-      overlayExists: !!overlay,
-      overlayOpen: !!(overlay && overlay.classList.contains("open")),
-      proposalStatus: proposal ? proposal.status : null,
-      validation: validation,
-      gymGroupCount: p954RLastRenderedGymGroups,
-      renderedDayCount: p954RLastRenderedDayCount,
-      renderedExerciseCount: p954RLastRenderedExerciseCount,
-      visibleWarnings: proposal ? (proposal.warnings || []) : [],
-      currentConfirmationState: !!(backdrop && backdrop.classList.contains("open")),
-      // 9.5.4B.1: concise raw-storage inspection fields only — no raw text,
-      // no full parsed/normalized object dumps.
-      storedProposalExists: inspection.exists,
-      storedProposalParses: inspection.parses,
-      storedProposalRawValid: inspection.validation.valid,
-      storedProposalNormalizedValid: normalizedValidation.valid,
-      storedProposalErrors: inspection.validation.errors
-    };
-    console.log("[MarcusFit] mfOnboardingProgramProposalReviewDebug():", result);
-    return result;
-  } catch(e){
-    const result = { error: (e && e.message) || "Unknown error" };
-    console.warn("[MarcusFit] mfOnboardingProgramProposalReviewDebug failed:", e && e.message);
-    return result;
-  }
-};
-// ── END PHASE 9.5.4 / 9.5.4B ─────────────────────────────────────────────────
+// ── END PHASE 9.5.4 ──────────────────────────────────────────────────────────
 
 // Show brief "Draft saved HH:MM" toast — debounced so it doesn't spam
 let _draftToastTimer=null;
@@ -11582,7 +10675,7 @@ window.mfArchitectureDebug = function(){
       workoutReviewAfterSave: { storageKeys:["(derived at save time, no new key)"], functions:["p949BuildWorkoutReview","p949RenderReview","p949HideReview","p949GetPriorHistory"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:false, purpose:"Local deterministic post-save summary of wins/watch items using existing logs and progression signals." },
       userProfile: { storageKeys:[USER_PROFILE_KEY], functions:["p950GetDefaultUserProfile","p950GetUserProfile","p950SaveUserProfile","p950NormalizeUserProfile","p950InitUserProfile","p950RenderUserProfile","p950SaveUserProfileFromUI","p950ResetUserProfileDefaults","p950BuildUserProfileExport","mfUserProfileDebug"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Structured, schema-versioned general identity/goals/units/gym-label foundation for future shared-app support (added 9.5.0). Does not store live/current weight (owned by daily logs) or detailed bodybuilding philosophy (remains in AI_PREFS_KEY). Does not control workout/program behavior in this release; gym labels are stored but not globally applied yet." },
       onboardingState: { storageKeys:[ONBOARDING_KEY], functions:["p951GetDefaultOnboardingState","p951NormalizeOnboardingState","p951GetOnboardingState","p951SaveOnboardingState","p951HasMeaningfulExistingData","p951IsFreshInstall","p951InitOnboardingState","mfOnboardingDebug"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"Versioned onboarding-state storage + conservative fresh-install detection foundation (added 9.5.1). Storage-only in this release — no visible onboarding UI yet. Separate from and never merged into mf-user-profile. Existing/established installs are safely migrated straight to status 'completed' on first load so they are never shown onboarding they don't need; genuinely fresh installs start at 'not_started'. Not included in AI exports." },
-      programProposal: { storageKeys:[PROGRAM_PROPOSAL_KEY], functions:["p954GetDefaultProposal","p954NormalizeProposal","p954GetProposal","p954InspectStoredProposal","p954SaveProposal","p954ClearProposal","p954ValidateProgramProposal","p954BuildProgramProposal","p954GenerateAndSaveProposal","p954RenderProgramPersonalization","p954ROpenReview","p954RCloseReview","p954RShowKeepConfirm","p954RCancelKeepConfirm","p954RConfirmKeepCurrentProgram","p954RBuildReviewContent","mfOnboardingProgramProposalDebug","mfOnboardingProgramProposalReviewDebug","mfGenerateOnboardingProgramProposalPreview"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"Personalized program proposal foundation (added 9.5.4) plus a detailed, read-only day-by-day and exercise-by-exercise review overlay (added 9.5.4B). Deterministic, read-only-with-respect-to-the-program: describes suggested kept/modified/reordered/replaced/added/removed days and exercise tweaks based on onboarding answers + profile + current resolved program, but never applies any of them — no writes to P, mf-overrides, mf-exercise-state, mf-recommendations, workout logs/history, or onboarding answers. A draft proposal is auto-generated (not applied) after successful real onboarding completion; existing completed users generate one manually via the Sync tab. Preview generation (mfGenerateOnboardingProgramProposalPreview) never saves. The 9.5.4B review overlay's only write path is p954RConfirmKeepCurrentProgram(), which only ever changes status to 'dismissed' and sets dismissedAt — there is still no 'apply this proposal' write path (which would touch lifecycle/day-override/day-addition state, never base P)." }
+      programProposal: { storageKeys:[PROGRAM_PROPOSAL_KEY], functions:["p954GetDefaultProposal","p954NormalizeProposal","p954GetProposal","p954SaveProposal","p954ClearProposal","p954ValidateProgramProposal","p954BuildProgramProposal","p954GenerateAndSaveProposal","p954RenderProgramPersonalization","mfOnboardingProgramProposalDebug","mfGenerateOnboardingProgramProposalPreview"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"Personalized program proposal foundation (added 9.5.4). Deterministic, read-only-with-respect-to-the-program: describes suggested kept/modified/reordered/replaced/added/removed days and exercise tweaks based on onboarding answers + profile + current resolved program, but never applies any of them — no writes to P, mf-overrides, mf-exercise-state, mf-recommendations, workout logs/history, or onboarding answers. A draft proposal is auto-generated (not applied) after successful real onboarding completion; existing completed users generate one manually via the Sync tab. Preview generation (mfGenerateOnboardingProgramProposalPreview) never saves." }
     };
   } catch(e){ summary.errors.push("systems section failed: "+(e&&e.message)); }
 
@@ -11598,7 +10691,7 @@ window.mfArchitectureDebug = function(){
       "mf-ai-coaching-preferences (AI_PREFS_KEY)": { type:"string", shape:"Free-text persistent coaching preferences block, defaults to AI_PREFS_STARTER_TEMPLATE when reset.", missingIsValid:true, corruptJsonHandled:"N/A — stored as raw string, not JSON." },
       "mf-user-profile (USER_PROFILE_KEY)": { type:"object", shape:"{schemaVersion, profileVersion, identity:{displayName}, body:{heightInches}, goals:{primaryGoal,physiqueOutcome}, preferences:{weightUnit,distanceUnit,firstDayOfWeek}, app:{homeGymLabel,partialGymLabel}, createdAt, updatedAt}", missingIsValid:true, corruptJsonHandled:"Yes — p950GetUserProfile()/p950InitUserProfile() try/catch, malformed JSON recovers to Marcus defaults without crashing." },
       "mf-onboarding-state (ONBOARDING_KEY)": { type:"object", shape:"{schemaVersion, onboardingVersion, status:'not_started'|'in_progress'|'completed'|'skipped', currentStep, startedAt, completedAt, skippedAt, updatedAt, draft:{}}", missingIsValid:true, corruptJsonHandled:"Yes — p951GetOnboardingState()/p951InitOnboardingState() try/catch; malformed JSON is recovered conservatively (re-runs fresh-install evaluation rather than blindly resetting to not_started), added 9.5.1." },
-      "mf-onboarding-program-proposal (PROGRAM_PROPOSAL_KEY)": { type:"object|absent", shape:"{schemaVersion, proposalVersion, status:'draft'|'applied'|'dismissed', source, generatedAt, appliedAt, dismissedAt, onboardingUpdatedAt, profileUpdatedAt, summary:{recommendedFrequency, gymModes, estimatedSessionDurationMinutes, rationale, affectedDayCount, actionCounts}, dayPlans:[{gymKey,dayIdx,dayName,isVirtual,action,tweaks,notes}], warnings:[]}", missingIsValid:true, corruptJsonHandled:"Yes — p954GetProposal() try/catch still treats absent/malformed data as 'no proposal' (returns null) for normal reads, added 9.5.4. But p954InspectStoredProposal() (added 9.5.4B.1) reads the raw stored text separately and reports malformed JSON / genuinely invalid explicit values as a distinct error state (not silently repaired or treated as absent), which is what p954ROpenReview() and p954RenderProgramPersonalization() now use to decide whether the stored proposal is safe to review." }
+      "mf-onboarding-program-proposal (PROGRAM_PROPOSAL_KEY)": { type:"object|absent", shape:"{schemaVersion, proposalVersion, status:'draft'|'applied'|'dismissed', source, generatedAt, appliedAt, dismissedAt, onboardingUpdatedAt, profileUpdatedAt, summary:{recommendedFrequency, gymModes, estimatedSessionDurationMinutes, rationale, affectedDayCount, actionCounts}, dayPlans:[{gymKey,dayIdx,dayName,isVirtual,action,tweaks,notes}], warnings:[]}", missingIsValid:true, corruptJsonHandled:"Yes — p954GetProposal() try/catch treats absent/malformed data as 'no proposal' (returns null) rather than crashing, added 9.5.4." }
     };
   } catch(e){ summary.errors.push("dataSchemas section failed: "+(e&&e.message)); }
 
@@ -11682,8 +10775,7 @@ window.mfArchitectureDebug = function(){
       "If a custom-program foundation grows much further, consider a multi-file/module split before it does — current single-file size is already large.",
       "Hardcoded Marcus assumptions (branding, habits, daily metrics, AI coaching template, export wording) should move into a profile/settings system before sharing the app with anyone else.",
       "p8IsMarcusFitKey() allowlist should be reviewed any time a new localStorage key is introduced, to avoid silent backup/restore gaps.",
-      "Personalized program proposal foundation (9.5.4) plus a detailed read-only review overlay with Keep Current Program / Review Later (9.5.4B) are both in place via mf-onboarding-program-proposal — an actual 'apply this proposal' write path (which would touch lifecycle/day-override/day-addition state, never base P) remains future work.",
-      "9.5.4B's exercise-level review rows are derived from the CURRENT resolved program (getResolvedDays) plus the day plan's existing tweaks/notes text, since the deterministic builder only emits structured day-level actions today — richer structured per-exercise proposal data (proposed name/sets/reps/load/RIR for ADD/REPLACE/REORDER) is future work for the builder, not the review UI."
+      "Personalized program proposal foundation landed in 9.5.4 via mf-onboarding-program-proposal — proposals are descriptive summaries only; a full review overlay and an actual 'apply this proposal' write path (which would touch lifecycle/day-override/day-addition state, never base P) remain future work."
     ];
   } catch(e){ summary.errors.push("risksAndNextAbstractions section failed: "+(e&&e.message)); }
 
@@ -11705,9 +10797,8 @@ window.mfArchitectureDebug = function(){
       mfOnboardingDebug: { available: typeof window.mfOnboardingDebug==="function", purpose:"Read-only mf-onboarding-state inspection — existence/parse status, normalized fields, fresh-install evaluation, meaningful-data evidence, backup coverage (added 9.5.1); extended in 9.5.2 with overlayVisible + renderedStep." },
       mfOpenOnboardingPreview: { available: typeof window.mfOpenOnboardingPreview==="function", purpose:"Opens the onboarding overlay for visual/UI testing on any install without resetting or overwriting onboarding state (added 9.5.2)." },
       mfOnboardingCompletionDebug: { available: typeof window.mfOnboardingCompletionDebug==="function", purpose:"Read-only inspection of onboarding-completion validation/application state (added 9.5.3)." },
-      mfOnboardingProgramProposalDebug: { available: typeof window.mfOnboardingProgramProposalDebug==="function", purpose:"Read-only mf-onboarding-program-proposal inspection — existence/status/version, structural validation, summary, affected day count, action counts, staleness/compatibility vs current onboarding+profile+program, backup coverage, plus 9.5.4B review-layer fields (reviewOpen, canReview, canDismiss, dismissedAt, renderedGymGroups, renderedDayCount) (added 9.5.4, extended 9.5.4B)." },
-      mfGenerateOnboardingProgramProposalPreview: { available: typeof window.mfGenerateOnboardingProgramProposalPreview==="function", purpose:"Builds and returns a program proposal in memory without saving it — safe to call anytime for testing (added 9.5.4)." },
-      mfOnboardingProgramProposalReviewDebug: { available: typeof window.mfOnboardingProgramProposalReviewDebug==="function", purpose:"Read-only inspection of the 9.5.4B detailed review overlay — overlay existence/open state, proposal status/validation, rendered gym-group/day/exercise counts, visible warnings, and confirmation-panel state. Never mutates anything (added 9.5.4B)." }
+      mfOnboardingProgramProposalDebug: { available: typeof window.mfOnboardingProgramProposalDebug==="function", purpose:"Read-only mf-onboarding-program-proposal inspection — existence/status/version, structural validation, summary, affected day count, action counts, staleness/compatibility vs current onboarding+profile+program, backup coverage (added 9.5.4)." },
+      mfGenerateOnboardingProgramProposalPreview: { available: typeof window.mfGenerateOnboardingProgramProposalPreview==="function", purpose:"Builds and returns a program proposal in memory without saving it — safe to call anytime for testing (added 9.5.4)." }
     };
   } catch(e){ summary.errors.push("debugHelpers section failed: "+(e&&e.message)); }
 
