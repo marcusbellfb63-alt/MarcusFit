@@ -645,6 +645,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .p954r-btn-later:active{opacity:.8;}
 .p954r-btn-keep{padding:15px;background:transparent;color:var(--red);border:1px solid var(--red);border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;min-height:48px;width:100%;box-sizing:border-box;}
 .p954r-btn-keep:active{opacity:.8;}
+.p954r-btn-apply{padding:15px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;min-height:48px;width:100%;box-sizing:border-box;}
+.p954r-btn-apply:active{opacity:.8;}
+.p954ap-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10003;align-items:flex-end;justify-content:center;padding:0;}
+.p954ap-backdrop.open{display:flex;}
+.p954ap-modal{background:var(--surface);border:1px solid var(--accent);border-radius:14px 14px 0 0;padding:18px;max-width:480px;width:100%;box-sizing:border-box;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.p954ap-title{font-size:16px;font-weight:700;color:var(--accent);margin-bottom:10px;}
+.p954ap-section{margin-bottom:12px;}
+.p954ap-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:6px;}
+.p954ap-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border);}
+.p954ap-row:last-child{border-bottom:none;}
+.p954ap-row-label{color:var(--muted);font-weight:600;}
+.p954ap-row-value{color:var(--text);text-align:right;}
+.p954ap-write-item{font-size:12px;color:var(--text);line-height:1.55;padding:5px 0;border-bottom:1px solid var(--border);}
+.p954ap-write-item:last-child{border-bottom:none;}
+.p954ap-write-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:8px;margin-right:6px;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
+.p954ap-notice{font-size:12px;color:var(--yellow);line-height:1.55;background:color-mix(in srgb,var(--yellow) 10%,transparent);border:1px solid color-mix(in srgb,var(--yellow) 35%,transparent);border-radius:8px;padding:10px;margin-bottom:10px;}
+.p954ap-deferred{font-size:12px;color:var(--muted);line-height:1.55;font-style:italic;margin-bottom:10px;}
+.p954ap-btn-row{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.p954ap-btn-confirm{padding:14px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;min-height:46px;}
+.p954ap-btn-cancel{padding:12px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;}
+.p954ap-error{font-size:12px;color:var(--red);margin-top:8px;line-height:1.5;}
+.p954r-applied-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:8px;margin-left:6px;vertical-align:middle;}
+.p954r-applied-tag.yes{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green);border:1px solid color-mix(in srgb,var(--green) 45%,transparent);}
+.p954r-applied-tag.no{background:color-mix(in srgb,var(--muted) 15%,transparent);color:var(--muted);border:1px solid var(--border);}
 .p954r-error-box{background:var(--surface2);border:1px solid var(--red);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:12px;color:var(--red);line-height:1.6;}
 .p954r-confirm-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10002;align-items:center;justify-content:center;padding:20px;}
 .p954r-confirm-backdrop.open{display:flex;}
@@ -695,7 +719,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div id="p954ReviewBody"></div>
     <div class="p954r-footer">
       <button type="button" class="p954r-btn-later" onclick="p954RCloseReview()">CLOSE / REVIEW LATER</button>
-      <button type="button" class="p954r-btn-keep" onclick="p954RShowKeepConfirm()">KEEP CURRENT PROGRAM</button>
+      <button type="button" class="p954r-btn-apply" id="p954ApplyBtn" onclick="p954RShowApplyPreview()">APPLY SUPPORTED CHANGES</button>
+      <button type="button" class="p954r-btn-keep" id="p954KeepBtn" onclick="p954RShowKeepConfirm()">KEEP CURRENT PROGRAM</button>
     </div>
   </div>
 </div>
@@ -708,6 +733,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <button type="button" class="p954r-confirm-btn-cancel" onclick="p954RCancelKeepConfirm()">CANCEL</button>
     </div>
     <div class="p954r-confirm-error" id="p954ConfirmError" style="display:none;"></div>
+  </div>
+</div>
+<div class="p954ap-backdrop" id="p954ApplyPreviewBackdrop" role="dialog" aria-modal="true" aria-label="Apply supported changes preview">
+  <div class="p954ap-modal">
+    <div class="p954ap-title">Apply Supported Changes</div>
+    <div id="p954ApplyPreviewBody"></div>
+    <div class="p954ap-btn-row">
+      <button type="button" class="p954ap-btn-confirm" onclick="p954RConfirmApplyPreview()">CONFIRM APPLY SUPPORTED CHANGES</button>
+      <button type="button" class="p954ap-btn-cancel" onclick="p954RCancelApplyPreview()">CANCEL</button>
+    </div>
+    <div class="p954ap-error" id="p954ApplyError" style="display:none;"></div>
   </div>
 </div>
 
@@ -964,8 +1000,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 9.5.4</strong> &mdash; Personalized Program Proposal Review<br>
-    New: the program proposal under Program Personalization below now opens into a full day-by-day and exercise-by-exercise review, so you can see exactly what a proposal describes before deciding anything. Use <strong>Review Later</strong> to close it and come back anytime, or <strong>Keep Current Program</strong> to dismiss the proposal (with a confirmation step first). Either way, <strong>no program changes can be applied yet</strong> &mdash; your base program and workout history remain completely protected. Previous: Personalized Program Proposal Foundation (9.5.4A), Onboarding Answer Application &amp; Setup Completion (9.5.3), Visible Onboarding UI &amp; Step Navigation (9.5.2), Onboarding State &amp; Fresh-Install Detection Foundation (9.5.1), User Profile &amp; App Preferences Foundation (9.5.0), Backup &amp; Data Safety Polish (9.4.9.2), Architecture Audit / System Map (9.4.9.1), Workout Review After Save (9.4.9), Exercise Rotation / Swap Candidate Export Intelligence (9.4.8.9&ndash;9.4.8.10).
+    <strong style="color:var(--accent);">MarcusFit 9.5.4</strong> &mdash; Personalized Program Proposal Application Foundation<br>
+    New: the program proposal under Program Personalization below can now be reviewed day-by-day and exercise-by-exercise, and its <strong>supported day-level changes</strong> (keep, modify day details, remove a day, add an optional day) can be applied with confirmation. <strong>Exercise-level changes are still review-only and are skipped</strong> when you apply &mdash; nothing exercise-related is added, removed, replaced, or reordered yet. Removed days are <strong>hidden, not deleted</strong> &mdash; their history stays intact. Your base program and workout history remain completely protected either way. Previous: Personalized Program Proposal Foundation &amp; Detailed Review (9.5.4A&ndash;9.5.4B), Onboarding Answer Application &amp; Setup Completion (9.5.3), Visible Onboarding UI &amp; Step Navigation (9.5.2), Onboarding State &amp; Fresh-Install Detection Foundation (9.5.1), User Profile &amp; App Preferences Foundation (9.5.0), Backup &amp; Data Safety Polish (9.4.9.2), Architecture Audit / System Map (9.4.9.1), Workout Review After Save (9.4.9), Exercise Rotation / Swap Candidate Export Intelligence (9.4.8.9&ndash;9.4.8.10).
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -1077,7 +1113,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <!-- ── PHASE 9.5.4: PERSONALIZED PROGRAM PROPOSAL FOUNDATION ── -->
   <hr class="divider">
   <div class="section-label">&#129521; Program Personalization</div>
-  <div class="info-box">A proposal is a <strong>read-only summary</strong> built from your onboarding answers, profile, and current program. It only describes possible changes &mdash; nothing is applied to your workout program automatically.</div>
+  <div class="info-box">A proposal is built from your onboarding answers, profile, and current program, and can be <strong>reviewed day-by-day</strong> before anything changes. Only <strong>supported day-level changes</strong> (keep, modify day details, remove/hide a day, add an optional day) are currently applied &mdash; <strong>exercise-level changes remain unapplied</strong> and stay review-only. Nothing is ever applied automatically without your explicit confirmation.</div>
   <div class="sync-box">
     <div class="sync-box-title">Program proposal</div>
     <div id="p954Container"></div>
@@ -1490,7 +1526,8 @@ function exLifecycleDefault(){
     replacements: {},      // oldId → { newId, replacedAt, reason }  (legacy string also supported)
     orderOverrides: {},    // "gym:dayIdx" → [ exerciseId, ... ]  (AI reorder engine, 9.3.0)
     dayOverrides: {},      // gymKey → { dayIdx → { name?, subtitle?, focus?, note?, tag?, meta?, updatedAt?, reason? } }  (9.4.6)
-    dayAdditions: {}       // gymKey → { dayIdx → { name, subtitle?, focus?, note?, tag?, source?, createdAt?, updatedAt?, reason?, meta? } }  (9.4.8.1)
+    dayAdditions: {},      // gymKey → { dayIdx → { name, subtitle?, focus?, note?, tag?, source?, createdAt?, updatedAt?, reason?, meta? } }  (9.4.8.1)
+    disabledDays: {}       // gymKey → { dayIdx → { disabledAt, source, proposalId, reason } }  (9.5.4C — proposal-driven "remove" day action; base day/history untouched, just hidden from active surfaces)
   };
 }
 
@@ -1771,6 +1808,11 @@ function exInitLifecycle(){
           parsed.dayAdditions = {};
           dirty = true;
         }
+        // Migrate: add disabledDays if not present (9.5.4C — old backups won't have it)
+        if(!parsed.disabledDays){
+          parsed.disabledDays = {};
+          dirty = true;
+        }
         if(dirty) saveLifecycle(parsed);
       }
     } catch {
@@ -2047,6 +2089,97 @@ window.clearDayAddition  = clearDayAddition;
 window.isVirtualDay      = isVirtualDay;
 
 // ── END PHASE 9.4.8.1 VIRTUAL DAY ENGINE FOUNDATION ──────────────────────────
+
+
+// ── PHASE 9.5.4C: DISABLED-DAY LIFECYCLE STRUCTURE ───────────────────────────
+//
+// Represents a base day that a proposal's "remove" action targets. The day
+// itself, its exercises, and its history are NEVER deleted or mutated — this
+// is a read-safe flag only. Disabled days are excluded from the normal
+// active-program list (Program tab) and the Daily Log workout-day selector,
+// but remain fully resolvable via getResolvedDays()/getSafeDayForLog() for
+// history rendering and debugging.
+//
+// Structure:
+//   lc.disabledDays = {
+//     [gymKey]: {
+//       [dayIdx]: { disabledAt, source, proposalId, reason }
+//     }
+//   }
+//
+// Base P is NEVER mutated. Cardio/recovery days must never be disabled
+// unless a proposal explicitly targets that exact day with action:"remove".
+
+// Read the raw disabled-day record for a specific gym+day (or null if none)
+function getDisabledDay(gymKey, dayIdx){
+  const lc = getLifecycle();
+  const gymDisabled = (lc.disabledDays || {})[gymKey];
+  if(!gymDisabled) return null;
+  return gymDisabled[String(dayIdx)] || null;
+}
+
+// Convenience boolean check — safe against missing lifecycle structures.
+function isDayDisabled(gymKey, dayIdx){
+  return getDisabledDay(gymKey, dayIdx) !== null;
+}
+
+// Create/overwrite the disabled-day record for a specific gym+day.
+// metadata: { source, proposalId, reason } — disabledAt is always stamped now.
+// Does not touch base P, exercises, dayOverrides, dayAdditions, or history.
+function setDisabledDay(gymKey, dayIdx, metadata){
+  if(typeof P === "undefined" || !P[gymKey]){
+    return { ok: false, reason: "Invalid gymKey: '" + gymKey + "'. Must be a key in P." };
+  }
+  if(typeof dayIdx !== "number" || !Number.isInteger(dayIdx) || dayIdx < 0){
+    return { ok: false, reason: "dayIdx must be a non-negative integer." };
+  }
+  const meta = (metadata && typeof metadata === "object") ? metadata : {};
+  const lc = getLifecycle();
+  if(!lc.disabledDays) lc.disabledDays = {};
+  if(!lc.disabledDays[gymKey]) lc.disabledDays[gymKey] = {};
+  lc.disabledDays[gymKey][String(dayIdx)] = {
+    disabledAt: new Date().toISOString(),
+    source: (typeof meta.source === "string" && meta.source) ? meta.source : "onboarding_proposal",
+    proposalId: (typeof meta.proposalId === "string") ? meta.proposalId : null,
+    reason: (typeof meta.reason === "string") ? meta.reason : ""
+  };
+  saveLifecycle(lc);
+  console.log(`[MarcusFit] disabledDay set: ${gymKey} d${dayIdx}`, lc.disabledDays[gymKey][String(dayIdx)]);
+  return { ok: true };
+}
+
+// Clear (re-enable) a disabled day. Safe no-op if no record exists. Never
+// touches base P, exercises, or history — this only removes the hide flag.
+function clearDisabledDay(gymKey, dayIdx){
+  const lc = getLifecycle();
+  if(!lc.disabledDays || !lc.disabledDays[gymKey]) return;
+  const key = String(dayIdx);
+  if(!lc.disabledDays[gymKey][key]) return;
+  delete lc.disabledDays[gymKey][key];
+  if(!Object.keys(lc.disabledDays[gymKey]).length) delete lc.disabledDays[gymKey];
+  saveLifecycle(lc);
+  console.log(`[MarcusFit] disabledDay cleared: ${gymKey} d${dayIdx}`);
+}
+
+// Returns total count of disabled days across all gyms. Accepts a lifecycle
+// object (lc) — safe if disabledDays is missing.
+function getDisabledDayCount(lc){
+  if(!lc || !lc.disabledDays) return 0;
+  let count = 0;
+  Object.values(lc.disabledDays).forEach(gymEntries => {
+    if(gymEntries && typeof gymEntries === "object"){
+      count += Object.keys(gymEntries).length;
+    }
+  });
+  return count;
+}
+
+window.getDisabledDay   = getDisabledDay;
+window.isDayDisabled    = isDayDisabled;
+window.setDisabledDay   = setDisabledDay;
+window.clearDisabledDay = clearDisabledDay;
+
+// ── END PHASE 9.5.4C DISABLED-DAY LIFECYCLE STRUCTURE ────────────────────────
 
 
 // ── PHASE 9.4.8.2: VIRTUAL/ADDITIVE DAY RENDERING + SELECTORS ────────────────
@@ -4962,6 +5095,11 @@ function p954GetDefaultProposal(){
     dismissedAt: null,
     onboardingUpdatedAt: null,
     profileUpdatedAt: null,
+    // 9.5.4C: application foundation — all null/absent for legacy proposals
+    // and for any proposal that hasn't been applied yet.
+    applicationId: null,
+    applicationSummary: null,
+    preApplySnapshot: null,
     summary: {
       recommendedFrequency: null,
       gymModes: [],
@@ -5000,6 +5138,12 @@ function p954NormalizeProposal(proposal){
   out.dismissedAt = isoOrNull(src.dismissedAt);
   out.onboardingUpdatedAt = isoOrNull(src.onboardingUpdatedAt);
   out.profileUpdatedAt = isoOrNull(src.profileUpdatedAt);
+
+  // 9.5.4C: application foundation fields — all optional; legacy proposals
+  // missing them normalize safely to null (draft/dismissed never require them).
+  out.applicationId = (typeof src.applicationId === "string" && src.applicationId.trim()) ? src.applicationId : null;
+  out.applicationSummary = (src.applicationSummary && typeof src.applicationSummary === "object" && !Array.isArray(src.applicationSummary)) ? src.applicationSummary : null;
+  out.preApplySnapshot = (src.preApplySnapshot && typeof src.preApplySnapshot === "object" && !Array.isArray(src.preApplySnapshot)) ? src.preApplySnapshot : null;
 
   const srcSummary = (src.summary && typeof src.summary === "object" && !Array.isArray(src.summary)) ? src.summary : {};
   const srcActionCounts = (srcSummary.actionCounts && typeof srcSummary.actionCounts === "object") ? srcSummary.actionCounts : {};
@@ -5051,7 +5195,20 @@ function p954NormalizeProposal(proposal){
       role: PROGRAM_PROPOSAL_DAY_ROLES.indexOf(dp.role) !== -1 ? dp.role : "optional",
       action: PROGRAM_PROPOSAL_DAY_ACTIONS.indexOf(dp.action) !== -1 ? dp.action : "keep",
       tweaks: Array.isArray(dp.tweaks) ? dp.tweaks.filter(function(t){ return typeof t === "string"; }) : [],
-      notes: (typeof dp.notes === "string") ? dp.notes : ""
+      notes: (typeof dp.notes === "string") ? dp.notes : "",
+      // 9.5.4C: optional day-level metadata fields — supported by the
+      // application engine for "modify"/"optional_add" actions. Absent on
+      // every proposal produced by today's deterministic builder (which only
+      // ever varies dayName), but preserved through normalization so a
+      // hand-authored or future AI-authored proposal carrying them applies
+      // correctly. Each is a string when present, otherwise omitted entirely
+      // (not written as null) so "field not provided" and "field explicitly
+      // cleared" stay distinguishable to callers that check `!== undefined`.
+      proposedName: (typeof dp.proposedName === "string") ? dp.proposedName : undefined,
+      focus: (typeof dp.focus === "string") ? dp.focus : undefined,
+      note: (typeof dp.note === "string") ? dp.note : undefined,
+      tag: (typeof dp.tag === "string") ? dp.tag : undefined,
+      subtitle: (typeof dp.subtitle === "string") ? dp.subtitle : undefined
     };
   }) : [];
 
@@ -5155,6 +5312,28 @@ function p954ValidateProgramProposal(proposal){
       });
     }
     if(!Array.isArray(proposal.warnings)) errors.push("warnings is not an array.");
+
+    // 9.5.4C: explicit application-field validation. Legacy proposals that
+    // simply omit these fields are NOT penalized — draft/dismissed proposals
+    // never require them. Only status "applied" requires them, since that's
+    // the only state where they carry real meaning.
+    if(proposal.appliedAt !== undefined && proposal.appliedAt !== null){
+      if(typeof proposal.appliedAt !== "string" || isNaN(Date.parse(proposal.appliedAt))) errors.push("appliedAt is present but not a valid ISO-like string: " + JSON.stringify(proposal.appliedAt));
+    }
+    if(proposal.applicationId !== undefined && proposal.applicationId !== null){
+      if(typeof proposal.applicationId !== "string" || !proposal.applicationId.trim()) errors.push("applicationId is present but not a non-empty string.");
+    }
+    if(proposal.applicationSummary !== undefined && proposal.applicationSummary !== null){
+      if(typeof proposal.applicationSummary !== "object" || Array.isArray(proposal.applicationSummary)) errors.push("applicationSummary is present but not an object.");
+    }
+    if(proposal.preApplySnapshot !== undefined && proposal.preApplySnapshot !== null){
+      if(typeof proposal.preApplySnapshot !== "object" || Array.isArray(proposal.preApplySnapshot)) errors.push("preApplySnapshot is present but not an object.");
+    }
+    if(proposal.status === "applied"){
+      if(!proposal.appliedAt || typeof proposal.appliedAt !== "string" || isNaN(Date.parse(proposal.appliedAt))) errors.push("status is 'applied' but appliedAt is missing/invalid.");
+      if(!proposal.applicationId || typeof proposal.applicationId !== "string" || !proposal.applicationId.trim()) errors.push("status is 'applied' but applicationId is missing/invalid.");
+      if(!proposal.applicationSummary || typeof proposal.applicationSummary !== "object" || Array.isArray(proposal.applicationSummary)) errors.push("status is 'applied' but applicationSummary is missing/invalid.");
+    }
   } catch(e){
     errors.push("Validation failed safely: " + (e && e.message));
   }
@@ -5591,7 +5770,11 @@ function p954GetCurrentResolvedProgramForProposal(){
   const out = {};
   try {
     Object.keys(P).forEach(function(gymKey){
-      out[gymKey] = getResolvedDays(gymKey);
+      // 9.5.4C: proposal-disabled days are treated as inactive for proposal
+      // building purposes — excluded from lifting-day counts and dayPlans,
+      // same as they're excluded from the Program tab / Daily Log selector.
+      // Never mutates P or lifecycle state; base day/history are untouched.
+      out[gymKey] = getResolvedDays(gymKey).filter(function(d){ return !isDayDisabled(gymKey, d._dayIdx); });
     });
   } catch(e){
     console.warn("[MarcusFit] p954GetCurrentResolvedProgramForProposal failed:", e && e.message);
@@ -5665,6 +5848,469 @@ function p954CheckProgramCompatibility(proposal){
   return { stale: reasons.length > 0, reasons: reasons };
 }
 
+// ── PHASE 9.5.4C: PROPOSAL APPLICATION ENGINE ────────────────────────────────
+//
+// Applies SUPPORTED DAY-LEVEL proposal actions only: keep (no write), modify
+// (day-metadata only, via setDayOverride), remove (via setDisabledDay — base
+// day/history untouched), optional_add (via setDayAddition, zero exercises).
+// Exercise-level actions (reorder/replace/add) are explicitly out of scope —
+// they are counted and skipped, never applied. Base P, mf-overrides,
+// mf-exercise-state customExercises/inactiveIds/replacements/orderOverrides,
+// mf-recommendations, and workout logs/history are never touched here.
+
+// Deterministic application-id generator. Same proposal content (generatedAt
+// + dayPlans) always yields the same id, so a retried/failed apply attempt
+// against the same still-draft proposal reuses the same id — this is what
+// lets in-progress writes be recognized as "already satisfied by this same
+// application" rather than a conflicting collision. Not cryptographic; only
+// needs to be stable and collision-resistant enough for this local, 1-device
+// use case.
+function p954GenerateApplicationId(proposal){
+  try {
+    const basis = (proposal && proposal.generatedAt ? proposal.generatedAt : "") + "|" + JSON.stringify((proposal && proposal.dayPlans) || []);
+    let h = 0;
+    for(let i = 0; i < basis.length; i++){ h = ((h << 5) - h + basis.charCodeAt(i)) | 0; }
+    const ts = (proposal && proposal.generatedAt && !isNaN(Date.parse(proposal.generatedAt))) ? new Date(proposal.generatedAt).getTime() : Date.now();
+    return "papp-" + Math.abs(h).toString(36) + "-" + ts.toString(36);
+  } catch(e){
+    return "papp-" + Date.now().toString(36) + "-" + Math.floor(Math.random() * 1e6).toString(36);
+  }
+}
+
+// Deterministic fingerprint of the parts of a proposal that the application
+// plan is actually built from (status + dayPlans). Used to detect "the
+// proposal changed since the preview was opened" without a full deep-equal.
+function p954ComputeProposalFingerprint(proposal){
+  try {
+    return JSON.stringify({ status: proposal && proposal.status, dayPlans: (proposal && proposal.dayPlans) || [] });
+  } catch(e){
+    return "unfingerprintable:" + (e && e.message);
+  }
+}
+
+// Best-effort single-line rationale for a day-level write, reusing whatever
+// free-text the builder already attached (dp.notes, else first tweak).
+function p954ExtractDayPlanReason(dp){
+  if(!dp) return "";
+  if(typeof dp.notes === "string" && dp.notes) return dp.notes;
+  if(Array.isArray(dp.tweaks) && dp.tweaks.length && typeof dp.tweaks[0] === "string") return dp.tweaks[0];
+  return "";
+}
+
+// Pure planner: reads only the proposal argument (plus P/current lifecycle
+// for read-only day-resolution lookups used in the "modify" name-change
+// check) and never writes anything. Returns the day-level write plan plus
+// counts, including the exercise-level actions this phase must skip.
+function p954BuildApplicationPlan(proposal){
+  const ops = [];
+  const errors = [];
+  const counts = { keep: 0, modify: 0, remove: 0, optional_add: 0, skippedExerciseActionCount: 0 };
+  const gymModesAffected = {};
+  const recognizedGymKeys = p954GetRecognizedProposalGymKeys();
+  const seenTargets = {};
+  const dayPlans = Array.isArray(proposal && proposal.dayPlans) ? proposal.dayPlans : [];
+
+  dayPlans.forEach(function(dp, i){
+    if(!dp || typeof dp !== "object"){ errors.push("dayPlans[" + i + "] is not a valid object."); return; }
+    const gymKey = dp.gymKey;
+    const dayIdx = dp.dayIdx;
+    if(recognizedGymKeys.indexOf(gymKey) === -1){ errors.push("dayPlans[" + i + "] has unrecognized gymKey: " + gymKey); return; }
+    if(typeof dayIdx !== "number" || !Number.isInteger(dayIdx) || dayIdx < 0){ errors.push("dayPlans[" + i + "] has invalid dayIdx."); return; }
+
+    const targetKey = gymKey + "|" + dayIdx + "|" + dp.action;
+    if(seenTargets[targetKey]){ errors.push("Duplicate planned write target: " + targetKey); return; }
+    seenTargets[targetKey] = true;
+
+    if(dp.action === "keep"){
+      counts.keep++;
+      ops.push({ type: "keep", gymKey: gymKey, dayIdx: dayIdx, dp: dp });
+    } else if(dp.action === "modify"){
+      counts.modify++;
+      gymModesAffected[gymKey] = true;
+      const fields = {};
+      if(typeof dp.proposedName === "string" && dp.proposedName.trim()){
+        fields.name = dp.proposedName;
+      } else if(typeof dp.dayName === "string" && dp.dayName.trim()){
+        // Only a real name change counts as supported day metadata — a
+        // same-name "modify" driven purely by exercise-level tweaks (e.g.
+        // duplicate-exercise dedup) has nothing safe to apply this phase.
+        let currentName = null;
+        try {
+          const currentDay = getResolvedDays(gymKey).find(function(d){ return d._dayIdx === dayIdx; });
+          currentName = currentDay ? (currentDay.name || currentDay.day || null) : null;
+        } catch(e){ /* leave currentName null — treated as no change detectable */ }
+        if(currentName && dp.dayName !== currentName) fields.name = dp.dayName;
+      }
+      if(typeof dp.focus === "string") fields.focus = dp.focus;
+      if(typeof dp.note === "string") fields.note = dp.note;
+      if(typeof dp.tag === "string") fields.tag = dp.tag;
+      if(typeof dp.subtitle === "string") fields.subtitle = dp.subtitle;
+      if(Object.keys(fields).length){
+        ops.push({ type: "dayOverride", gymKey: gymKey, dayIdx: dayIdx, fields: fields, reason: p954ExtractDayPlanReason(dp), dp: dp });
+      } else {
+        ops.push({ type: "keep", gymKey: gymKey, dayIdx: dayIdx, dp: dp, note: "No supported day-level metadata on this modify action — deferred (exercise-level only)." });
+      }
+    } else if(dp.action === "remove"){
+      counts.remove++;
+      gymModesAffected[gymKey] = true;
+      ops.push({ type: "disable", gymKey: gymKey, dayIdx: dayIdx, reason: p954ExtractDayPlanReason(dp), dp: dp });
+    } else if(dp.action === "optional_add"){
+      counts.optional_add++;
+      gymModesAffected[gymKey] = true;
+      const fields = {
+        name: (typeof dp.proposedName === "string" && dp.proposedName.trim()) ? dp.proposedName : ((typeof dp.dayName === "string" && dp.dayName.trim()) ? dp.dayName : "Added Day " + (dayIdx + 1)),
+        source: "system"
+      };
+      if(typeof dp.focus === "string") fields.focus = dp.focus;
+      if(typeof dp.note === "string") fields.note = dp.note;
+      if(typeof dp.tag === "string") fields.tag = dp.tag;
+      if(typeof dp.subtitle === "string") fields.subtitle = dp.subtitle;
+      ops.push({ type: "dayAddition", gymKey: gymKey, dayIdx: dayIdx, fields: fields, reason: p954ExtractDayPlanReason(dp), dp: dp });
+    } else if(dp.action === "reorder" || dp.action === "replace" || dp.action === "add"){
+      // OUT OF SCOPE this phase — exercise-level day actions. Counted, never applied.
+      counts.skippedExerciseActionCount++;
+      ops.push({ type: "skip_exercise_level", gymKey: gymKey, dayIdx: dayIdx, dp: dp });
+    } else {
+      errors.push("dayPlans[" + i + "] has unsupported action: " + dp.action);
+    }
+  });
+
+  return {
+    valid: errors.length === 0,
+    errors: errors,
+    ops: ops,
+    counts: counts,
+    affectedGymModes: Object.keys(gymModesAffected)
+  };
+}
+
+// Deeper, apply-time-only validation against LIVE lifecycle state: gymKey
+// still valid, disable targets still resolvable, optional_add collisions,
+// and idempotency vs. conflict detection for retries under the same
+// applicationId. Read-only — never writes. Called immediately before the
+// real apply, using the freshest possible lifecycle snapshot.
+function p954ValidatePlanAgainstLiveState(plan, applicationId){
+  const errors = [];
+  if(typeof P === "undefined"){ errors.push("Base program (P) unavailable."); return { valid: false, errors: errors }; }
+  const tag = "proposal:" + applicationId;
+  (plan.ops || []).forEach(function(op){
+    if(op.type === "keep" || op.type === "skip_exercise_level") return;
+    const gymKey = op.gymKey, dayIdx = op.dayIdx;
+    if(!P[gymKey]){ errors.push("gymKey '" + gymKey + "' no longer exists in the current program."); return; }
+
+    if(op.type === "disable"){
+      let resolvable = false;
+      try { resolvable = getResolvedDays(gymKey).some(function(d){ return d._dayIdx === dayIdx; }); } catch(e){ /* resolvable stays false */ }
+      if(!resolvable){ errors.push("Cannot disable " + gymKey + " day " + (dayIdx + 1) + " — day no longer resolves."); return; }
+      const existing = getDisabledDay(gymKey, dayIdx);
+      if(existing && existing.proposalId !== applicationId){
+        errors.push("Day " + gymKey + " " + (dayIdx + 1) + " is already disabled by a different source/application (" + (existing.proposalId || existing.source) + ") — blocking rather than overwriting.");
+      }
+      // existing.proposalId === applicationId → already satisfied by this
+      // exact application, not an error (idempotent retry).
+    } else if(op.type === "dayAddition"){
+      const baseLen = (P[gymKey] || []).length;
+      if(dayIdx < baseLen){ errors.push("optional_add dayIdx " + dayIdx + " collides with a base day for " + gymKey + "."); return; }
+      const existing = getDayAddition(gymKey, dayIdx);
+      if(existing){
+        const sameApplication = typeof existing.reason === "string" && existing.reason.indexOf(tag) === 0;
+        const fieldsMatch = existing.name === op.fields.name
+          && (existing.focus || "") === (op.fields.focus || "")
+          && (existing.note || "") === (op.fields.note || "")
+          && (existing.tag || "") === (op.fields.tag || "")
+          && (existing.subtitle || "") === (op.fields.subtitle || "");
+        if(!(sameApplication && fieldsMatch)){
+          errors.push("optional_add target " + gymKey + " day " + (dayIdx + 1) + " already has a conflicting day addition — blocking rather than overwriting.");
+        }
+      }
+    } else if(op.type === "dayOverride"){
+      // 9.5.4C_1 fix: setDayOverride() merges fields, so without an explicit
+      // check here a planned write could silently clobber an existing
+      // override value from a different source. Compare only the fields
+      // THIS op plans to write — unrelated existing fields are never a
+      // conflict, and an existing value that exactly matches the planned
+      // value is already-satisfied (idempotent), not a conflict.
+      const existing = getDayOverride(gymKey, dayIdx);
+      if(existing){
+        Object.keys(op.fields).forEach(function(field){
+          const existingHasField = Object.prototype.hasOwnProperty.call(existing, field) && existing[field] !== undefined && existing[field] !== null;
+          if(!existingHasField) return; // no existing value: safe
+          if(existing[field] === op.fields[field]) return; // exact match: already satisfied, safe
+          errors.push("Day override conflict at " + gymKey + " day " + (dayIdx + 1) + ", field '" + field + "': existing value differs from the planned value — blocking rather than overwriting.");
+        });
+      }
+    }
+    // dayAddition/disable conflict checks above; dayOverride conflict check
+    // just above blocks entirely rather than allowing setDayOverride()'s
+    // normal per-field merge to silently overwrite a differing value.
+  });
+  return { valid: errors.length === 0, errors: errors };
+}
+
+// Builds the concise, stable applicationSummary object saved onto the
+// proposal record once application succeeds.
+function p954BuildApplicationSummary(plan){
+  const appliedDayKeys = [];
+  (plan.ops || []).forEach(function(op){
+    if(op.type === "dayOverride" || op.type === "disable" || op.type === "dayAddition"){
+      appliedDayKeys.push(op.gymKey + ":" + op.dayIdx);
+    }
+  });
+  return {
+    keepCount: plan.counts.keep,
+    modifyCount: plan.counts.modify,
+    disabledCount: plan.counts.remove,
+    addedCount: plan.counts.optional_add,
+    skippedExerciseActionCount: plan.counts.skippedExerciseActionCount,
+    affectedGymModes: plan.affectedGymModes.slice(),
+    appliedDayKeys: appliedDayKeys,
+    warnings: (plan.errors || []).slice()
+  };
+}
+
+// Minimal pre-apply snapshot: only the three lifecycle structures this phase
+// may change, plus the complete proposal record. Never snapshots logs,
+// history, recommendations, custom exercises, or any unrelated storage.
+// Internal transactional ROLLBACK snapshot — distinct from the persisted,
+// user-facing preApplySnapshot below. Carries the EXACT raw proposal text
+// (from p954InspectStoredProposal().rawText) so a failed apply can restore
+// storage byte-for-byte, with no renormalization drift. This snapshot is
+// never persisted and never exposed in any debug output or applicationSummary.
+function p954CaptureRollbackSnapshot(proposalRawText){
+  const lc = getLifecycle();
+  return {
+    dayOverrides: JSON.parse(JSON.stringify(lc.dayOverrides || {})),
+    dayAdditions: JSON.parse(JSON.stringify(lc.dayAdditions || {})),
+    disabledDays: JSON.parse(JSON.stringify(lc.disabledDays || {})),
+    proposalRawTextExisted: (typeof proposalRawText === "string"),
+    proposalRawText: (typeof proposalRawText === "string") ? proposalRawText : null
+  };
+}
+
+// Restores lifecycle dayOverrides/dayAdditions/disabledDays + the EXACT raw
+// proposal text from an in-memory rollback snapshot captured by
+// p954CaptureRollbackSnapshot. Used only on apply failure, to guarantee no
+// partial state is left behind. If the original key was absent when the
+// snapshot was taken, removes the key rather than fabricating a value —
+// normal application always requires the key to exist first.
+function p954RestoreFromRollbackSnapshot(snapshot){
+  try {
+    const lc = getLifecycle();
+    lc.dayOverrides = snapshot.dayOverrides;
+    lc.dayAdditions = snapshot.dayAdditions;
+    lc.disabledDays = snapshot.disabledDays;
+    saveLifecycle(lc);
+    if(snapshot.proposalRawTextExisted){
+      localStorage.setItem(PROGRAM_PROPOSAL_KEY, snapshot.proposalRawText);
+    } else {
+      localStorage.removeItem(PROGRAM_PROPOSAL_KEY);
+    }
+    return true;
+  } catch(e){
+    console.warn("[MarcusFit] p954RestoreFromRollbackSnapshot failed:", e && e.message);
+    return false;
+  }
+}
+
+// Builds the SAFE, persisted preApplySnapshot object stored on the applied
+// proposal record. Object-based only — deliberately does NOT carry raw
+// storage text (that lives only in the internal rollback snapshot above,
+// which is never persisted). p954GetApplicationSnapshot() and all debug
+// helpers only ever read this object form.
+function p954BuildPersistedPreApplySnapshot(proposal, rollbackSnapshot){
+  return {
+    dayOverrides: rollbackSnapshot.dayOverrides,
+    dayAdditions: rollbackSnapshot.dayAdditions,
+    disabledDays: rollbackSnapshot.disabledDays,
+    proposal: JSON.parse(JSON.stringify(proposal))
+  };
+}
+
+// Verifies that every real (non-keep/skip) planned op in the plan actually
+// landed in live storage with the expected values/applicationId — a
+// lifecycle object merely existing is not sufficient. Read-only.
+function p954VerifyPlanApplied(plan, applicationId){
+  const errors = [];
+  const tag = "proposal:" + applicationId;
+  (plan.ops || []).forEach(function(op){
+    if(op.type === "dayOverride"){
+      const rec = getDayOverride(op.gymKey, op.dayIdx);
+      if(!rec){ errors.push("Expected dayOverride at " + op.gymKey + " day " + (op.dayIdx + 1) + " but none exists."); return; }
+      Object.keys(op.fields).forEach(function(field){
+        if(rec[field] !== op.fields[field]) errors.push("dayOverride at " + op.gymKey + " day " + (op.dayIdx + 1) + " field '" + field + "' does not match the planned value.");
+      });
+    } else if(op.type === "disable"){
+      const rec = getDisabledDay(op.gymKey, op.dayIdx);
+      if(!rec){ errors.push("Expected disabledDay at " + op.gymKey + " day " + (op.dayIdx + 1) + " but none exists."); return; }
+      if(rec.proposalId !== applicationId) errors.push("disabledDay at " + op.gymKey + " day " + (op.dayIdx + 1) + " has a different applicationId than expected.");
+    } else if(op.type === "dayAddition"){
+      const rec = getDayAddition(op.gymKey, op.dayIdx);
+      if(!rec){ errors.push("Expected dayAddition at " + op.gymKey + " day " + (op.dayIdx + 1) + " but none exists."); return; }
+      if(rec.name !== op.fields.name) errors.push("dayAddition at " + op.gymKey + " day " + (op.dayIdx + 1) + " name does not match the planned value.");
+      if((rec.focus||"") !== (op.fields.focus||"")) errors.push("dayAddition at " + op.gymKey + " day " + (op.dayIdx + 1) + " focus does not match the planned value.");
+      if((rec.note||"") !== (op.fields.note||"")) errors.push("dayAddition at " + op.gymKey + " day " + (op.dayIdx + 1) + " note does not match the planned value.");
+      if((rec.tag||"") !== (op.fields.tag||"")) errors.push("dayAddition at " + op.gymKey + " day " + (op.dayIdx + 1) + " tag does not match the planned value.");
+      if((rec.subtitle||"") !== (op.fields.subtitle||"")) errors.push("dayAddition at " + op.gymKey + " day " + (op.dayIdx + 1) + " subtitle does not match the planned value.");
+      if(!(typeof rec.reason === "string" && rec.reason.indexOf(tag) === 0)) errors.push("dayAddition at " + op.gymKey + " day " + (op.dayIdx + 1) + " was not tagged with this application.");
+    }
+    // "keep" and "skip_exercise_level" ops have nothing to verify.
+  });
+  return { valid: errors.length === 0, errors: errors };
+}
+
+// The one real write path for this phase. Re-validates the raw stored
+// proposal from scratch (never trusts an in-memory copy held since the
+// preview opened), builds + validates the plan against live state, snapshots,
+// performs all planned lifecycle writes, updates the proposal to "applied",
+// and re-validates the result — rolling back everything on any failure.
+// Returns { ok, error?, applicationId?, summary? }.
+function p954ApplyProposal(expectedFingerprint){
+  try {
+    const inspection = p954InspectStoredProposal();
+    if(!inspection.exists) return { ok: false, error: "No proposal found to apply." };
+    if(!inspection.parses) return { ok: false, error: "The stored proposal is corrupted and can't be applied safely. Please regenerate or clear it." };
+    if(!inspection.validation.valid) return { ok: false, error: "The stored proposal failed validation and can't be applied safely. Please regenerate or clear it." };
+
+    const proposal = inspection.normalized;
+
+    if(proposal.status === "applied"){
+      // Idempotent: already applied, nothing to do, not an error.
+      return { ok: true, alreadyApplied: true, applicationId: proposal.applicationId, summary: proposal.applicationSummary };
+    }
+    if(proposal.status !== "draft"){
+      return { ok: false, error: "This proposal is not in a state that can be applied right now (status: " + proposal.status + ")." };
+    }
+
+    // Ensure the proposal hasn't changed since the preview was opened.
+    const currentFingerprint = p954ComputeProposalFingerprint(proposal);
+    if(typeof expectedFingerprint === "string" && expectedFingerprint !== currentFingerprint){
+      return { ok: false, error: "The proposal changed since this preview was opened. Please close and reopen the preview to see the current plan." };
+    }
+
+    const plan = p954BuildApplicationPlan(proposal);
+    if(!plan.valid){
+      return { ok: false, error: "Application plan is invalid: " + plan.errors.join(" ") };
+    }
+
+    const applicationId = p954GenerateApplicationId(proposal);
+    const liveValidation = p954ValidatePlanAgainstLiveState(plan, applicationId);
+    if(!liveValidation.valid){
+      return { ok: false, error: "Cannot apply safely: " + liveValidation.errors.join(" ") };
+    }
+
+    // ── Snapshot before any write ──────────────────────────────────────────
+    // Internal rollback snapshot carries the EXACT raw proposal text so a
+    // failed apply restores storage byte-for-byte (see ISSUE 4 fix).
+    const rollbackSnapshot = p954CaptureRollbackSnapshot(inspection.rawText);
+
+    try {
+      const tag = "proposal:" + applicationId;
+      plan.ops.forEach(function(op){
+        if(op.type === "dayOverride"){
+          setDayOverride(op.gymKey, op.dayIdx, op.fields, tag + (op.reason ? (" — " + op.reason) : ""));
+        } else if(op.type === "disable"){
+          setDisabledDay(op.gymKey, op.dayIdx, { source: "onboarding_proposal", proposalId: applicationId, reason: op.reason || "" });
+        } else if(op.type === "dayAddition"){
+          const existing = getDayAddition(op.gymKey, op.dayIdx);
+          const alreadySatisfied = existing && typeof existing.reason === "string" && existing.reason.indexOf(tag) === 0;
+          if(!alreadySatisfied){
+            setDayAddition(op.gymKey, op.dayIdx, op.fields, tag + (op.reason ? (" — " + op.reason) : ""));
+          }
+        }
+        // "keep" and "skip_exercise_level" ops are intentionally no-ops.
+      });
+
+      // Strengthened post-apply validation: verify each planned lifecycle
+      // operation actually landed with the expected values, not merely that
+      // the containing lifecycle object exists (ISSUE 4 requirement).
+      const planVerification = p954VerifyPlanApplied(plan, applicationId);
+      if(!planVerification.valid){
+        throw new Error("Post-apply verification failed: " + planVerification.errors.join(" "));
+      }
+
+      const summary = p954BuildApplicationSummary(plan);
+      const persistedSnapshot = p954BuildPersistedPreApplySnapshot(proposal, rollbackSnapshot);
+      const appliedProposal = Object.assign({}, proposal);
+      appliedProposal.status = "applied";
+      appliedProposal.appliedAt = new Date().toISOString();
+      appliedProposal.applicationId = applicationId;
+      appliedProposal.applicationSummary = summary;
+      appliedProposal.preApplySnapshot = persistedSnapshot;
+
+      const saveResult = p954SaveProposal(appliedProposal);
+      if(!saveResult.ok) throw new Error("Failed to save applied proposal: " + (saveResult.error || "unknown error"));
+
+      // Re-read and validate resulting state before declaring success.
+      const postInspection = p954InspectStoredProposal();
+      if(!postInspection.exists || !postInspection.parses || !postInspection.validation.valid || postInspection.normalized.status !== "applied"){
+        throw new Error("Post-apply validation failed — resulting proposal state is not valid.");
+      }
+      const postLc = getLifecycle();
+      if(!postLc || typeof postLc.dayOverrides !== "object" || typeof postLc.dayAdditions !== "object" || typeof postLc.disabledDays !== "object"){
+        throw new Error("Post-apply validation failed — resulting lifecycle state is not valid.");
+      }
+
+      return { ok: true, applicationId: applicationId, summary: summary };
+    } catch(innerErr){
+      // Roll back everything this phase may have changed, including
+      // restoring the exact original raw proposal text.
+      p954RestoreFromRollbackSnapshot(rollbackSnapshot);
+      return { ok: false, error: "Application failed and was rolled back safely: " + ((innerErr && innerErr.message) || "Unknown error") };
+    }
+  } catch(e){
+    console.warn("[MarcusFit] p954ApplyProposal failed:", e && e.message);
+    return { ok: false, error: (e && e.message) || "Unknown error" };
+  }
+}
+
+// Read-only, concise application-focused debug helper (separate from the
+// broader mfOnboardingProgramProposalDebug below, which also gets extended).
+window.mfOnboardingProgramProposalApplicationDebug = function(){
+  try {
+    const proposal = p954GetProposal();
+    const lc = getLifecycle();
+    const result = {
+      status: proposal ? proposal.status : null,
+      applicationId: proposal ? proposal.applicationId : null,
+      appliedAt: proposal ? proposal.appliedAt : null,
+      planCounts: proposal ? p954BuildApplicationPlan(proposal).counts : null,
+      disabledDaySummary: { total: getDisabledDayCount(lc), byGym: Object.keys(lc.disabledDays || {}).reduce(function(acc, g){ acc[g] = Object.keys(lc.disabledDays[g] || {}).length; return acc; }, {}) },
+      proposalCreatedDayAdditions: Object.keys(lc.dayAdditions || {}).reduce(function(acc, g){
+        acc[g] = Object.keys(lc.dayAdditions[g] || {}).filter(function(k){ return typeof lc.dayAdditions[g][k].reason === "string" && lc.dayAdditions[g][k].reason.indexOf("proposal:") === 0; }).length;
+        return acc;
+      }, {}),
+      proposalCreatedDayOverrides: Object.keys(lc.dayOverrides || {}).reduce(function(acc, g){
+        acc[g] = Object.keys(lc.dayOverrides[g] || {}).filter(function(k){ return typeof lc.dayOverrides[g][k].reason === "string" && lc.dayOverrides[g][k].reason.indexOf("proposal:") === 0; }).length;
+        return acc;
+      }, {}),
+      snapshotAvailable: !!(proposal && proposal.preApplySnapshot),
+      validationErrors: proposal ? p954ValidateProgramProposal(proposal).errors : []
+    };
+    console.log("[MarcusFit] mfOnboardingProgramProposalApplicationDebug():", result);
+    return result;
+  } catch(e){
+    const result = { error: (e && e.message) || "Unknown error" };
+    console.warn("[MarcusFit] mfOnboardingProgramProposalApplicationDebug failed:", e && e.message);
+    return result;
+  }
+};
+
+// Read-only, safe-clone accessor for an applied proposal's pre-apply
+// snapshot. Rollback FOUNDATION only — this phase never auto-restores it and
+// there is no user-facing undo button yet.
+function p954GetApplicationSnapshot(){
+  try {
+    const proposal = p954GetProposal();
+    if(!proposal || !proposal.preApplySnapshot) return null;
+    return JSON.parse(JSON.stringify(proposal.preApplySnapshot));
+  } catch(e){
+    return null;
+  }
+}
+window.p954GetApplicationSnapshot = p954GetApplicationSnapshot;
+
+// ── END PHASE 9.5.4C PROPOSAL APPLICATION ENGINE ─────────────────────────────
+
 // REQUIREMENT 10: read-only debug/inspection helper. Never writes storage.
 window.mfOnboardingProgramProposalDebug = function(){
   try {
@@ -5684,6 +6330,27 @@ window.mfOnboardingProgramProposalDebug = function(){
     // 9.5.4B: review-layer fields — UI-state only, never persisted.
     const canReview = !!proposal && validation.valid;
     const canDismiss = !!proposal && (proposal.status === "draft" || proposal.status === "dismissed");
+    // 9.5.4C: application-engine fields. Plan is computed read-only purely
+    // for debug visibility — never triggers a write.
+    const appPlan = (proposal && validation.valid) ? p954BuildApplicationPlan(proposal) : null;
+    const canApply = !!proposal && validation.valid && proposal.status === "draft";
+    const lcForDebug = getLifecycle();
+    let appliedDayOverrideCount = 0, appliedDayAdditionCount = 0;
+    if(proposal && proposal.applicationId){
+      const tag = "proposal:" + proposal.applicationId;
+      Object.keys(lcForDebug.dayOverrides || {}).forEach(function(g){
+        Object.keys(lcForDebug.dayOverrides[g] || {}).forEach(function(k){
+          const rec = lcForDebug.dayOverrides[g][k];
+          if(rec && typeof rec.reason === "string" && rec.reason.indexOf(tag) === 0) appliedDayOverrideCount++;
+        });
+      });
+      Object.keys(lcForDebug.dayAdditions || {}).forEach(function(g){
+        Object.keys(lcForDebug.dayAdditions[g] || {}).forEach(function(k){
+          const rec = lcForDebug.dayAdditions[g][k];
+          if(rec && typeof rec.reason === "string" && rec.reason.indexOf(tag) === 0) appliedDayAdditionCount++;
+        });
+      });
+    }
     const result = {
       proposalExists: !!proposal,
       proposalStatus: proposal ? proposal.status : null,
@@ -5707,7 +6374,22 @@ window.mfOnboardingProgramProposalDebug = function(){
       storedProposalParses: inspection.parses,
       storedProposalRawValid: inspection.validation.valid,
       storedProposalNormalizedValid: normalizedValidation.valid,
-      storedProposalErrors: inspection.validation.errors
+      storedProposalErrors: inspection.validation.errors,
+      // 9.5.4C: application-engine debug fields.
+      status: proposal ? proposal.status : null,
+      appliedAt: proposal ? proposal.appliedAt : null,
+      applicationId: proposal ? proposal.applicationId : null,
+      canApply: canApply,
+      plannedKeepCount: appPlan ? appPlan.counts.keep : 0,
+      plannedModifyCount: appPlan ? appPlan.counts.modify : 0,
+      plannedRemoveCount: appPlan ? appPlan.counts.remove : 0,
+      plannedOptionalAddCount: appPlan ? appPlan.counts.optional_add : 0,
+      skippedExerciseActionCount: appPlan ? appPlan.counts.skippedExerciseActionCount : 0,
+      applicationPlanValid: appPlan ? appPlan.valid : null,
+      applicationPlanErrors: appPlan ? appPlan.errors : [],
+      disabledDayCount: getDisabledDayCount(lcForDebug),
+      appliedDayOverrideCount: appliedDayOverrideCount,
+      appliedDayAdditionCount: appliedDayAdditionCount
     };
     console.log("[MarcusFit] mfOnboardingProgramProposalDebug():", result);
     return result;
@@ -5744,6 +6426,11 @@ let p954ReviewInvalidErrors = [];    // validation error strings for the error s
 let p954RLastRenderedGymGroups = 0;  // debug: gym groups rendered in the last built review
 let p954RLastRenderedDayCount = 0;   // debug: day cards rendered in the last built review
 let p954RLastRenderedExerciseCount = 0; // debug: exercise rows rendered in the last built review
+
+// ── 9.5.4C: apply-preview UI state (UI-layer only — never persisted) ────────
+let p954ApplyPreviewOpenFlag = false;   // true while the apply preview/confirm panel is open
+let p954ApplyFingerprint = null;        // proposal fingerprint captured when the preview opened
+let p954RLastRenderedAppliedSummary = null; // debug: last-rendered applied-state summary object
 
 function p954ShowResult(msg, type){
   const el = document.getElementById("p954Result");
@@ -5854,6 +6541,40 @@ function p954BuildDismissedSummary(proposal){
   return card;
 }
 
+// Applied-state summary card: shown when a proposal's supported day-level
+// changes have been applied. Read-only reflection of applicationSummary —
+// never triggers any write itself. Uses textContent only.
+function p954BuildAppliedSummaryCard(proposal){
+  const card = document.createElement("div");
+  card.style.cssText = "background:var(--surface2);border:1px solid var(--accent);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:12px;line-height:1.6;";
+  const s = proposal.applicationSummary || {};
+
+  const line1 = document.createElement("div");
+  line1.style.cssText = "font-weight:700;color:var(--accent);margin-bottom:6px;";
+  line1.textContent = "✅ Proposal applied";
+  card.appendChild(line1);
+
+  const line2 = document.createElement("div");
+  line2.style.cssText = "color:var(--muted);margin-bottom:6px;";
+  line2.textContent = "Applied: " + (proposal.appliedAt ? new Date(proposal.appliedAt).toLocaleString() : "—");
+  card.appendChild(line2);
+
+  const line3 = document.createElement("div");
+  line3.style.cssText = "color:var(--text);margin-bottom:6px;";
+  line3.textContent = "Modified " + (s.modifyCount||0) + " · Disabled " + (s.disabledCount||0)
+    + " · Added " + (s.addedCount||0) + " · Kept " + (s.keepCount||0)
+    + " · Skipped (exercise-level, unsupported) " + (s.skippedExerciseActionCount||0);
+  card.appendChild(line3);
+
+  const line4 = document.createElement("div");
+  line4.style.cssText = "color:var(--muted);font-size:11px;";
+  line4.textContent = "Disabled days are hidden, not deleted — history for those days remains fully intact.";
+  card.appendChild(line4);
+
+  return card;
+}
+
+
 // Renders the Program Personalization section in the Sync tab based on
 // current proposal state. Never generates a proposal itself — purely reads
 // p954GetProposal() and reflects what's there.
@@ -5963,6 +6684,39 @@ function p954RenderProgramPersonalization(){
 
     container.appendChild(btnRow);
     container.appendChild(p954BuildDismissedSummary(proposal));
+  } else if(proposal.status === "applied"){
+    // 9.5.4C: applied state controls. No KEEP/APPLY controls here — those
+    // only make sense for a draft. Creating a new proposal or clearing this
+    // record never undoes the lifecycle changes already applied.
+    const viewBtn = document.createElement("button");
+    viewBtn.className = "big-btn btn-sync";
+    viewBtn.style.marginBottom = "0";
+    viewBtn.textContent = "👁 VIEW APPLIED PROPOSAL";
+    viewBtn.onclick = p954ROpenReview;
+    btnRow.appendChild(viewBtn);
+
+    const createNewBtn = document.createElement("button");
+    createNewBtn.className = "big-btn";
+    createNewBtn.style.cssText = "background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";
+    createNewBtn.textContent = "🧭 CREATE NEW PROPOSAL";
+    createNewBtn.onclick = p954HandleGenerateClick;
+    btnRow.appendChild(createNewBtn);
+
+    const clearBtn = document.createElement("button");
+    clearBtn.className = "big-btn";
+    clearBtn.style.cssText = "background:transparent;color:var(--red);border:1px solid var(--red);margin-bottom:0;";
+    clearBtn.textContent = "🗑 CLEAR PROPOSAL";
+    clearBtn.onclick = p954HandleClearClick;
+    btnRow.appendChild(clearBtn);
+
+    container.appendChild(btnRow);
+    container.appendChild(p954BuildAppliedSummaryCard(proposal));
+    p954RLastRenderedAppliedSummary = proposal.applicationSummary || null;
+
+    const note = document.createElement("div");
+    note.style.cssText = "margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5;";
+    note.textContent = "Creating a new proposal replaces only this record — it does not undo the applied changes above. Clearing this record does the same: prior applied changes stay active either way.";
+    container.appendChild(note);
   } else {
     // REQUIREMENT 5: draft (default) state controls. Any legacy/unrecognized
     // status is normalized to "draft" by p954NormalizeProposal before this
@@ -6158,7 +6912,7 @@ function p954RBuildExerciseRow(ex, dupeNames, seenDupeNames){
 // (notes), and every current exercise on that day (or a clear empty note for
 // not-yet-created optional/virtual days). Returns {el, exerciseCount} so the
 // caller can accumulate debug counts without a second DOM walk.
-function p954RBuildDayCard(dp){
+function p954RBuildDayCard(dp, appliedOpType){
   const card = document.createElement("div");
   card.className = "p954r-day-card";
 
@@ -6180,6 +6934,16 @@ function p954RBuildDayCard(dp){
   }
   head.appendChild(nameWrap);
   head.appendChild(p954RMakeBadge(dp.action));
+  // 9.5.4C: for an already-applied proposal, show whether this specific day
+  // plan's write was actually made (dayOverride/disable/dayAddition) or
+  // deferred (exercise-level action, out of scope this phase).
+  if(appliedOpType){
+    const tag = document.createElement("span");
+    const wasWritten = (appliedOpType === "dayOverride" || appliedOpType === "disable" || appliedOpType === "dayAddition");
+    tag.className = "p954r-applied-tag " + (wasWritten ? "yes" : "no");
+    tag.textContent = wasWritten ? "✓ APPLIED" : "NOT APPLIED — DEFERRED";
+    head.appendChild(tag);
+  }
   card.appendChild(head);
 
   const meta = document.createElement("div");
@@ -6316,6 +7080,19 @@ function p954RBuildReviewContent(proposal){
     gymGroups[dp.gymKey].push(dp);
   });
 
+  // 9.5.4C: for an applied proposal, look up which day plans actually got a
+  // real lifecycle write vs. which were deferred (exercise-level). Read-only.
+  let appliedOpsByKey = null;
+  if(proposal.status === "applied"){
+    appliedOpsByKey = {};
+    try {
+      const plan = p954BuildApplicationPlan(proposal);
+      (plan.ops || []).forEach(function(op){
+        appliedOpsByKey[op.gymKey + "|" + op.dayIdx] = op.type;
+      });
+    } catch(e){ appliedOpsByKey = {}; }
+  }
+
   let renderedDayCount = 0;
   let renderedExerciseCount = 0;
 
@@ -6328,7 +7105,8 @@ function p954RBuildReviewContent(proposal){
     const plans = gymGroups[gymKey].slice().sort(function(a, b){ return a.dayIdx - b.dayIdx; });
     plans.forEach(function(dp){
       renderedDayCount++;
-      const built = p954RBuildDayCard(dp);
+      const appliedOpType = appliedOpsByKey ? appliedOpsByKey[dp.gymKey + "|" + dp.dayIdx] : undefined;
+      const built = p954RBuildDayCard(dp, appliedOpType);
       renderedExerciseCount += built.exerciseCount;
       frag.appendChild(built.el);
     });
@@ -6386,7 +7164,16 @@ function p954ROpenReview(){
     body.appendChild(p954RBuildReviewContent(proposal));
 
     const title = document.getElementById("p954ReviewTitle");
-    if(title) title.textContent = (proposal.status === "dismissed") ? "Dismissed Proposal (read-only)" : "Proposal Review";
+    if(title) title.textContent = (proposal.status === "applied") ? "Applied Proposal (read-only)" : (proposal.status === "dismissed") ? "Dismissed Proposal (read-only)" : "Proposal Review";
+
+    // 9.5.4C: the applied review overlay is read-only — no APPLY or KEEP
+    // controls. APPLY is also hidden for dismissed proposals (nothing to
+    // apply); KEEP stays available for dismissed, matching prior 9.5.4B
+    // behavior (idempotent no-op there).
+    const applyBtn = document.getElementById("p954ApplyBtn");
+    const keepBtn = document.getElementById("p954KeepBtn");
+    if(applyBtn) applyBtn.style.display = (proposal.status === "draft") ? "" : "none";
+    if(keepBtn) keepBtn.style.display = (proposal.status === "applied") ? "none" : "";
 
     overlay.classList.add("open");
     document.documentElement.style.overflow = "hidden";
@@ -6483,6 +7270,186 @@ function p954RConfirmKeepCurrentProgram(){
   }
 }
 
+// ── 9.5.4C: APPLY SUPPORTED CHANGES preview/confirm panel ────────────────────
+// Everything here is read-only until CONFIRM APPLY SUPPORTED CHANGES is
+// tapped — opening or cancelling the preview never writes anything.
+
+// Builds the preview body: action counts, the exact day-level writes that
+// will occur, the exercise-level skip count, and required warnings. Pure
+// read-only render — uses textContent/safe DOM only.
+function p954RBuildApplyPreviewContent(proposal, plan){
+  const frag = document.createDocumentFragment();
+
+  const notice = document.createElement("div");
+  notice.className = "p954ap-notice";
+  notice.textContent = "⚠ Active workout-day availability may change immediately after applying (removed days are hidden from the Program tab and Daily Log day selector).";
+  frag.appendChild(notice);
+
+  const countsSection = document.createElement("div");
+  countsSection.className = "p954ap-section";
+  const countsTitle = document.createElement("div");
+  countsTitle.className = "p954ap-section-title";
+  countsTitle.textContent = "What will happen";
+  countsSection.appendChild(countsTitle);
+
+  function addRow(label, value){
+    const row = document.createElement("div");
+    row.className = "p954ap-row";
+    const l = document.createElement("span");
+    l.className = "p954ap-row-label";
+    l.textContent = label;
+    const v = document.createElement("span");
+    v.className = "p954ap-row-value";
+    v.textContent = String(value);
+    row.appendChild(l);
+    row.appendChild(v);
+    countsSection.appendChild(row);
+  }
+  addRow("Keep (no changes)", plan.counts.keep);
+  addRow("Modify (day metadata)", plan.counts.modify);
+  addRow("Remove (hidden, not deleted)", plan.counts.remove);
+  addRow("Optional additions", plan.counts.optional_add);
+  addRow("Unsupported exercise-level actions skipped", plan.counts.skippedExerciseActionCount);
+  frag.appendChild(countsSection);
+
+  const deferred = document.createElement("div");
+  deferred.className = "p954ap-deferred";
+  deferred.textContent = "Exercise-level changes (adding, removing, replacing, or reordering individual exercises) will NOT be applied in this phase — those remain review-only.";
+  frag.appendChild(deferred);
+
+  const writesSection = document.createElement("div");
+  writesSection.className = "p954ap-section";
+  const writesTitle = document.createElement("div");
+  writesTitle.className = "p954ap-section-title";
+  writesTitle.textContent = "Exact day-level writes";
+  writesSection.appendChild(writesTitle);
+
+  const realOps = (plan.ops || []).filter(function(op){ return op.type === "dayOverride" || op.type === "disable" || op.type === "dayAddition"; });
+  if(!realOps.length){
+    const none = document.createElement("div");
+    none.className = "p954r-empty-note";
+    none.textContent = "No day-level writes are needed — every day is either kept as-is or has no supported metadata change.";
+    writesSection.appendChild(none);
+  } else {
+    realOps.forEach(function(op){
+      const item = document.createElement("div");
+      item.className = "p954ap-write-item";
+      const tag = document.createElement("span");
+      tag.className = "p954ap-write-tag";
+      tag.textContent = (op.type === "dayOverride") ? "MODIFY" : (op.type === "disable") ? "DISABLE" : "ADD DAY";
+      item.appendChild(tag);
+      const desc = document.createElement("span");
+      const label = op.gymKey.toUpperCase() + " — Day " + (op.dayIdx + 1);
+      let detail = "";
+      if(op.type === "dayOverride") detail = "set " + Object.keys(op.fields).join(", ");
+      else if(op.type === "disable") detail = "hide from active program/day selector (history stays intact)";
+      else if(op.type === "dayAddition") detail = "create virtual day \"" + op.fields.name + "\" (no exercises yet)";
+      desc.textContent = label + ": " + detail;
+      item.appendChild(desc);
+      writesSection.appendChild(item);
+    });
+  }
+  frag.appendChild(writesSection);
+
+  if((proposal.warnings || []).length){
+    const wSection = document.createElement("div");
+    wSection.className = "p954ap-section";
+    const wTitle = document.createElement("div");
+    wTitle.className = "p954ap-section-title";
+    wTitle.textContent = "Proposal warnings";
+    wSection.appendChild(wTitle);
+    proposal.warnings.forEach(function(w){
+      const item = document.createElement("div");
+      item.className = "p954r-list-item warn";
+      item.textContent = "⚠ " + w;
+      wSection.appendChild(item);
+    });
+    frag.appendChild(wSection);
+  }
+
+  return frag;
+}
+
+// Opens the preview. Re-inspects the RAW stored proposal (never trusts the
+// currently-rendered review) so a proposal that changed/corrupted after the
+// review opened can't produce a misleading preview. Makes no writes.
+function p954RShowApplyPreview(){
+  const errEl = document.getElementById("p954ApplyError");
+  if(errEl){ errEl.style.display = "none"; errEl.textContent = ""; }
+  try {
+    const inspection = p954InspectStoredProposal();
+    if(!inspection.exists || !inspection.parses || !inspection.validation.valid){
+      if(errEl){ errEl.style.display = "block"; errEl.textContent = "This proposal can't be applied right now — it failed validation. Please regenerate or clear it."; }
+      const backdrop = document.getElementById("p954ApplyPreviewBackdrop");
+      if(backdrop) backdrop.classList.add("open");
+      p954ApplyPreviewOpenFlag = true;
+      return;
+    }
+    const proposal = inspection.normalized;
+    if(proposal.status !== "draft"){
+      if(errEl){ errEl.style.display = "block"; errEl.textContent = "This proposal is not in a state that can be applied right now (status: " + proposal.status + ")."; }
+      const backdrop = document.getElementById("p954ApplyPreviewBackdrop");
+      if(backdrop) backdrop.classList.add("open");
+      p954ApplyPreviewOpenFlag = true;
+      return;
+    }
+
+    const plan = p954BuildApplicationPlan(proposal);
+    p954ApplyFingerprint = p954ComputeProposalFingerprint(proposal);
+
+    const body = document.getElementById("p954ApplyPreviewBody");
+    if(body){
+      body.innerHTML = "";
+      body.appendChild(p954RBuildApplyPreviewContent(proposal, plan));
+    }
+    const backdrop = document.getElementById("p954ApplyPreviewBackdrop");
+    if(backdrop) backdrop.classList.add("open");
+    p954ApplyPreviewOpenFlag = true;
+  } catch(e){
+    console.warn("[MarcusFit] p954RShowApplyPreview failed:", e && e.message);
+    if(errEl){ errEl.style.display = "block"; errEl.textContent = "Unexpected error building the preview — nothing has changed."; }
+  }
+}
+
+// Cancels the preview. Makes no writes of any kind.
+function p954RCancelApplyPreview(){
+  const backdrop = document.getElementById("p954ApplyPreviewBackdrop");
+  if(backdrop) backdrop.classList.remove("open");
+  p954ApplyPreviewOpenFlag = false;
+  p954ApplyFingerprint = null;
+}
+
+// CONFIRM APPLY SUPPORTED CHANGES. The only real write path added in 9.5.4C —
+// delegates entirely to p954ApplyProposal() (full re-validation, snapshot,
+// atomic writes, rollback-on-failure). On success, closes both panels and
+// re-renders the applied state; on failure, keeps the preview open with a
+// clear error and leaves storage untouched.
+function p954RConfirmApplyPreview(){
+  const errEl = document.getElementById("p954ApplyError");
+  try {
+    const result = p954ApplyProposal(p954ApplyFingerprint);
+    if(!result.ok){
+      if(errEl){ errEl.style.display = "block"; errEl.textContent = result.error || "Could not apply — nothing has changed."; }
+      return; // keep preview + review open, storage untouched
+    }
+    const backdrop = document.getElementById("p954ApplyPreviewBackdrop");
+    if(backdrop) backdrop.classList.remove("open");
+    p954ApplyPreviewOpenFlag = false;
+    p954ApplyFingerprint = null;
+    p954RCloseReview();
+    p954RenderProgramPersonalization();
+    // Re-render dependent surfaces immediately so disabled days disappear
+    // and any new virtual day shows up without needing a manual refresh.
+    try { if(typeof renderProgram === "function") renderProgram(); } catch(e){}
+    try { if(typeof populateWoDaySelect === "function") populateWoDaySelect(); } catch(e){}
+    p954ShowResult(result.alreadyApplied ? "This proposal was already applied — nothing changed." : "✅ Supported changes applied. Exercise-level changes remain review-only.", "ok");
+  } catch(e){
+    console.warn("[MarcusFit] p954RConfirmApplyPreview failed:", e && e.message);
+    if(errEl){ errEl.style.display = "block"; errEl.textContent = "Unexpected error — nothing has changed."; }
+  }
+}
+// ── END 9.5.4C APPLY SUPPORTED CHANGES PREVIEW/CONFIRM PANEL ─────────────────
+
 // REQUIREMENT 9: read-only review-layer debug helper. Never mutates
 // anything — safe to call at any time, including while the review is closed.
 window.mfOnboardingProgramProposalReviewDebug = function(){
@@ -6498,6 +7465,8 @@ window.mfOnboardingProgramProposalReviewDebug = function(){
     // validation of the normalized read model, not merely that normalization
     // returned an object.
     const normalizedValidation = inspection.normalized ? p954ValidateProgramProposal(inspection.normalized) : { valid: false, errors: [] };
+    const applyBackdrop = document.getElementById("p954ApplyPreviewBackdrop");
+    const applyErrEl = document.getElementById("p954ApplyError");
     const result = {
       overlayExists: !!overlay,
       overlayOpen: !!(overlay && overlay.classList.contains("open")),
@@ -6514,7 +7483,13 @@ window.mfOnboardingProgramProposalReviewDebug = function(){
       storedProposalParses: inspection.parses,
       storedProposalRawValid: inspection.validation.valid,
       storedProposalNormalizedValid: normalizedValidation.valid,
-      storedProposalErrors: inspection.validation.errors
+      storedProposalErrors: inspection.validation.errors,
+      // 9.5.4C: apply-preview panel debug fields.
+      applyPreviewOpen: !!(p954ApplyPreviewOpenFlag && applyBackdrop && applyBackdrop.classList.contains("open")),
+      applyConfirmationOpen: !!(applyBackdrop && applyBackdrop.classList.contains("open")),
+      applyError: (applyErrEl && applyErrEl.style.display !== "none") ? applyErrEl.textContent : null,
+      renderedAppliedSummary: p954RLastRenderedAppliedSummary,
+      currentProposalFingerprint: inspection.normalized ? p954ComputeProposalFingerprint(inspection.normalized) : null
     };
     console.log("[MarcusFit] mfOnboardingProgramProposalReviewDebug():", result);
     return result;
@@ -6738,7 +7713,10 @@ function renderProgram(){
   const labels={home:"HOME PROGRAM",partial:"TRANSITION GYM PROGRAM"};
   document.getElementById("program-title").textContent=labels[gym];
   const c=document.getElementById("program-days");c.innerHTML="";
-  const resolvedDays = getResolvedDays(gym);
+  // 9.5.4C: proposal-disabled days are hidden from the normal active-program
+  // list (not deleted — see disabledDays lifecycle structure). Filtering
+  // does not renumber: each remaining day keeps its original _dayIdx.
+  const resolvedDays = getResolvedDays(gym).filter(day => !isDayDisabled(gym, day._dayIdx));
   resolvedDays.forEach((day, listIdx)=>{
     const di = day._dayIdx !== undefined ? day._dayIdx : listIdx;
     const isVirtual = !!day._isVirtual;
@@ -6776,9 +7754,57 @@ function renderProgram(){
           <div class="editor-row"><span class="editor-label">Note</span><input class="editor-input full" id="addex-blurb-${gym}-${di}" type="text" placeholder="optional coaching note"></div>
           <div class="editor-btn-row"><button class="editor-save" onclick="saveNewExercise('${gym}',${di})">&#128190; ADD</button><button class="editor-cancel" onclick="toggleAddExerciseForm('${gym}',${di})">Cancel</button></div>
         </div>`;
-      // Virtual day label badge
-      const virtualBadge = `<span style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;background:color-mix(in srgb,var(--muted) 15%,transparent);color:var(--muted);padding:2px 7px;border-radius:10px;border:1px solid var(--border);margin-left:6px;">ADDED DAY</span>`;
-      card.innerHTML=`<div class="day-header" onclick="togDay(${di})"><div><div class="day-num">${eday.day}${virtualBadge}</div><div class="day-name">${eday.name}</div><div class="day-focus">${eday.focus||""}</div></div><div class="day-right"><span class="day-tag">${eday.tag||"added"}</span><span class="chevron">&#9662;</span></div></div><div class="day-body">${eday.note?`<div class="coach-note">${eday.note}</div>`:""}${exHTML}</div>`;
+      // 9.5.4C_1: day-level metadata (day label, name, focus, note, tag) is
+      // proposal/override/day-addition-derived and MUST be rendered safely
+      // via textContent/DOM creation, never interpolated into innerHTML.
+      // The "ADDED DAY" badge text itself is a fixed literal (not derived
+      // from user/proposal data) so it's safe as a static child span.
+      const header = document.createElement("div");
+      header.className = "day-header";
+      header.onclick = function(){ togDay(di); };
+      const left = document.createElement("div");
+      const numDiv = document.createElement("div");
+      numDiv.className = "day-num";
+      numDiv.appendChild(document.createTextNode(eday.day));
+      const badge = document.createElement("span");
+      badge.style.cssText = "font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;background:color-mix(in srgb,var(--muted) 15%,transparent);color:var(--muted);padding:2px 7px;border-radius:10px;border:1px solid var(--border);margin-left:6px;";
+      badge.textContent = "ADDED DAY";
+      numDiv.appendChild(badge);
+      left.appendChild(numDiv);
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "day-name";
+      nameDiv.textContent = eday.name;
+      left.appendChild(nameDiv);
+      const focusDiv = document.createElement("div");
+      focusDiv.className = "day-focus";
+      focusDiv.textContent = eday.focus || "";
+      left.appendChild(focusDiv);
+      header.appendChild(left);
+      const right = document.createElement("div");
+      right.className = "day-right";
+      const tagSpan = document.createElement("span");
+      tagSpan.className = "day-tag";
+      tagSpan.textContent = eday.tag || "added";
+      right.appendChild(tagSpan);
+      const chevron = document.createElement("span");
+      chevron.className = "chevron";
+      chevron.innerHTML = "&#9662;"; // static markup entity — not user/proposal-derived
+      right.appendChild(chevron);
+      header.appendChild(right);
+      card.appendChild(header);
+
+      const bodyDiv = document.createElement("div");
+      bodyDiv.className = "day-body";
+      if(eday.note){
+        const noteDiv = document.createElement("div");
+        noteDiv.className = "coach-note";
+        noteDiv.textContent = eday.note;
+        bodyDiv.appendChild(noteDiv);
+      }
+      card.appendChild(bodyDiv);
+      // Exercise-level rendering is unchanged in this correction (out of
+      // scope) — appended as markup after the safely-rendered day metadata.
+      bodyDiv.insertAdjacentHTML("beforeend", exHTML);
     } else {
       // Base day: original render path
       exHTML=day.exercises.map(ex=>{
@@ -6799,8 +7825,49 @@ function renderProgram(){
           </div>
         </div>`;
       }).join("");
-      // 9.4.6: render effective day metadata (name/focus/note/tag from override if set)
-      card.innerHTML=`<div class="day-header" onclick="togDay(${di})"><div><div class="day-num">${eday.day}</div><div class="day-name">${eday.name}</div><div class="day-focus">${eday.focus}</div></div><div class="day-right"><span class="day-tag">${eday.tag}</span><span class="chevron">&#9662;</span></div></div><div class="day-body"><div class="coach-note">${eday.note}</div>${exHTML}</div>`;
+      // 9.5.4C_1: render effective day metadata (name/focus/note/tag — may
+      // come from a dayOverride, which is proposal-applicable) safely via
+      // textContent/DOM creation instead of innerHTML interpolation.
+      const header = document.createElement("div");
+      header.className = "day-header";
+      header.onclick = function(){ togDay(di); };
+      const left = document.createElement("div");
+      const numDiv = document.createElement("div");
+      numDiv.className = "day-num";
+      numDiv.textContent = eday.day;
+      left.appendChild(numDiv);
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "day-name";
+      nameDiv.textContent = eday.name;
+      left.appendChild(nameDiv);
+      const focusDiv = document.createElement("div");
+      focusDiv.className = "day-focus";
+      focusDiv.textContent = eday.focus;
+      left.appendChild(focusDiv);
+      header.appendChild(left);
+      const right = document.createElement("div");
+      right.className = "day-right";
+      const tagSpan = document.createElement("span");
+      tagSpan.className = "day-tag";
+      tagSpan.textContent = eday.tag;
+      right.appendChild(tagSpan);
+      const chevron = document.createElement("span");
+      chevron.className = "chevron";
+      chevron.innerHTML = "&#9662;"; // static markup entity — not user/proposal-derived
+      right.appendChild(chevron);
+      header.appendChild(right);
+      card.appendChild(header);
+
+      const bodyDiv = document.createElement("div");
+      bodyDiv.className = "day-body";
+      const noteDiv = document.createElement("div");
+      noteDiv.className = "coach-note";
+      noteDiv.textContent = eday.note;
+      bodyDiv.appendChild(noteDiv);
+      card.appendChild(bodyDiv);
+      // Exercise-level rendering is unchanged in this correction (out of
+      // scope) — appended as markup after the safely-rendered day metadata.
+      bodyDiv.insertAdjacentHTML("beforeend", exHTML);
     }
     c.appendChild(card);
   });
@@ -6876,7 +7943,9 @@ function setWO(v){toggleStates.wo=v;["yes","no","rest"].forEach(id=>{const b=doc
 
 function populateWoDaySelect(){
   const sel=document.getElementById("woDaySelect");
-  const resolvedDays = getResolvedDays(logGym);
+  // 9.5.4C: proposal-disabled days are omitted from the loggable day list
+  // (not deleted); original dayIdx values are preserved for any day still shown.
+  const resolvedDays = getResolvedDays(logGym).filter(day => !isDayDisabled(logGym, day._dayIdx));
   sel.innerHTML='<option value="">\u2014 Select Day \u2014</option>';
   resolvedDays.forEach((day)=>{
     const di = day._dayIdx !== undefined ? day._dayIdx : resolvedDays.indexOf(day);
@@ -11652,6 +12721,8 @@ window.mfArchitectureDebug = function(){
       orderOverrideRole: "Reorders (never adds/removes) exercises within a resolved day, stored per 'gym:dayIdx' key in lifecycle.orderOverrides.",
       dayOverrideRole: "Overrides day-level metadata (name/subtitle/focus/note/tag/meta) on base days only, via getEffectiveDayMeta().",
       dayAdditionRole: "Defines entirely new virtual days appended after the base program's day count, surfaced through getResolvedDays().",
+      disabledDayRole: "9.5.4C: marks a base or virtual day as proposal-removed (lc.disabledDays[gym][dayIdx] = {disabledAt, source, proposalId, reason}). Read-safe only — never deletes the day, its exercises, or its history. Excluded from the Program tab and Daily Log day selector (via isDayDisabled() filters at render time, no renumbering); still resolvable through getResolvedDays()/getSafeDayForLog() for history and debugging.",
+      applicationEngineRole: "9.5.4C: p954BuildApplicationPlan() turns a proposal's dayPlans into a day-level write plan (keep/dayOverride/disable/dayAddition), explicitly skipping reorder/replace/add as exercise-level and out of scope. p954ApplyProposal() re-validates the raw stored proposal, snapshots dayOverrides/dayAdditions/disabledDays + the proposal record, performs all writes, marks the proposal 'applied' (appliedAt/applicationId/applicationSummary/preApplySnapshot), and rolls back everything from the in-memory snapshot on any failure. Base P, exercises, and history are never touched by this phase.",
       knownRule: "Base P must never be mutated by AI Sync or any runtime code — all dynamic behavior is layered through lifecycle state, overrides, and recommendations."
     };
   } catch(e){ summary.errors.push("programArchitecture section failed: "+(e&&e.message)); }
@@ -11682,8 +12753,9 @@ window.mfArchitectureDebug = function(){
       "If a custom-program foundation grows much further, consider a multi-file/module split before it does — current single-file size is already large.",
       "Hardcoded Marcus assumptions (branding, habits, daily metrics, AI coaching template, export wording) should move into a profile/settings system before sharing the app with anyone else.",
       "p8IsMarcusFitKey() allowlist should be reviewed any time a new localStorage key is introduced, to avoid silent backup/restore gaps.",
-      "Personalized program proposal foundation (9.5.4) plus a detailed read-only review overlay with Keep Current Program / Review Later (9.5.4B) are both in place via mf-onboarding-program-proposal — an actual 'apply this proposal' write path (which would touch lifecycle/day-override/day-addition state, never base P) remains future work.",
-      "9.5.4B's exercise-level review rows are derived from the CURRENT resolved program (getResolvedDays) plus the day plan's existing tweaks/notes text, since the deterministic builder only emits structured day-level actions today — richer structured per-exercise proposal data (proposed name/sets/reps/load/RIR for ADD/REPLACE/REORDER) is future work for the builder, not the review UI."
+      "Personalized program proposal foundation (9.5.4) plus a detailed read-only review overlay with Keep Current Program / Review Later (9.5.4B), and a safe day-level APPLY engine (9.5.4C — modify/remove/optional_add via dayOverrides/disabledDays/dayAdditions, transactional with rollback) are all in place via mf-onboarding-program-proposal. Exercise-level proposal actions (reorder/replace/add — adding, removing, replacing, or reordering individual exercises) remain review-only/deferred; a user-facing undo for an applied proposal is also still future work (p954GetApplicationSnapshot() is a read-only rollback foundation only).",
+      "9.5.4B's exercise-level review rows are derived from the CURRENT resolved program (getResolvedDays) plus the day plan's existing tweaks/notes text, since the deterministic builder only emits structured day-level actions today — richer structured per-exercise proposal data (proposed name/sets/reps/load/RIR for ADD/REPLACE/REORDER) is future work for the builder, not the review UI.",
+      "9.5.4C's day-level metadata fields (proposedName/focus/note/tag/subtitle) are normalized and applied when present, but today's deterministic builder never actually sets them (dayName is always identical to the current name) — real day-metadata writes from 'modify' only happen once the builder or a hand-authored proposal populates those fields."
     ];
   } catch(e){ summary.errors.push("risksAndNextAbstractions section failed: "+(e&&e.message)); }
 
@@ -11705,9 +12777,11 @@ window.mfArchitectureDebug = function(){
       mfOnboardingDebug: { available: typeof window.mfOnboardingDebug==="function", purpose:"Read-only mf-onboarding-state inspection — existence/parse status, normalized fields, fresh-install evaluation, meaningful-data evidence, backup coverage (added 9.5.1); extended in 9.5.2 with overlayVisible + renderedStep." },
       mfOpenOnboardingPreview: { available: typeof window.mfOpenOnboardingPreview==="function", purpose:"Opens the onboarding overlay for visual/UI testing on any install without resetting or overwriting onboarding state (added 9.5.2)." },
       mfOnboardingCompletionDebug: { available: typeof window.mfOnboardingCompletionDebug==="function", purpose:"Read-only inspection of onboarding-completion validation/application state (added 9.5.3)." },
-      mfOnboardingProgramProposalDebug: { available: typeof window.mfOnboardingProgramProposalDebug==="function", purpose:"Read-only mf-onboarding-program-proposal inspection — existence/status/version, structural validation, summary, affected day count, action counts, staleness/compatibility vs current onboarding+profile+program, backup coverage, plus 9.5.4B review-layer fields (reviewOpen, canReview, canDismiss, dismissedAt, renderedGymGroups, renderedDayCount) (added 9.5.4, extended 9.5.4B)." },
+      mfOnboardingProgramProposalDebug: { available: typeof window.mfOnboardingProgramProposalDebug==="function", purpose:"Read-only mf-onboarding-program-proposal inspection — existence/status/version, structural validation, summary, affected day count, action counts, staleness/compatibility vs current onboarding+profile+program, backup coverage, 9.5.4B review-layer fields (reviewOpen, canReview, canDismiss, dismissedAt, renderedGymGroups, renderedDayCount), plus 9.5.4C application-engine fields (status, appliedAt, applicationId, canApply, plannedKeepCount/plannedModifyCount/plannedRemoveCount/plannedOptionalAddCount, skippedExerciseActionCount, applicationPlanValid/applicationPlanErrors, disabledDayCount, appliedDayOverrideCount, appliedDayAdditionCount) (added 9.5.4, extended 9.5.4B, extended 9.5.4C)." },
       mfGenerateOnboardingProgramProposalPreview: { available: typeof window.mfGenerateOnboardingProgramProposalPreview==="function", purpose:"Builds and returns a program proposal in memory without saving it — safe to call anytime for testing (added 9.5.4)." },
-      mfOnboardingProgramProposalReviewDebug: { available: typeof window.mfOnboardingProgramProposalReviewDebug==="function", purpose:"Read-only inspection of the 9.5.4B detailed review overlay — overlay existence/open state, proposal status/validation, rendered gym-group/day/exercise counts, visible warnings, and confirmation-panel state. Never mutates anything (added 9.5.4B)." }
+      mfOnboardingProgramProposalReviewDebug: { available: typeof window.mfOnboardingProgramProposalReviewDebug==="function", purpose:"Read-only inspection of the 9.5.4B detailed review overlay — overlay existence/open state, proposal status/validation, rendered gym-group/day/exercise counts, visible warnings, and confirmation-panel state; extended in 9.5.4C with applyPreviewOpen, applyConfirmationOpen, applyError, renderedAppliedSummary, currentProposalFingerprint. Never mutates anything (added 9.5.4B, extended 9.5.4C)." },
+      mfOnboardingProgramProposalApplicationDebug: { available: typeof window.mfOnboardingProgramProposalApplicationDebug==="function", purpose:"Concise, read-only application-focused debug — proposal status/applicationId/appliedAt, plan counts, disabled-day summary, count of dayAdditions/dayOverrides actually created by this proposal's application, snapshot availability, and validation errors. No full logs, raw storage dumps, or large DOM output (added 9.5.4C)." },
+      p954GetApplicationSnapshot: { available: typeof window.p954GetApplicationSnapshot==="function", purpose:"Returns a safe clone of the applied proposal's preApplySnapshot (dayOverrides/dayAdditions/disabledDays + prior proposal record) or null. Read-only rollback foundation — never auto-restores (added 9.5.4C)." }
     };
   } catch(e){ summary.errors.push("debugHelpers section failed: "+(e&&e.message)); }
 
