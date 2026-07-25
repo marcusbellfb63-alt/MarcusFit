@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarcusFit 9.5.6</title>
+<title>MarcusFit 9.5.4</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 :root {
@@ -145,7 +145,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px;line-height:1.6;}
 .big-btn{width:100%;padding:13px;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1.5px;cursor:pointer;margin-bottom:10px;}
 .big-btn:active{opacity:.8;}
-.big-btn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.45);}
 .btn-export{background:var(--accent);color:#000;}
 .btn-copy{background:transparent;color:var(--accent);border:1px solid var(--accent)!important;display:none;}
 .btn-sync{background:var(--green);color:#000;}
@@ -665,7 +664,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .p954ap-deferred{font-size:12px;color:var(--muted);line-height:1.55;font-style:italic;margin-bottom:10px;}
 .p954ap-btn-row{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
 .p954ap-btn-confirm{padding:14px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;min-height:46px;}
-.p954ap-btn-confirm:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.45);}
 .p954ap-btn-cancel{padding:12px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;}
 .p954ap-error{font-size:12px;color:var(--red);margin-top:8px;line-height:1.5;}
 .p954r-applied-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:8px;margin-left:6px;vertical-align:middle;}
@@ -742,21 +740,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="p954ap-title">Apply Supported Changes</div>
     <div id="p954ApplyPreviewBody"></div>
     <div class="p954ap-btn-row">
-      <button type="button" class="p954ap-btn-confirm" id="p954ApplyConfirmBtn" onclick="p954RConfirmApplyPreview()" disabled>CONFIRM APPLY SUPPORTED CHANGES</button>
+      <button type="button" class="p954ap-btn-confirm" id="p954ApplyConfirmBtn" onclick="p954RConfirmApplyPreview()">CONFIRM APPLY SUPPORTED CHANGES</button>
       <button type="button" class="p954ap-btn-cancel" onclick="p954RCancelApplyPreview()">CANCEL</button>
     </div>
     <div class="p954ap-error" id="p954ApplyError" style="display:none;"></div>
-  </div>
-</div>
-<div class="p954ap-backdrop" id="p954UndoPreviewBackdrop" role="dialog" aria-modal="true" aria-label="Undo applied proposal preview">
-  <div class="p954ap-modal">
-    <div class="p954ap-title">Undo Applied Changes</div>
-    <div id="p954UndoPreviewBody"></div>
-    <div class="p954ap-btn-row">
-      <button type="button" class="p954ap-btn-confirm" id="p954UndoConfirmBtn" onclick="p954RConfirmUndoPreview()" disabled>CONFIRM UNDO APPLIED CHANGES</button>
-      <button type="button" class="p954ap-btn-cancel" onclick="p954RCancelUndoPreview()">CANCEL</button>
-    </div>
-    <div class="p954ap-error" id="p954UndoError" style="display:none;"></div>
   </div>
 </div>
 
@@ -1013,8 +1000,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 9.5.6</strong> &mdash; Proposal QA Polish + Multi-File Prep<br>
-    Proposal status, source coverage, day-plan-derived action counts, apply readiness, conflicts, and undo availability now use one compact summary across the card, review, debug helper, and AI export. Architecture extraction boundaries are documented for a future static multi-file phase; this release remains a single file and preserves existing apply/undo safety.
+    <strong style="color:var(--accent);">MarcusFit 9.5.4</strong> &mdash; Personalized Program Proposal Application Foundation<br>
+    New: the program proposal under Program Personalization below can now be reviewed day-by-day and exercise-by-exercise, and its <strong>supported day-level changes</strong> (keep, modify day details, remove a day, add an optional day) can be applied with confirmation. <strong>Exercise reorder and metadata-only exercise tweaks can now be safely applied.</strong> Replace, add, remove, and reactivate remain review-only and deferred. Stable IDs, the base program, and workout history remain protected. Removed days are <strong>hidden, not deleted</strong> &mdash; their history stays intact. Your base program and workout history remain completely protected either way. Previous: Personalized Program Proposal Foundation &amp; Detailed Review (9.5.4A&ndash;9.5.4B), Onboarding Answer Application &amp; Setup Completion (9.5.3), Visible Onboarding UI &amp; Step Navigation (9.5.2), Onboarding State &amp; Fresh-Install Detection Foundation (9.5.1), User Profile &amp; App Preferences Foundation (9.5.0), Backup &amp; Data Safety Polish (9.4.9.2), Architecture Audit / System Map (9.4.9.1), Workout Review After Save (9.4.9), Exercise Rotation / Swap Candidate Export Intelligence (9.4.8.9&ndash;9.4.8.10).
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -1126,7 +1113,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <!-- ── PHASE 9.5.4: PERSONALIZED PROGRAM PROPOSAL FOUNDATION ── -->
   <hr class="divider">
   <div class="section-label">&#129521; Program Personalization</div>
-  <div class="info-box">A proposal is built from your onboarding answers, profile, and current program, and can be <strong>reviewed day-by-day</strong> before anything changes. Supported day-level changes, <strong>same-day exercise reorder</strong>, and <strong>metadata-only exercise tweaks</strong> can be applied safely. A successful application can be undone while its exact saved snapshot remains valid; this does not delete or rewrite workout history. Replace, add, remove, and reactivate remain review-only and deferred. Nothing is applied or undone without explicit confirmation.</div>
+  <div class="info-box">A proposal is built from your onboarding answers, profile, and current program, and can be <strong>reviewed day-by-day</strong> before anything changes. Supported day-level changes, <strong>same-day exercise reorder</strong>, and <strong>metadata-only exercise tweaks</strong> can be applied safely. Replace, add, remove, and reactivate remain review-only and deferred; stable IDs, base program data, and workout history stay protected. Nothing is ever applied automatically without your explicit confirmation.</div>
   <div class="sync-box">
     <div class="sync-box-title">Program proposal</div>
     <div id="p954Container"></div>
@@ -1213,19 +1200,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 // ── VERSION ────────────────────────────────────────────────────────────────
-const APP_VERSION = "9.5.6";
+const APP_VERSION = "9.5.4";
 const LIFECYCLE_VERSION = APP_VERSION;
-// ── 9.5.6 ARCHITECTURE PREP (DOCUMENTATION ONLY) ──────────────────────────
-// MarcusFit intentionally remains one dependency-free HTML file in this
-// checkpoint. A future static GitHub Pages extraction should preserve today's
-// script order while moving systems into: src/program-data.js,
-// src/storage-keys.js, src/storage-utils.js, src/lifecycle.js,
-// src/resolved-program.js, src/onboarding.js, src/proposal-engine.js,
-// src/proposal-apply-undo.js, src/proposal-ui.js, src/daily-log.js,
-// src/history.js, src/analytics.js, src/export-sync.js,
-// src/backup-restore.js, src/debug.js, src/app-init.js, and src/styles.css.
-// No module loader, runtime dependency, storage migration, or load-order
-// change is introduced here; these names are extraction boundaries only.
 // ── DAILY HABITS DATA ──────────────────────────────────────────────────────
 const HABITS = [
   {id:"habit-jaw-posture",name:"Jawline / Posture Habit",icon:"🦷",target:"Ongoing awareness throughout the day",instructions:["Tongue gently on roof of mouth","Lips closed, breathing through nose","Neck tall — chin slightly tucked","Do not clench jaw hard, just resting contact"]},
@@ -5066,7 +5042,6 @@ window.mfOnboardingCompletionDebug = function(){
 var mfOnboardingCompletionDebug = window.mfOnboardingCompletionDebug;
 // ── END PHASE 9.5.3 ──────────────────────────────────────────────────────────
 
-// ── FUTURE MODULE: src/proposal-engine.js ───────────────────────────────────
 // ── PHASE 9.5.4: PERSONALIZED PROGRAM PROPOSAL FOUNDATION ───────────────────
 // Read-only-with-respect-to-the-program foundation. Adds a new, independent
 // localStorage key (mf-onboarding-program-proposal) that stores a
@@ -5086,7 +5061,7 @@ var mfOnboardingCompletionDebug = window.mfOnboardingCompletionDebug;
 // set by the caller, not the builder).
 const PROGRAM_PROPOSAL_KEY = "mf-onboarding-program-proposal";
 const PROGRAM_PROPOSAL_SCHEMA = 1;
-const PROGRAM_PROPOSAL_STATUSES = ["draft", "applied", "dismissed", "undone"];
+const PROGRAM_PROPOSAL_STATUSES = ["draft", "applied", "dismissed"];
 const PROGRAM_PROPOSAL_DAY_ACTIONS = ["keep", "modify", "reorder", "replace", "add", "remove", "optional_add"];
 // 9.5.4.2: recognized day-plan roles produced by p954ClassifyProposalDay().
 // "optional" doubles as the safe fallback for older proposals saved before
@@ -5095,9 +5070,6 @@ const PROGRAM_PROPOSAL_DAY_ROLES = ["lifting", "cardio", "recovery", "optional"]
 // 9.5.4D: structured, schema-safe exercise instructions. Prose is never executable.
 const PROGRAM_PROPOSAL_EXERCISE_ACTIONS = ["keep", "modify", "replace", "add", "remove", "reactivate"];
 const PROGRAM_PROPOSAL_EXERCISE_MODIFY_FIELDS = ["name", "sets", "reps", "load", "rir", "blurb"];
-const PROGRAM_PROPOSAL_SOURCE_TYPES = ["local_generated", "fixture", "legacy"];
-const PROGRAM_PROPOSAL_SAFETY_TAGS = ["safe_apply", "review_only", "deferred_lifecycle", "low_confidence", "source_missing", "unchanged", "conflict"];
-const PROGRAM_PROPOSAL_ENGINE_VERSION = "9.5.5-local-rules-1";
 
 // Recognized gym modes for proposal purposes. Falls back to the known
 // "home"/"partial" pair if P isn't available for any reason — never throws.
@@ -5121,22 +5093,8 @@ function p954GetDefaultProposal(){
     proposalVersion: APP_VERSION,
     status: "draft",
     source: "onboarding",
-    sourceType: "local_generated",
-    sourceSummary: {
-      generatedAt: null,
-      appVersion: APP_VERSION,
-      proposalEngineVersion: PROGRAM_PROPOSAL_ENGINE_VERSION,
-      profileUsed: false,
-      onboardingUsed: false,
-      coachingPrefsUsed: false,
-      currentProgramUsed: false,
-      lifecycleUsed: false,
-      recentLogsUsed: false,
-      sourceWarnings: []
-    },
     generatedAt: null,
     appliedAt: null,
-    undoneAt: null,
     dismissedAt: null,
     onboardingUpdatedAt: null,
     profileUpdatedAt: null,
@@ -5145,7 +5103,6 @@ function p954GetDefaultProposal(){
     applicationId: null,
     applicationSummary: null,
     preApplySnapshot: null,
-    undoSummary: null,
     summary: {
       recommendedFrequency: null,
       gymModes: [],
@@ -5174,10 +5131,6 @@ function p954NormalizeProposal(proposal){
   out.proposalVersion = (typeof src.proposalVersion === "string" && src.proposalVersion.trim()) ? src.proposalVersion : def.proposalVersion;
   out.status = PROGRAM_PROPOSAL_STATUSES.indexOf(src.status) !== -1 ? src.status : def.status;
   out.source = (typeof src.source === "string" && src.source.trim()) ? src.source : def.source;
-  const hasStructuredSource = src.sourceSummary && typeof src.sourceSummary === "object" && !Array.isArray(src.sourceSummary);
-  out.sourceType = PROGRAM_PROPOSAL_SOURCE_TYPES.indexOf(src.sourceType) !== -1
-    ? src.sourceType
-    : (hasStructuredSource ? "local_generated" : "legacy");
 
   function isoOrNull(v){
     if(v === null || v === undefined) return null;
@@ -5185,26 +5138,9 @@ function p954NormalizeProposal(proposal){
   }
   out.generatedAt = isoOrNull(src.generatedAt);
   out.appliedAt = isoOrNull(src.appliedAt);
-  out.undoneAt = isoOrNull(src.undoneAt);
   out.dismissedAt = isoOrNull(src.dismissedAt);
   out.onboardingUpdatedAt = isoOrNull(src.onboardingUpdatedAt);
   out.profileUpdatedAt = isoOrNull(src.profileUpdatedAt);
-  const ss = hasStructuredSource ? src.sourceSummary : {};
-  out.sourceSummary = {
-    generatedAt: isoOrNull(ss.generatedAt) || out.generatedAt,
-    appVersion: (typeof ss.appVersion === "string" && ss.appVersion.trim()) ? ss.appVersion : (hasStructuredSource ? out.proposalVersion : null),
-    proposalEngineVersion: (typeof ss.proposalEngineVersion === "string" && ss.proposalEngineVersion.trim()) ? ss.proposalEngineVersion : null,
-    profileUsed: hasStructuredSource ? ss.profileUsed === true : false,
-    onboardingUsed: hasStructuredSource ? ss.onboardingUsed === true : false,
-    coachingPrefsUsed: hasStructuredSource ? ss.coachingPrefsUsed === true : false,
-    currentProgramUsed: hasStructuredSource ? ss.currentProgramUsed === true : false,
-    lifecycleUsed: hasStructuredSource ? ss.lifecycleUsed === true : false,
-    recentLogsUsed: hasStructuredSource ? ss.recentLogsUsed === true : false,
-    profileFields: Array.isArray(ss.profileFields) ? ss.profileFields.filter(function(v){ return typeof v === "string"; }) : [],
-    onboardingSections: Array.isArray(ss.onboardingSections) ? ss.onboardingSections.filter(function(v){ return typeof v === "string"; }) : [],
-    lifecycleSignals: Array.isArray(ss.lifecycleSignals) ? ss.lifecycleSignals.filter(function(v){ return typeof v === "string"; }) : [],
-    sourceWarnings: Array.isArray(ss.sourceWarnings) ? ss.sourceWarnings.filter(function(w){ return typeof w === "string" && w.trim(); }) : (hasStructuredSource ? [] : ["Legacy proposal: detailed source coverage was not recorded."])
-  };
 
   // 9.5.4C: application foundation fields — all optional; legacy proposals
   // missing them normalize safely to null (draft/dismissed never require them).
@@ -5223,7 +5159,6 @@ function p954NormalizeProposal(proposal){
     if(out.preApplySnapshot.orderOverrides === undefined) out.preApplySnapshot.orderOverrides = {};
     if(out.preApplySnapshot.overrides === undefined) out.preApplySnapshot.overrides = {};
   }
-  out.undoSummary = (src.undoSummary && typeof src.undoSummary === "object" && !Array.isArray(src.undoSummary)) ? Object.assign({}, src.undoSummary) : null;
 
   const srcSummary = (src.summary && typeof src.summary === "object" && !Array.isArray(src.summary)) ? src.summary : {};
   const srcActionCounts = (srcSummary.actionCounts && typeof srcSummary.actionCounts === "object") ? srcSummary.actionCounts : {};
@@ -5276,9 +5211,6 @@ function p954NormalizeProposal(proposal){
       action: PROGRAM_PROPOSAL_DAY_ACTIONS.indexOf(dp.action) !== -1 ? dp.action : "keep",
       tweaks: Array.isArray(dp.tweaks) ? dp.tweaks.filter(function(t){ return typeof t === "string"; }) : [],
       notes: (typeof dp.notes === "string") ? dp.notes : "",
-      rationale: (typeof dp.rationale === "string") ? dp.rationale : ((typeof dp.notes === "string") ? dp.notes : ""),
-      safetyTag: PROGRAM_PROPOSAL_SAFETY_TAGS.indexOf(dp.safetyTag) !== -1 ? dp.safetyTag : (dp.action === "keep" ? "unchanged" : (["replace","add","remove","optional_add"].indexOf(dp.action) !== -1 ? "deferred_lifecycle" : "safe_apply")),
-      confidence: (typeof dp.confidence === "string" && dp.confidence.trim()) ? dp.confidence : (hasStructuredSource ? "medium" : "low"),
       // 9.5.4C: optional day-level metadata fields — supported by the
       // application engine for "modify"/"optional_add" actions. Absent on
       // every proposal produced by today's deterministic builder (which only
@@ -5300,20 +5232,13 @@ function p954NormalizeProposal(proposal){
           exerciseId: ea && (typeof ea.exerciseId === "string" || ea.exerciseId === null) ? ea.exerciseId : null,
           action: ea && PROGRAM_PROPOSAL_EXERCISE_ACTIONS.indexOf(ea.action) !== -1 ? ea.action : "keep",
           fields: fields,
-          rationale: ea && typeof ea.rationale === "string" ? ea.rationale : "",
-          safetyTag: ea && PROGRAM_PROPOSAL_SAFETY_TAGS.indexOf(ea.safetyTag) !== -1 ? ea.safetyTag : (ea && ea.action === "modify" ? "safe_apply" : (ea && ea.action === "keep" ? "unchanged" : "deferred_lifecycle")),
-          confidence: ea && typeof ea.confidence === "string" && ea.confidence.trim() ? ea.confidence : (hasStructuredSource ? "medium" : "low")
+          rationale: ea && typeof ea.rationale === "string" ? ea.rationale : ""
         };
       }) : []
     };
   }) : [];
 
   out.warnings = Array.isArray(src.warnings) ? src.warnings.filter(function(w){ return typeof w === "string"; }) : [];
-
-  // Materialize the same dayPlans-derived view used by card/review/debug/export.
-  // This repairs stale legacy/fixture summaries in memory without writing.
-  out.summary.actionCounts = p955GetDerivedProposalActionCounts(out).counts;
-  out.summary.affectedDayCount = out.dayPlans.length;
 
   return out;
 }
@@ -5369,7 +5294,6 @@ function p954ClearProposal(){
 // is actually coherent). Never throws.
 function p954ValidateProgramProposal(proposal){
   const errors = [];
-  const validationWarnings = [];
   try {
     if(!proposal || typeof proposal !== "object"){
       errors.push("Proposal is not an object.");
@@ -5378,20 +5302,6 @@ function p954ValidateProgramProposal(proposal){
     if(proposal.schemaVersion !== PROGRAM_PROPOSAL_SCHEMA) errors.push("Unexpected schemaVersion: " + proposal.schemaVersion);
     if(PROGRAM_PROPOSAL_STATUSES.indexOf(proposal.status) === -1) errors.push("Invalid status: " + proposal.status);
     if(!proposal.summary || typeof proposal.summary !== "object") errors.push("Missing summary object.");
-    if(proposal.sourceType !== undefined && PROGRAM_PROPOSAL_SOURCE_TYPES.indexOf(proposal.sourceType) === -1) errors.push("Invalid sourceType: " + proposal.sourceType);
-    if(proposal.sourceSummary !== undefined){
-      if(!proposal.sourceSummary || typeof proposal.sourceSummary !== "object" || Array.isArray(proposal.sourceSummary)){
-        errors.push("sourceSummary is present but is not an object.");
-      } else {
-        ["profileUsed","onboardingUsed","coachingPrefsUsed","currentProgramUsed","lifecycleUsed","recentLogsUsed"].forEach(function(f){
-          if(proposal.sourceSummary[f] !== undefined && typeof proposal.sourceSummary[f] !== "boolean") validationWarnings.push("sourceSummary."+f+" should be boolean; normalized read treats it as false.");
-        });
-        if(proposal.sourceSummary.generatedAt !== undefined && proposal.sourceSummary.generatedAt !== null && (typeof proposal.sourceSummary.generatedAt !== "string" || isNaN(Date.parse(proposal.sourceSummary.generatedAt)))) validationWarnings.push("sourceSummary.generatedAt is malformed; normalized read uses proposal.generatedAt.");
-        if(proposal.sourceSummary.sourceWarnings !== undefined && !Array.isArray(proposal.sourceSummary.sourceWarnings)) validationWarnings.push("sourceSummary.sourceWarnings should be an array; normalized read uses an empty list.");
-      }
-    } else {
-      validationWarnings.push("Legacy proposal has no structured sourceSummary.");
-    }
     if(!Array.isArray(proposal.dayPlans)) errors.push("dayPlans is not an array.");
     else {
       const recognizedGymKeys = p954GetRecognizedProposalGymKeys();
@@ -5414,7 +5324,6 @@ function p954ValidateProgramProposal(proposal){
         // safely normalize to "optional". An explicit-but-unrecognized role
         // is still reported as a genuine error either way.
         if(dp.role !== undefined && PROGRAM_PROPOSAL_DAY_ROLES.indexOf(dp.role) === -1) errors.push("dayPlans[" + i + "] has invalid role: " + dp.role);
-        if(dp.safetyTag !== undefined && PROGRAM_PROPOSAL_SAFETY_TAGS.indexOf(dp.safetyTag) === -1) validationWarnings.push("dayPlans[" + i + "] has an unrecognized safetyTag; normalized read derives a safe label.");
 
         // 9.5.4D raw structured-exercise validation. Existence/day membership is live-state validation.
         const location = "Gym " + String(dp.gymKey) + ", day " + String(dp.dayIdx);
@@ -5436,7 +5345,6 @@ function p954ValidateProgramProposal(proposal){
             const prefix = location + ", exercise action " + ai;
             if(!ea || typeof ea !== "object" || Array.isArray(ea) || Object.getPrototypeOf(ea) !== Object.prototype){ errors.push(prefix + ": action must be a plain object."); return; }
             if(PROGRAM_PROPOSAL_EXERCISE_ACTIONS.indexOf(ea.action) === -1) errors.push(prefix + ": unrecognized action " + JSON.stringify(ea.action) + ".");
-            if(ea.safetyTag !== undefined && PROGRAM_PROPOSAL_SAFETY_TAGS.indexOf(ea.safetyTag) === -1) validationWarnings.push(prefix + ": unrecognized safetyTag; normalized read derives a safe label.");
             const requiresId = ["keep","modify","replace","remove","reactivate"].indexOf(ea.action) !== -1;
             if(requiresId && (typeof ea.exerciseId !== "string" || !ea.exerciseId.trim())) errors.push(prefix + ": exerciseId is required.");
             if(ea.action === "add" && ea.exerciseId !== undefined && ea.exerciseId !== null && (typeof ea.exerciseId !== "string" || !ea.exerciseId.trim())) errors.push(prefix + ": add exerciseId must be null, omitted, or a non-empty string.");
@@ -5490,13 +5398,7 @@ function p954ValidateProgramProposal(proposal){
     if(proposal.preApplySnapshot !== undefined && proposal.preApplySnapshot !== null){
       if(typeof proposal.preApplySnapshot !== "object" || Array.isArray(proposal.preApplySnapshot)) errors.push("preApplySnapshot is present but not an object.");
     }
-    if(proposal.undoneAt !== undefined && proposal.undoneAt !== null){
-      if(typeof proposal.undoneAt !== "string" || isNaN(Date.parse(proposal.undoneAt))) errors.push("undoneAt is present but not a valid ISO-like string: " + JSON.stringify(proposal.undoneAt));
-    }
-    if(proposal.undoSummary !== undefined && proposal.undoSummary !== null){
-      if(typeof proposal.undoSummary !== "object" || Array.isArray(proposal.undoSummary)) errors.push("undoSummary is present but not an object.");
-    }
-    if(proposal.status === "applied" || proposal.status === "undone"){
+    if(proposal.status === "applied"){
       if(!proposal.appliedAt || typeof proposal.appliedAt !== "string" || isNaN(Date.parse(proposal.appliedAt))) errors.push("status is 'applied' but appliedAt is missing/invalid.");
       if(!proposal.applicationId || typeof proposal.applicationId !== "string" || !proposal.applicationId.trim()) errors.push("status is 'applied' but applicationId is missing/invalid.");
       if(!proposal.applicationSummary || typeof proposal.applicationSummary !== "object" || Array.isArray(proposal.applicationSummary)) errors.push("status is 'applied' but applicationSummary is missing/invalid.");
@@ -5518,24 +5420,10 @@ function p954ValidateProgramProposal(proposal){
         });
       }
     }
-    if(proposal.status === "undone"){
-      if(!proposal.undoneAt || typeof proposal.undoneAt !== "string" || isNaN(Date.parse(proposal.undoneAt))) errors.push("status is 'undone' but undoneAt is missing/invalid.");
-      if(!proposal.undoSummary || typeof proposal.undoSummary !== "object" || Array.isArray(proposal.undoSummary)) errors.push("status is 'undone' but undoSummary is missing/invalid.");
-      else {
-        if(proposal.undoSummary.status !== "success") errors.push("status is 'undone' but undoSummary.status is not 'success'.");
-        if(proposal.undoSummary.applicationId !== proposal.applicationId) errors.push("status is 'undone' but undoSummary.applicationId does not match applicationId.");
-        if(proposal.undoSummary.exactRawRestorationVerified !== true) errors.push("status is 'undone' but exact raw restoration is not verified.");
-        if(!Array.isArray(proposal.undoSummary.storageResults)) errors.push("status is 'undone' but undoSummary.storageResults is invalid.");
-        if(!proposal.undoSummary.validationFacts || typeof proposal.undoSummary.validationFacts !== "object" || Array.isArray(proposal.undoSummary.validationFacts)) errors.push("status is 'undone' but undoSummary.validationFacts is invalid.");
-        if(proposal.undoSummary.exactAffectedStateRestorationVerified !== undefined && typeof proposal.undoSummary.exactAffectedStateRestorationVerified !== "boolean") errors.push("status is 'undone' but affected-path verification is invalid.");
-        if(proposal.undoSummary.unrelatedStatePreserved !== undefined && typeof proposal.undoSummary.unrelatedStatePreserved !== "boolean") errors.push("status is 'undone' but unrelated-state preservation is invalid.");
-        if(!proposal.undoSummary.deferredActionCounts || typeof proposal.undoSummary.deferredActionCounts !== "object" || Array.isArray(proposal.undoSummary.deferredActionCounts)) errors.push("status is 'undone' but undoSummary.deferredActionCounts is invalid.");
-      }
-    }
   } catch(e){
     errors.push("Validation failed safely: " + (e && e.message));
   }
-  return { valid: errors.length === 0, errors: errors, warnings: validationWarnings };
+  return { valid: errors.length === 0, errors: errors };
 }
 
 // ── 9.5.4B.1: read-only raw storage inspection ───────────────────────────────
@@ -5727,62 +5615,7 @@ function p954GetProposalDayRemovalPriority(day, role){
   return 3;
 }
 
-function p955BuildProposalSourceContext(onboardingState, profile, currentProgram){
-  const draft = onboardingState && onboardingState.draft && typeof onboardingState.draft === "object" ? onboardingState.draft : {};
-  const prefs = (function(){ try { return p9GetCoachPrefs().trim(); } catch(e){ return ""; } })();
-  const sourceWarnings = [];
-  const profileStored = (function(){ try { return localStorage.getItem(USER_PROFILE_KEY) !== null; } catch(e){ return false; } })();
-  const onboardingStored = (function(){ try { return localStorage.getItem(ONBOARDING_KEY) !== null; } catch(e){ return false; } })();
-  const profileFields = [];
-  if(profileStored && profile){
-    if(profile.identity && profile.identity.displayName) profileFields.push("displayName");
-    if(profile.goals && profile.goals.primaryGoal) profileFields.push("primaryGoal");
-    if(profile.goals && profile.goals.physiqueOutcome) profileFields.push("physiqueOutcome");
-    if(profile.app && profile.app.homeGymLabel) profileFields.push("homeGymLabel");
-    if(profile.app && profile.app.partialGymLabel) profileFields.push("partialGymLabel");
-  }
-  const onboardingSections = ["profile","goals","training"].filter(function(k){ return draft[k] && typeof draft[k] === "object" && Object.keys(draft[k]).length; });
-  const programUsed = Object.keys(currentProgram || {}).some(function(g){ return Array.isArray(currentProgram[g]) && currentProgram[g].length; });
-  const lifecycleSignals = [];
-  try {
-    const lc = getLifecycle(), ov = getOvr();
-    if(Object.keys(lc.orderOverrides || {}).length) lifecycleSignals.push("orderOverrides");
-    if(Object.keys(lc.dayOverrides || {}).some(function(g){ return Object.keys(lc.dayOverrides[g] || {}).length; })) lifecycleSignals.push("dayOverrides");
-    if(Object.keys(lc.dayAdditions || {}).some(function(g){ return Object.keys(lc.dayAdditions[g] || {}).length; })) lifecycleSignals.push("dayAdditions");
-    if(Object.keys(lc.disabledDays || {}).some(function(g){ return Object.keys(lc.disabledDays[g] || {}).length; })) lifecycleSignals.push("disabledDays");
-    if(Object.keys(lc.inactiveIds || {}).length) lifecycleSignals.push("inactiveExercises");
-    if(Object.keys(lc.customExercises || {}).length) lifecycleSignals.push("customExercises");
-    if(Object.keys(ov || {}).length) lifecycleSignals.push("exerciseOverrides");
-  } catch(e){
-    sourceWarnings.push("Lifecycle and exercise override state was unavailable.");
-  }
-  if(!profileFields.length) sourceWarnings.push("Saved user profile was unavailable or empty.");
-  if(!onboardingStored || !onboardingSections.length) sourceWarnings.push("Saved onboarding answers were unavailable or empty.");
-  if(!prefs) sourceWarnings.push("Persistent AI coaching preferences were unavailable or empty.");
-  if(!programUsed) sourceWarnings.push("Current resolved program was unavailable or empty.");
-  if(!lifecycleSignals.length) sourceWarnings.push("No lifecycle/order/exercise override customizations were present.");
-  sourceWarnings.push("Recent workout logs were intentionally not used by this deterministic rule set.");
-  return {
-    coachingPrefs: prefs,
-    sourceSummary: {
-      generatedAt: null,
-      appVersion: APP_VERSION,
-      proposalEngineVersion: PROGRAM_PROPOSAL_ENGINE_VERSION,
-      profileUsed: profileFields.length > 0,
-      onboardingUsed: onboardingStored && onboardingSections.length > 0,
-      coachingPrefsUsed: !!prefs,
-      currentProgramUsed: programUsed,
-      lifecycleUsed: lifecycleSignals.length > 0,
-      recentLogsUsed: false,
-      profileFields: profileFields,
-      onboardingSections: onboardingSections,
-      lifecycleSignals: lifecycleSignals,
-      sourceWarnings: sourceWarnings
-    }
-  };
-}
-
-function p954BuildProgramProposal(onboardingState, profile, currentProgram, sourceContext){
+function p954BuildProgramProposal(onboardingState, profile, currentProgram){
   const draft = (onboardingState && onboardingState.draft && typeof onboardingState.draft === "object") ? onboardingState.draft : {};
   const goals = (draft.goals && typeof draft.goals === "object") ? draft.goals : {};
   const training = (draft.training && typeof draft.training === "object") ? draft.training : {};
@@ -5790,13 +5623,6 @@ function p954BuildProgramProposal(onboardingState, profile, currentProgram, sour
 
   const warnings = [];
   const rationale = [];
-  const context = sourceContext || p955BuildProposalSourceContext(onboardingState, profile, currentProgram);
-  const coachingPrefs = typeof context.coachingPrefs === "string" ? context.coachingPrefs : "";
-  const sourceSummary = context.sourceSummary || p955BuildProposalSourceContext(onboardingState, profile, currentProgram).sourceSummary;
-  const profileName = profile && profile.identity && profile.identity.displayName ? profile.identity.displayName : "";
-  const profileGoal = goals.primaryGoal || (profile && profile.goals && profile.goals.primaryGoal) || "";
-  const physiqueOutcome = goals.physiqueOutcome || (profile && profile.goals && profile.goals.physiqueOutcome) || "";
-  const gymLabels = profile && profile.app ? { home:profile.app.homeGymLabel, partial:profile.app.partialGymLabel } : {};
 
   // ── Determine target gym mode(s) ────────────────────────────────────────
   const availableGyms = Object.keys(currentProgram || {}).filter(function(g){ return Array.isArray(currentProgram[g]); });
@@ -5822,11 +5648,9 @@ function p954BuildProgramProposal(onboardingState, profile, currentProgram, sour
   if(!hasOnboardingAnswers){
     warnings.push("No completed onboarding answers found — proposal derived from saved profile and current program only.");
   }
-  if(profileName) rationale.push("Built for " + profileName + " from the saved MarcusFit profile.");
   if(goals.primaryGoal) rationale.push("Primary goal on file: \"" + goals.primaryGoal + "\".");
-  else if(profileGoal) rationale.push("Primary goal on file (from profile): \"" + profileGoal + "\".");
-  if(physiqueOutcome) rationale.push("Physique outcome on file: \"" + physiqueOutcome + "\".");
-  if(coachingPrefs) rationale.push("Persistent AI coaching preferences informed local priority and metadata rules; no external AI or API was called.");
+  else if(profile && profile.goals && profile.goals.primaryGoal) rationale.push("Primary goal on file (from profile): \"" + profile.goals.primaryGoal + "\".");
+  if(goals.physiqueOutcome) rationale.push("Physique outcome on file: \"" + goals.physiqueOutcome + "\".");
   if(experience) rationale.push("Training experience: " + experience + ".");
   if(goals.currentFocus) rationale.push("Current focus: " + String(goals.currentFocus).replace(/_/g," ") + ".");
   if(training.cardioPreference) rationale.push("Cardio preference: " + String(training.cardioPreference).replace(/_/g," ") + ".");
@@ -5866,7 +5690,7 @@ function p954BuildProgramProposal(onboardingState, profile, currentProgram, sour
     const targetFreq = recommendedFrequency || currentLiftingCount || baseLen;
 
     rationale.push(
-      (gymLabels[gymKey] || gymKey) + ": " + currentLiftingCount + " current lifting day(s), target " + targetFreq + "/week lifting"
+      gymKey + ": " + currentLiftingCount + " current lifting day(s), target " + targetFreq + "/week lifting"
       + (cardioRecoveryCount ? ("; " + cardioRecoveryCount + " cardio/recovery day(s) preserved outside that count.") : ".")
     );
 
@@ -5894,56 +5718,8 @@ function p954BuildProgramProposal(onboardingState, profile, currentProgram, sour
         role: cd.role,
         action: dupeNames.length ? "modify" : "keep",
         tweaks: dupeNames.map(function(n){ return "Remove duplicate active exercise \"" + n + "\" (keep the first occurrence)."; }),
-        notes: dupeNames.length ? "Duplicate active exercise name(s) detected on this day." : roleNote,
-        rationale: dupeNames.length
-          ? "Metadata-only cleanup keeps the first stable exercise ID and avoids rewriting history."
-          : (roleNote || "Current resolved day is retained because no source-backed safe change was identified."),
-        safetyTag: dupeNames.length ? "safe_apply" : "unchanged",
-        confidence: dupeNames.length ? "high" : "medium",
-        proposedExerciseOrder: null,
-        exerciseActions: []
+        notes: dupeNames.length ? "Duplicate active exercise name(s) detected on this day." : roleNote
       };
-      const priorityText = (physiqueOutcome + " " + coachingPrefs).toLowerCase();
-      const priorityTerms = [
-        { re:/shoulder|delt/, ex:/shoulder|lateral|delt/ },
-        { re:/\bchest\b|pec/, ex:/chest|bench|fly|push-up/ },
-        { re:/\bback\b|lat/, ex:/row|pulldown|pull-up|lat/ },
-        { re:/\barms?\b|biceps?|triceps?/, ex:/curl|tricep|extension|skull/ },
-        { re:/glute|legs?|quad|hamstring/, ex:/squat|lunge|deadlift|leg|hip|glute|hamstring/ }
-      ];
-      const priority = priorityTerms.find(function(x){ return x.re.test(priorityText); });
-      if(cd.role === "lifting" && priority && exercises.length > 1){
-        const matchIdx = exercises.findIndex(function(ex){ return priority.ex.test(String(ex && ex.name || "").toLowerCase()); });
-        if(matchIdx > 0){
-          const ids = exercises.map(function(ex){ return ex.id; });
-          const moved = ids.splice(matchIdx, 1)[0];
-          ids.unshift(moved);
-          plan.proposedExerciseOrder = ids;
-          plan.rationale = "Moves source-matched weak-point work earlier while preserving every stable exercise ID and same-day membership.";
-          plan.safetyTag = "safe_apply";
-          plan.confidence = "medium";
-        }
-      }
-      if(cd.role === "lifting" && physiqueOutcome && !(day.focus && String(day.focus).trim())){
-        plan.action = "modify";
-        plan.focus = "Supports " + String(physiqueOutcome).slice(0, 120);
-        plan.rationale = "Adds day-level focus metadata aligned with the saved physique outcome; the base day, exercises, stable IDs, and history remain unchanged.";
-        plan.safetyTag = "safe_apply";
-        plan.confidence = "medium";
-      }
-      if(cd.role === "lifting" && /\brir\b|reps?\s+in\s+reserve/i.test(coachingPrefs)){
-        const missingRir = exercises.find(function(ex){ return ex && ex.id && (ex.rir === undefined || ex.rir === null || ex.rir === ""); });
-        if(missingRir){
-          plan.exerciseActions.push({
-            exerciseId: missingRir.id,
-            action: "modify",
-            fields: { rir: "2" },
-            rationale: "Adds a conservative RIR target because saved coaching preferences explicitly reference RIR; stable ID and exercise history are preserved.",
-            safetyTag: "safe_apply",
-            confidence: "medium"
-          });
-        }
-      }
       if(dupeNames.length){
         warnings.push(gymKey + " " + plan.dayName + ": duplicate active exercise name(s) detected — " + dupeNames.join(", ") + ".");
       }
@@ -5981,12 +5757,7 @@ function p954BuildProgramProposal(onboardingState, profile, currentProgram, sour
           role: "lifting",
           action: "optional_add",
           tweaks: [],
-          notes: "Suggested optional additional lifting day for " + gymKey + " to reach a requested lifting frequency of " + targetFreq + "/week (currently " + currentLiftingCount + "). Not created — describes a possibility only.",
-          rationale: "Matches the saved onboarding frequency, but adding a lifecycle day remains review-only to preserve the base program and history safety.",
-          safetyTag: "deferred_lifecycle",
-          confidence: recommendedFrequency ? "high" : "low",
-          proposedExerciseOrder: null,
-          exerciseActions: []
+          notes: "Suggested optional additional lifting day for " + gymKey + " to reach a requested lifting frequency of " + targetFreq + "/week (currently " + currentLiftingCount + "). Not created — describes a possibility only."
         });
       }
     } else if(delta < 0){
@@ -6012,9 +5783,6 @@ function p954BuildProgramProposal(onboardingState, profile, currentProgram, sour
         if(existing){
           existing.action = "remove";
           existing.notes = ("Current lifting-day count (" + currentLiftingCount + ") for " + gymKey + " exceeds the requested lifting frequency of " + targetFreq + "/week — consider removing or merging this day. Cardio/recovery days are preserved regardless. Describes a possibility only.");
-          existing.rationale = "Frequency exceeds the saved onboarding target; removal remains review-only so base P and workout history stay untouched.";
-          existing.safetyTag = "deferred_lifecycle";
-          existing.confidence = "medium";
         }
       });
       if(excess > removalCandidates.length){
@@ -6059,8 +5827,6 @@ function p954BuildProgramProposal(onboardingState, profile, currentProgram, sour
     proposalVersion: APP_VERSION,
     status: "draft",
     source: "onboarding",
-    sourceType: "local_generated",
-    sourceSummary: sourceSummary,
     generatedAt: null, // set by the caller at save time
     appliedAt: null,
     dismissedAt: null,
@@ -6111,10 +5877,8 @@ function p954GenerateAndSaveProposal(){
     const onboardingState = p951GetOnboardingState();
     const profile = p950GetUserProfile();
     const currentProgram = p954GetCurrentResolvedProgramForProposal();
-    const sourceContext = p955BuildProposalSourceContext(onboardingState, profile, currentProgram);
-    const built = p954BuildProgramProposal(onboardingState, profile, currentProgram, sourceContext);
+    const built = p954BuildProgramProposal(onboardingState, profile, currentProgram);
     built.generatedAt = new Date().toISOString();
-    built.sourceSummary.generatedAt = built.generatedAt;
     return p954SaveProposal(built);
   } catch(e){
     console.warn("[MarcusFit] p954GenerateAndSaveProposal failed:", e && e.message);
@@ -6130,10 +5894,8 @@ window.mfGenerateOnboardingProgramProposalPreview = function(){
     const onboardingState = p951GetOnboardingState();
     const profile = p950GetUserProfile();
     const currentProgram = p954GetCurrentResolvedProgramForProposal();
-    const sourceContext = p955BuildProposalSourceContext(onboardingState, profile, currentProgram);
-    const built = p954BuildProgramProposal(onboardingState, profile, currentProgram, sourceContext);
+    const built = p954BuildProgramProposal(onboardingState, profile, currentProgram);
     built.generatedAt = new Date().toISOString();
-    built.sourceSummary.generatedAt = built.generatedAt;
     return built;
   } catch(e){
     console.warn("[MarcusFit] mfGenerateOnboardingProgramProposalPreview failed:", e && e.message);
@@ -6216,7 +5978,6 @@ function p954ComputeProposalFingerprint(proposal){
 // free-text the builder already attached (dp.notes, else first tweak).
 function p954ExtractDayPlanReason(dp){
   if(!dp) return "";
-  if(typeof dp.rationale === "string" && dp.rationale) return dp.rationale;
   if(typeof dp.notes === "string" && dp.notes) return dp.notes;
   if(Array.isArray(dp.tweaks) && dp.tweaks.length && typeof dp.tweaks[0] === "string") return dp.tweaks[0];
   return "";
@@ -6229,10 +5990,9 @@ function p954ExtractDayPlanReason(dp){
 let p954LastLiveValidationErrors = [];
 let p954LastPostApplyValidationErrors = [];
 let p954LastSafetyFacts = {before:null,after:null,idsUnchanged:null};
-// ── FUTURE MODULE: src/proposal-apply-undo.js ────────────────────────────────
 function p954BuildApplicationPlan(proposal){
   const ops = [], errors = [], deferred = { replace:[], add:[], remove:[], reactivate:[] };
-  const counts = { keep:0, modify:0, remove:0, optional_add:0, deferredDayLifecycleCount:0, skippedExerciseActionCount:0, plannedReorderCount:0, plannedExerciseModifyCount:0, skippedReplaceCount:0, skippedAddCount:0, skippedRemoveCount:0, skippedReactivateCount:0 };
+  const counts = { keep:0, modify:0, remove:0, optional_add:0, skippedExerciseActionCount:0, plannedReorderCount:0, plannedExerciseModifyCount:0, skippedReplaceCount:0, skippedAddCount:0, skippedRemoveCount:0, skippedReactivateCount:0 };
   const affected = {}, gyms = p954GetRecognizedProposalGymKeys(), seen = {};
   (Array.isArray(proposal && proposal.dayPlans) ? proposal.dayPlans : []).forEach(function(dp, i){
     const gymKey=dp && dp.gymKey, dayIdx=dp && dp.dayIdx;
@@ -6248,9 +6008,10 @@ function p954BuildApplicationPlan(proposal){
       else if(typeof dp.dayName==="string"&&dp.dayName.trim()&&day&&dp.dayName!==(day.name||day.day)) fields.name=dp.dayName;
       ["focus","note","tag","subtitle"].forEach(function(f){if(typeof dp[f]==="string") fields[f]=dp[f];});
       ops.push(Object.keys(fields).length?{type:"dayOverride",gymKey,dayIdx,fields,reason,dp}:{type:"keep",gymKey,dayIdx,dp,note:"No day metadata write."});
-    } else if(dp.action==="remove"){ counts.remove++; counts.deferredDayLifecycleCount++; ops.push({type:"skip_deferred_lifecycle",gymKey,dayIdx,reason,dp}); }
+    } else if(dp.action==="remove"){ counts.remove++; affected[gymKey]=true; ops.push({type:"disable",gymKey,dayIdx,reason,dp}); }
     else if(dp.action==="optional_add"){
-      counts.optional_add++; counts.deferredDayLifecycleCount++; ops.push({type:"skip_deferred_lifecycle",gymKey,dayIdx,reason,dp});
+      counts.optional_add++; affected[gymKey]=true; const fields={name:(typeof dp.proposedName==="string"&&dp.proposedName.trim())?dp.proposedName:((dp.dayName||"").trim()||("Added Day "+(dayIdx+1))),source:"system"};
+      ["focus","note","tag","subtitle"].forEach(function(f){if(typeof dp[f]==="string") fields[f]=dp[f];}); ops.push({type:"dayAddition",gymKey,dayIdx,fields,reason,dp});
     } else if(["reorder","replace","add"].indexOf(dp.action)>=0){ counts.skippedExerciseActionCount++; ops.push({type:"skip_exercise_level",gymKey,dayIdx,dp}); }
     else errors.push("dayPlans["+i+"] has unsupported action: "+dp.action);
 
@@ -6265,24 +6026,13 @@ function p954BuildApplicationPlan(proposal){
   ops.forEach(function(op){
     if(op.type==="orderOverride"){
       const day=getResolvedDays(op.gymKey).find(function(d){return d._dayIdx===op.dayIdx;}); const current=day?(day.exercises||[]).map(function(e){return e.id;}):[];
-      const stored=(lc.orderOverrides||{})[op.gymKey+":"+op.dayIdx];
-      op.currentOrder=current;
-      op.conflict=Array.isArray(stored)&&!p954StrictArrayEqual(stored,op.order);
-      op.writeNeeded=!Array.isArray(stored)&&!p954StrictArrayEqual(current,op.order);
-      op.unchanged=!op.conflict&&!op.writeNeeded;
+      const stored=(lc.orderOverrides||{})[op.gymKey+":"+op.dayIdx]; op.currentOrder=current; op.writeNeeded=!Array.isArray(stored)&&!p954StrictArrayEqual(current,op.order); op.unchanged=!op.writeNeeded;
       if(op.writeNeeded) counts.plannedReorderCount++;
     } else if(op.type==="exerciseOverride"){
       const existing=ov[op.exerciseId]||{}, day=getResolvedDays(op.gymKey).find(function(d){return d._dayIdx===op.dayIdx;}), ex=day&&(day.exercises||[]).find(function(e){return e.id===op.exerciseId;});
-      op.fieldStates={}; let any=false, anyConflict=false;
-      Object.keys(op.fields).forEach(function(f){
-        const cur=getF(op.exerciseId,f,ex?ex[f]:undefined), has=Object.prototype.hasOwnProperty.call(existing,f);
-        const conflict=has&&existing[f]!==op.fields[f];
-        const write=!has&&cur!==op.fields[f];
-        op.fieldStates[f]={current:cur,proposed:op.fields[f],conflict:conflict,writeNeeded:write,unchanged:!conflict&&!write};
-        if(conflict) anyConflict=true;
-        if(write) any=true;
-      });
-      op.conflict=anyConflict; op.writeNeeded=any; op.unchanged=!anyConflict&&!any; if(any) counts.plannedExerciseModifyCount++;
+      op.fieldStates={}; let any=false;
+      Object.keys(op.fields).forEach(function(f){ const cur=getF(op.exerciseId,f,ex?ex[f]:undefined), has=Object.prototype.hasOwnProperty.call(existing,f); const write=!has&&cur!==op.fields[f]; op.fieldStates[f]={current:cur,proposed:op.fields[f],writeNeeded:write,unchanged:!write}; if(write) any=true; });
+      op.writeNeeded=any; op.unchanged=!any; if(any) counts.plannedExerciseModifyCount++;
     }
   });
   return {valid:!errors.length,errors,ops,counts,deferred,affectedGymModes:Object.keys(affected)};
@@ -6292,7 +6042,7 @@ function p954Value(v){ try{return JSON.stringify(v);}catch(e){return String(v);}
 function p954ValidatePlanAgainstLiveState(plan, applicationId){
   const errors=[], lc=getLifecycle(), ov=getOvr();
   (plan.ops||[]).forEach(function(op){
-    if(op.type==="keep"||op.type==="skip_exercise_level"||op.type==="skip_deferred_lifecycle") return;
+    if(op.type==="keep"||op.type==="skip_exercise_level") return;
     if(!P[op.gymKey]){errors.push("Gym "+op.gymKey+" no longer exists.");return;}
     const label=op.gymKey+" day "+(op.dayIdx+1);
     if(op.type==="disable"){
@@ -6326,58 +6076,12 @@ function p954ValidatePlanAgainstLiveState(plan, applicationId){
 function p954BuildApplicationSummary(plan){
   const keys=[], modified={}; let reordered=0;
   plan.ops.forEach(function(op){if(["dayOverride","disable","dayAddition"].indexOf(op.type)>=0)keys.push(op.gymKey+":"+op.dayIdx);if(op.type==="orderOverride"&&op.writeNeeded)reordered++;if(op.type==="exerciseOverride"&&op.writeNeeded)modified[op.exerciseId]=true;});
-  return {keepCount:plan.counts.keep,modifyCount:plan.counts.modify,disabledCount:0,addedCount:0,deferredDayLifecycleCount:plan.counts.deferredDayLifecycleCount||0,skippedExerciseActionCount:plan.counts.skippedExerciseActionCount,reorderedDayCount:reordered,modifiedExerciseCount:Object.keys(modified).length,skippedReplaceCount:plan.counts.skippedReplaceCount,skippedAddCount:plan.counts.skippedAddCount,skippedRemoveCount:plan.counts.skippedRemoveCount,skippedReactivateCount:plan.counts.skippedReactivateCount,reorderResults:plan.ops.filter(function(op){return op.type==="orderOverride";}).map(function(op){return{gymKey:op.gymKey,dayIdx:op.dayIdx,status:op.writeNeeded?"Applied":"Unchanged"};}),exerciseActionResults:plan.ops.filter(function(op){return op.type==="exerciseOverride";}).map(function(op){return{gymKey:op.gymKey,dayIdx:op.dayIdx,exerciseId:op.exerciseId,status:op.writeNeeded?"Applied":"Unchanged"};}),affectedGymModes:plan.affectedGymModes.slice(),appliedDayKeys:keys,warnings:(plan.errors||[]).slice()};
+  return {keepCount:plan.counts.keep,modifyCount:plan.counts.modify,disabledCount:plan.counts.remove,addedCount:plan.counts.optional_add,skippedExerciseActionCount:plan.counts.skippedExerciseActionCount,reorderedDayCount:reordered,modifiedExerciseCount:Object.keys(modified).length,skippedReplaceCount:plan.counts.skippedReplaceCount,skippedAddCount:plan.counts.skippedAddCount,skippedRemoveCount:plan.counts.skippedRemoveCount,skippedReactivateCount:plan.counts.skippedReactivateCount,reorderResults:plan.ops.filter(function(op){return op.type==="orderOverride";}).map(function(op){return{gymKey:op.gymKey,dayIdx:op.dayIdx,status:op.writeNeeded?"Applied":"Unchanged"};}),exerciseActionResults:plan.ops.filter(function(op){return op.type==="exerciseOverride";}).map(function(op){return{gymKey:op.gymKey,dayIdx:op.dayIdx,exerciseId:op.exerciseId,status:op.writeNeeded?"Applied":"Unchanged"};}),affectedGymModes:plan.affectedGymModes.slice(),appliedDayKeys:keys,warnings:(plan.errors||[]).slice()};
 }
 function p954RawState(key){const raw=localStorage.getItem(key);return{existed:raw!==null,rawText:raw};}
 function p954CaptureRollbackSnapshot(){return{lifecycle:p954RawState(LIFECYCLE_KEY),overrides:p954RawState(OVR),proposal:p954RawState(PROGRAM_PROPOSAL_KEY)};}
 function p954RestoreFromRollbackSnapshot(s){try{[[LIFECYCLE_KEY,s.lifecycle],[OVR,s.overrides],[PROGRAM_PROPOSAL_KEY,s.proposal]].forEach(function(x){x[1].existed?localStorage.setItem(x[0],x[1].rawText):localStorage.removeItem(x[0]);});return true;}catch(e){console.warn("[MarcusFit] exact rollback failed",e);return false;}}
-function p954CloneUndoValue(v){return v===undefined?undefined:JSON.parse(JSON.stringify(v));}
-function p954OwnUndoState(obj,key){const existed=!!obj&&Object.prototype.hasOwnProperty.call(obj,key);return{existed:existed,value:existed?p954CloneUndoValue(obj[key]):undefined};}
-function p954UndoRecord(lc,section,gymKey,dayIdx){const byGym=(lc[section]||{})[gymKey];return byGym&&Object.prototype.hasOwnProperty.call(byGym,String(dayIdx))?byGym[String(dayIdx)]:undefined;}
-function p954UndoDeepEqual(a,b){return JSON.stringify(a)===JSON.stringify(b);}
-function p954BuildScopedUndoSnapshot(plan,beforeLc,beforeOv,afterLc,afterOv){
-  const scoped={version:1,lifecycle:{dayOverrideFields:[],dayAdditions:[],disabledDays:[],orderOverrides:[]},overrides:{fields:[]}};
-  function dayField(gymKey,dayIdx,field){
-    const beforeRecord=p954UndoRecord(beforeLc,"dayOverrides",gymKey,dayIdx),afterRecord=p954UndoRecord(afterLc,"dayOverrides",gymKey,dayIdx);
-    scoped.lifecycle.dayOverrideFields.push({gymKey:gymKey,dayIdx:dayIdx,field:field,before:p954OwnUndoState(beforeRecord,field),after:p954OwnUndoState(afterRecord,field),recordBeforeExisted:beforeRecord!==undefined,gymBeforeExisted:Object.prototype.hasOwnProperty.call(beforeLc.dayOverrides||{},gymKey)});
-  }
-  function fullRecord(kind,section,gymKey,dayIdx){
-    const before=p954UndoRecord(beforeLc,section,gymKey,dayIdx),after=p954UndoRecord(afterLc,section,gymKey,dayIdx);
-    if(!p954UndoDeepEqual(before,after))scoped.lifecycle[kind].push({gymKey:gymKey,dayIdx:dayIdx,before:{existed:before!==undefined,value:p954CloneUndoValue(before)},after:{existed:after!==undefined,value:p954CloneUndoValue(after)},gymBeforeExisted:Object.prototype.hasOwnProperty.call(beforeLc[section]||{},gymKey)});
-  }
-  (plan.ops||[]).forEach(function(op){
-    if(op.type==="dayOverride"){
-      const seen={};Object.keys(op.fields||{}).concat(["updatedAt","reason"]).forEach(function(field){if(!seen[field]){seen[field]=true;dayField(op.gymKey,op.dayIdx,field);}});
-    }else if(op.type==="disable")fullRecord("disabledDays","disabledDays",op.gymKey,op.dayIdx);
-    else if(op.type==="dayAddition")fullRecord("dayAdditions","dayAdditions",op.gymKey,op.dayIdx);
-    else if(op.type==="orderOverride"&&op.writeNeeded){const key=op.gymKey+":"+op.dayIdx;scoped.lifecycle.orderOverrides.push({key:key,gymKey:op.gymKey,dayIdx:op.dayIdx,before:p954OwnUndoState(beforeLc.orderOverrides||{},key),after:p954OwnUndoState(afterLc.orderOverrides||{},key)});}
-    else if(op.type==="exerciseOverride"&&op.writeNeeded){const beforeRecord=(beforeOv||{})[op.exerciseId],afterRecord=(afterOv||{})[op.exerciseId];Object.keys(op.fields||{}).forEach(function(field){if(op.fieldStates[field]&&op.fieldStates[field].writeNeeded)scoped.overrides.fields.push({exerciseId:op.exerciseId,field:field,before:p954OwnUndoState(beforeRecord,field),after:p954OwnUndoState(afterRecord,field),recordBeforeExisted:beforeRecord!==undefined});});}
-  });
-  return scoped;
-}
-function p954BuildPersistedPreApplySnapshot(proposal,rollback,appliedRaw,applicationId,plan,afterLc,afterOv){
-  const lc=JSON.parse(rollback.lifecycle.rawText||JSON.stringify(exLifecycleDefault())),ov=JSON.parse(rollback.overrides.rawText||"{}");
-  return{
-    dayOverrides:JSON.parse(JSON.stringify(lc.dayOverrides||{})),
-    dayAdditions:JSON.parse(JSON.stringify(lc.dayAdditions||{})),
-    disabledDays:JSON.parse(JSON.stringify(lc.disabledDays||{})),
-    orderOverrides:JSON.parse(JSON.stringify(lc.orderOverrides||{})),
-    overrides:JSON.parse(JSON.stringify(ov||{})),
-    proposal:JSON.parse(JSON.stringify(proposal)),
-    // 9.5.4E: exact byte-for-byte states required for guarded undo. These are
-    // additive; accepted C/D snapshots without them remain readable but are
-    // intentionally not auto-undoable because exact raw history cannot be invented.
-    rawStorage:{
-      lifecycle:{existed:rollback.lifecycle.existed,rawText:rollback.lifecycle.rawText},
-      overrides:{existed:rollback.overrides.existed,rawText:rollback.overrides.rawText}
-    },
-    expectedAppliedRaw:{lifecycle:appliedRaw.lifecycle,overrides:appliedRaw.overrides},
-    applicationId:applicationId,
-    // 9.5.4E correction: operation-scoped before/after values permit undo to
-    // preserve unrelated lifecycle and override changes made after apply.
-    scopedUndo:p954BuildScopedUndoSnapshot(plan,lc,ov,afterLc,afterOv)
-  };
-}
+function p954BuildPersistedPreApplySnapshot(proposal,lc,ov){return{dayOverrides:JSON.parse(JSON.stringify(lc.dayOverrides||{})),dayAdditions:JSON.parse(JSON.stringify(lc.dayAdditions||{})),disabledDays:JSON.parse(JSON.stringify(lc.disabledDays||{})),orderOverrides:JSON.parse(JSON.stringify(lc.orderOverrides||{})),overrides:JSON.parse(JSON.stringify(ov||{})),proposal:JSON.parse(JSON.stringify(proposal))};}
 function p954SafetyFacts(lc){const ids=[];p954GetRecognizedProposalGymKeys().forEach(function(g){getResolvedDays(g).forEach(function(d){(d.exercises||[]).forEach(function(e){ids.push(g+":"+d._dayIdx+":"+e.id);});});});return{activeExerciseCount:ids.length,exerciseIds:ids.sort(),inactiveIds:JSON.stringify(lc.inactiveIds||{}),customExercises:JSON.stringify(lc.customExercises||{}),replacements:JSON.stringify(lc.replacements||{}),recommendations:localStorage.getItem(RECS_KEY),otherStorage:Array.from({length:localStorage.length},function(_,i){return localStorage.key(i);}).filter(function(k){return k!==LIFECYCLE_KEY&&k!==OVR&&k!==PROGRAM_PROPOSAL_KEY&&k!==RECS_KEY;}).sort().map(function(k){return[k,localStorage.getItem(k)];})};}
 function p954VerifyPlanApplied(plan,applicationId,before,beforeOvr){
   const errors=[],lc=getLifecycle(),ov=getOvr(); plan.ops.forEach(function(op){
@@ -6396,7 +6100,7 @@ function p954ApplyProposal(expectedFingerprint){
     const ins=p954InspectStoredProposal();if(!ins.exists||!ins.parses||!ins.validation.valid)return{ok:false,error:"Stored proposal is missing, corrupted, or invalid."};const proposal=ins.normalized;
     if(proposal.status==="applied")return{ok:true,alreadyApplied:true,applicationId:proposal.applicationId,summary:proposal.applicationSummary};if(proposal.status!=="draft")return{ok:false,error:"Only a draft proposal can be applied."};
     if(typeof expectedFingerprint==="string"&&expectedFingerprint!==p954ComputeProposalFingerprint(proposal))return{ok:false,error:"The proposal changed since preview. Reopen preview."};
-    const plan=p954BuildApplicationPlan(proposal);if(!plan.valid)return{ok:false,error:"Application plan is invalid: "+plan.errors.join(" ")};if(p955GetProposalQualityMetrics(proposal).safeApplyCount===0)return{ok:false,noSupportedChanges:true,error:"This proposal has no supported changes to apply."};const applicationId=p954GenerateApplicationId(proposal),live=p954ValidatePlanAgainstLiveState(plan,applicationId);p954LastLiveValidationErrors=live.errors.slice();if(!live.valid)return{ok:false,error:"Cannot apply safely: "+live.errors.join(" ")};
+    const plan=p954BuildApplicationPlan(proposal);if(!plan.valid)return{ok:false,error:"Application plan is invalid: "+plan.errors.join(" ")};const applicationId=p954GenerateApplicationId(proposal),live=p954ValidatePlanAgainstLiveState(plan,applicationId);p954LastLiveValidationErrors=live.errors.slice();if(!live.valid)return{ok:false,error:"Cannot apply safely: "+live.errors.join(" ")};
     rollback=p954CaptureRollbackSnapshot();const lc=JSON.parse(rollback.lifecycle.rawText||JSON.stringify(exLifecycleDefault())),ov=JSON.parse(rollback.overrides.rawText||"{}"),beforeOvr=JSON.parse(JSON.stringify(ov)),before=p954SafetyFacts(lc),now=new Date().toISOString(),tag="proposal:"+applicationId;
     lc.dayOverrides=lc.dayOverrides||{};lc.dayAdditions=lc.dayAdditions||{};lc.disabledDays=lc.disabledDays||{};lc.orderOverrides=lc.orderOverrides||{};
     plan.ops.forEach(function(op){const key=String(op.dayIdx);
@@ -6406,8 +6110,8 @@ function p954ApplyProposal(expectedFingerprint){
       else if(op.type==="orderOverride"&&op.writeNeeded)lc.orderOverrides[op.gymKey+":"+op.dayIdx]=op.order.slice();
       else if(op.type==="exerciseOverride"&&op.writeNeeded){ov[op.exerciseId]=ov[op.exerciseId]||{};Object.keys(op.fields).forEach(function(f){if(op.fieldStates[f].writeNeeded)ov[op.exerciseId][f]=op.fields[f];});}
     });
-    const lifecycleRaw=JSON.stringify(lc),overridesRaw=JSON.stringify(ov),summary=p954BuildApplicationSummary(plan),snapshot=p954BuildPersistedPreApplySnapshot(proposal,rollback,{lifecycle:lifecycleRaw,overrides:overridesRaw},applicationId,plan,lc,ov),applied=Object.assign({},proposal,{status:"applied",appliedAt:now,applicationId,applicationSummary:summary,preApplySnapshot:snapshot,undoneAt:null,undoSummary:null});
-    localStorage.setItem(LIFECYCLE_KEY,lifecycleRaw);localStorage.setItem(OVR,overridesRaw);localStorage.setItem(PROGRAM_PROPOSAL_KEY,JSON.stringify(p954NormalizeProposal(applied)));
+    const summary=p954BuildApplicationSummary(plan),snapshot=p954BuildPersistedPreApplySnapshot(proposal,JSON.parse(rollback.lifecycle.rawText||JSON.stringify(exLifecycleDefault())),beforeOvr),applied=Object.assign({},proposal,{status:"applied",appliedAt:now,applicationId,applicationSummary:summary,preApplySnapshot:snapshot});
+    localStorage.setItem(LIFECYCLE_KEY,JSON.stringify(lc));localStorage.setItem(OVR,JSON.stringify(ov));localStorage.setItem(PROGRAM_PROPOSAL_KEY,JSON.stringify(p954NormalizeProposal(applied)));
     const verify=p954VerifyPlanApplied(plan,applicationId,before,beforeOvr);p954LastPostApplyValidationErrors=verify.errors.slice();const post=p954InspectStoredProposal();if(!verify.valid||!post.validation.valid||post.normalized.status!=="applied"||!post.normalized.appliedAt||!post.normalized.applicationId||!post.normalized.applicationSummary||!post.normalized.preApplySnapshot)throw new Error((verify.errors.join(" ")||"Applied proposal verification failed."));
     p954LastSafetyFacts={before:before.activeExerciseCount,after:verify.after.activeExerciseCount,idsUnchanged:p954StrictArrayEqual(before.exerciseIds,verify.after.exerciseIds)};return{ok:true,applicationId,summary};
   }catch(e){if(rollback)p954RestoreFromRollbackSnapshot(rollback);return{ok:false,error:"Application failed and all three keys were restored exactly: "+((e&&e.message)||"Unknown error")};}
@@ -6420,13 +6124,13 @@ function p954ApplyProposal(expectedFingerprint){
 window.mfBuildExerciseProposalFixture = function(){
   const gymKey=p954GetRecognizedProposalGymKeys()[0],day=getResolvedDays(gymKey).find(function(d){return !isDayDisabled(gymKey,d._dayIdx)&&(d.exercises||[]).length>=4;});
   if(!day) throw new Error("Fixture needs an active day with at least four exercises.");
-  const ex=day.exercises,proposal=p954GetDefaultProposal(); proposal.generatedAt=new Date().toISOString();proposal.sourceType="fixture";proposal.source="developer_fixture";proposal.sourceSummary={generatedAt:proposal.generatedAt,appVersion:APP_VERSION,proposalEngineVersion:PROGRAM_PROPOSAL_ENGINE_VERSION,profileUsed:false,onboardingUsed:false,coachingPrefsUsed:false,currentProgramUsed:true,lifecycleUsed:true,recentLogsUsed:false,profileFields:[],onboardingSections:[],lifecycleSignals:["fixture_live_day_lookup"],sourceWarnings:["Developer QA fixture: not a recommendation generated from user context.","Recent workout logs were not used."]};proposal.summary.gymModes=[gymKey];proposal.summary.affectedDayCount=1;
-  proposal.dayPlans=[{gymKey:gymKey,dayIdx:day._dayIdx,dayName:day.name||day.day||("Day "+(day._dayIdx+1)),role:"lifting",action:"keep",tweaks:[],notes:"Deterministic 9.5.5 exercise application QA fixture.",rationale:"Exercises are intentionally reversed to verify same-day reorder safety while preserving IDs.",safetyTag:"safe_apply",confidence:"test_only",proposedExerciseOrder:ex.map(function(e){return e.id;}).reverse(),exerciseActions:[
-    {exerciseId:ex[0].id,action:"modify",fields:{sets:(Number.isInteger(ex[0].sets)&&ex[0].sets>0)?ex[0].sets:3},rationale:"Metadata-only idempotency baseline; stable ID and history remain unchanged.",safetyTag:"safe_apply",confidence:"test_only"},
-    {exerciseId:ex[1].id,action:"replace",fields:{},rationale:"Replacement is shown only to exercise review UI and validator coverage; risky lifecycle application remains deferred.",safetyTag:"deferred_lifecycle",confidence:"test_only"},
-    {exerciseId:null,action:"add",fields:{name:"Deferred fixture exercise"},rationale:"Addition remains review-only because creating lifecycle records is outside this safe-apply phase.",safetyTag:"deferred_lifecycle",confidence:"test_only"},
-    {exerciseId:ex[2].id,action:"remove",fields:{},rationale:"Removal remains review-only so the stable exercise ID and workout history cannot be disrupted.",safetyTag:"deferred_lifecycle",confidence:"test_only"},
-    {exerciseId:ex[3].id,action:"reactivate",fields:{},rationale:"Reactivation remains review-only until lifecycle conflict handling is explicitly implemented.",safetyTag:"deferred_lifecycle",confidence:"test_only"}
+  const ex=day.exercises,proposal=p954GetDefaultProposal(); proposal.generatedAt=new Date().toISOString();proposal.summary.gymModes=[gymKey];proposal.summary.affectedDayCount=1;
+  proposal.dayPlans=[{gymKey:gymKey,dayIdx:day._dayIdx,dayName:day.name||day.day||("Day "+(day._dayIdx+1)),role:"lifting",action:"keep",tweaks:[],notes:"Deterministic 9.5.4D exercise application QA fixture.",proposedExerciseOrder:ex.map(function(e){return e.id;}).reverse(),exerciseActions:[
+    {exerciseId:ex[0].id,action:"modify",fields:{sets:(Number.isInteger(ex[0].sets)&&ex[0].sets>0)?ex[0].sets:3},rationale:"Metadata idempotency baseline; edit value for write QA."},
+    {exerciseId:ex[1].id,action:"replace",fields:{},rationale:"Deferred replacement fixture."},
+    {exerciseId:null,action:"add",fields:{name:"Deferred fixture exercise"},rationale:"Deferred addition fixture."},
+    {exerciseId:ex[2].id,action:"remove",fields:{},rationale:"Deferred removal fixture."},
+    {exerciseId:ex[3].id,action:"reactivate",fields:{},rationale:"Deferred reactivation fixture."}
   ]}]; return p954NormalizeProposal(proposal);
 };
 window.mfSaveExerciseProposalFixture = function(){return p954SaveProposal(window.mfBuildExerciseProposalFixture());};
@@ -6439,12 +6143,10 @@ window.mfOnboardingProgramProposalApplicationDebug = function(){
   try {
     const proposal = p954GetProposal();
     const lc = getLifecycle();
-    const undoPlan = p954BuildUndoPlan(proposal === null ? undefined : proposal);
     const result = {
       status: proposal ? proposal.status : null,
       applicationId: proposal ? proposal.applicationId : null,
       appliedAt: proposal ? proposal.appliedAt : null,
-      undoneAt: proposal ? proposal.undoneAt : null,
       planCounts: proposal ? p954BuildApplicationPlan(proposal).counts : null,
       plannedReorderCount: proposal ? p954BuildApplicationPlan(proposal).counts.plannedReorderCount : 0,
       plannedExerciseModifyCount: proposal ? p954BuildApplicationPlan(proposal).counts.plannedExerciseModifyCount : 0,
@@ -6463,14 +6165,6 @@ window.mfOnboardingProgramProposalApplicationDebug = function(){
         return acc;
       }, {}),
       snapshotAvailable: !!(proposal && proposal.preApplySnapshot),
-      snapshotValidForUndo: proposal ? p954ValidateUndoSnapshot(proposal).valid : false,
-      canUndo: undoPlan.canUndo,
-      undoConflicts: undoPlan.conflicts,
-      undoWarnings: undoPlan.warnings,
-      lastUndoValidationErrors: p954LastUndoValidationErrors.slice(),
-      lastPostUndoValidationErrors: p954LastPostUndoValidationErrors.slice(),
-      exactRawRestorationVerified: p954LastUndoVerification.exactRawRestorationVerified,
-      idempotencyStatus: undoPlan.alreadyUndone ? "already-undone/no-op" : p954LastUndoVerification.idempotencyStatus,
       validationErrors: proposal ? p954ValidateProgramProposal(proposal).errors : []
     };
     console.log("[MarcusFit] mfOnboardingProgramProposalApplicationDebug():", result);
@@ -6483,8 +6177,8 @@ window.mfOnboardingProgramProposalApplicationDebug = function(){
 };
 
 // Read-only, safe-clone accessor for an applied proposal's pre-apply
-// snapshot. Read-only accessor; 9.5.4E's guarded undo path validates and uses
-// the snapshot separately and never mutates through this helper.
+// snapshot. Rollback FOUNDATION only — this phase never auto-restores it and
+// there is no user-facing undo button yet.
 function p954GetApplicationSnapshot(){
   try {
     const proposal = p954GetProposal();
@@ -6496,209 +6190,7 @@ function p954GetApplicationSnapshot(){
 }
 window.p954GetApplicationSnapshot = p954GetApplicationSnapshot;
 
-// ── PHASE 9.5.4E: USER-FACING APPLIED PROPOSAL UNDO ─────────────────────────
-// One guarded reversal of the currently saved applied proposal. This is not
-// an undo stack: only the exact raw lifecycle/override state captured by the
-// application above can be restored, and the proposal remains as audit data.
-let p954LastUndoValidationErrors = [];
-let p954LastPostUndoValidationErrors = [];
-let p954LastUndoVerification = {exactRawRestorationVerified:null,unrelatedStatePreserved:null,idempotencyStatus:null};
-
-function p954ValidateUndoSnapshot(proposal){
-  const result={available:false,valid:false,scopedAvailable:false,scopedValid:false,errors:[],warnings:[]},snap=proposal&&proposal.preApplySnapshot;
-  if(!snap||typeof snap!=="object"||Array.isArray(snap)){result.errors.push("No pre-apply snapshot is available.");return result;}
-  result.available=true;
-  function validRawState(label,state){
-    if(!state||typeof state!=="object"||Array.isArray(state)){result.errors.push(label+" raw snapshot is missing or malformed.");return;}
-    if(typeof state.existed!=="boolean")result.errors.push(label+" raw snapshot has an invalid existed flag.");
-    if(state.existed&&typeof state.rawText!=="string")result.errors.push(label+" raw snapshot is missing its original raw string.");
-    if(!state.existed&&state.rawText!==null)result.errors.push(label+" raw snapshot must use null when the key was originally absent.");
-    if(state.existed&&typeof state.rawText==="string"){try{const parsed=JSON.parse(state.rawText);if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))throw new Error("not an object");}catch(e){result.errors.push(label+" original raw value is not a valid JSON object.");}}
-  }
-  if(!snap.rawStorage||typeof snap.rawStorage!=="object"||Array.isArray(snap.rawStorage))result.errors.push("Exact pre-apply raw storage is unavailable (legacy snapshot).");
-  else {validRawState("Exercise lifecycle",snap.rawStorage.lifecycle);validRawState("Exercise overrides",snap.rawStorage.overrides);}
-  if(!snap.expectedAppliedRaw||typeof snap.expectedAppliedRaw!=="object"||Array.isArray(snap.expectedAppliedRaw))result.errors.push("Expected applied raw storage is unavailable (legacy snapshot).");
-  else ["lifecycle","overrides"].forEach(function(f){
-    const raw=snap.expectedAppliedRaw[f];
-    if(typeof raw!=="string")result.errors.push("Expected applied "+f+" raw value is missing.");
-    else try{const parsed=JSON.parse(raw);if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))throw new Error("not an object");}catch(e){result.errors.push("Expected applied "+f+" raw value is malformed.");}
-  });
-  if(typeof snap.applicationId!=="string"||!snap.applicationId||snap.applicationId!==(proposal&&proposal.applicationId))result.errors.push("Snapshot application identity does not match this proposal.");
-  if(!snap.proposal||typeof snap.proposal!=="object"||Array.isArray(snap.proposal))result.errors.push("Snapshot proposal identity is missing.");
-  else if(proposal&&p954GenerateApplicationId(snap.proposal)!==proposal.applicationId)result.errors.push("Original proposal fingerprint no longer matches the application ID.");
-  if(snap.scopedUndo===undefined){
-    result.warnings.push("Scoped undo data is unavailable (legacy snapshot); only an exact whole-state fallback may be safe.");
-  }else{
-    const scoped=snap.scopedUndo;
-    result.scopedAvailable=true;
-    function validState(state,label){if(!state||typeof state!=="object"||typeof state.existed!=="boolean")result.errors.push("Scoped undo "+label+" state is malformed.");}
-    if(!scoped||typeof scoped!=="object"||Array.isArray(scoped)||scoped.version!==1||!scoped.lifecycle||!scoped.overrides)result.errors.push("Scoped undo data is malformed.");
-    else {
-      const lifecycle=scoped.lifecycle,overrides=scoped.overrides;
-      ["dayOverrideFields","dayAdditions","disabledDays","orderOverrides"].forEach(function(k){if(!Array.isArray(lifecycle[k]))result.errors.push("Scoped lifecycle "+k+" is invalid.");});
-      if(!Array.isArray(overrides.fields))result.errors.push("Scoped exercise overrides are invalid.");
-      (lifecycle.dayOverrideFields||[]).forEach(function(x,i){if(!x||typeof x.gymKey!=="string"||!Number.isInteger(x.dayIdx)||typeof x.field!=="string")result.errors.push("Scoped day override entry "+i+" is invalid.");else{validState(x.before,"day override before");validState(x.after,"day override after");}});
-      ["dayAdditions","disabledDays","orderOverrides"].forEach(function(k){(lifecycle[k]||[]).forEach(function(x,i){if(!x||typeof x!=="object")result.errors.push("Scoped "+k+" entry "+i+" is invalid.");else{validState(x.before,k+" before");validState(x.after,k+" after");}});});
-      (overrides.fields||[]).forEach(function(x,i){if(!x||typeof x.exerciseId!=="string"||typeof x.field!=="string")result.errors.push("Scoped override entry "+i+" is invalid.");else{validState(x.before,"override before");validState(x.after,"override after");}});
-      result.scopedValid=result.errors.length===0;
-    }
-  }
-  result.valid=result.errors.length===0;
-  return result;
-}
-
-function p954UndoRawMatches(rawState,currentRaw){return rawState.existed?currentRaw===rawState.rawText:currentRaw===null;}
-function p954UndoStateEqual(a,b){return !!a&&!!b&&a.existed===b.existed&&(!a.existed||p954UndoDeepEqual(a.value,b.value));}
-function p954ParseUndoLiveState(){try{return{ok:true,lc:JSON.parse(localStorage.getItem(LIFECYCLE_KEY)||JSON.stringify(exLifecycleDefault())),ov:JSON.parse(localStorage.getItem(OVR)||"{}")};}catch(e){return{ok:false,error:"Current lifecycle or override storage is malformed."};}}
-function p954FormatScopedUndoDayLabel(entry){const raw=entry&&typeof entry.gymLabel==="string"&&entry.gymLabel.trim()?entry.gymLabel.trim():(entry&&typeof entry.gymKey==="string"&&entry.gymKey?entry.gymKey:"Gym"),gym=raw.charAt(0).toUpperCase()+raw.slice(1),day=entry&&Number.isInteger(entry.dayIdx)?entry.dayIdx+1:null;return day===null?gym:gym+" Day "+day;}
-function p954GetScopedUndoEntries(scoped){
-  const l=scoped.lifecycle,o=scoped.overrides,entries=[];
-  (l.dayOverrideFields||[]).forEach(function(x){entries.push({kind:"dayOverrideField",entry:x,before:x.before,after:x.after,label:"Day override "+x.gymKey+" day "+(x.dayIdx+1)+" · "+x.field,storage:"lifecycle"});});
-  (l.dayAdditions||[]).forEach(function(x){entries.push({kind:"dayAddition",entry:x,before:x.before,after:x.after,label:"Day addition "+x.gymKey+" day "+(x.dayIdx+1),storage:"lifecycle"});});
-  (l.disabledDays||[]).forEach(function(x){entries.push({kind:"disabledDay",entry:x,before:x.before,after:x.after,label:"Disabled day "+x.gymKey+" day "+(x.dayIdx+1),storage:"lifecycle"});});
-  (l.orderOverrides||[]).forEach(function(x){entries.push({kind:"orderOverride",entry:x,before:x.before,after:x.after,label:"Exercise order — "+p954FormatScopedUndoDayLabel(x),storage:"lifecycle"});});
-  (o.fields||[]).forEach(function(x){entries.push({kind:"overrideField",entry:x,before:x.before,after:x.after,label:"Exercise override "+x.exerciseId+" · "+x.field,storage:"overrides"});});
-  return entries;
-}
-function p954GetScopedUndoCurrent(lc,ov,op){const x=op.entry;if(op.kind==="dayOverrideField")return p954OwnUndoState(p954UndoRecord(lc,"dayOverrides",x.gymKey,x.dayIdx),x.field);if(op.kind==="dayAddition")return p954OwnUndoState((lc.dayAdditions||{})[x.gymKey],String(x.dayIdx));if(op.kind==="disabledDay")return p954OwnUndoState((lc.disabledDays||{})[x.gymKey],String(x.dayIdx));if(op.kind==="orderOverride")return p954OwnUndoState(lc.orderOverrides||{},x.key);return p954OwnUndoState((ov||{})[x.exerciseId],x.field);}
-function p954PruneUndoEmpty(obj){if(!obj||typeof obj!=="object"||Array.isArray(obj))return obj;Object.keys(obj).forEach(function(k){p954PruneUndoEmpty(obj[k]);if(obj[k]&&typeof obj[k]==="object"&&!Array.isArray(obj[k])&&!Object.keys(obj[k]).length)delete obj[k];});return obj;}
-function p954ProjectUndoUnrelated(lc,ov,scoped){const a=p954CloneUndoValue(lc),b=p954CloneUndoValue(ov);p954GetScopedUndoEntries(scoped).forEach(function(op){const x=op.entry;if(op.kind==="dayOverrideField"){const r=p954UndoRecord(a,"dayOverrides",x.gymKey,x.dayIdx);if(r)delete r[x.field];}else if(op.kind==="dayAddition"&&a.dayAdditions&&a.dayAdditions[x.gymKey])delete a.dayAdditions[x.gymKey][String(x.dayIdx)];else if(op.kind==="disabledDay"&&a.disabledDays&&a.disabledDays[x.gymKey])delete a.disabledDays[x.gymKey][String(x.dayIdx)];else if(op.kind==="orderOverride"&&a.orderOverrides)delete a.orderOverrides[x.key];else if(op.kind==="overrideField"&&b[x.exerciseId])delete b[x.exerciseId][x.field];});return{lifecycle:p954PruneUndoEmpty(a),overrides:p954PruneUndoEmpty(b)};}
-function p954RestoreScopedUndoOperation(lc,ov,op){const x=op.entry,b=op.before;if(op.kind==="dayOverrideField"){lc.dayOverrides=lc.dayOverrides||{};lc.dayOverrides[x.gymKey]=lc.dayOverrides[x.gymKey]||{};const key=String(x.dayIdx),r=lc.dayOverrides[x.gymKey][key]=lc.dayOverrides[x.gymKey][key]||{};if(b.existed)r[x.field]=p954CloneUndoValue(b.value);else delete r[x.field];if(!x.recordBeforeExisted&&!Object.keys(r).length){delete lc.dayOverrides[x.gymKey][key];if(!x.gymBeforeExisted&&!Object.keys(lc.dayOverrides[x.gymKey]).length)delete lc.dayOverrides[x.gymKey];}}
-  else if(op.kind==="dayAddition"||op.kind==="disabledDay"){const section=op.kind==="dayAddition"?"dayAdditions":"disabledDays",map=lc[section]=lc[section]||{},gym=map[x.gymKey]=map[x.gymKey]||{},key=String(x.dayIdx);if(b.existed)gym[key]=p954CloneUndoValue(b.value);else delete gym[key];if(!x.gymBeforeExisted&&!Object.keys(gym).length)delete map[x.gymKey];}
-  else if(op.kind==="orderOverride"){lc.orderOverrides=lc.orderOverrides||{};if(b.existed)lc.orderOverrides[x.key]=p954CloneUndoValue(b.value);else delete lc.orderOverrides[x.key];}
-  else {const r=ov[x.exerciseId]=ov[x.exerciseId]||{};if(b.existed)r[x.field]=p954CloneUndoValue(b.value);else delete r[x.field];if(!x.recordBeforeExisted&&!Object.keys(r).length)delete ov[x.exerciseId];}}
-
-// Authoritative read-only eligibility/planning function. It inspects only the
-// proposal and the two storage keys that undo may restore. Unrelated keys do
-// not affect eligibility.
-function p954BuildUndoPlan(proposalArg){
-  const result={canUndo:false,alreadyUndone:false,status:"unavailable",proposalStatus:null,applicationId:null,snapshotAvailable:false,snapshotValid:false,scopedUndoAvailable:false,operations:[],conflicts:[],errors:[],warnings:[],facts:{}};
-  let proposal=proposalArg;
-  if(proposal===undefined){
-    const inspection=p954InspectStoredProposal();
-    if(!inspection.exists){result.status="no_proposal";result.errors.push("No saved proposal exists.");return result;}
-    if(!inspection.parses||!inspection.validation.valid||!inspection.normalized){result.status="invalid_proposal";result.errors=result.errors.concat(inspection.validation.errors.length?inspection.validation.errors:["The saved proposal is malformed."]);return result;}
-    proposal=inspection.normalized;
-  }
-  result.proposalStatus=proposal&&proposal.status||null;
-  result.applicationId=proposal&&proposal.applicationId||null;
-  const snapshotValidation=p954ValidateUndoSnapshot(proposal);
-  result.snapshotAvailable=snapshotValidation.available;
-  result.snapshotValid=snapshotValidation.valid;
-  result.scopedUndoAvailable=snapshotValidation.scopedAvailable&&snapshotValidation.scopedValid;
-  result.warnings=result.warnings.concat(snapshotValidation.warnings);
-  if(proposal&&proposal.status==="undone"){
-    result.status="already_undone";result.alreadyUndone=true;result.facts.idempotencyStatus="already-undone/no-op";
-    if(!snapshotValidation.valid)result.warnings=result.warnings.concat(snapshotValidation.errors);
-    return result;
-  }
-  if(!proposal||proposal.status!=="applied"){
-    result.status="wrong_status";result.errors.push("Only an applied proposal can be undone.");return result;
-  }
-  if(!snapshotValidation.valid){
-    result.status=snapshotValidation.available?"malformed_snapshot":"no_snapshot";
-    result.errors=result.errors.concat(snapshotValidation.errors);return result;
-  }
-  const snap=proposal.preApplySnapshot;
-  if(result.scopedUndoAvailable){
-    const live=p954ParseUndoLiveState();if(!live.ok){result.status="malformed_current_storage";result.errors.push(live.error);return result;}
-    p954GetScopedUndoEntries(snap.scopedUndo).forEach(function(op){const current=p954GetScopedUndoCurrent(live.lc,live.ov,op),isApplied=p954UndoStateEqual(current,op.after),isRestored=p954UndoStateEqual(current,op.before);op.action=isRestored?"already-restored":"restore";op.currentState=isApplied?"expected-applied":isRestored?"already-restored":"conflict";result.operations.push(op);if(!isApplied&&!isRestored)result.conflicts.push(op.label+" changed after this proposal was applied. Automatic undo is blocked to avoid overwriting newer work.");});
-    result.facts={applicationIdentityVerified:true,restorationScope:"proposal-affected-paths",affectedPathCount:result.operations.length,deferredActionCounts:{replace:(proposal.applicationSummary&&proposal.applicationSummary.skippedReplaceCount)||0,add:(proposal.applicationSummary&&proposal.applicationSummary.skippedAddCount)||0,remove:(proposal.applicationSummary&&proposal.applicationSummary.skippedRemoveCount)||0,reactivate:(proposal.applicationSummary&&proposal.applicationSummary.skippedReactivateCount)||0}};
-  }else{
-    [{key:LIFECYCLE_KEY,label:"Exercise lifecycle",pre:snap.rawStorage.lifecycle,expected:snap.expectedAppliedRaw.lifecycle},{key:OVR,label:"Exercise overrides",pre:snap.rawStorage.overrides,expected:snap.expectedAppliedRaw.overrides}].forEach(function(t){const current=localStorage.getItem(t.key),isApplied=current===t.expected,isRestored=p954UndoRawMatches(t.pre,current);result.operations.push({key:t.key,label:t.label,action:isRestored?"already-restored":(t.pre.existed?"restore":"remove"),currentState:isApplied?"expected-applied":isRestored?"already-restored":"conflict",legacy:true,pre:t.pre});if(!isApplied&&!isRestored)result.conflicts.push(t.label+" changed after this proposal was applied. Automatic undo is blocked to avoid overwriting newer work.");});
-    result.facts={applicationIdentityVerified:true,restorationScope:"legacy-whole-storage",deferredActionCounts:{replace:(proposal.applicationSummary&&proposal.applicationSummary.skippedReplaceCount)||0,add:(proposal.applicationSummary&&proposal.applicationSummary.skippedAddCount)||0,remove:(proposal.applicationSummary&&proposal.applicationSummary.skippedRemoveCount)||0,reactivate:(proposal.applicationSummary&&proposal.applicationSummary.skippedReactivateCount)||0}};
-  }
-  const deferredTotal=Object.keys(result.facts.deferredActionCounts).reduce(function(n,k){return n+result.facts.deferredActionCounts[k];},0);
-  if(deferredTotal)result.warnings.push(deferredTotal+" replace/add/remove/reactivate action(s) were deferred during application and require no restoration.");
-  result.status=result.conflicts.length?"conflict":"ready";
-  result.canUndo=!result.errors.length&&!result.conflicts.length;
-  return result;
-}
-window.p954BuildUndoPlan=p954BuildUndoPlan;
-
-function p954CaptureUntouchedStorage(){
-  return Array.from({length:localStorage.length},function(_,i){return localStorage.key(i);}).filter(function(k){return k!==LIFECYCLE_KEY&&k!==OVR&&k!==PROGRAM_PROPOSAL_KEY;}).sort().map(function(k){return[k,localStorage.getItem(k)];});
-}
-
-function p954BuildUndoneProposal(proposal,plan,undoneAt){
-  return Object.assign({},proposal,{status:"undone",undoneAt:undoneAt,undoSummary:{
-    status:"success",
-    applicationId:proposal.applicationId,
-    storageResults:plan.operations.map(function(op){return{key:op.key||op.label,action:op.action==="already-restored"?"verified-already-restored":op.action};}),
-    exactRawRestorationVerified:true,
-    exactAffectedStateRestorationVerified:true,
-    unrelatedStatePreserved:true,
-    validationFacts:{applicationIdentityVerified:true,restorationScope:plan.facts.restorationScope,affectedPathCount:plan.facts.affectedPathCount||0,exactAffectedStateRestorationVerified:true,unrelatedStatePreserved:true,idempotencyAfterUndo:"already-undone/no-op"},
-    deferredActionCounts:Object.assign({},plan.facts.deferredActionCounts)
-  }});
-}
-
-function p954VerifyUndoPostState(proposalBefore,untouchedBefore,pBefore,unrelatedBefore,plan){
-  const errors=[],snap=proposalBefore.preApplySnapshot,live=p954ParseUndoLiveState();
-  if(!live.ok)errors.push(live.error);
-  else if(plan.facts.restorationScope==="proposal-affected-paths"){
-    plan.operations.forEach(function(op){if(!p954UndoStateEqual(p954GetScopedUndoCurrent(live.lc,live.ov,op),op.before))errors.push(op.label+" was not restored to its exact pre-apply value.");});
-    const unrelatedAfter=p954ProjectUndoUnrelated(live.lc,live.ov,snap.scopedUndo);if(!p954UndoDeepEqual(unrelatedBefore,unrelatedAfter))errors.push("Unrelated lifecycle or override state changed during undo.");
-  }else {if(!p954UndoRawMatches(snap.rawStorage.lifecycle,localStorage.getItem(LIFECYCLE_KEY)))errors.push("Exercise lifecycle exact raw restoration failed.");if(!p954UndoRawMatches(snap.rawStorage.overrides,localStorage.getItem(OVR)))errors.push("Exercise overrides exact raw restoration failed.");}
-  const inspection=p954InspectStoredProposal(),post=inspection.normalized;
-  if(!inspection.exists||!inspection.parses||!inspection.validation.valid||!post)errors.push("Undone proposal record failed validation.");
-  else {
-    if(post.status!=="undone")errors.push("Proposal status is not undone.");
-    if(post.applicationId!==proposalBefore.applicationId||post.appliedAt!==proposalBefore.appliedAt||!post.applicationSummary||!post.preApplySnapshot)errors.push("Original application audit information was not preserved.");
-    if(!post.undoneAt||!post.undoSummary||post.undoSummary.exactRawRestorationVerified!==true||post.undoSummary.exactAffectedStateRestorationVerified!==true||post.undoSummary.unrelatedStatePreserved!==true)errors.push("Undo audit metadata is missing or invalid.");
-    const idempotent=p954BuildUndoPlan(post);if(!idempotent.alreadyUndone||idempotent.canUndo)errors.push("Undo is not idempotent after completion.");
-  }
-  if(JSON.stringify(P)!==pBefore)errors.push("Base program P changed during undo.");
-  if(JSON.stringify(p954CaptureUntouchedStorage())!==JSON.stringify(untouchedBefore))errors.push("An unrelated storage key changed during undo.");
-  return{valid:!errors.length,errors:errors};
-}
-
-// Final mutation path with an immediate direct-call preflight and byte-exact
-// rollback of every touched key on any error.
-function p954UndoAppliedProposal(){
-  let rollback=null;
-  try{
-    const inspection=p954InspectStoredProposal();
-    if(!inspection.exists||!inspection.parses||!inspection.validation.valid||!inspection.normalized)return{ok:false,error:"The saved proposal is missing, corrupted, or invalid."};
-    const proposal=inspection.normalized;
-    if(proposal.status==="undone"){p954LastUndoVerification.idempotencyStatus="already-undone/no-op";return{ok:true,alreadyUndone:true,noOp:true,applicationId:proposal.applicationId};}
-    const plan=p954BuildUndoPlan(proposal);p954LastUndoValidationErrors=plan.errors.concat(plan.conflicts);
-    if(!plan.canUndo)return{ok:false,error:"Cannot undo safely: "+p954LastUndoValidationErrors.join(" "),plan:plan};
-    rollback=p954CaptureRollbackSnapshot();
-    const untouchedBefore=p954CaptureUntouchedStorage(),pBefore=JSON.stringify(P),snap=proposal.preApplySnapshot,live=p954ParseUndoLiveState();
-    if(!live.ok)throw new Error(live.error);
-    const unrelatedBefore=plan.facts.restorationScope==="proposal-affected-paths"?p954ProjectUndoUnrelated(live.lc,live.ov,snap.scopedUndo):null;
-    if(plan.facts.restorationScope==="proposal-affected-paths"){
-      const needLifecycle=plan.operations.some(function(op){return op.storage==="lifecycle"&&op.action==="restore"}),needOverrides=plan.operations.some(function(op){return op.storage==="overrides"&&op.action==="restore"});
-      plan.operations.forEach(function(op){if(op.action==="restore")p954RestoreScopedUndoOperation(live.lc,live.ov,op);});
-      if(needLifecycle)localStorage.setItem(LIFECYCLE_KEY,JSON.stringify(live.lc));
-      if(needOverrides)localStorage.setItem(OVR,JSON.stringify(live.ov));
-    }else plan.operations.forEach(function(op){if(op.action!=="already-restored")op.pre.existed?localStorage.setItem(op.key,op.pre.rawText):localStorage.removeItem(op.key);});
-    const undone=p954NormalizeProposal(p954BuildUndoneProposal(proposal,plan,new Date().toISOString()));
-    localStorage.setItem(PROGRAM_PROPOSAL_KEY,JSON.stringify(undone));
-    const verify=p954VerifyUndoPostState(proposal,untouchedBefore,pBefore,unrelatedBefore,plan);p954LastPostUndoValidationErrors=verify.errors.slice();
-    if(!verify.valid)throw new Error(verify.errors.join(" "));
-    p954LastUndoVerification={exactRawRestorationVerified:true,unrelatedStatePreserved:true,idempotencyStatus:"already-undone/no-op"};
-    return{ok:true,applicationId:proposal.applicationId,summary:undone.undoSummary};
-  }catch(e){
-    const restored=rollback?p954RestoreFromRollbackSnapshot(rollback):true;
-    p954LastPostUndoValidationErrors=[(e&&e.message)||"Unknown error"];
-    p954LastUndoVerification={exactRawRestorationVerified:false,unrelatedStatePreserved:false,idempotencyStatus:null};
-    return{ok:false,error:"Undo failed; "+(restored?"all touched keys were restored exactly":"exact failure rollback could not be completed")+": "+((e&&e.message)||"Unknown error")};
-  }
-}
-window.p954UndoAppliedProposal=p954UndoAppliedProposal;
-
-window.mfOnboardingProgramProposalUndoDebug=function(){
-  try{
-    const inspection=p954InspectStoredProposal(),proposal=inspection.normalized,plan=p954BuildUndoPlan(),snapshotValidation=p954ValidateUndoSnapshot(proposal);
-    const result={readOnly:true,proposalStatus:proposal?proposal.status:null,applicationId:proposal?proposal.applicationId:null,appliedAt:proposal?proposal.appliedAt:null,undoneAt:proposal?proposal.undoneAt:null,snapshotAvailable:snapshotValidation.available,snapshotValid:snapshotValidation.valid,scopedUndoAvailable:snapshotValidation.scopedAvailable,scopedUndoValid:snapshotValidation.scopedValid,undoScopeMode:plan.facts.restorationScope||null,canUndo:plan.canUndo,undoStatus:plan.status,undoPlanOperations:plan.operations,undoConflicts:plan.conflicts,undoErrors:plan.errors,undoWarnings:plan.warnings,lastUndoValidationErrors:p954LastUndoValidationErrors.slice(),lastPostUndoValidationErrors:p954LastPostUndoValidationErrors.slice(),exactRawRestorationVerification:p954LastUndoVerification.exactRawRestorationVerified,unrelatedStatePreserved:p954LastUndoVerification.unrelatedStatePreserved,idempotencyStatus:plan.alreadyUndone?"already-undone/no-op":p954LastUndoVerification.idempotencyStatus};
-    console.log("[MarcusFit] mfOnboardingProgramProposalUndoDebug():",result);return result;
-  }catch(e){const result={readOnly:true,error:(e&&e.message)||"Unknown error"};console.warn("[MarcusFit] mfOnboardingProgramProposalUndoDebug failed:",e&&e.message);return result;}
-};
-var mfOnboardingProgramProposalUndoDebug=window.mfOnboardingProgramProposalUndoDebug;
-
-// ── END PHASE 9.5.4E PROPOSAL APPLICATION + UNDO ENGINE ──────────────────────
+// ── END PHASE 9.5.4D PROPOSAL APPLICATION ENGINE ─────────────────────────────
 
 // REQUIREMENT 10: read-only debug/inspection helper. Never writes storage.
 window.mfOnboardingProgramProposalDebug = function(){
@@ -6723,7 +6215,6 @@ window.mfOnboardingProgramProposalDebug = function(){
     // for debug visibility — never triggers a write.
     const appPlan = (proposal && validation.valid) ? p954BuildApplicationPlan(proposal) : null;
     const canApply = !!proposal && validation.valid && proposal.status === "draft";
-    const undoPlan = p954BuildUndoPlan(proposal === null ? undefined : proposal);
     const lcForDebug = getLifecycle();
     let appliedDayOverrideCount = 0, appliedDayAdditionCount = 0;
     if(proposal && proposal.applicationId){
@@ -6745,9 +6236,6 @@ window.mfOnboardingProgramProposalDebug = function(){
       proposalExists: !!proposal,
       proposalStatus: proposal ? proposal.status : null,
       proposalVersion: proposal ? proposal.proposalVersion : null,
-      sourceType: proposal ? proposal.sourceType : null,
-      sourceSummary: proposal ? proposal.sourceSummary : null,
-      sourceQuality: proposal ? p955GetProposalQualityMetrics(proposal) : null,
       validation: validation,
       summary: proposal ? proposal.summary : null,
       affectedDayCount: proposal ? proposal.summary.affectedDayCount : 0,
@@ -6771,19 +6259,8 @@ window.mfOnboardingProgramProposalDebug = function(){
       // 9.5.4C: application-engine debug fields.
       status: proposal ? proposal.status : null,
       appliedAt: proposal ? proposal.appliedAt : null,
-      undoneAt: proposal ? proposal.undoneAt : null,
       applicationId: proposal ? proposal.applicationId : null,
       canApply: canApply,
-      canUndo: undoPlan.canUndo,
-      undoPlanOperations: undoPlan.operations,
-      undoConflicts: undoPlan.conflicts,
-      undoWarnings: undoPlan.warnings,
-      undoSnapshotAvailable: undoPlan.snapshotAvailable,
-      undoSnapshotValid: undoPlan.snapshotValid,
-      lastUndoValidationErrors: p954LastUndoValidationErrors.slice(),
-      lastPostUndoValidationErrors: p954LastPostUndoValidationErrors.slice(),
-      exactRawRestorationVerified: p954LastUndoVerification.exactRawRestorationVerified,
-      undoIdempotencyStatus: undoPlan.alreadyUndone ? "already-undone/no-op" : p954LastUndoVerification.idempotencyStatus,
       plannedKeepCount: appPlan ? appPlan.counts.keep : 0,
       plannedModifyCount: appPlan ? appPlan.counts.modify : 0,
       plannedRemoveCount: appPlan ? appPlan.counts.remove : 0,
@@ -6822,50 +6299,6 @@ window.mfOnboardingProgramProposalDebug = function(){
 // onboarding — failures here are swallowed (logged, not surfaced to the
 // completion UI) since proposal generation is a bonus, not a requirement of
 // completing onboarding.
-// ── FUTURE MODULE: src/debug.js (proposal debug/export integration) ─────────
-window.mfOnboardingProgramProposalSourceDebug = function(){
-  try {
-    const inspection=p954InspectStoredProposal(),proposal=inspection.normalized;
-    const metrics=proposal?p955GetProposalQualityMetrics(proposal):null;
-    const undo=proposal?p954BuildUndoPlan(proposal):{canUndo:false,status:"no_proposal"};
-    const derivedActions=p955GetDerivedProposalActionCounts(proposal);
-    const actionCountsByType=derivedActions.byType;
-    const result={
-      readOnly:true,
-      proposalExists:inspection.exists,
-      proposalParses:inspection.parses,
-      proposalValid:inspection.validation.valid,
-      proposalValidationErrors:inspection.validation.errors,
-      proposalValidationWarnings:inspection.validation.warnings||[],
-      proposalId:proposal?(proposal.applicationId||((proposal.generatedAt||"draft")+"|"+proposal.proposalVersion)):null,
-      status:proposal?proposal.status:null,
-      sourceType:proposal?proposal.sourceType:null,
-      appearsFixture:!!(proposal&&proposal.sourceType==="fixture"),
-      appearsLocallyGenerated:!!(proposal&&proposal.sourceType==="local_generated"),
-      appearsLegacy:!!(proposal&&proposal.sourceType==="legacy"),
-      sourceCoverage:metrics?metrics.sourceCoverage:null,
-      sourceDetails:proposal?proposal.sourceSummary:null,
-      sourceWarnings:proposal&&proposal.sourceSummary?proposal.sourceSummary.sourceWarnings:[],
-      actionCountsByType:actionCountsByType,
-      actionCounts:derivedActions.counts,
-      flatDerivedCountSummary:p955FormatProposalActionCounts(derivedActions.counts),
-      safeApplyCount:metrics?metrics.safeApplyCount:0,
-      deferredCount:metrics?metrics.deferredCount:0,
-      conflictCount:metrics?metrics.conflictCount:0,
-      warningCount:metrics?metrics.warningCount:0,
-      undoEligibility:{status:undo.status,canUndo:undo.canUndo,alreadyUndone:undo.alreadyUndone||false,snapshotAvailable:undo.snapshotAvailable||false,snapshotValid:undo.snapshotValid||false,conflictCount:(undo.conflicts||[]).length},
-      visibleSummaryTextSafety:p955VisibleSummaryTextSafety(proposal)
-    };
-    console.log("[MarcusFit] mfOnboardingProgramProposalSourceDebug():",result);
-    return result;
-  } catch(e){
-    const result={readOnly:true,error:(e&&e.message)||"Unknown error"};
-    console.warn("[MarcusFit] mfOnboardingProgramProposalSourceDebug failed:",e&&e.message);
-    return result;
-  }
-};
-var mfOnboardingProgramProposalSourceDebug=window.mfOnboardingProgramProposalSourceDebug;
-
 function p954MaybeGenerateProposalAfterRealCompletion(){
   try {
     p954GenerateAndSaveProposal();
@@ -6874,7 +6307,6 @@ function p954MaybeGenerateProposalAfterRealCompletion(){
   }
 }
 
-// ── FUTURE MODULE: src/proposal-ui.js ────────────────────────────────────────
 // ── Sync-tab UI ──────────────────────────────────────────────────────────────
 // All rendering uses textContent / safe DOM creation only — never innerHTML
 // with onboarding-, profile-, or program-derived strings (day names, goal
@@ -6893,7 +6325,6 @@ let p954RLastRenderedExerciseCount = 0; // debug: exercise rows rendered in the 
 let p954ApplyPreviewOpenFlag = false;   // true while the apply preview/confirm panel is open
 let p954ApplyFingerprint = null;        // proposal fingerprint captured when the preview opened
 let p954RLastRenderedAppliedSummary = null; // debug: last-rendered applied-state summary object
-let p954UndoPreviewOpenFlag = false;    // 9.5.4E: true while the undo preview is open
 
 function p954ShowResult(msg, type){
   const el = document.getElementById("p954Result");
@@ -6902,103 +6333,6 @@ function p954ShowResult(msg, type){
   el.style.color = type === "ok" ? "var(--green)" : type === "err" ? "var(--red)" : type === "warn" ? "var(--yellow)" : "var(--text)";
   el.style.whiteSpace = "pre-wrap";
   el.textContent = msg;
-}
-
-// `dayPlans` is the executable review model. Stored summary counts are useful
-// for older records, but can be absent or stale (especially in developer QA
-// fixtures), so display/debug counts are always derived from normalized plans.
-function p955GetDerivedProposalActionCounts(proposal){
-  const counts={keep:0,modify:0,reorder:0,replace:0,add:0,remove:0,optional_add:0,reactivate:0};
-  const byType={};
-  (Array.isArray(proposal&&proposal.dayPlans)?proposal.dayPlans:[]).forEach(function(dp){
-    const dayAction=PROGRAM_PROPOSAL_DAY_ACTIONS.indexOf(dp&&dp.action)!==-1?dp.action:"keep";
-    counts[dayAction]++;
-    byType["day:"+dayAction]=(byType["day:"+dayAction]||0)+1;
-    if(Array.isArray(dp&&dp.proposedExerciseOrder)){
-      counts.reorder++;
-      byType["exercise:reorder"]=(byType["exercise:reorder"]||0)+1;
-    }
-    (Array.isArray(dp&&dp.exerciseActions)?dp.exerciseActions:[]).forEach(function(ea){
-      const action=PROGRAM_PROPOSAL_EXERCISE_ACTIONS.indexOf(ea&&ea.action)!==-1?ea.action:"keep";
-      if(Object.prototype.hasOwnProperty.call(counts,action)) counts[action]++;
-      byType["exercise:"+action]=(byType["exercise:"+action]||0)+1;
-    });
-  });
-  return {counts:counts,byType:byType};
-}
-
-function p955FormatProposalActionCounts(counts){
-  const c=counts||{};
-  return "keep "+(c.keep||0)+" · modify "+(c.modify||0)+" · reorder "+(c.reorder||0)+" · replace "+(c.replace||0)+" · add "+(c.add||0)+" · optional add "+(c.optional_add||0)+" · remove "+(c.remove||0)+" · reactivate "+(c.reactivate||0);
-}
-
-function p955VisibleSummaryTextSafety(proposal){
-  const metrics=p955GetProposalQualityMetrics(proposal);
-  const sample=[proposal&&proposal.status,proposal&&proposal.sourceType,proposal&&proposal.generatedAt,p955FormatProposalActionCounts(metrics.actionCounts),metrics.safeApplyCount,metrics.deferredCount,metrics.conflictCount].map(function(v){return String(v===null||v===undefined?"":v);}).join(" | ");
-  const unsafeTokens=["undefined","null","[object Object]"].filter(function(token){return sample.indexOf(token)!==-1;});
-  return {safe:unsafeTokens.length===0,unsafeTokens:unsafeTokens,sample:sample};
-}
-
-function p955GetProposalQualityMetrics(proposal){
-  const plan = proposal ? p954BuildApplicationPlan(proposal) : null;
-  const ops = plan && Array.isArray(plan.ops) ? plan.ops : [];
-  const safeApplyCount = ops.filter(function(op){
-    return op.type === "dayOverride"
-      || (op.type === "orderOverride" && !op.conflict && op.writeNeeded)
-      || (op.type === "exerciseOverride" && !op.conflict && op.writeNeeded);
-  }).length;
-  const deferredCount = plan ? ((plan.counts.deferredDayLifecycleCount||0) + (plan.counts.skippedExerciseActionCount||0)) : 0;
-  const conflictCount = ops.filter(function(op){ return op.conflict; }).length + (plan ? plan.errors.length : 0);
-  const ss = proposal && proposal.sourceSummary ? proposal.sourceSummary : {};
-  const derivedActions=p955GetDerivedProposalActionCounts(proposal);
-  const coverageFields = ["profileUsed","onboardingUsed","coachingPrefsUsed","currentProgramUsed","lifecycleUsed","recentLogsUsed"];
-  return {
-    safeApplyCount: safeApplyCount,
-    deferredCount: deferredCount,
-    conflictCount: conflictCount,
-    actionCounts: derivedActions.counts,
-    actionCountsByType: derivedActions.byType,
-    warningCount: ((proposal && proposal.warnings) || []).length + ((ss && ss.sourceWarnings) || []).length,
-    sourceCoverageCount: coverageFields.filter(function(f){ return ss[f] === true; }).length,
-    sourceCoverageTotal: coverageFields.length,
-    sourceCoverage: coverageFields.reduce(function(acc, f){ acc[f] = ss[f] === true; return acc; }, {}),
-    plan: plan
-  };
-}
-
-function p955BuildProposalStatusCard(proposal){
-  const card = document.createElement("div");
-  card.style.cssText = "background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:10px;font-size:12px;line-height:1.55;";
-  const metrics = p955GetProposalQualityMetrics(proposal);
-  const sourceLabel = proposal.sourceType === "fixture" ? "Developer fixture / test"
-    : proposal.sourceType === "local_generated" ? "Generated from current app data"
-    : "Legacy / source details missing";
-  [
-    ["Status", proposal.status],
-    ["Source", sourceLabel],
-    ["Generated", proposal.generatedAt ? new Date(proposal.generatedAt).toLocaleString() : "Not recorded"],
-    ["Coverage", metrics.sourceCoverageCount + "/" + metrics.sourceCoverageTotal + " source groups used"],
-    ["Action counts", p955FormatProposalActionCounts(metrics.actionCounts)],
-    ["Actions", metrics.safeApplyCount + " supported · " + metrics.deferredCount + " deferred"],
-    ["Warnings", (metrics.warningCount + metrics.conflictCount) + " warning/conflict item(s)"]
-  ].forEach(function(pair){
-    const row=document.createElement("div"),label=document.createElement("span"),value=document.createElement("span");
-    label.style.cssText="font-weight:700;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;";
-    label.textContent=pair[0]+": "; value.textContent=String(pair[1]); row.appendChild(label); row.appendChild(value); card.appendChild(row);
-  });
-  if(proposal.status === "applied"){
-    const undo = p954BuildUndoPlan(proposal), line=document.createElement("div");
-    line.style.cssText="margin-top:4px;color:"+(undo.canUndo?"var(--green)":"var(--yellow)")+";";
-    line.textContent=undo.canUndo?"Undo available for supported applied changes.":"Undo unavailable: "+(undo.conflicts[0]||undo.errors[0]||"saved snapshot is not eligible.");
-    card.appendChild(line);
-  } else if(proposal.status === "undone"){
-    const line=document.createElement("div");line.style.cssText="margin-top:4px;color:var(--muted);";line.textContent="This proposal was undone. Repeating undo is a no-write no-op.";card.appendChild(line);
-  } else if(metrics.conflictCount){
-    const line=document.createElement("div");line.style.cssText="margin-top:4px;color:var(--yellow);";line.textContent="Supported changes cannot be applied until conflicts are resolved.";card.appendChild(line);
-  } else if(metrics.safeApplyCount===0){
-    const line=document.createElement("div");line.style.cssText="margin-top:4px;color:var(--muted);";line.textContent="Review only — there are no supported changes to apply.";card.appendChild(line);
-  }
-  return card;
 }
 
 function p954BuildSummaryCard(proposal){
@@ -7025,8 +6359,9 @@ function p954BuildSummaryCard(proposal){
   addRow("Gym Mode(s)", (s.gymModes && s.gymModes.length) ? s.gymModes.join(", ") : "—");
   addRow("Est. Session Duration", s.estimatedSessionDurationMinutes ? (s.estimatedSessionDurationMinutes + " min") : "—");
   addRow("Affected Day Count", s.affectedDayCount);
-  const ac = p955GetDerivedProposalActionCounts(proposal).counts;
-  addRow("Action Counts", p955FormatProposalActionCounts(ac));
+  const ac = s.actionCounts || {};
+  const addTotal = (ac.add || 0) + (ac.optional_add || 0);
+  addRow("Action Counts", "keep " + (ac.keep||0) + " · modify " + (ac.modify||0) + " · reorder " + (ac.reorder||0) + " · replace " + (ac.replace||0) + " · add " + addTotal + " · remove " + (ac.remove||0));
 
   if((s.rationale || []).length){
     const rl = document.createElement("div");
@@ -7062,7 +6397,7 @@ function p954BuildSummaryCard(proposal){
 
   const meta = document.createElement("div");
   meta.style.cssText = "margin-top:8px;font-size:10px;color:var(--muted);";
-  meta.textContent = "Generated: " + (proposal.generatedAt ? new Date(proposal.generatedAt).toLocaleString() : "—") + " · Status: " + proposal.status + (proposal.status==="draft"||proposal.status==="dismissed"?" · No changes applied to your program.":"");
+  meta.textContent = "Generated: " + (proposal.generatedAt ? new Date(proposal.generatedAt).toLocaleString() : "—") + " · Status: " + proposal.status + " · No changes applied to your program.";
   card.appendChild(meta);
 
   return card;
@@ -7088,12 +6423,13 @@ function p954BuildDismissedSummary(proposal){
     + (proposal.dismissedAt ? (" · Dismissed: " + new Date(proposal.dismissedAt).toLocaleString()) : "");
   card.appendChild(line2);
 
-  const ac = p955GetDerivedProposalActionCounts(proposal).counts;
+  const ac = s.actionCounts || {};
+  const addTotal = (ac.add || 0) + (ac.optional_add || 0);
   const line3 = document.createElement("div");
   line3.style.color = "var(--text)";
   line3.textContent = (s.recommendedFrequency ? (s.recommendedFrequency + "/week lifting requested · ") : "")
     + "affected days: " + (s.affectedDayCount || 0)
-    + " · " + p955FormatProposalActionCounts(ac);
+    + " · keep " + (ac.keep||0) + " · modify " + (ac.modify||0) + " · remove " + (ac.remove||0) + " · add " + addTotal;
   card.appendChild(line3);
 
   return card;
@@ -7129,18 +6465,6 @@ function p954BuildAppliedSummaryCard(proposal){
   line4.textContent = "Disabled days are hidden, not deleted — history for those days remains fully intact.";
   card.appendChild(line4);
 
-  return card;
-}
-
-function p954BuildUndoneSummaryCard(proposal){
-  const card=document.createElement("div"),summary=proposal.undoSummary||{};card.style.cssText="background:var(--surface2);border:1px solid var(--green);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:12px;line-height:1.6;";
-  const heading=document.createElement("div");heading.style.cssText="font-weight:700;color:var(--green);margin-bottom:6px;";heading.textContent="↩ Proposal changes undone";card.appendChild(heading);
-  const applied=document.createElement("div");applied.style.cssText="color:var(--muted);margin-bottom:6px;";applied.textContent="Applied: "+(proposal.appliedAt?new Date(proposal.appliedAt).toLocaleString():"—");card.appendChild(applied);
-  const line=document.createElement("div");line.style.cssText="color:var(--muted);";
-  const restored=(summary.storageResults||[]).map(function(r){return r.key+" ("+r.action+")";});
-  line.textContent="Undone: "+(proposal.undoneAt?new Date(proposal.undoneAt).toLocaleString():"—")+(restored.length?" · "+restored.join(" · "):"");
-  card.appendChild(line);
-  const history=document.createElement("div");history.style.cssText="color:var(--muted);font-size:11px;margin-top:5px;";history.textContent="Workout logs and history were not deleted or rewritten. This saved record retains the original application audit.";card.appendChild(history);
   return card;
 }
 
@@ -7225,7 +6549,6 @@ function p954RenderProgramPersonalization(){
   }
 
   const proposal = inspection.normalized;
-  container.appendChild(p955BuildProposalStatusCard(proposal));
 
   const btnRow = document.createElement("div");
   btnRow.style.cssText = "display:flex;flex-direction:column;gap:8px;";
@@ -7255,10 +6578,6 @@ function p954RenderProgramPersonalization(){
 
     container.appendChild(btnRow);
     container.appendChild(p954BuildDismissedSummary(proposal));
-  } else if(proposal.status === "undone"){
-    const viewBtn=document.createElement("button");viewBtn.className="big-btn btn-sync";viewBtn.style.marginBottom="0";viewBtn.textContent="👁 VIEW UNDONE PROPOSAL";viewBtn.onclick=p954ROpenReview;btnRow.appendChild(viewBtn);
-    const genNewBtn=document.createElement("button");genNewBtn.className="big-btn";genNewBtn.style.cssText="background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";genNewBtn.textContent="🧭 GENERATE NEW PROPOSAL";genNewBtn.onclick=p954HandleGenerateClick;btnRow.appendChild(genNewBtn);
-    container.appendChild(btnRow);container.appendChild(p954BuildUndoneSummaryCard(proposal));p954RLastRenderedAppliedSummary=proposal.applicationSummary||null;
   } else if(proposal.status === "applied"){
     // 9.5.4C: applied state controls. No KEEP/APPLY controls here — those
     // only make sense for a draft. Creating a new proposal or clearing this
@@ -7269,15 +6588,6 @@ function p954RenderProgramPersonalization(){
     viewBtn.textContent = "👁 VIEW APPLIED PROPOSAL";
     viewBtn.onclick = p954ROpenReview;
     btnRow.appendChild(viewBtn);
-
-    const undoPlan=p954BuildUndoPlan(proposal);
-    const undoBtn=document.createElement("button");
-    undoBtn.className="big-btn";
-    undoBtn.style.cssText="background:transparent;color:var(--yellow);border:1px solid var(--yellow);margin-bottom:0;";
-    undoBtn.textContent="↩ UNDO APPLIED CHANGES";
-    undoBtn.disabled=!undoPlan.canUndo;
-    undoBtn.onclick=p954RShowUndoPreview;
-    btnRow.appendChild(undoBtn);
 
     const createNewBtn = document.createElement("button");
     createNewBtn.className = "big-btn";
@@ -7299,9 +6609,7 @@ function p954RenderProgramPersonalization(){
 
     const note = document.createElement("div");
     note.style.cssText = "margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5;";
-    note.textContent = undoPlan.canUndo
-      ? "Undo restores the exact lifecycle and exercise-override state saved immediately before this proposal was applied. It does not delete or rewrite workout history. This is one saved-proposal reversal, not a general history stack."
-      : "Automatic undo is unavailable: " + undoPlan.errors.concat(undoPlan.conflicts).join(" ") + " Workout history remains untouched.";
+    note.textContent = "Creating a new proposal replaces only this record — it does not undo the applied changes above. Clearing this record does the same: prior applied changes stay active either way.";
     container.appendChild(note);
   } else {
     // REQUIREMENT 5: draft (default) state controls. Any legacy/unrecognized
@@ -7391,15 +6699,6 @@ function p954RMakeBadge(action){
   span.className = "p954r-badge p954r-badge-" + safeAction;
   const labels = { keep:"KEEP", modify:"TWEAK", reorder:"REORDER", replace:"REPLACE", add:"ADD", remove:"REMOVE", optional_add:"OPTIONAL ADD" };
   span.textContent = labels[safeAction] || safeAction.toUpperCase();
-  return span;
-}
-
-function p955RMakeSafetyBadge(tag, confidence){
-  const span=document.createElement("span");
-  const safeTag=PROGRAM_PROPOSAL_SAFETY_TAGS.indexOf(tag)!==-1?tag:"source_missing";
-  span.className="p954r-badge";
-  span.style.cssText="background:var(--surface2);color:var(--muted);border:1px solid var(--border);margin-left:4px;";
-  span.textContent=safeTag.replace(/_/g," ").toUpperCase()+(confidence?" · "+String(confidence).toUpperCase():"");
   return span;
 }
 
@@ -7529,7 +6828,6 @@ function p954RBuildDayCard(dp, appliedOpType, exerciseStatuses){
   }
   head.appendChild(nameWrap);
   head.appendChild(p954RMakeBadge(dp.action));
-  head.appendChild(p955RMakeSafetyBadge(dp.safetyTag, dp.confidence));
   // 9.5.4D: show day-write state alongside structured exercise results;
   // replace/add/remove/reactivate remain deferred.
   if(appliedOpType){
@@ -7555,12 +6853,6 @@ function p954RBuildDayCard(dp, appliedOpType, exerciseStatuses){
     note.className = "p954r-note";
     note.textContent = dp.notes;
     card.appendChild(note);
-  }
-  if(dp.rationale && dp.rationale !== dp.notes){
-    const reason = document.createElement("div");
-    reason.className = "p954r-note";
-    reason.textContent = "Why: " + dp.rationale;
-    card.appendChild(reason);
   }
 
   let exerciseCount = 0;
@@ -7614,7 +6906,6 @@ function p954RBuildDayCard(dp, appliedOpType, exerciseStatuses){
     detail("Exercise",resolved ? getF(ea.exerciseId,"name",resolved.name) : (ea.exerciseId ? "Unresolved" : "New exercise proposal"));
     detail("Stable ID",ea.exerciseId||"None (deferred add)");
     detail("Action",ea.action||"keep");
-    detail("Safety",String(ea.safetyTag||"source_missing").replace(/_/g," ") + (ea.confidence ? " · " + ea.confidence : ""));
     Object.keys(ea.fields||{}).forEach(function(field){ detail("Proposed "+field,p954Value(ea.fields[field])); });
     detail("Rationale",ea.rationale||"None provided");
     detail("Status",status);
@@ -7655,8 +6946,6 @@ function p954RBuildReviewContent(proposal){
 
   addRow(sumSection, "Status", proposal.status);
   addRow(sumSection, "Generated", proposal.generatedAt ? new Date(proposal.generatedAt).toLocaleString() : "—");
-  if(proposal.appliedAt)addRow(sumSection,"Applied",new Date(proposal.appliedAt).toLocaleString());
-  if(proposal.undoneAt)addRow(sumSection,"Undone",new Date(proposal.undoneAt).toLocaleString());
   addRow(sumSection, "Recommended lifting frequency", s.recommendedFrequency ? (s.recommendedFrequency + "/week") : "No specific answer on file");
   const clc = s.currentLiftingDayCounts || {};
   const clcKeys = Object.keys(clc);
@@ -7668,26 +6957,10 @@ function p954RBuildReviewContent(proposal){
   const primaryGoal = p954RExtractRationaleField(s.rationale, ["Primary goal on file:", "Primary goal on file (from profile):"]);
   addRow(sumSection, "Primary goal", primaryGoal || "No specific answer on file");
   addRow(sumSection, "Affected day count", s.affectedDayCount);
-  const ac = p955GetDerivedProposalActionCounts(proposal).counts;
-  addRow(sumSection, "Action counts", p955FormatProposalActionCounts(ac));
-  const reviewMetrics=p955GetProposalQualityMetrics(proposal),reviewUndo=p954BuildUndoPlan(proposal);
-  addRow(sumSection,"Apply readiness",reviewMetrics.safeApplyCount+" supported · "+reviewMetrics.deferredCount+" deferred · "+reviewMetrics.conflictCount+" conflicts · "+reviewMetrics.warningCount+" warnings");
-  addRow(sumSection,"Undo",proposal.status==="undone"?"Already undone; repeat is a no-write no-op":reviewUndo.canUndo?"Available":"Not available");
+  const ac = s.actionCounts || {};
+  const addTotal = (ac.add || 0) + (ac.optional_add || 0);
+  addRow(sumSection, "Action counts", "keep " + (ac.keep||0) + " · modify " + (ac.modify||0) + " · reorder " + (ac.reorder||0) + " · replace " + (ac.replace||0) + " · add " + addTotal + " · remove " + (ac.remove||0));
   frag.appendChild(sumSection);
-
-  const sourceSection=document.createElement("div"),sourceTitle=document.createElement("div"),ss=proposal.sourceSummary||{},metrics=p955GetProposalQualityMetrics(proposal);
-  sourceSection.className="p954r-section";sourceTitle.className="p954r-section-title";sourceTitle.textContent="Proposal Source";sourceSection.appendChild(sourceTitle);
-  addRow(sourceSection,"Source type",proposal.sourceType==="fixture"?"Developer fixture / test":proposal.sourceType==="local_generated"?"Local generation from current app data":"Legacy / source details missing");
-  addRow(sourceSection,"Engine",ss.proposalEngineVersion||"Not recorded");
-  addRow(sourceSection,"Coverage",metrics.sourceCoverageCount+"/"+metrics.sourceCoverageTotal+" source groups used");
-  addRow(sourceSection,"Profile",ss.profileUsed?"Used"+(ss.profileFields&&ss.profileFields.length?" ("+ss.profileFields.join(", ")+")":""):"Missing or empty");
-  addRow(sourceSection,"Onboarding",ss.onboardingUsed?"Used"+(ss.onboardingSections&&ss.onboardingSections.length?" ("+ss.onboardingSections.join(", ")+")":""):"Missing or empty");
-  addRow(sourceSection,"Coaching preferences",ss.coachingPrefsUsed?"Used":"Missing or empty");
-  addRow(sourceSection,"Resolved program",ss.currentProgramUsed?"Used":"Missing or empty");
-  addRow(sourceSection,"Lifecycle / overrides",ss.lifecycleUsed?"Used"+(ss.lifecycleSignals&&ss.lifecycleSignals.length?" ("+ss.lifecycleSignals.join(", ")+")":""):"No custom state present");
-  addRow(sourceSection,"Recent logs",ss.recentLogsUsed?"Used":"Not used by this rule set");
-  (ss.sourceWarnings||[]).forEach(function(w){const item=document.createElement("div");item.className="p954r-list-item warn";item.textContent="⚠ "+w;sourceSection.appendChild(item);});
-  frag.appendChild(sourceSection);
 
   if((s.rationale || []).length){
     const rSection = document.createElement("div");
@@ -7733,7 +7006,7 @@ function p954RBuildReviewContent(proposal){
   // replace/add/remove/reactivate actions remain deferred. Read-only.
   let appliedOpsByKey = null;
   let appliedExerciseStatuses = {};
-  if(proposal.status === "applied" || proposal.status === "undone"){
+  if(proposal.status === "applied"){
     appliedOpsByKey = {};
     const appSummary=proposal.applicationSummary||{};
     (appSummary.reorderResults||[]).forEach(function(r){const k=r.gymKey+"|"+r.dayIdx;appliedExerciseStatuses[k]=appliedExerciseStatuses[k]||{actions:{}};appliedExerciseStatuses[k].order=r.status;});
@@ -7817,7 +7090,7 @@ function p954ROpenReview(){
     body.appendChild(p954RBuildReviewContent(proposal));
 
     const title = document.getElementById("p954ReviewTitle");
-    if(title) title.textContent = (proposal.status === "applied") ? "Applied Proposal (read-only)" : (proposal.status === "undone") ? "Undone Proposal (read-only)" : (proposal.status === "dismissed") ? "Dismissed Proposal (read-only)" : "Proposal Review";
+    if(title) title.textContent = (proposal.status === "applied") ? "Applied Proposal (read-only)" : (proposal.status === "dismissed") ? "Dismissed Proposal (read-only)" : "Proposal Review";
 
     // 9.5.4C: the applied review overlay is read-only — no APPLY or KEEP
     // controls. APPLY is also hidden for dismissed proposals (nothing to
@@ -7825,8 +7098,8 @@ function p954ROpenReview(){
     // behavior (idempotent no-op there).
     const applyBtn = document.getElementById("p954ApplyBtn");
     const keepBtn = document.getElementById("p954KeepBtn");
-    if(applyBtn){const readiness=p955GetProposalQualityMetrics(proposal);applyBtn.style.display=(proposal.status==="draft")?"":"none";applyBtn.disabled=proposal.status!=="draft"||readiness.safeApplyCount===0||readiness.conflictCount>0;applyBtn.textContent=readiness.safeApplyCount===0?"NO SUPPORTED CHANGES TO APPLY":readiness.conflictCount>0?"APPLY BLOCKED — RESOLVE CONFLICTS":"APPLY "+readiness.safeApplyCount+" SUPPORTED CHANGE"+(readiness.safeApplyCount===1?"":"S");}
-    if(keepBtn) keepBtn.style.display = (proposal.status === "applied" || proposal.status === "undone") ? "none" : "";
+    if(applyBtn) applyBtn.style.display = (proposal.status === "draft") ? "" : "none";
+    if(keepBtn) keepBtn.style.display = (proposal.status === "applied") ? "none" : "";
 
     overlay.classList.add("open");
     document.documentElement.style.overflow = "hidden";
@@ -7933,27 +7206,20 @@ function p954RConfirmKeepCurrentProgram(){
 function p954RBuildApplyPreviewContent(proposal,plan,live){
   const frag=document.createDocumentFragment();
   function section(title,items,render){const box=document.createElement("div");box.className="p954ap-section";const h=document.createElement("div");h.className="p954ap-section-title";h.textContent=title;box.appendChild(h);if(!items.length){const n=document.createElement("div");n.className="p954r-empty-note";n.textContent="None";box.appendChild(n);}else items.forEach(function(x){const row=document.createElement("div");row.className="p954ap-write-item";row.textContent=render(x);box.appendChild(row);});frag.appendChild(box);}
-  const notice=document.createElement("div");notice.className="p954ap-notice";notice.textContent="Day metadata, exercise order, and metadata-only exercise tweaks can be applied safely. Optional add/remove and exercise lifecycle changes stay deferred. Stable IDs, the base program, and workout history remain protected.";frag.appendChild(notice);
+  const notice=document.createElement("div");notice.className="p954ap-notice";notice.textContent="Exercise order and metadata-only tweaks can be applied safely. Stable IDs, the base program, and workout history remain protected.";frag.appendChild(notice);
   section("Day-level writes",plan.ops.filter(function(o){return ["dayOverride","disable","dayAddition"].indexOf(o.type)>=0;}),function(o){return o.gymKey.toUpperCase()+" Day "+(o.dayIdx+1)+": "+o.type;});
-  section("Deferred day lifecycle ideas",plan.ops.filter(function(o){return o.type==="skip_deferred_lifecycle";}),function(o){return o.gymKey.toUpperCase()+" Day "+(o.dayIdx+1)+" · "+o.dp.action.replace(/_/g," ")+" · Skipped / Deferred";});
-  section("Exercise reorder writes",plan.ops.filter(function(o){return o.type==="orderOverride";}),function(o){const day=getResolvedDays(o.gymKey).find(function(d){return d._dayIdx===o.dayIdx;}),names={};(day&&day.exercises||[]).forEach(function(e){names[e.id]=getF(e.id,"name",e.name);});return o.gymKey.toUpperCase()+" Day "+(o.dayIdx+1)+" — "+o.order.map(function(id){return (names[id]||"Unknown")+" ["+id+"]";}).join(" → ")+" — "+(o.conflict?"Conflict":o.writeNeeded?"Will apply":"Unchanged");});
-  section("Exercise metadata writes",plan.ops.filter(function(o){return o.type==="exerciseOverride";}),function(o){const day=getResolvedDays(o.gymKey).find(function(d){return d._dayIdx===o.dayIdx;}),ex=day&&(day.exercises||[]).find(function(e){return e.id===o.exerciseId;}),name=ex?getF(ex.id,"name",ex.name):"Unknown";return Object.keys(o.fields).map(function(f){const st=o.fieldStates[f];return name+" ["+o.exerciseId+"] · "+f+": "+p954Value(st.current)+" → "+p954Value(st.proposed)+" · "+(st.conflict?"Conflict":st.writeNeeded?"Will apply":"Unchanged");}).join(" | ");});
+  section("Exercise reorder writes",plan.ops.filter(function(o){return o.type==="orderOverride";}),function(o){const day=getResolvedDays(o.gymKey).find(function(d){return d._dayIdx===o.dayIdx;}),names={};(day&&day.exercises||[]).forEach(function(e){names[e.id]=getF(e.id,"name",e.name);});return o.gymKey.toUpperCase()+" Day "+(o.dayIdx+1)+" — "+o.order.map(function(id){return (names[id]||"Unknown")+" ["+id+"]";}).join(" → ")+" — "+(o.writeNeeded?"Will apply":"Unchanged");});
+  section("Exercise metadata writes",plan.ops.filter(function(o){return o.type==="exerciseOverride";}),function(o){const day=getResolvedDays(o.gymKey).find(function(d){return d._dayIdx===o.dayIdx;}),ex=day&&(day.exercises||[]).find(function(e){return e.id===o.exerciseId;}),name=ex?getF(ex.id,"name",ex.name):"Unknown";return Object.keys(o.fields).map(function(f){const st=o.fieldStates[f];return name+" ["+o.exerciseId+"] · "+f+": "+p954Value(st.current)+" → "+p954Value(st.proposed)+" · "+(st.writeNeeded?"Will apply":"Unchanged");}).join(" | ");});
   [["Deferred replacements","replace"],["Deferred additions","add"],["Deferred removals","remove"],["Deferred reactivations","reactivate"]].forEach(function(pair){section(pair[0],plan.deferred[pair[1]],function(x){return x.gymKey.toUpperCase()+" Day "+(x.dayIdx+1)+" · "+(x.exerciseAction.exerciseId||"new exercise")+" · Skipped / Deferred";});});
   section("Conflicts and validation errors",(plan.errors||[]).concat((live&&live.errors)||[]),function(e){return "⚠ "+e;});
   return frag;
 }
 
 
-function p954RSetApplyConfirmDisabled(disabled){
-  const button=document.getElementById("p954ApplyConfirmBtn");
-  if(button) button.disabled=!!disabled;
-}
-
 // Opens the preview. Re-inspects the RAW stored proposal (never trusts the
 // currently-rendered review) so a proposal that changed/corrupted after the
 // review opened can't produce a misleading preview. Makes no writes.
 function p954RShowApplyPreview(){
-  p954RSetApplyConfirmDisabled(true);
   const errEl = document.getElementById("p954ApplyError");
   if(errEl){ errEl.style.display = "none"; errEl.textContent = ""; }
   try {
@@ -7978,8 +7244,8 @@ function p954RShowApplyPreview(){
     const liveValidation = p954ValidatePlanAgainstLiveState(plan, p954GenerateApplicationId(proposal));
     p954LastLiveValidationErrors = liveValidation.errors.slice();
     p954ApplyFingerprint = p954ComputeProposalFingerprint(proposal);
-    const readiness=p955GetProposalQualityMetrics(proposal);
-    p954RSetApplyConfirmDisabled(!plan.valid || !liveValidation.valid || readiness.safeApplyCount===0 || readiness.conflictCount>0);
+    const confirmBtn = document.getElementById("p954ApplyConfirmBtn");
+    if(confirmBtn) confirmBtn.disabled = !plan.valid || !liveValidation.valid;
 
     const body = document.getElementById("p954ApplyPreviewBody");
     if(body){
@@ -7990,7 +7256,6 @@ function p954RShowApplyPreview(){
     if(backdrop) backdrop.classList.add("open");
     p954ApplyPreviewOpenFlag = true;
   } catch(e){
-    p954RSetApplyConfirmDisabled(true);
     console.warn("[MarcusFit] p954RShowApplyPreview failed:", e && e.message);
     if(errEl){ errEl.style.display = "block"; errEl.textContent = "Unexpected error building the preview — nothing has changed."; }
   }
@@ -8012,24 +7277,6 @@ function p954RCancelApplyPreview(){
 function p954RConfirmApplyPreview(){
   const errEl = document.getElementById("p954ApplyError");
   try {
-    // Defensive console/direct-call gate: never rely only on the button's
-    // disabled state. Re-read, rebuild, and revalidate before calling the
-    // transactional writer.
-    const inspection=p954InspectStoredProposal();
-    if(!inspection.exists||!inspection.parses||!inspection.validation.valid||!inspection.normalized||inspection.normalized.status!=="draft"){
-      p954RSetApplyConfirmDisabled(true);
-      if(errEl){errEl.style.display="block";errEl.textContent="Cannot apply: the stored proposal is missing, invalid, or not a draft.";}
-      return;
-    }
-    const preflightPlan=p954BuildApplicationPlan(inspection.normalized);
-    const preflightLive=p954ValidatePlanAgainstLiveState(preflightPlan,p954GenerateApplicationId(inspection.normalized));
-    p954LastLiveValidationErrors=preflightLive.errors.slice();
-    if(!preflightPlan.valid||!preflightLive.valid){
-      p954RSetApplyConfirmDisabled(true);
-      if(errEl){errEl.style.display="block";errEl.textContent="Cannot apply safely: "+preflightPlan.errors.concat(preflightLive.errors).join(" ");}
-      return;
-    }
-    p954RSetApplyConfirmDisabled(false);
     const result = p954ApplyProposal(p954ApplyFingerprint);
     if(!result.ok){
       if(errEl){ errEl.style.display = "block"; errEl.textContent = result.error || "Could not apply — nothing has changed."; }
@@ -8045,50 +7292,13 @@ function p954RConfirmApplyPreview(){
     // and any new virtual day shows up without needing a manual refresh.
     try { if(typeof renderProgram === "function") renderProgram(); } catch(e){}
     try { if(typeof populateWoDaySelect === "function") populateWoDaySelect(); } catch(e){}
-    p954ShowResult(result.alreadyApplied ? "This proposal was already applied — nothing changed." : "✅ Supported day metadata, exercise reorder, and metadata tweaks applied. Optional add/remove and exercise replace/add/remove/reactivate remain deferred.", "ok");
+    p954ShowResult(result.alreadyApplied ? "This proposal was already applied — nothing changed." : "✅ Supported day changes, exercise reorder, and metadata tweaks applied. Replace/add/remove/reactivate remain deferred.", "ok");
   } catch(e){
     console.warn("[MarcusFit] p954RConfirmApplyPreview failed:", e && e.message);
     if(errEl){ errEl.style.display = "block"; errEl.textContent = "Unexpected error — nothing has changed."; }
   }
 }
 // ── END 9.5.4D APPLY SUPPORTED CHANGES PREVIEW/CONFIRM PANEL ─────────────────
-
-function p954RSetUndoConfirmDisabled(disabled){
-  const button=document.getElementById("p954UndoConfirmBtn");if(button)button.disabled=!!disabled;
-}
-
-function p954RBuildUndoPreviewContent(plan){
-  const frag=document.createDocumentFragment();
-  const notice=document.createElement("div");notice.className="p954ap-notice";notice.textContent=plan.facts.restorationScope==="proposal-affected-paths"?"MarcusFit will restore only the lifecycle and override paths written by this proposal. Unrelated edits remain. Workout logs and history are not deleted or rewritten.":"This legacy proposal has no path-level history, so undo can proceed only when the original whole storage state still matches.";frag.appendChild(notice);
-  const safety=document.createElement("div");safety.className="p954ap-section";const safetyTitle=document.createElement("div");safetyTitle.className="p954ap-section-title";safetyTitle.textContent="Current safety status";safety.appendChild(safetyTitle);const safetyLine=document.createElement("div");safetyLine.className="p954ap-write-item";safetyLine.textContent=plan.canUndo?"Safe to undo — both touched storage areas still match this application.":"Blocked — automatic undo would risk overwriting newer work.";safety.appendChild(safetyLine);frag.appendChild(safety);
-  const ops=document.createElement("div");ops.className="p954ap-section";const opsTitle=document.createElement("div");opsTitle.className="p954ap-section-title";opsTitle.textContent="Planned storage restoration";ops.appendChild(opsTitle);(plan.operations||[]).forEach(function(op){const row=document.createElement("div");row.className="p954ap-write-item";const prefix=op.label+(typeof op.key==="string"&&op.key?" ("+op.key+")":"");row.textContent=prefix+": "+(op.kind==="orderOverride"?(op.action==="already-restored"?"already matches the saved pre-apply order":"restore original order"):(op.action==="remove"?"remove key because it was originally absent":op.action==="already-restored"?"already matches the saved pre-apply state":"restore exact original raw value"));ops.appendChild(row);});frag.appendChild(ops);
-  const audit=document.createElement("div");audit.className="p954ap-section";const auditTitle=document.createElement("div");auditTitle.className="p954ap-section-title";auditTitle.textContent="Proposal audit";audit.appendChild(auditTitle);const auditRow=document.createElement("div");auditRow.className="p954ap-write-item";auditRow.textContent="The proposal remains saved with status Undone, its original application ID and applied timestamp, an undo timestamp, exact affected-path restoration verification, and unrelated-state preservation verification.";audit.appendChild(auditRow);frag.appendChild(audit);
-  const issues=(plan.errors||[]).concat(plan.conflicts||[]),issueBox=document.createElement("div");issueBox.className="p954ap-section";const issueTitle=document.createElement("div");issueTitle.className="p954ap-section-title";issueTitle.textContent="Conflicts and validation errors";issueBox.appendChild(issueTitle);if(!issues.length){const none=document.createElement("div");none.className="p954r-empty-note";none.textContent="None";issueBox.appendChild(none);}else issues.forEach(function(msg){const row=document.createElement("div");row.className="p954ap-write-item";row.textContent="⚠ "+msg;issueBox.appendChild(row);});frag.appendChild(issueBox);
-  return frag;
-}
-
-function p954RShowUndoPreview(){
-  p954RSetUndoConfirmDisabled(true);const errEl=document.getElementById("p954UndoError");if(errEl){errEl.style.display="none";errEl.textContent="";}
-  try{const plan=p954BuildUndoPlan();p954LastUndoValidationErrors=plan.errors.concat(plan.conflicts);const body=document.getElementById("p954UndoPreviewBody");if(body){body.innerHTML="";body.appendChild(p954RBuildUndoPreviewContent(plan));}p954RSetUndoConfirmDisabled(!plan.canUndo);const backdrop=document.getElementById("p954UndoPreviewBackdrop");if(backdrop)backdrop.classList.add("open");p954UndoPreviewOpenFlag=true;}
-  catch(e){p954RSetUndoConfirmDisabled(true);if(errEl){errEl.style.display="block";errEl.textContent="Unexpected error building the undo preview — nothing has changed.";}}
-}
-
-function p954RCancelUndoPreview(){const backdrop=document.getElementById("p954UndoPreviewBackdrop");if(backdrop)backdrop.classList.remove("open");p954UndoPreviewOpenFlag=false;p954RSetUndoConfirmDisabled(true);}
-
-function p954RConfirmUndoPreview(){
-  const errEl=document.getElementById("p954UndoError");
-  try{
-    // Direct-call defense: the mutation function independently repeats this
-    // raw inspection and live plan immediately before writing.
-    const inspection=p954InspectStoredProposal();
-    if(!inspection.exists||!inspection.parses||!inspection.validation.valid||!inspection.normalized){p954RSetUndoConfirmDisabled(true);if(errEl){errEl.style.display="block";errEl.textContent="Cannot undo: the saved proposal is missing, corrupted, or invalid.";}return;}
-    if(inspection.normalized.status==="undone"){p954RSetUndoConfirmDisabled(true);p954RCancelUndoPreview();p954RenderProgramPersonalization();return;}
-    const preflight=p954BuildUndoPlan(inspection.normalized);p954LastUndoValidationErrors=preflight.errors.concat(preflight.conflicts);
-    if(!preflight.canUndo){p954RSetUndoConfirmDisabled(true);if(errEl){errEl.style.display="block";errEl.textContent="Cannot undo safely: "+p954LastUndoValidationErrors.join(" ");}return;}
-    const result=p954UndoAppliedProposal();if(!result.ok){p954RSetUndoConfirmDisabled(true);if(errEl){errEl.style.display="block";errEl.textContent=result.error||"Undo failed — storage was restored to its immediate pre-undo state.";}return;}
-    p954RCancelUndoPreview();p954RCloseReview();p954RenderProgramPersonalization();try{if(typeof renderProgram==="function")renderProgram();}catch(e){}try{if(typeof populateWoDaySelect==="function")populateWoDaySelect();}catch(e){}p954ShowResult(result.alreadyUndone?"This proposal was already undone — nothing changed.":"↩ Applied proposal changes undone. Workout logs and history were not changed.","ok");
-  }catch(e){p954RSetUndoConfirmDisabled(true);if(errEl){errEl.style.display="block";errEl.textContent="Unexpected error — nothing has changed.";}}
-}
 
 // REQUIREMENT 9: read-only review-layer debug helper. Never mutates
 // anything — safe to call at any time, including while the review is closed.
@@ -8107,9 +7317,6 @@ window.mfOnboardingProgramProposalReviewDebug = function(){
     const normalizedValidation = inspection.normalized ? p954ValidateProgramProposal(inspection.normalized) : { valid: false, errors: [] };
     const applyBackdrop = document.getElementById("p954ApplyPreviewBackdrop");
     const applyErrEl = document.getElementById("p954ApplyError");
-    const undoBackdrop = document.getElementById("p954UndoPreviewBackdrop");
-    const undoErrEl = document.getElementById("p954UndoError");
-    const undoPlan = p954BuildUndoPlan(proposal === null ? undefined : proposal);
     const result = {
       overlayExists: !!overlay,
       overlayOpen: !!(overlay && overlay.classList.contains("open")),
@@ -8132,13 +7339,7 @@ window.mfOnboardingProgramProposalReviewDebug = function(){
       applyConfirmationOpen: !!(applyBackdrop && applyBackdrop.classList.contains("open")),
       applyError: (applyErrEl && applyErrEl.style.display !== "none") ? applyErrEl.textContent : null,
       renderedAppliedSummary: p954RLastRenderedAppliedSummary,
-      currentProposalFingerprint: inspection.normalized ? p954ComputeProposalFingerprint(inspection.normalized) : null,
-      undoPreviewOpen: !!(p954UndoPreviewOpenFlag && undoBackdrop && undoBackdrop.classList.contains("open")),
-      undoConfirmDisabled: !!(document.getElementById("p954UndoConfirmBtn") && document.getElementById("p954UndoConfirmBtn").disabled),
-      undoError: (undoErrEl && undoErrEl.style.display !== "none") ? undoErrEl.textContent : null,
-      canUndo: undoPlan.canUndo,
-      undoConflicts: undoPlan.conflicts,
-      undoWarnings: undoPlan.warnings
+      currentProposalFingerprint: inspection.normalized ? p954ComputeProposalFingerprint(inspection.normalized) : null
     };
     console.log("[MarcusFit] mfOnboardingProgramProposalReviewDebug():", result);
     return result;
@@ -10853,28 +10054,6 @@ function p9489BuildSwapCandidateExport(){
 }
 // ── END PHASE 9.4.8.10 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-// ── FUTURE MODULE: src/export-sync.js (proposal debug/export integration) ───
-function p955BuildProposalExport(){
-  try {
-    const proposal=p954GetProposal();
-    if(!proposal) return "--- PROGRAM PERSONALIZATION PROPOSAL ---\nNo saved proposal.\n\n";
-    const metrics=p955GetProposalQualityMetrics(proposal),ss=proposal.sourceSummary||{},undo=p954BuildUndoPlan(proposal);
-    const sourceLabel=proposal.sourceType==="fixture"?"fixture/test":proposal.sourceType==="local_generated"?"locally generated from current app data":"legacy/source missing";
-    const appliedState=proposal.status==="applied"?"Supported changes applied":proposal.status==="undone"?"Supported changes applied, then undone":"No supported changes applied";
-    return "--- PROGRAM PERSONALIZATION PROPOSAL ---\n"
-      +"Status: "+proposal.status+" ("+appliedState+")\n"
-      +"Source: "+sourceLabel+"\n"
-      +"Generated: "+(proposal.generatedAt||"not recorded")+"\n"
-      +"Source coverage: "+metrics.sourceCoverageCount+"/"+metrics.sourceCoverageTotal
-        +" (profile "+(ss.profileUsed?"yes":"no")+", onboarding "+(ss.onboardingUsed?"yes":"no")+", coaching prefs "+(ss.coachingPrefsUsed?"yes":"no")+", resolved program "+(ss.currentProgramUsed?"yes":"no")+", lifecycle/overrides "+(ss.lifecycleUsed?"yes":"no")+", recent logs "+(ss.recentLogsUsed?"yes":"no")+")\n"
-      +"Action counts: "+p955FormatProposalActionCounts(metrics.actionCounts)+"\n"
-      +"Apply readiness: "+metrics.safeApplyCount+" supported, "+metrics.deferredCount+" deferred, "+metrics.conflictCount+" conflict(s)\n"
-      +"Application state: "+appliedState+"; undo "+(undo.canUndo?"available":proposal.status==="undone"?"already completed (repeat is a no-op)":"unavailable")+"\n\n";
-  } catch(e){
-    return "--- PROGRAM PERSONALIZATION PROPOSAL ---\nProposal summary unavailable.\n\n";
-  }
-}
-
 function genExport(){
   // 9C: Run lifecycle validation and show export warning if needed
   mfUpdateExportWarningBanner();
@@ -10947,7 +10126,6 @@ function genExport(){
   const coachPrefsRaw=p9GetCoachPrefs().trim();
   const coachPrefsBlock="--- PERSISTENT AI COACHING PREFERENCES ---\n"
     +(coachPrefsRaw?coachPrefsRaw+"\n\n":"No persistent AI coaching preferences saved.\n\n");
-  const proposalSourceBlock=p955BuildProposalExport();
 
   // 9.4.8.9/10: Exercise Rotation / Swap Candidate Export Intelligence — surfaced
   // after coaching preferences and before the program template snapshot so
@@ -10963,7 +10141,6 @@ function genExport(){
     +(wTrendAll?wTrendAll+"\n":"")+"\n"
     +userProfileBlock
     +coachPrefsBlock
-    +proposalSourceBlock
     +swapCandidateBlock
     +progSnap+"\n"
     +logSection+"\n"
@@ -13218,24 +12395,6 @@ var mfUserProfileDebug = window.mfUserProfileDebug;
 // custom-habit/shareable-user work. Never mutates data, never calls save
 // functions, never writes localStorage. Each section is wrapped so one
 // broken section cannot crash the whole helper.
-window.mfArchitecturePrepDebug = function(){
-  const proposedModules=["src/program-data.js","src/storage-keys.js","src/storage-utils.js","src/lifecycle.js","src/resolved-program.js","src/onboarding.js","src/proposal-engine.js","src/proposal-apply-undo.js","src/proposal-ui.js","src/daily-log.js","src/history.js","src/analytics.js","src/export-sync.js","src/backup-restore.js","src/debug.js","src/app-init.js","src/styles.css"];
-  const result={
-    readOnly:true,
-    appVersion:APP_VERSION,
-    currentStructure:"single_file_html",
-    targetStructure:"multi_file_static_github_pages",
-    proposedModules:proposedModules.slice(),
-    localStorageKeysUsed:["day-YYYY-MM-DD","day-YYYY-MM-DD-wo",OVR,DRAFT_KEY,LIFECYCLE_KEY,RECS_KEY,AI_PREFS_KEY,USER_PROFILE_KEY,ONBOARDING_KEY,PROGRAM_PROPOSAL_KEY],
-    majorSystems:["program data","storage and backup","lifecycle and resolved program","onboarding","proposal engine","proposal apply/undo","proposal UI","daily log and history","analytics","AI export/sync","debug and app initialization"],
-    migrationReadiness:{readyForBoundaryExtraction:true,notes:["Future files must preserve current script dependency order.","Keep globals temporarily for backwards-compatible console helpers and inline handlers."],warnings:["Do not migrate storage schemas during file extraction.","Add browser smoke coverage before changing global initialization order."]},
-    recommendationForNextPhase:"Extract storage keys/utilities and pure proposal helpers first, preserving the single static GitHub Pages entry point and all existing globals."
-  };
-  console.log("[MarcusFit] mfArchitecturePrepDebug():",result);
-  return result;
-};
-var mfArchitecturePrepDebug=window.mfArchitecturePrepDebug;
-
 window.mfArchitectureDebug = function(){
   const summary = {
     app: {},
@@ -13342,7 +12501,7 @@ window.mfArchitectureDebug = function(){
       workoutReviewAfterSave: { storageKeys:["(derived at save time, no new key)"], functions:["p949BuildWorkoutReview","p949RenderReview","p949HideReview","p949GetPriorHistory"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:false, purpose:"Local deterministic post-save summary of wins/watch items using existing logs and progression signals." },
       userProfile: { storageKeys:[USER_PROFILE_KEY], functions:["p950GetDefaultUserProfile","p950GetUserProfile","p950SaveUserProfile","p950NormalizeUserProfile","p950InitUserProfile","p950RenderUserProfile","p950SaveUserProfileFromUI","p950ResetUserProfileDefaults","p950BuildUserProfileExport","mfUserProfileDebug"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Structured, schema-versioned general identity/goals/units/gym-label foundation for future shared-app support (added 9.5.0). Does not store live/current weight (owned by daily logs) or detailed bodybuilding philosophy (remains in AI_PREFS_KEY). Does not control workout/program behavior in this release; gym labels are stored but not globally applied yet." },
       onboardingState: { storageKeys:[ONBOARDING_KEY], functions:["p951GetDefaultOnboardingState","p951NormalizeOnboardingState","p951GetOnboardingState","p951SaveOnboardingState","p951HasMeaningfulExistingData","p951IsFreshInstall","p951InitOnboardingState","mfOnboardingDebug"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"Versioned onboarding-state storage + conservative fresh-install detection foundation (added 9.5.1). Storage-only in this release — no visible onboarding UI yet. Separate from and never merged into mf-user-profile. Existing/established installs are safely migrated straight to status 'completed' on first load so they are never shown onboarding they don't need; genuinely fresh installs start at 'not_started'. Not included in AI exports." },
-      programProposal: { storageKeys:[PROGRAM_PROPOSAL_KEY], functions:["p954GetDefaultProposal","p954NormalizeProposal","p954ValidateProgramProposal","p955BuildProposalSourceContext","p954BuildProgramProposal","p954GenerateAndSaveProposal","p955GetProposalQualityMetrics","p954BuildApplicationPlan","p954ApplyProposal","p954BuildUndoPlan","p954UndoAppliedProposal","p955BuildProposalExport","mfOnboardingProgramProposalDebug","mfOnboardingProgramProposalSourceDebug","mfGenerateOnboardingProgramProposalPreview"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"9.5.5 deterministic local proposal generation records profile, onboarding, coaching-preference, resolved-program, lifecycle/override, and skipped-log source coverage. The compact Sync card, detailed review, debug helper, and AI export distinguish local, fixture, and legacy proposals. Same-day reorder and metadata-only operations remain validator-gated; optional add/remove and exercise replace/add/remove/reactivate remain deferred. Apply and scoped undo preserve base P, logs, history, and unrelated lifecycle/override state." }
+      programProposal: { storageKeys:[PROGRAM_PROPOSAL_KEY], functions:["p954GetDefaultProposal","p954NormalizeProposal","p954GetProposal","p954InspectStoredProposal","p954SaveProposal","p954ClearProposal","p954ValidateProgramProposal","p954BuildProgramProposal","p954GenerateAndSaveProposal","p954RenderProgramPersonalization","p954ROpenReview","p954RCloseReview","p954RShowKeepConfirm","p954RCancelKeepConfirm","p954RConfirmKeepCurrentProgram","p954RBuildReviewContent","mfOnboardingProgramProposalDebug","mfOnboardingProgramProposalReviewDebug","mfGenerateOnboardingProgramProposalPreview"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"Personalized program proposal foundation (added 9.5.4) plus a detailed, read-only day-by-day and exercise-by-exercise review overlay (added 9.5.4B). Deterministic, read-only-with-respect-to-the-program: describes suggested kept/modified/reordered/replaced/added/removed days and exercise tweaks based on onboarding answers + profile + current resolved program, but never applies any of them — no writes to P, mf-overrides, mf-exercise-state, mf-recommendations, workout logs/history, or onboarding answers. A draft proposal is auto-generated (not applied) after successful real onboarding completion; existing completed users generate one manually via the Sync tab. Preview generation (mfGenerateOnboardingProgramProposalPreview) never saves. The 9.5.4B review overlay's only write path is p954RConfirmKeepCurrentProgram(), which only ever changes status to 'dismissed' and sets dismissedAt — there is still no 'apply this proposal' write path (which would touch lifecycle/day-override/day-addition state, never base P)." }
     };
   } catch(e){ summary.errors.push("systems section failed: "+(e&&e.message)); }
 
@@ -13358,7 +12517,7 @@ window.mfArchitectureDebug = function(){
       "mf-ai-coaching-preferences (AI_PREFS_KEY)": { type:"string", shape:"Free-text persistent coaching preferences block, defaults to AI_PREFS_STARTER_TEMPLATE when reset.", missingIsValid:true, corruptJsonHandled:"N/A — stored as raw string, not JSON." },
       "mf-user-profile (USER_PROFILE_KEY)": { type:"object", shape:"{schemaVersion, profileVersion, identity:{displayName}, body:{heightInches}, goals:{primaryGoal,physiqueOutcome}, preferences:{weightUnit,distanceUnit,firstDayOfWeek}, app:{homeGymLabel,partialGymLabel}, createdAt, updatedAt}", missingIsValid:true, corruptJsonHandled:"Yes — p950GetUserProfile()/p950InitUserProfile() try/catch, malformed JSON recovers to Marcus defaults without crashing." },
       "mf-onboarding-state (ONBOARDING_KEY)": { type:"object", shape:"{schemaVersion, onboardingVersion, status:'not_started'|'in_progress'|'completed'|'skipped', currentStep, startedAt, completedAt, skippedAt, updatedAt, draft:{}}", missingIsValid:true, corruptJsonHandled:"Yes — p951GetOnboardingState()/p951InitOnboardingState() try/catch; malformed JSON is recovered conservatively (re-runs fresh-install evaluation rather than blindly resetting to not_started), added 9.5.1." },
-      "mf-onboarding-program-proposal (PROGRAM_PROPOSAL_KEY)": { type:"object|absent", shape:"{schemaVersion, proposalVersion, status:'draft'|'applied'|'dismissed'|'undone', source, generatedAt, appliedAt, undoneAt, dismissedAt, applicationId, applicationSummary, preApplySnapshot, undoSummary, summary, dayPlans, warnings}", missingIsValid:true, corruptJsonHandled:"Yes — raw inspection reports malformed JSON and genuinely invalid explicit values as a distinct error state. The additive undone status and audit metadata normalize, validate, back up, restore, and render without a new storage key." }
+      "mf-onboarding-program-proposal (PROGRAM_PROPOSAL_KEY)": { type:"object|absent", shape:"{schemaVersion, proposalVersion, status:'draft'|'applied'|'dismissed', source, generatedAt, appliedAt, dismissedAt, onboardingUpdatedAt, profileUpdatedAt, summary:{recommendedFrequency, gymModes, estimatedSessionDurationMinutes, rationale, affectedDayCount, actionCounts}, dayPlans:[{gymKey,dayIdx,dayName,isVirtual,action,tweaks,notes}], warnings:[]}", missingIsValid:true, corruptJsonHandled:"Yes — p954GetProposal() try/catch still treats absent/malformed data as 'no proposal' (returns null) for normal reads, added 9.5.4. But p954InspectStoredProposal() (added 9.5.4B.1) reads the raw stored text separately and reports malformed JSON / genuinely invalid explicit values as a distinct error state (not silently repaired or treated as absent), which is what p954ROpenReview() and p954RenderProgramPersonalization() now use to decide whether the stored proposal is safe to review." }
     };
   } catch(e){ summary.errors.push("dataSchemas section failed: "+(e&&e.message)); }
 
@@ -13413,7 +12572,7 @@ window.mfArchitectureDebug = function(){
       dayOverrideRole: "Overrides day-level metadata (name/subtitle/focus/note/tag/meta) on base days only, via getEffectiveDayMeta().",
       dayAdditionRole: "Defines entirely new virtual days appended after the base program's day count, surfaced through getResolvedDays().",
       disabledDayRole: "9.5.4C: marks a base or virtual day as proposal-removed (lc.disabledDays[gym][dayIdx] = {disabledAt, source, proposalId, reason}). Read-safe only — never deletes the day, its exercises, or its history. Excluded from the Program tab and Daily Log day selector (via isDayDisabled() filters at render time, no renumbering); still resolvable through getResolvedDays()/getSafeDayForLog() for history and debugging.",
-      applicationEngineRole: "9.5.4E: p954BuildApplicationPlan()/p954ApplyProposal() retain the accepted 9.5.4D day, reorder, and metadata application transaction. New applications also persist exact pre-apply and expected post-apply raw lifecycle/override values. p954BuildUndoPlan() permits one reversal only while those touched keys still match this application (or are already restored); p954UndoAppliedProposal() restores exact raw values, writes an undone audit record, verifies the result, and rolls all three touched keys back exactly on failure. Legacy C/D records remain readable but are not auto-undoable when exact raw snapshot fields are absent. Replace/add/remove/reactivate stay deferred. Base P, stable IDs, recommendations, logs, and history are never mutated by undo.",
+      applicationEngineRole: "9.5.4D: p954BuildApplicationPlan() combines accepted day-level operations with same-day full-ID exercise reorder through lifecycle.orderOverrides and metadata-only modify through mf-overrides. Replace/add/remove/reactivate stay deferred. p954ApplyProposal() re-validates raw storage, snapshots exact lifecycle, overrides, and proposal storage, batches changes in memory, writes each key once, verifies protected state, and restores all three raw keys exactly on failure. New D preApplySnapshot records dayOverrides/dayAdditions/disabledDays/orderOverrides, parsed exercise overrides, and the prior proposal; legacy C snapshots without the additive orderOverrides/overrides members remain accepted. Base P, stable exercise IDs, recommendations, and history are never mutated.",
       knownRule: "Base P must never be mutated by AI Sync or any runtime code — all dynamic behavior is layered through lifecycle state, overrides, and recommendations."
     };
   } catch(e){ summary.errors.push("programArchitecture section failed: "+(e&&e.message)); }
@@ -13444,9 +12603,9 @@ window.mfArchitectureDebug = function(){
       "If a custom-program foundation grows much further, consider a multi-file/module split before it does — current single-file size is already large.",
       "Hardcoded Marcus assumptions (branding, habits, daily metrics, AI coaching template, export wording) should move into a profile/settings system before sharing the app with anyone else.",
       "p8IsMarcusFitKey() allowlist should be reviewed any time a new localStorage key is introduced, to avoid silent backup/restore gaps.",
-      "9.5.4E supports one user-facing undo of the currently saved applied proposal when its exact raw pre-apply snapshot remains valid and touched live state still matches the application. This is not a general undo/history stack. Unsupported structured replace, add, remove, and reactivate actions remain review-only/deferred and are never activated by undo.",
-      "The deterministic 9.5.5 builder can propose same-day priority reorders and conservative metadata-only RIR/focus changes from saved physique and coaching-preference signals. It does not call an external AI or use recent logs.",
-      "Optional add/remove and exercise replace/add/remove/reactivate actions remain review-only/deferred. They require a future lifecycle application phase with explicit conflict and history-safe behavior."
+      "The 9.5.4D proposal engine extends the accepted review and day-level application flow with same-day full-ID reorder through orderOverrides and metadata-only modify through mf-overrides. Unsupported structured replace, add, remove, and reactivate actions are review-only/deferred. Application is an exact-rollback transaction across lifecycle, overrides, and proposal storage; a user-facing undo remains future work (p954GetApplicationSnapshot() is read-only).",
+      "The deterministic production builder does not invent structured exercise operations, but 9.5.4D review safely renders structured order entries as resolved names plus stable IDs and lists every proposed exercise-action field/value, rationale, and status. The explicit console fixture supplies deterministic structured QA data.",
+      "9.5.4C's day-level metadata fields (proposedName/focus/note/tag/subtitle) are normalized and applied when present, but today's deterministic builder never actually sets them (dayName is always identical to the current name) — real day-metadata writes from 'modify' only happen once the builder or a hand-authored proposal populates those fields."
     ];
   } catch(e){ summary.errors.push("risksAndNextAbstractions section failed: "+(e&&e.message)); }
 
@@ -13468,12 +12627,11 @@ window.mfArchitectureDebug = function(){
       mfOnboardingDebug: { available: typeof window.mfOnboardingDebug==="function", purpose:"Read-only mf-onboarding-state inspection — existence/parse status, normalized fields, fresh-install evaluation, meaningful-data evidence, backup coverage (added 9.5.1); extended in 9.5.2 with overlayVisible + renderedStep." },
       mfOpenOnboardingPreview: { available: typeof window.mfOpenOnboardingPreview==="function", purpose:"Opens the onboarding overlay for visual/UI testing on any install without resetting or overwriting onboarding state (added 9.5.2)." },
       mfOnboardingCompletionDebug: { available: typeof window.mfOnboardingCompletionDebug==="function", purpose:"Read-only inspection of onboarding-completion validation/application state (added 9.5.3)." },
-      mfOnboardingProgramProposalDebug: { available: typeof window.mfOnboardingProgramProposalDebug==="function", purpose:"Read-only proposal inspection covering application plus 9.5.4E undo eligibility, planned storage operations, conflicts/warnings, validation errors, exact-restoration verification, and idempotency. Never exposes raw storage." },
+      mfOnboardingProgramProposalDebug: { available: typeof window.mfOnboardingProgramProposalDebug==="function", purpose:"Read-only proposal inspection covering raw/normalized validation, review state, day operations, planned same-day reorder and metadata modify counts, deferred replace/add/remove/reactivate counts, plan/live/post-apply errors, applied order/override counts, and active-exercise count/ID safety facts. Never exposes raw storage (extended through 9.5.4D)." },
       mfGenerateOnboardingProgramProposalPreview: { available: typeof window.mfGenerateOnboardingProgramProposalPreview==="function", purpose:"Builds and returns a program proposal in memory without saving it — safe to call anytime for testing (added 9.5.4)." },
       mfOnboardingProgramProposalReviewDebug: { available: typeof window.mfOnboardingProgramProposalReviewDebug==="function", purpose:"Read-only detailed-review inspection including proposal validation, rendered groups/days/exercises, structured exercise details, warnings, apply-preview state/errors, applied summary, and fingerprint protection (extended through 9.5.4D)." },
-      mfOnboardingProgramProposalApplicationDebug: { available: typeof window.mfOnboardingProgramProposalApplicationDebug==="function", purpose:"Concise application and undo debug: status/IDs, plan/deferred counts, apply/undo validation errors, snapshot validity, exact restoration, and idempotency. No raw storage or log dumps." },
-      mfOnboardingProgramProposalUndoDebug: { available: typeof window.mfOnboardingProgramProposalUndoDebug==="function", purpose:"Read-only 9.5.4E undo inspection: status/audit timestamps, snapshot availability/validity, canUndo, operations, conflicts, warnings, validation errors, exact restoration, and idempotency." },
-      p954GetApplicationSnapshot: { available: typeof window.p954GetApplicationSnapshot==="function", purpose:"Returns a safe clone of preApplySnapshot. E applications add exact raw pre/post state for guarded undo; accepted legacy C/D snapshots remain readable but may be unavailable for automatic undo." }
+      mfOnboardingProgramProposalApplicationDebug: { available: typeof window.mfOnboardingProgramProposalApplicationDebug==="function", purpose:"Concise 9.5.4D application debug: status/IDs, day and exercise plan counts, reorder/metadata/deferred counts, live and post-apply validation errors, applied lifecycle/override summaries, snapshot availability, and before/after active-exercise count plus stable-ID facts. No raw storage or log dumps." },
+      p954GetApplicationSnapshot: { available: typeof window.p954GetApplicationSnapshot==="function", purpose:"Returns a safe clone of preApplySnapshot. New D records include dayOverrides/dayAdditions/disabledDays/orderOverrides, parsed mf-overrides, and the prior proposal; accepted legacy C records may omit the two D additions. Read-only and never auto-restores." }
     };
   } catch(e){ summary.errors.push("debugHelpers section failed: "+(e&&e.message)); }
 
