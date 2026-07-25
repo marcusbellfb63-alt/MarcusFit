@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarcusFit 9.5.6</title>
+<title>MarcusFit 9.5.7</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 :root {
@@ -1013,8 +1013,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 9.5.6</strong> &mdash; Proposal QA Polish + Multi-File Prep<br>
-    Proposal status, source coverage, day-plan-derived action counts, apply readiness, conflicts, and undo availability now use one compact summary across the card, review, debug helper, and AI export. Architecture extraction boundaries are documented for a future static multi-file phase; this release remains a single file and preserves existing apply/undo safety.
+    <strong style="color:var(--accent);">MarcusFit 9.5.7</strong> &mdash; Shared User First Sync Export + Architecture Prep<br>
+    New/shared users now receive a clearly framed first-time AI personalization request instead of an assumption that the default program fits. This remains a read-only, single-file bridge release and preserves conservative proposal apply/undo safety.
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -1213,7 +1213,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 // ── VERSION ────────────────────────────────────────────────────────────────
-const APP_VERSION = "9.5.6";
+const APP_VERSION = "9.5.7";
 const LIFECYCLE_VERSION = APP_VERSION;
 // ── 9.5.6 ARCHITECTURE PREP (DOCUMENTATION ONLY) ──────────────────────────
 // MarcusFit intentionally remains one dependency-free HTML file in this
@@ -7152,6 +7152,14 @@ function p954RenderProgramPersonalization(){
   const container = document.getElementById("p954Container");
   if(!container) return;
   container.innerHTML = ""; // clears app-authored placeholder only, not user data
+  const firstSyncStatus=p957GetSharedUserFirstSyncStatus();
+  if(firstSyncStatus.isLikelyFirstSync){
+    const note=document.createElement("div");
+    note.className="info-box";
+    note.style.cssText="font-size:11px;margin-bottom:10px;color:var(--muted);";
+    note.textContent="New/shared user detected: use the AI export for a first-time program personalization pass before assuming the default program fits.";
+    container.appendChild(note);
+  }
 
   // REQUIREMENT 4 (9.5.4B.1): inspect the RAW stored proposal read-only on
   // every render — including page load, before the user ever taps REVIEW —
@@ -10853,6 +10861,113 @@ function p9489BuildSwapCandidateExport(){
 }
 // ── END PHASE 9.4.8.10 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
+// ── PHASE 9.5.7: SHARED-USER FIRST SYNC (read-only bridge) ──────────────
+// FUTURE MODULES: src/export-sync.js (detection/export), src/onboarding.js
+// (answer summary), and src/debug.js (console inspection). No storage key is
+// introduced and this phase deliberately does not alter proposal application.
+function p957GetSharedUserFirstSyncStatus(){
+  const reasons=[],warnings=[];
+  const signals={dailyLogCount:0,workoutLogCount:0,onboardingStatus:"unavailable",onboardingCompletedRecently:false,onboardingGeneratedCoachingContext:false,freshInstallEvidence:false,nonMarcusProfile:false,materiallyDifferentProfile:false,userSpecificIntake:false,minimalCoachingPreferences:true,inheritedBaselineCustomization:false,proposalOnlyCustomization:false,userEstablishedCustomization:false,meaningfulLifecycleCustomizations:false,meaningfulOverrides:false,proposalSourceCoverage:null};
+  let onboarding=null,profile=null,proposal=null,score=0;
+  try{
+    const keys=Array.from({length:localStorage.length},function(_,i){return localStorage.key(i)||"";});
+    signals.workoutLogCount=keys.filter(function(k){return /^day-.*-wo$/.test(k);}).length;
+    signals.dailyLogCount=keys.filter(function(k){return /^day-/.test(k)&&!/-wo$/.test(k);}).length;
+    onboarding=p951GetOnboardingState();
+    signals.onboardingStatus=onboarding.status;
+    if(onboarding.status==="completed"&&onboarding.completedAt){
+      const age=Date.now()-Date.parse(onboarding.completedAt);
+      signals.onboardingCompletedRecently=isFinite(age)&&age>=0&&age<=45*86400000;
+    }
+    try{signals.freshInstallEvidence=!!p951IsFreshInstall().isFresh;}catch(e){}
+    profile=p950GetUserProfile();
+    const defaults=p950GetDefaultUserProfile(),name=((profile.identity&&profile.identity.displayName)||"").trim().toLowerCase();
+    signals.nonMarcusProfile=!!name&&name!=="marcus";
+    signals.materiallyDifferentProfile=!!(profile.goals&&(profile.goals.primaryGoal!==defaults.goals.primaryGoal||profile.goals.physiqueOutcome!==defaults.goals.physiqueOutcome));
+    const draft=(onboarding.draft&&typeof onboarding.draft==="object")?onboarding.draft:{};
+    signals.userSpecificIntake=signals.nonMarcusProfile||signals.materiallyDifferentProfile||["profile","goals","training"].some(function(section){const value=draft[section];return value&&typeof value==="object"&&Object.keys(value).some(function(k){return value[k]!==null&&value[k]!==undefined&&String(value[k]).trim()!=="";});});
+    const prefs=(p9GetCoachPrefs()||"").trim();
+    signals.onboardingGeneratedCoachingContext=prefs.indexOf(P953_GEN_START)!==-1&&prefs.indexOf(P953_GEN_END)!==-1;
+    signals.minimalCoachingPreferences=prefs.length<80||prefs===AI_PREFS_STARTER_TEMPLATE.trim();
+
+    const lc=getLifecycle(),ov=getOvr(),hasNested=function(v){return v&&typeof v==="object"&&Object.keys(v).some(function(k){const n=v[k];return n&&typeof n==="object"?Object.keys(n).length>0:true;});};
+    signals.meaningfulOverrides=Object.keys(ov||{}).length>0;
+    const lifecycleFields=["inactiveIds","replacements","orderOverrides","dayOverrides","dayAdditions","customExercises","disabledDays"];
+    signals.meaningfulLifecycleCustomizations=lifecycleFields.some(function(field){return hasNested(lc&&lc[field]);});
+    let systemBaseline=false;
+    try{systemBaseline=p951IsSystemSeededLifecycleBaseline(lc);}catch(e){}
+    proposal=p954GetProposal();
+    if(proposal){const metrics=p955GetProposalQualityMetrics(proposal);signals.proposalSourceCoverage=metrics.sourceCoverageCount+"/"+metrics.sourceCoverageTotal;}
+    const proposalGenerated=!!(proposal&&proposal.sourceType==="local_generated");
+    const onlyBaselineLikeLifecycle=!hasNested(lc&&lc.customExercises)&&!hasNested(lc&&lc.replacements)&&!hasNested(lc&&lc.orderOverrides)&&!hasNested(lc&&lc.dayAdditions);
+    signals.inheritedBaselineCustomization=!!(signals.meaningfulLifecycleCustomizations&&systemBaseline);
+    signals.proposalOnlyCustomization=!!(signals.meaningfulLifecycleCustomizations&&!signals.meaningfulOverrides&&onlyBaselineLikeLifecycle&&(proposalGenerated||signals.onboardingCompletedRecently||signals.onboardingGeneratedCoachingContext));
+    signals.userEstablishedCustomization=!!(signals.meaningfulOverrides||(signals.meaningfulLifecycleCustomizations&&!signals.inheritedBaselineCustomization&&!signals.proposalOnlyCustomization));
+  }catch(e){warnings.push("Some first-sync evidence was unavailable: "+((e&&e.message)||"unknown error"));}
+
+  const lowLogs=signals.dailyLogCount<=2&&signals.workoutLogCount<=1;
+  const establishedLogs=signals.dailyLogCount>=7||signals.workoutLogCount>=3;
+  const recentIntake=signals.onboardingCompletedRecently||signals.onboardingGeneratedCoachingContext;
+  const distinctUser=signals.nonMarcusProfile||signals.materiallyDifferentProfile;
+  if(signals.onboardingCompletedRecently){score+=3;reasons.push("Onboarding was completed recently.");}
+  else if(signals.onboardingGeneratedCoachingContext){score+=2;reasons.push("Onboarding-generated coaching context is present.");}
+  if(signals.freshInstallEvidence){score+=2;reasons.push("Existing fresh-install checks found no established data.");}
+  if(signals.nonMarcusProfile){score+=2;reasons.push("The saved display name is not Marcus.");}
+  else if(signals.materiallyDifferentProfile){score+=2;reasons.push("The saved goal/outcome differs materially from Marcus defaults.");}
+  if(signals.userSpecificIntake){score+=2;reasons.push("User-specific onboarding/profile intake details are present.");}
+  if(lowLogs){score+=2;reasons.push("There are few or no daily/workout logs.");}
+  if(signals.inheritedBaselineCustomization)reasons.push("Only recognized system-seeded baseline customization is present.");
+  if(signals.proposalOnlyCustomization)reasons.push("Customization appears inherited or proposal-generated, not established user editing.");
+  if(signals.userEstablishedCustomization){score-=3;reasons.push("Clearly user-established program customization weighs against first-sync detection.");}
+  if(signals.minimalCoachingPreferences&&!signals.onboardingGeneratedCoachingContext){score+=1;reasons.push("Coaching preferences are empty or minimal.");}
+  if(signals.proposalSourceCoverage&&parseInt(signals.proposalSourceCoverage,10)<=3){score+=1;reasons.push("Proposal source coverage is low or moderate.");}
+  if(establishedLogs){score-=5;reasons.push("Established log history weighs against first-sync detection.");}
+  const isLikelyFirstSync=recentIntake&&distinctUser&&signals.userSpecificIntake&&lowLogs&&score>=6&&!establishedLogs;
+  return {isLikelyFirstSync:isLikelyFirstSync,confidence:isLikelyFirstSync?(score>=9?"high":"medium"):(score<=1?"high":"low"),reasons:reasons,signals:signals,recommendedExportMode:isLikelyFirstSync?"first_time_personalization":"standard_sync",warnings:warnings};
+}
+function p957CompactValue(v){return (v===null||v===undefined||v==="")?"Not provided":String(v).replace(/\s+/g," ").trim();}
+function p957MakeSharedSafeExport(out){
+  const sharedSafeInstructions="=== SHARED-USER AI SYNC GUIDANCE ===\n\n"
+    +"Treat the onboarding/profile above as controlling context. Do not assume Zepbound/GLP-1 use, aggressive fat loss, high LDL, bodybuilding aesthetics, lateral-delt/upper-chest/lat-width priorities, Marcus's schedule, or Marcus's training philosophy unless this user explicitly entered them.\n"
+    +"For this first-time personalization pass, recommend the best-fit starter program even if it requires major day/order/exercise changes. Do not limit the plan to conservative tweaks. The app's automatic apply path remains conservative, so major structural changes should be described clearly as manual/deferred review items unless they fit a supported safe action.\n\n"
+    +"=== ANALYSIS REQUEST ===\n\n1. Summarize this user's goals, constraints, and missing context.\n2. Recommend the full best-fit starter weekly structure and exercise approach, including major day/order/exercise changes if appropriate.\n3. Prioritize safety and adherence; flag limitations that merit professional guidance.\n4. Clearly separate major/manual/deferred recommendations from app-supported sync actions.\n5. Return only safe app-supported changes in MARCUSFIT_UPDATE.\n\n=== END EXPORT ===";
+  return String(out||"").replace(/=== AI SYNC PHILOSOPHY \(READ BEFORE GENERATING A SYNC BLOCK\) ===[\s\S]*=== END EXPORT ===/,sharedSafeInstructions);
+}
+function p957BuildFirstSyncExport(status){
+  status=status||p957GetSharedUserFirstSyncStatus();
+  if(!status.isLikelyFirstSync)return "";
+  const profile=p950GetUserProfile(),state=p951GetOnboardingState(),draft=state.draft||{},goals=draft.goals||{},training=draft.training||{},prefs=(p9GetCoachPrefs()||"").trim(),proposal=p954GetProposal();
+  const metrics=proposal?p955GetProposalQualityMetrics(proposal):null;
+  const limitations=training.limitations||((profile.body&&profile.body.limitations)||"");
+  const onboardingSummary=[];
+  if(goals.trainingExperience)onboardingSummary.push("experience="+goals.trainingExperience);
+  if(goals.currentFocus)onboardingSummary.push("focus="+goals.currentFocus);
+  if(training.cardioPreference)onboardingSummary.push("cardio="+training.cardioPreference);
+  return "--- FIRST-TIME PROGRAM PERSONALIZATION REQUEST ---\n\n"
+    +"This appears to be a new/shared user. Do not assume Marcus's personal program is appropriate for this user.\n"
+    +"For this first-time personalization pass, use this user's onboarding, profile, goals, preferences, equipment, and limitations to recommend the best-fit starter program even if it requires major day/order/exercise changes. Do not limit the plan to conservative tweaks. The app's automatic apply path remains conservative, so major structural changes should be described clearly as manual/deferred review items unless they fit a supported safe action. Prioritize safety, simplicity, adherence, and the user's stated goal over Marcus's aesthetic/bodybuilding priorities.\n\n"
+    +"Display name: "+p957CompactValue(profile.identity&&profile.identity.displayName)+"\n"
+    +"Goal: "+p957CompactValue(profile.goals&&profile.goals.primaryGoal)+"\n"
+    +"Physique/health outcome: "+p957CompactValue(profile.goals&&profile.goals.physiqueOutcome)+"\n"
+    +"Training frequency: "+p957CompactValue(training.liftingDays?training.liftingDays+" days/week":null)+"\n"
+    +"Training access: "+p957CompactValue(training.locations)+"; equipment: "+p957CompactValue(training.equipmentNotes)+"\n"
+    +"Program labels/current basis: "+p957CompactValue(profile.app&&profile.app.homeGymLabel)+" / "+p957CompactValue(profile.app&&profile.app.partialGymLabel)+"; current resolved templates follow below.\n"
+    +"Coaching preferences: "+p957CompactValue(prefs||null)+"\n"
+    +"Onboarding answers: "+p957CompactValue(onboardingSummary.length?onboardingSummary.join(", "):null)+"\n"
+    +"Known limitations/injuries: "+p957CompactValue(limitations||null)+"\n"
+    +"Proposal source coverage: "+(metrics?metrics.sourceCoverageCount+"/"+metrics.sourceCoverageTotal:"No saved proposal")+"\n"
+    +"Missing-context warnings: "+p957CompactValue(status.reasons.filter(function(r){return /few|empty|minimal|coverage/i.test(r);}).join(" ")||null)+"\n"
+    +"App limitation: safe apply supports only conservative changes; major program changes may be manual or deferred.\n\n";
+}
+
+window.mfFirstSyncDebug=function(){
+  const detection=p957GetSharedUserFirstSyncStatus(),s=detection.signals;
+  const result={appVersion:APP_VERSION,detection:detection,reasons:detection.reasons.slice(),signals:Object.assign({},s),used:{onboarding:s.onboardingStatus!=="unavailable",profile:true,coachingPreferences:true,proposal:s.proposalSourceCoverage!==null,sourceCoverage:s.proposalSourceCoverage!==null},warnings:(detection.warnings||[]).slice(),readOnly:true};
+  console.log("[MarcusFit] mfFirstSyncDebug():",result);return result;
+};
+var mfFirstSyncDebug=window.mfFirstSyncDebug;
+// ── END PHASE 9.5.7 ────────────────────────────────────────────────────────
+
 // ── FUTURE MODULE: src/export-sync.js (proposal debug/export integration) ───
 function p955BuildProposalExport(){
   try {
@@ -10944,17 +11059,24 @@ function genExport(){
 
   // 9.4.8.8: Persistent AI Coaching Preferences — surfaced near the top of
   // every export so AI Sync sessions always see current intent/priorities.
+  const firstSyncStatus=p957GetSharedUserFirstSyncStatus();
   const coachPrefsRaw=p9GetCoachPrefs().trim();
+  let sharedCoachPrefs=coachPrefsRaw;
+  if(firstSyncStatus.isLikelyFirstSync){
+    if(coachPrefsRaw.indexOf(P953_GEN_START)!==-1&&coachPrefsRaw.indexOf(P953_GEN_END)!==-1)sharedCoachPrefs=coachPrefsRaw.slice(coachPrefsRaw.indexOf(P953_GEN_START),coachPrefsRaw.indexOf(P953_GEN_END)+P953_GEN_END.length);
+    else if(coachPrefsRaw===AI_PREFS_STARTER_TEMPLATE.trim())sharedCoachPrefs="";
+  }
   const coachPrefsBlock="--- PERSISTENT AI COACHING PREFERENCES ---\n"
-    +(coachPrefsRaw?coachPrefsRaw+"\n\n":"No persistent AI coaching preferences saved.\n\n");
+    +(sharedCoachPrefs?sharedCoachPrefs+"\n\n":"No user-specific AI coaching preferences saved.\n\n");
   const proposalSourceBlock=p955BuildProposalExport();
+  const firstSyncBlock=p957BuildFirstSyncExport(firstSyncStatus);
 
   // 9.4.8.9/10: Exercise Rotation / Swap Candidate Export Intelligence — surfaced
   // after coaching preferences and before the program template snapshot so
   // AI Sync sees rotation/swap signals before reading the raw program.
-  const swapCandidateBlock=p9489BuildSwapCandidateExport();
+  const swapCandidateBlock=firstSyncStatus.isLikelyFirstSync?"":p9489BuildSwapCandidateExport();
 
-  const out="=== MARCUSFIT EXPORT ===\n"
+  let out="=== MARCUSFIT EXPORT ===\n"
     +"Version: "+APP_VERSION+"\n"
     +"Generated: "+today+"\n"
     +"Export Range: "+rangeDesc+"\n"
@@ -10962,6 +11084,7 @@ function genExport(){
     +"Weight trend (selected range): "+wTrend+"\n"
     +(wTrendAll?wTrendAll+"\n":"")+"\n"
     +userProfileBlock
+    +firstSyncBlock
     +coachPrefsBlock
     +proposalSourceBlock
     +swapCandidateBlock
@@ -11267,6 +11390,8 @@ function genExport(){
     +"START your response with the MARCUSFIT_UPDATE_START block above.\n"
     +"Then write your full analysis after.\n\n"
     +"=== END EXPORT ===";
+
+  if(firstSyncStatus.isLikelyFirstSync)out=p957MakeSharedSafeExport(out);
 
   document.getElementById("exportOut").style.display="block";
   document.getElementById("exportOut").textContent=out;
@@ -13229,7 +13354,8 @@ window.mfArchitecturePrepDebug = function(){
     localStorageKeysUsed:["day-YYYY-MM-DD","day-YYYY-MM-DD-wo",OVR,DRAFT_KEY,LIFECYCLE_KEY,RECS_KEY,AI_PREFS_KEY,USER_PROFILE_KEY,ONBOARDING_KEY,PROGRAM_PROPOSAL_KEY],
     majorSystems:["program data","storage and backup","lifecycle and resolved program","onboarding","proposal engine","proposal apply/undo","proposal UI","daily log and history","analytics","AI export/sync","debug and app initialization"],
     migrationReadiness:{readyForBoundaryExtraction:true,notes:["Future files must preserve current script dependency order.","Keep globals temporarily for backwards-compatible console helpers and inline handlers."],warnings:["Do not migrate storage schemas during file extraction.","Add browser smoke coverage before changing global initialization order."]},
-    recommendationForNextPhase:"Extract storage keys/utilities and pure proposal helpers first, preserving the single static GitHub Pages entry point and all existing globals."
+    firstSyncBridge:{helpers:["p957GetSharedUserFirstSyncStatus","p957BuildFirstSyncExport","mfFirstSyncDebug"],futureOwners:["src/export-sync.js","src/onboarding.js","src/debug.js"],writesStorage:false},
+    recommendationForNextPhase:"Extract storage keys/utilities and pure first-sync/proposal helpers first, preserving the single static GitHub Pages entry point and all existing globals."
   };
   console.log("[MarcusFit] mfArchitecturePrepDebug():",result);
   return result;
