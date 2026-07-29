@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarcusFit 9.5.7</title>
+<title>MarcusFit 9.5.9</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 :root {
@@ -1013,8 +1013,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 9.5.7</strong> &mdash; Shared User First Sync Export + Architecture Prep<br>
-    New/shared users now receive a clearly framed first-time AI personalization request instead of an assumption that the default program fits. This remains a read-only, single-file bridge release and preserves conservative proposal apply/undo safety.
+    <strong style="color:var(--accent);">MarcusFit 9.5.9</strong> &mdash; Progression &amp; Exercise Metrics<br>
+    Progression now distinguishes weighted, assisted, duration, and bodyweight activities. Lower assistance counts as improvement, duration uses minutes or seconds, and completed load ceilings are separated from temporary confirmation holds.
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -1213,7 +1213,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 // ── VERSION ────────────────────────────────────────────────────────────────
-const APP_VERSION = "9.5.7";
+const APP_VERSION = "9.5.9";
 const LIFECYCLE_VERSION = APP_VERSION;
 // ── 9.5.6 ARCHITECTURE PREP (DOCUMENTATION ONLY) ──────────────────────────
 // MarcusFit intentionally remains one dependency-free HTML file in this
@@ -2941,6 +2941,9 @@ window.mfLifecycleDebug = function(){
 
 
 let gym="home",logGym="home",tDate=new Date(),toggleStates={bm:null,wo:null,zep:null};
+// 9.5.8.4: In-memory only. Program content must remain neutral until profile,
+// onboarding, lifecycle, and starter eligibility initialization has completed.
+let starterProgramStateReady=false;
 tDate.setHours(0,0,0,0);
 let habitState = initHabitState();
 
@@ -8367,6 +8370,21 @@ function setGym(g){gym=g;document.querySelectorAll(".gym-btn").forEach(b=>b.clas
 function setLogGym(g){logGym=g;document.querySelectorAll(".log-gym-btn").forEach(b=>b.classList.remove("active"));document.getElementById("lgbtn-"+g).classList.add("active");populateWoDaySelect();autoSaveDraft();p949HideReview();}
 
 function renderProgram(){
+  // 9.5.8.4: An implicit program basis resolves to Marcus's legacy program.
+  // Never allow that fallback to render while starter eligibility is unknown.
+  if(!starterProgramStateReady){
+    const title=document.getElementById("program-title");
+    const container=document.getElementById("program-days");
+    if(title)title.textContent="PROGRAM";
+    if(container)container.innerHTML="";
+    return;
+  }
+  // 9.5.8.3: Guard fresh users before any gym-specific title or program data
+  // is read. The setup renderer owns and neutralizes the complete Program UI.
+  if(typeof p958ShouldShowProgramSetupState==="function"&&p958ShouldShowProgramSetupState()){
+    p958RenderProgramSetupState();
+    return;
+  }
   const labels={home:"HOME PROGRAM",partial:"TRANSITION GYM PROGRAM"};
   document.getElementById("program-title").textContent=labels[gym];
   const c=document.getElementById("program-days");c.innerHTML="";
@@ -8744,7 +8762,7 @@ function p5Block(exId, targetRepsStr, targetRirStr){
       </div>
     </div>`;
   }
-  const formattedSets = p5FormatLastSets(last.validSets);
+  const formattedSets = p5FormatLastSets(last.validSets, exId);
   const suggestion    = p9BuildSuggestion(exId, last.validSets, targetRepsStr, targetRirStr);
   const best          = p9GetBestExercisePerformance(exId);
   const bestLine      = best ? `<div class="p9-best-line">⭐ Best: ${best}</div>` : "";
@@ -13610,10 +13628,917 @@ var mfArchitectureDebug = window.mfArchitectureDebug;
 // ── END PHASE 9.4.9.1 ──────────────────────────────────────────────────────────
 
 
+// ── 9.5.8 FRESH USER STARTER PROGRAM PACKS ────────────────────────────────
+// Immutable templates live in code. The only durable selection is the optional
+// userProfile.programBasis field; no storage key or lifecycle record is added.
+const P958_BASIS_SCHEMA=1;
+const P958_LEGACY_ID="marcus_advanced_aesthetic_6d";
+const P958_MARCUS_SNAPSHOT=JSON.stringify(P);
+let p958DraftTemplateId=null;
+
+function p958Clone(v){return JSON.parse(JSON.stringify(v));}
+function p958Freeze(v){
+  if(!v||typeof v!=="object"||Object.isFrozen(v))return v;
+  Object.getOwnPropertyNames(v).forEach(function(k){p958Freeze(v[k]);});
+  return Object.freeze(v);
+}
+function p958Day(id,label,tag,focus,note,rows){
+  return {id:id,day:label,name:label.replace(/^Day \d+\s*[—-]\s*/,""),tag:tag,
+    color:tag==="CARDIO"?"var(--cardio)":tag==="LOWER"?"var(--lower)":"var(--accent)",
+    focus:focus,note:note,exercises:rows.map(function(r){return{id:r[0],name:r[1],
+      sets:r[2],reps:r[3],load:r[4],rir:r[5],blurb:r[6]};})};
+}
+function p958Template(id,label,description,audience,equipment,tags,days){
+  return {templateId:id,templateVersion:1,label:label,description:description,
+    intendedAudience:audience,dayCount:days.length,equipmentSummary:equipment,
+    goalTags:tags.slice(),days:p958Freeze(days)};
+}
+const P958_TEMPLATES=p958Freeze([
+  p958Template("general_health_3d","General Health — 3 Day",
+    "Two approachable full-body strength days plus cardio and mobility.",
+    "General users building a sustainable movement habit","Bodyweight, kettlebell or dumbbells, basic cardio",["general-health","adherence","strength","cardio"],[
+    p958Day("tpl-gh3-day-1","Day 1 — FULL BODY A","FULL BODY","Squat · Push · Pull · Carry","Move smoothly and finish each strength set with 2–3 reps in reserve.",[
+      ["tpl-gh3-goblet-squat","Goblet Squat",3,"8–12","Comfortable kettlebell","2–3","Use a controlled, comfortable range."],
+      ["tpl-gh3-incline-pushup","Incline Push-Up",3,"8–15","Bodyweight","2–3","Choose an incline that keeps reps crisp."],
+      ["tpl-gh3-cable-row","Seated Cable or Band Row",3,"10–15","Light-moderate resistance","2–3","Pause with shoulder blades gently back."],
+      ["tpl-gh3-suitcase-carry","Suitcase Carry",3,"30–45 sec/side","Comfortable kettlebell","2–3","Walk tall without leaning."]]),
+    p958Day("tpl-gh3-day-2","Day 2 — CARDIO & MOBILITY","CARDIO","Aerobic base · Mobility","Use a conversational pace; mobility should feel restorative.",[
+      ["tpl-gh3-cardio","Walk, Bike, or Elliptical",1,"25–35 min","Conversational pace","—","Steady, comfortable effort."],
+      ["tpl-gh3-cat-cow","Cat-Cow",2,"6–10","Bodyweight","—","Move slowly with the breath."],
+      ["tpl-gh3-hip-mobility","Supported Hip Mobility",2,"6–8/side","Bodyweight","—","Stay in a comfortable range."],
+      ["tpl-gh3-dead-bug","Dead Bug",3,"6–10/side","Bodyweight","3","Keep the trunk quiet."]]),
+    p958Day("tpl-gh3-day-3","Day 3 — FULL BODY B","FULL BODY","Hinge · Press · Pull · Core","Build consistency before adding load or volume.",[
+      ["tpl-gh3-kb-deadlift","Kettlebell Deadlift",3,"8–12","Comfortable kettlebell","2–3","Hinge with a long spine."],
+      ["tpl-gh3-db-press","Dumbbell Floor Press",3,"8–12","Light-moderate dumbbells","2–3","Control the lowering phase."],
+      ["tpl-gh3-pulldown","Lat Pulldown",3,"10–15","Machine setting allowing RIR 2–3","2–3","Pull elbows toward ribs."],
+      ["tpl-gh3-bird-dog","Bird Dog",3,"6–10/side","Bodyweight","3","Reach long without rotating."]])
+  ]),
+  p958Template("beginner_fat_loss_strength_3d","Beginner Fat Loss / Strength — 3 Day",
+    "Simple full-body strength practice with optional short cardio finishers.",
+    "Beginners seeking strength, manageable volume, and fat-loss support","Dumbbells, machines, cable, optional cardio",["fat-loss","beginner","strength","adherence"],[
+    p958Day("tpl-bfs3-day-1","Day 1 — FULL BODY A","FULL BODY","Squat · Horizontal push/pull","Add reps before load; the finisher is optional.",[
+      ["tpl-bfs3-box-squat","Box Squat or Leg Press",3,"8–12","Discover a controlled working load","2–3","Use a repeatable depth."],
+      ["tpl-bfs3-db-bench","Dumbbell Bench Press",3,"8–12","Light-moderate dumbbells","2–3","Keep feet planted."],
+      ["tpl-bfs3-row","Cable Row",3,"10–12","Machine setting allowing RIR 2–3","2–3","Pause briefly at the body."],
+      ["tpl-bfs3-walk","Optional Incline Walk",1,"8–12 min","Easy-moderate pace","—","Finish feeling capable of more."]]),
+    p958Day("tpl-bfs3-day-2","Day 2 — FULL BODY B","FULL BODY","Hinge · Vertical push/pull","Keep technique consistent across all sets.",[
+      ["tpl-bfs3-db-rdl","Dumbbell Romanian Deadlift",3,"8–12","Light-moderate dumbbells","2–3","Stop at a comfortable hamstring stretch."],
+      ["tpl-bfs3-machine-press","Machine Shoulder Press",3,"8–12","Machine setting allowing RIR 2–3","2–3","Use a controlled range."],
+      ["tpl-bfs3-pulldown","Lat Pulldown",3,"10–12","Machine setting allowing RIR 2–3","2–3","Avoid swinging."],
+      ["tpl-bfs3-bike","Optional Easy Bike",1,"8–12 min","Conversational pace","—","Smooth cadence."]]),
+    p958Day("tpl-bfs3-day-3","Day 3 — FULL BODY C","FULL BODY","Single-leg pattern · Push · Pull · Core","Choose stable variations and leave reps in reserve.",[
+      ["tpl-bfs3-stepup","Low Step-Up",3,"8–10/side","Bodyweight or light dumbbells","2–3","Use a stable, comfortable step height."],
+      ["tpl-bfs3-incline-press","Incline Dumbbell Press",3,"8–12","Light-moderate dumbbells","2–3","Control each rep."],
+      ["tpl-bfs3-supported-row","Chest-Supported Dumbbell Row",3,"10–12","Light-moderate dumbbells","2–3","Keep chest supported."],
+      ["tpl-bfs3-plank","Elevated Plank",3,"20–40 sec","Bodyweight","3","Maintain easy breathing."]])
+  ]),
+  p958Template("low_impact_knee_friendly_3d","Low-Impact / Knee-Friendly — 3 Day",
+    "Conservative low-impact strength, cardio, core, and recovery using pain-free ranges.",
+    "Users preferring lower-impact training or accommodating knee limitations","Machines, cables, dumbbells, bike or elliptical",["low-impact","knee-friendly","strength","cardio"],[
+    p958Day("tpl-lik3-day-1","Day 1 — CONTROLLED FULL BODY","FULL BODY","Pain-free lower body · Push · Pull","Follow clinician restrictions. Stop or change any movement that causes pain.",[
+      ["tpl-lik3-leg-press","Controlled Leg Press",3,"10–15","Discover a pain-free working load","3","Use a pain-free range; do not force depth."],
+      ["tpl-lik3-chest-press","Machine Chest Press",3,"10–15","Machine setting allowing RIR 2–3","2–3","Use a comfortable grip."],
+      ["tpl-lik3-cable-row","Seated Cable Row",3,"10–15","Light-moderate resistance","2–3","Stay tall and controlled."],
+      ["tpl-lik3-pallof","Pallof Press",3,"8–12/side","Light cable resistance","3","Resist rotation."]]),
+    p958Day("tpl-lik3-day-2","Day 2 — LOW-IMPACT CARDIO","CARDIO","Aerobic work · Mobility · Stability","This is general fitness guidance, not medical treatment.",[
+      ["tpl-lik3-bike","Recumbent Bike or Elliptical",1,"20–30 min","Comfortable conversational pace","—","Choose the pain-free machine and resistance."],
+      ["tpl-lik3-calf-raise","Supported Calf Raise",3,"10–15","Bodyweight","3","Hold support and move slowly."],
+      ["tpl-lik3-dead-bug","Dead Bug",3,"6–10/side","Bodyweight","3","Keep low back comfortable."],
+      ["tpl-lik3-mobility","Gentle Hip and Ankle Mobility",2,"5 min","Controlled range of motion","—","Never force a painful range."]]),
+    p958Day("tpl-lik3-day-3","Day 3 — HINGE & UPPER BODY","FULL BODY","Hip hinge · Upper push/pull · Core","Use stable positions and a pain-free range throughout.",[
+      ["tpl-lik3-rdl","Dumbbell Romanian Deadlift",3,"8–12","Light-moderate dumbbells","3","Soft knees; hinge from hips."],
+      ["tpl-lik3-pulldown","Neutral-Grip Lat Pulldown",3,"10–15","Machine setting allowing RIR 2–3","2–3","Pull without leaning back."],
+      ["tpl-lik3-floor-press","Dumbbell Floor Press",3,"8–12","Light-moderate dumbbells","2–3","Controlled touch to the floor."],
+      ["tpl-lik3-bird-dog","Bird Dog",3,"6–10/side","Bodyweight","3","Keep hips level."]])
+  ]),
+  p958Template("general_gym_full_body_3d","General Gym — 3 Day Full Body",
+    "Balanced full-body training built around common machines, cables, and dumbbells.",
+    "Beginner and intermediate gym users","Commercial gym machines, cables, dumbbells",["general-gym","full-body","strength"],[
+    p958Day("tpl-gg3-day-1","Day 1 — FULL BODY A","FULL BODY","Quads · Chest · Back","Use repeatable technique and moderate effort.",[
+      ["tpl-gg3-leg-press","Leg Press",3,"8–12","Machine setting allowing RIR 2–3","2–3","Controlled range of motion."],
+      ["tpl-gg3-chest-press","Machine Chest Press",3,"8–12","Machine setting allowing RIR 2–3","2–3","Keep shoulders comfortable."],
+      ["tpl-gg3-cable-row","Cable Row",3,"10–12","Light-moderate resistance","2–3","Pause at the torso."],
+      ["tpl-gg3-calf-raise","Calf Raise",3,"10–15","Controlled working load","2–3","Full comfortable range."]]),
+    p958Day("tpl-gg3-day-2","Day 2 — FULL BODY B","FULL BODY","Hinge · Shoulders · Lats","Prioritize clean reps over load.",[
+      ["tpl-gg3-db-rdl","Dumbbell Romanian Deadlift",3,"8–12","Light-moderate dumbbells","2–3","Hinge under control."],
+      ["tpl-gg3-db-press","Seated Dumbbell Press",3,"8–12","Light-moderate dumbbells","2–3","Avoid forced range."],
+      ["tpl-gg3-pulldown","Lat Pulldown",3,"8–12","Machine setting allowing RIR 2–3","2–3","Lead with elbows."],
+      ["tpl-gg3-cable-core","Cable Anti-Rotation Press",3,"8–12/side","Light cable resistance","3","Stay square."]]),
+    p958Day("tpl-gg3-day-3","Day 3 — FULL BODY C","FULL BODY","Legs · Upper chest · Back · Arms","Finish the week with balanced, manageable volume.",[
+      ["tpl-gg3-hack-squat","Hack Squat or Goblet Squat",3,"8–12","Controlled working load","2–3","Choose the more comfortable option."],
+      ["tpl-gg3-incline-db","Incline Dumbbell Press",3,"8–12","Light-moderate dumbbells","2–3","Control the bottom position."],
+      ["tpl-gg3-supported-row","Chest-Supported Row",3,"10–12","Machine setting allowing RIR 2–3","2–3","Squeeze without shrugging."],
+      ["tpl-gg3-curl-pushdown","Cable Curl + Pushdown",2,"10–15 each","Light-moderate resistance","2–3","Simple optional arm pairing."]])
+  ]),
+  p958Template("hypertrophy_aesthetic_4d","Hypertrophy / Aesthetic — 4 Day",
+    "General-purpose upper/lower hypertrophy with moderate shoulder, upper-chest, and back emphasis.",
+    "Intermediate users wanting a balanced aesthetic program","Commercial gym, cables, machines, dumbbells",["hypertrophy","aesthetic","four-day"],[
+    p958Day("tpl-ha4-upper-1","Day 1 — UPPER A","UPPER","Upper chest · Back · Delts","Use controlled reps and consistent 1–3 RIR effort.",[
+      ["tpl-ha4-incline-press","Incline Dumbbell Press",4,"6–10","Moderate dumbbells","2","Upper-chest emphasis."],
+      ["tpl-ha4-cable-row","Seated Cable Row",4,"8–12","Controlled working load","2","Pause at peak contraction."],
+      ["tpl-ha4-lateral-raise","Cable or Dumbbell Lateral Raise",3,"12–20","Light-moderate load","2–3","Lead with elbows."],
+      ["tpl-ha4-pulldown","Lat Pulldown",3,"8–12","Controlled working load","2","Use a full comfortable stretch."],
+      ["tpl-ha4-arm-pair-a","Cable Curl + Triceps Pushdown",3,"10–15 each","Light-moderate resistance","2","Smooth, strict reps."]]),
+    p958Day("tpl-ha4-lower-1","Day 2 — LOWER A","LOWER","Quads · Hamstrings · Calves","Keep lower-body volume productive, not exhaustive.",[
+      ["tpl-ha4-squat","Hack Squat or Leg Press",4,"6–10","Controlled working load","2","Choose a stable pain-free range."],
+      ["tpl-ha4-rdl","Romanian Deadlift",3,"8–12","Moderate dumbbells or barbell","2","Controlled eccentric."],
+      ["tpl-ha4-leg-curl","Leg Curl",3,"10–15","Machine setting allowing RIR 2","2","Squeeze without lifting hips."],
+      ["tpl-ha4-calf","Calf Raise",4,"8–15","Controlled working load","2","Pause at stretch and top."]]),
+    p958Day("tpl-ha4-upper-2","Day 3 — UPPER B","UPPER","Back width · Shoulders · Chest","Back and delt priority with balanced pressing.",[
+      ["tpl-ha4-pullup","Assisted Pull-Up or Pulldown",4,"6–10","Assistance/load allowing RIR 2","2","Drive elbows down."],
+      ["tpl-ha4-machine-press","Machine Chest Press",3,"8–12","Machine setting allowing RIR 2","2","Stable pressing path."],
+      ["tpl-ha4-supported-row","Chest-Supported Row",3,"8–12","Controlled working load","2","No torso momentum."],
+      ["tpl-ha4-rear-delt","Reverse Pec Deck",3,"12–20","Light-moderate load","2–3","Sweep arms wide."],
+      ["tpl-ha4-arm-pair-b","Incline Curl + Overhead Cable Extension",3,"10–15 each","Light-moderate resistance","2","Control the stretched position."]]),
+    p958Day("tpl-ha4-lower-2","Day 4 — LOWER & FULL BODY","LOWER","Glutes · Quads · Delts · Core","Moderate full-body finish without extreme specialization.",[
+      ["tpl-ha4-hip-thrust","Hip Thrust",3,"8–12","Controlled working load","2","Pause at full hip extension."],
+      ["tpl-ha4-split-squat","Supported Split Squat",3,"8–12/side","Bodyweight or light dumbbells","2–3","Use support and comfortable depth."],
+      ["tpl-ha4-leg-extension","Leg Extension",3,"10–15","Machine setting allowing RIR 2–3","2–3","Smooth reps."],
+      ["tpl-ha4-lateral-raise-2","Machine Lateral Raise",3,"12–20","Light-moderate load","2","Keep traps relaxed."],
+      ["tpl-ha4-cable-crunch","Cable Crunch",3,"10–15","Controlled resistance","2–3","Flex through the trunk."]])
+  ])
+]);
+const P958_MARCUS_TEMPLATE=Object.freeze({templateId:P958_LEGACY_ID,templateVersion:1,
+  label:"Marcus Advanced Aesthetic — 6 Day",description:"Existing Marcus advanced aesthetic program.",
+  intendedAudience:"Marcus's established advanced program",dayCount:6,
+  equipmentSummary:"Home and transition-gym variants",goalTags:Object.freeze(["advanced","aesthetic","legacy"]),
+  daysByGym:P});
+const P958_REGISTRY=Object.freeze(P958_TEMPLATES.concat([P958_MARCUS_TEMPLATE]));
+
+function getProgramTemplateRegistry(){
+  return P958_REGISTRY.map(function(t){return Object.freeze({
+    templateId:t.templateId,templateVersion:t.templateVersion,label:t.label,
+    description:t.description,intendedAudience:t.intendedAudience,dayCount:t.dayCount,
+    equipmentSummary:t.equipmentSummary,goalTags:Object.freeze(t.goalTags.slice())
+  });});
+}
+function p958GetTemplateById(id){return P958_REGISTRY.find(function(t){return t.templateId===id;})||null;}
+function p958RawProfile(){
+  try{const raw=localStorage.getItem(USER_PROFILE_KEY);return raw===null?null:JSON.parse(raw);}catch(e){return null;}
+}
+function p958MeaningfulSummary(){
+  let evidence={};try{evidence=p951GetMeaningfulDataEvidence();}catch(e){}
+  let first={};try{first=p957GetSharedUserFirstSyncStatus();}catch(e){}
+  return {hasMeaningfulHistory:first.isLikelyFirstSync===false,
+    isLikelyFirstSync:first.isLikelyFirstSync===true,evidence:p958Clone(evidence)};
+}
+function p958NormalizeBasis(basis){
+  const warnings=[];
+  if(basis===undefined||basis===null)return{valid:true,explicit:false,templateId:P958_LEGACY_ID,
+    templateVersion:1,source:"implicit_legacy_default",selectedAt:null,fallbackUsed:false,warnings:warnings};
+  if(!basis||typeof basis!=="object"){warnings.push("Stored programBasis is malformed.");}
+  const id=basis&&typeof basis.templateId==="string"?basis.templateId.trim():"";
+  const template=p958GetTemplateById(id);
+  const version=basis&&Number.isInteger(basis.templateVersion)?basis.templateVersion:null;
+  if(!id)warnings.push("Explicit programBasis has no valid templateId.");
+  if(id&&!template)warnings.push("Explicit template ID is unavailable: "+id);
+  if(template&&version!==template.templateVersion)warnings.push("Stored template version is unsupported.");
+  if(template&&version===template.templateVersion)return{valid:true,explicit:true,templateId:id,
+    templateVersion:version,source:typeof basis.selectedVia==="string"?basis.selectedVia:"profile",
+    selectedAt:typeof basis.selectedAt==="string"?basis.selectedAt:null,fallbackUsed:false,warnings:warnings};
+  const fresh=p958MeaningfulSummary().isLikelyFirstSync;
+  warnings.push(fresh?"Fresh user must choose a valid starter template; General Health is used only as a safe in-memory preview fallback.":
+    "Established user retains the implicit Marcus legacy program as the in-memory fallback.");
+  return{valid:false,explicit:true,templateId:fresh?"general_health_3d":P958_LEGACY_ID,
+    templateVersion:1,source:"invalid_profile_fallback",selectedAt:null,fallbackUsed:true,warnings:warnings};
+}
+function getActiveProgramBasis(){
+  const raw=p958RawProfile();
+  return p958NormalizeBasis(raw&&Object.prototype.hasOwnProperty.call(raw,"programBasis")?raw.programBasis:null);
+}
+function getActiveBaseProgram(){
+  const basis=getActiveProgramBasis(),template=p958GetTemplateById(basis.templateId)||P958_MARCUS_TEMPLATE;
+  if(template.templateId===P958_LEGACY_ID)return p958Clone(P);
+  return {home:p958Clone(template.days),partial:p958Clone(template.days)};
+}
+function p958GetResolvedProgram(){
+  const lc=getLifecycle(),base=getActiveBaseProgram(),resolved={};
+  Object.entries(base).forEach(function(pair){
+    const gymKey=pair[0],days=pair[1];
+    resolved[gymKey]=days.map(function(day,dayIdx){
+      const baseExercises=(day.exercises||[]).filter(function(ex){return !lc.inactiveIds[ex.id];});
+      const customs=Object.values(lc.customExercises||{}).filter(function(ex){
+        return ex.gymKey===gymKey&&ex.dayIdx===dayIdx&&!lc.inactiveIds[ex.id];
+      }).sort(function(a,b){return(a.addedAt||"").localeCompare(b.addedAt||"");});
+      let exercises=baseExercises.concat(customs),override=(lc.orderOverrides||{})[gymKey+":"+dayIdx];
+      if(Array.isArray(override)&&override.length){
+        const map={};exercises.forEach(function(e){map[e.id]=e;});
+        const used=new Set();const ordered=[];
+        override.forEach(function(id){if(map[id]&&!used.has(id)){ordered.push(map[id]);used.add(id);}});
+        exercises.forEach(function(e){if(!used.has(e.id))ordered.push(e);});exercises=ordered;
+      }
+      return Object.assign({},day,{exercises:exercises.map(function(e){return Object.assign({},e);})});
+    });
+  });return resolved;
+}
+getResolvedProgram=p958GetResolvedProgram;
+function p958GetResolvedDays(gymKey){
+  const rp=getResolvedProgram(),lc=getLifecycle();
+  const base=(rp[gymKey]||[]).map(function(d,i){return Object.assign({},d,{_dayIdx:i,_isVirtual:false});});
+  const additions=(lc.dayAdditions||{})[gymKey]||{},baseLen=base.length;
+  const virtual=Object.keys(additions).map(Number).filter(function(i){return Number.isInteger(i)&&i>=baseLen;})
+    .sort(function(a,b){return a-b;}).map(function(i){
+      const a=additions[i]||{},customs=Object.values(lc.customExercises||{}).filter(function(e){
+        return e.gymKey===gymKey&&e.dayIdx===i&&!lc.inactiveIds[e.id];});
+      return{day:"Day "+(i+1),id:a.id||("virtual-"+gymKey+"-"+i),name:a.name||("CUSTOM DAY "+(i+1)),
+        subtitle:a.subtitle||"",focus:a.focus||"",note:a.note||"",tag:a.tag||"CUSTOM",color:"var(--accent)",
+        exercises:customs,_isVirtual:true,_dayIdx:i};
+    });
+  return base.concat(virtual);
+}
+getResolvedDays=p958GetResolvedDays;
+
+function p958RecommendStarter(){
+  let profile=p950GetUserProfile(),state={};try{state=p951GetOnboardingState();}catch(e){}
+  const hay=JSON.stringify({profile:profile,onboarding:state}).toLowerCase(),reasons=[];
+  let id="general_health_3d";
+  if(/knee|surgery|low.?impact|limitation|injury/.test(hay)){id="low_impact_knee_friendly_3d";reasons.push("Saved limitations suggest a conservative, low-impact starting point.");}
+  else if(/fat.?loss|lose weight|weight loss/.test(hay)){id="beginner_fat_loss_strength_3d";reasons.push("The saved primary goal emphasizes fat loss with progressive strength.");}
+  else if(/hypertrophy|aesthetic|muscle/.test(hay)&&/4|four/.test(hay)){id="hypertrophy_aesthetic_4d";reasons.push("The saved goal and four-day availability align with hypertrophy training.");}
+  else if(/gym|machine|cable/.test(hay)){id="general_gym_full_body_3d";reasons.push("Saved equipment access favors a balanced commercial-gym plan.");}
+  else reasons.push("A simple three-day strength, cardio, and mobility plan is the broadest fit.");
+  if(/3|three/.test(hay))reasons.push("Three training days match the saved availability.");
+  return{valid:!!p958GetTemplateById(id),recommendedTemplateId:id,reasons:reasons,readOnly:true};
+}
+function p958SelectionPreflight(id){
+  const errors=[],basis=getActiveProgramBasis(),template=p958GetTemplateById(id),meaning=p958MeaningfulSummary();
+  if(!template||id===P958_LEGACY_ID)errors.push("Choose a valid starter template.");
+  if(!meaning.isLikelyFirstSync)errors.push("Starter installation is restricted to eligible fresh/shared users.");
+  if(basis.explicit&&basis.valid)errors.push("An explicit program basis is already installed.");
+  return{valid:errors.length===0,errors:errors,warnings:[]};
+}
+function p958ShouldShowProgramSetupState(){
+  const basis=getActiveProgramBasis(),meaning=p958MeaningfulSummary();
+  return meaning.isLikelyFirstSync===true&&meaning.hasMeaningfulHistory!==true&&basis.explicit!==true;
+}
+function p958OpenStarterChooserFromProgram(){
+  try{showScreen("export");}catch(e){}
+  try{p958RenderStarterChooser();}catch(e){}
+  const host=document.getElementById("p958StarterChooser");
+  if(host){
+    host.style.display="block";
+    host.style.scrollMarginTop="92px";
+    requestAnimationFrame(function(){host.scrollIntoView({behavior:"smooth",block:"start"});});
+  }
+}
+function p958RenderProgramSetupState(){
+  const container=document.getElementById("program-days");
+  const programTitle=document.getElementById("program-title");
+  if(programTitle)programTitle.textContent="PROGRAM SETUP";
+  if(!container)return;
+  container.innerHTML="";
+  const rec=p958RecommendStarter(),recommended=rec.valid?p958GetTemplateById(rec.recommendedTemplateId):null;
+  const hasTemplates=P958_TEMPLATES.some(function(t){return t&&t.templateId;});
+  const card=document.createElement("div");
+  card.className="p958-program-setup";
+  card.style.cssText="padding:14px;border:1px solid var(--accent);border-radius:8px;background:var(--surface2);";
+  const title=document.createElement("div");
+  title.className="day-name";
+  title.textContent="Choose Your Starter Program";
+  card.appendChild(title);
+  const body=document.createElement("div");
+  body.style.cssText="font-size:12px;color:var(--muted);line-height:1.45;margin-top:6px;";
+  body.textContent="Your program is not set yet. Choose a clean starting plan based on your goals, schedule, equipment, and limitations.";
+  card.appendChild(body);
+  const line=document.createElement("div");
+  line.style.cssText="font-size:12px;font-weight:800;margin-top:10px;color:var(--text);";
+  line.textContent=recommended?"Recommended: "+recommended.label:"Choose a starter template to set your program.";
+  card.appendChild(line);
+  const reasons=(rec.reasons||[]).filter(function(r){return typeof r==="string"&&r.trim();});
+  if(reasons.length){
+    const reason=document.createElement("div");
+    reason.style.cssText="font-size:11px;color:var(--muted);line-height:1.4;margin-top:5px;";
+    reason.textContent=reasons.join(" ");
+    card.appendChild(reason);
+  }
+  const btn=document.createElement("button");
+  btn.className="big-btn btn-sync";
+  btn.style.marginTop="12px";
+  btn.textContent="CHOOSE STARTER PROGRAM";
+  btn.disabled=!hasTemplates;
+  btn.onclick=p958OpenStarterChooserFromProgram;
+  card.appendChild(btn);
+  container.appendChild(card);
+}
+function p958ConfirmStarterSelection(){
+  const pre=p958SelectionPreflight(p958DraftTemplateId);if(!pre.valid){p958RenderStarterChooser();return pre;}
+  const previous=localStorage.getItem(USER_PROFILE_KEY);
+  try{
+    const parsed=previous===null?p950GetDefaultUserProfile():JSON.parse(previous);
+    const now=new Date().toISOString(),next=Object.assign({},parsed,{programBasis:{
+      schemaVersion:P958_BASIS_SCHEMA,templateId:p958DraftTemplateId,templateVersion:1,
+      selectedAt:now,selectedVia:"onboarding"},updatedAt:now,profileVersion:APP_VERSION});
+    localStorage.setItem(USER_PROFILE_KEY,JSON.stringify(next));
+    const post=getActiveProgramBasis();
+    if(!post.valid||!post.explicit||post.templateId!==p958DraftTemplateId)throw new Error("Post-write basis validation failed.");
+    p958DraftTemplateId=null;p958RenderStarterChooser();renderProgram();populateWoDaySelect();
+    return{ok:true,basis:post};
+  }catch(e){
+    try{previous===null?localStorage.removeItem(USER_PROFILE_KEY):localStorage.setItem(USER_PROFILE_KEY,previous);}catch(_){}
+    return{ok:false,error:e.message,rolledBack:true};
+  }
+}
+function p958RenderStarterChooser(){
+  let host=document.getElementById("p958StarterChooser");
+  if(!host){host=document.createElement("div");host.id="p958StarterChooser";host.style.cssText="margin:10px 0;padding:12px;border:1px solid var(--accent);border-radius:10px;background:var(--surface2);";const c=document.getElementById("p954Container");if(c)c.insertBefore(host,c.firstChild);}
+  const basis=getActiveProgramBasis(),meaning=p958MeaningfulSummary(),eligible=meaning.isLikelyFirstSync&&!basis.explicit;
+  if(!eligible){host.style.display="none";host.innerHTML="";return;}host.style.display="block";
+  const rec=p958RecommendStarter(),recommended=rec.valid?p958GetTemplateById(rec.recommendedTemplateId):null;
+  if(!p958DraftTemplateId)p958DraftTemplateId=recommended?recommended.templateId:(P958_TEMPLATES[0]&&P958_TEMPLATES[0].templateId);
+  const options=P958_TEMPLATES.map(function(t){return'<option value="'+t.templateId+'"'+(t.templateId===p958DraftTemplateId?' selected':'')+'>'+t.label+(t.templateId===rec.recommendedTemplateId?' — Recommended':'')+'</option>';}).join("");
+  const t=p958GetTemplateById(p958DraftTemplateId),pre=p958SelectionPreflight(p958DraftTemplateId);
+  host.innerHTML='<div style="font-weight:800;margin-bottom:5px;">Choose your starter program</div>'+
+    '<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">'+(recommended?'Recommended: '+recommended.label+' — '+rec.reasons.join(" "):'Choose a starter template to set your program.')+'</div>'+
+    '<select id="p958TemplateSelect" style="width:100%;min-height:44px;margin-bottom:8px;"></select>'+
+    '<details style="font-size:11px;margin-bottom:10px;"><summary>Preview '+(t?t.label:"starter template")+'</summary><div id="p958Preview" style="padding:7px 0;"></div></details>'+
+    '<button id="p958Confirm" class="big-btn btn-sync">CONFIRM STARTER PROGRAM</button> '+
+    '<button id="p958Cancel" class="big-btn" style="background:transparent;color:var(--muted);">CANCEL</button>';
+  const select=host.querySelector("#p958TemplateSelect");select.innerHTML=options;
+  select.onchange=function(){p958DraftTemplateId=this.value;p958RenderStarterChooser();};
+  const preview=host.querySelector("#p958Preview");preview.textContent=t?t.days.map(function(d){return d.day+": "+d.exercises.map(function(e){return e.name;}).join(", ");}).join(" • "):"No preview is available for this recommendation.";
+  const confirm=host.querySelector("#p958Confirm");confirm.disabled=!pre.valid;confirm.onclick=p958ConfirmStarterSelection;
+  host.querySelector("#p958Cancel").onclick=function(){p958DraftTemplateId=null;host.style.display="none";try{showScreen("program");}catch(e){}};
+}
+
+const p958LegacyGenExport=genExport;
+genExport=function(){
+  const basis=getActiveProgramBasis(),t=p958GetTemplateById(basis.templateId)||P958_MARCUS_TEMPLATE;
+  const days=getResolvedDays("partial");
+  const block="\nPROGRAM BASIS (9.5.8)\n======================\n"+
+    "Active template: "+t.label+"\nTemplate ID: "+t.templateId+"\nTemplate version: "+t.templateVersion+
+    "\nBasis: "+(basis.explicit?"explicit":"implicit")+"\nSelection source: "+basis.source+
+    "\nTemplate summary: "+t.description+"\nResolved days: "+days.length+
+    "\nAI: Personalize from this selected starter basis; do not substitute Marcus's legacy six-day program.\n\n";
+  p958LegacyGenExport();
+  const out=block+(window._exp||"");
+  const target=document.getElementById("exportOut");if(target)target.textContent=out;
+  window._exp=out;
+  return out;
+};
+
+function p958AllTemplateIds(){
+  const dayIds=[],exerciseIds=[];P958_TEMPLATES.forEach(function(t){t.days.forEach(function(d){
+    dayIds.push(d.id);d.exercises.forEach(function(e){exerciseIds.push(e.id);});});});
+  Object.values(P).forEach(function(days){days.forEach(function(d){(d.exercises||[]).forEach(function(e){exerciseIds.push(e.id);});});});
+  return{dayIds:dayIds,exerciseIds:exerciseIds};
+}
+function p958Dupes(a){return Array.from(new Set(a.filter(function(v,i){return a.indexOf(v)!==i;}))).sort();}
+window.mfProgramTemplateRegistryDebug=function(){
+  const ids=p958AllTemplateIds(),templateIds=P958_REGISTRY.map(function(t){return t.templateId;}),invalid=[];
+  P958_REGISTRY.forEach(function(t){if(!t.templateId||!Number.isInteger(t.templateVersion)||t.templateVersion<1||t.dayCount<1)invalid.push(t.templateId||"(missing)");});
+  const out={valid:false,templateCount:P958_REGISTRY.length,templateSummaries:getProgramTemplateRegistry(),
+    duplicateTemplateIds:p958Dupes(templateIds),duplicateDayIds:p958Dupes(ids.dayIds),
+    duplicateExerciseIds:p958Dupes(ids.exerciseIds),invalidTemplates:invalid,
+    marcusBaseMutationDetected:JSON.stringify(P)!==P958_MARCUS_SNAPSHOT};
+  out.valid=!out.duplicateTemplateIds.length&&!out.duplicateDayIds.length&&!out.duplicateExerciseIds.length&&!invalid.length&&!out.marcusBaseMutationDetected;
+  return p958Clone(out);
+};
+window.mfProgramBasisDebug=function(){const b=getActiveProgramBasis(),m=p958MeaningfulSummary();
+  return p958Clone(Object.assign({},b,{"meaningful-history":m,activeResolvedDayCount:getResolvedDays("partial").length}));};
+window.mfStarterProgramDebug=function(){const b=getActiveProgramBasis(),m=p958MeaningfulSummary(),r=p958RecommendStarter(),p=p958SelectionPreflight(p958DraftTemplateId);
+  return p958Clone({eligibleForAutomaticOffer:m.isLikelyFirstSync&&!b.explicit,hasMeaningfulHistory:m.hasMeaningfulHistory,
+    explicitProgramBasis:b.explicit,recommendationValid:r.valid,recommendedTemplateId:r.recommendedTemplateId,
+    recommendationReasons:r.reasons,readOnlyRecommendation:r.readOnly,currentlySelectedDraftTemplate:p958DraftTemplateId,
+    confirmationReadiness:p.valid,validationErrors:p.errors,validationWarnings:p.warnings});};
+window.mfResolvedProgramDebug=function(){const b=getActiveProgramBasis(),days=getResolvedDays("partial"),lc=getLifecycle(),ids=[];
+  days.forEach(function(d){(d.exercises||[]).forEach(function(e){ids.push(e.id);});});
+  const leaked=b.templateId!==P958_LEGACY_ID&&ids.some(function(id){return /^(home|partial)-d\d+-e\d+$/.test(id);});
+  return p958Clone({activeTemplateId:b.templateId,activeTemplateVersion:b.templateVersion,resolvedDayCount:days.length,
+    resolvedDays:days.map(function(d){return{id:d.id||null,label:d.day||d.name,exerciseCount:(d.exercises||[]).length};}),
+    lifecycleCustomizationCounts:{customExercises:Object.keys(lc.customExercises||{}).length,inactive:Object.keys(lc.inactiveIds||{}).length,
+      dayAdditions:Object.values(lc.dayAdditions||{}).reduce(function(n,x){return n+Object.keys(x||{}).length;},0)},
+    orderOverrideCount:Object.keys(lc.orderOverrides||{}).length,duplicateResolvedIds:p958Dupes(ids),
+    marcusSpecificBaseLeakDetected:leaked,warnings:b.warnings.slice(),errors:leaked?["Marcus base exercise IDs leaked into a non-Marcus basis."]:[]});};
+window.mfFindKnownExerciseById=function(id){let found=null;P958_TEMPLATES.forEach(function(t){t.days.forEach(function(d){const e=d.exercises.find(function(x){return x.id===id;});if(e)found={templateId:t.templateId,dayId:d.id,exercise:p958Clone(e)};});});if(found)return found;
+  Object.keys(P).some(function(g){return P[g].some(function(d,i){const e=(d.exercises||[]).find(function(x){return x.id===id;});if(e){found={templateId:P958_LEGACY_ID,gymKey:g,dayIndex:i,exercise:p958Clone(e)};return true;}return false;});});return found;};
+window.getProgramTemplateRegistry=getProgramTemplateRegistry;
+window.getProgramTemplateById=function(id){const t=p958GetTemplateById(id);return t?p958Clone(t):null;};
+window.mfGetActiveProgramBasis=function(){return p958Clone(getActiveProgramBasis());};
+window.mfGetActiveBaseProgram=function(){return p958Clone(getActiveBaseProgram());};
+window.p958ConfirmStarterSelection=p958ConfirmStarterSelection;
+
+const p958OriginalPersonalizationRender=p954RenderProgramPersonalization;
+p954RenderProgramPersonalization=function(){p958OriginalPersonalizationRender();p958RenderStarterChooser();};
+
+// -- 9.5.9 EXERCISE METRICS + PROGRESSION CORRECTNESS -----------------------
+// Metric interpretation is derived at read time. Nothing in this phase writes
+// classifications to storage or changes the compatible {wt,reps,rir} set shape.
+function p959FindExercise(exId){
+  let found=null;
+  try{
+    ["home","partial"].some(function(g){
+      return getResolvedDays(g).some(function(day){
+        const ex=(day.exercises||[]).find(function(x){return x.id===exId;});
+        if(ex){found=ex;return true;}return false;
+      });
+    });
+  }catch(e){}
+  if(!found&&typeof window.mfFindKnownExerciseById==="function"){
+    try{const known=window.mfFindKnownExerciseById(exId);found=known&&known.exercise;}catch(e){}
+  }
+  return found;
+}
+
+function p959GetExerciseMetricProfile(exId,exercise){
+  const ex=exercise||p959FindExercise(exId)||{};
+  const name=String(getF(exId,"name",ex.name||"")||"").toLowerCase();
+  const reps=String(getF(exId,"reps",ex.reps||"")||"").toLowerCase();
+  const load=String(getF(exId,"load",ex.load||"")||"").toLowerCase();
+  const rir=String(getF(exId,"rir",ex.rir||"")||"").toLowerCase();
+  const assistance=/\b(assisted|assistance|assist)\b/.test(name+" "+load);
+  const minutes=/\b(min|mins|minute|minutes)\b/.test(reps);
+  const seconds=/\b(sec|secs|second|seconds)\b/.test(reps);
+  if(minutes||seconds){
+    return {type:"duration",metric:minutes?"duration_minutes":"duration_seconds",
+      valueLabel:minutes?"MIN":"SEC",unit:minutes?"min":"sec",usesLoad:false,
+      usesRir:false,lowerIsBetter:false,isCardio:minutes||p9IsCardio(load,rir)};
+  }
+  if(assistance){
+    return {type:"assistance_reps",metric:"assistance_reps",valueLabel:"REPS",
+      loadLabel:"ASSIST",unit:/\bkg\b/.test(load)?"kg":"lb",usesLoad:true,
+      usesRir:true,lowerIsBetter:true,isCardio:false};
+  }
+  if(/\b(bodyweight|bw)\b/.test(load)){
+    return {type:"bodyweight_reps",metric:"bodyweight_reps",valueLabel:"REPS",
+      loadLabel:"LOAD",unit:"reps",usesLoad:false,usesRir:!/^(\u2014|-|n\/a)$/.test(rir),
+      lowerIsBetter:false,isCardio:false};
+  }
+  return {type:"load_reps",metric:"load_reps",valueLabel:"REPS",loadLabel:"WEIGHT",
+    unit:/\bkg\b/.test(load)?"kg":"lb",usesLoad:true,usesRir:!/^(\u2014|-|n\/a)$/.test(rir),
+    lowerIsBetter:false,isCardio:false};
+}
+
+function p959NormalizeLoggedLoad(raw,metricProfile){
+  const original=raw===undefined||raw===null?"":String(raw);
+  const s=original.trim().toLowerCase();
+  const out={raw:original,numeric:null,unit:null,equipment:null,perSide:false,
+    assistance:false,nonLoadType:null};
+  if(!s)return out;
+  if(/^(bodyweight|bw)\b/.test(s)){
+    out.equipment="bodyweight";out.nonLoadType="bodyweight";return out;
+  }
+  const heart=s.match(/(?:\bhr\s*|\b)(\d+(?:\.\d+)?)\s*(?:bpm\b)?/);
+  if(/\b(bpm|heart\s*rate)\b/.test(s)||/^\s*hr\s*\d/.test(s)){
+    out.numeric=heart?parseFloat(heart[1]):null;out.unit="bpm";
+    out.nonLoadType="heart_rate";return out;
+  }
+  const range=s.match(/^(\d+(?:\.\d+)?)\s*[-\u2013]\s*(\d+(?:\.\d+)?)/);
+  const one=s.match(/^(\d+(?:\.\d+)?)/);
+  if(range)out.numeric=parseFloat(range[2]);
+  else if(one)out.numeric=parseFloat(one[1]);
+  if(out.numeric===null)return out;
+  if(/\bkg\b/.test(s))out.unit="kg";
+  else if(/\blb(?:s)?\b/.test(s)||one)out.unit="lb";
+  out.perSide=/\/\s*side\b|\bper\s+side\b/.test(s);
+  if(/\b(db|dbs|dumbbell|dumbbells)\b/.test(s))out.equipment="dumbbell";
+  else if(/\b(barbell|bb)\b/.test(s))out.equipment="barbell";
+  out.assistance=/\b(assist|assisted|assistance)\b/.test(s)||
+    !!(metricProfile&&metricProfile.type==="assistance_reps");
+  if(out.assistance)out.equipment="assisted_machine";
+  return out;
+}
+
+// Backward-compatible public numeric parser.
+p9ParseLoad=function(raw){
+  const n=p959NormalizeLoggedLoad(raw);
+  return n.nonLoadType?n.numeric!==null&&n.nonLoadType==="heart_rate"?null:null:n.numeric;
+};
+
+function p959GetTargetRange(exId,exercise){
+  const ex=exercise||p959FindExercise(exId)||{};
+  return p5ParseRepRange(getF(exId,"reps",ex.reps||""));
+}
+
+function p959GetRequiredSets(exId,exercise){
+  const ex=exercise||p959FindExercise(exId)||{};
+  return Math.max(1,parseInt(getF(exId,"sets",ex.sets||"1"),10)||1);
+}
+
+function p959GetDirectionalLoad(validSets,profile){
+  if(!validSets||!validSets.length)return null;
+  const values=validSets.map(function(s){
+    return {normalized:p959NormalizeLoggedLoad(s.wt,profile),raw:String(s.wt||"").trim()};
+  }).filter(function(x){return x.normalized.numeric!==null&&!x.normalized.nonLoadType;});
+  if(!values.length)return null;
+  values.sort(function(a,b){
+    return profile&&profile.lowerIsBetter?a.normalized.numeric-b.normalized.numeric:
+      b.normalized.numeric-a.normalized.numeric;
+  });
+  return {numeric:values[0].normalized.numeric,raw:values[0].raw,
+    normalized:values[0].normalized};
+}
+
+p9GetTopActualLoad=function(validSets,exId){
+  return p959GetDirectionalLoad(validSets,p959GetExerciseMetricProfile(exId));
+};
+
+function p959FormatValue(n,profile){
+  return String(n)+" "+(profile.unit||"");
+}
+
+p5FormatLastSets=function(validSets,exId){
+  const profile=p959GetExerciseMetricProfile(exId);
+  if(profile.type==="duration"){
+    return validSets.map(function(s){return p959FormatValue(parseFloat(s.reps),profile);}).join(", ");
+  }
+  const byWt={},order=[];
+  validSets.forEach(function(s){
+    const wt=String(s.wt||"").trim()||"\u2014";
+    if(!byWt[wt]){byWt[wt]=[];order.push(wt);}byWt[wt].push(String(s.reps||"\u2014").trim());
+  });
+  const parts=order.map(function(wt){
+    const values=byWt[wt].join(", ");
+    if(profile.type==="assistance_reps"){
+      const n=p959NormalizeLoggedLoad(wt,profile);
+      const label=n.numeric===null?wt:(n.numeric+" "+(n.unit||profile.unit)+" assistance");
+      return label+" \u00d7 "+values;
+    }
+    return wt==="\u2014"?"\u00d7 "+values+" reps":wt+" \u00d7 "+values;
+  });
+  const rirs=validSets.map(function(s){return String(s.rir||"").trim();})
+    .filter(function(r){return r&&r!=="\u2014";});
+  return parts.join(" \u00b7 ")+(profile.usesRir&&rirs.length?
+    " @ RIR "+Array.from(new Set(rirs)).join("/"):"");
+};
+
+p9GetBestExercisePerformance=function(exId){
+  const profile=p959GetExerciseMetricProfile(exId),hist=p9GetExerciseHistory(exId);
+  if(!hist.length)return null;
+  const sets=[].concat.apply([],hist.map(function(h){return h.validSets;}));
+  if(profile.type==="duration"){
+    const best=Math.max.apply(null,sets.map(function(s){return parseFloat(s.reps)||0;}));
+    return best?p959FormatValue(best,profile):null;
+  }
+  const target=p959GetTargetRange(exId),ex=p959FindExercise(exId);
+  const targetRir=p5ParseRir(ex&&getF(exId,"rir",ex.rir));
+  const qualifyingAssistanceSets=profile.type==="assistance_reps"?sets.filter(function(s){
+    const reps=parseInt(s.reps,10),rir=p5ParseRir(s.rir||"");
+    return (!target||reps>=target.lo)&&(targetRir===null||rir===null||rir>=targetRir-0.5);
+  }):sets;
+  const comparableSets=qualifyingAssistanceSets.length?qualifyingAssistanceSets:sets;
+  let best=null;
+  comparableSets.forEach(function(s){
+    const reps=parseInt(s.reps,10),n=p959NormalizeLoggedLoad(s.wt,profile);
+    if(!reps)return;
+    if(n.numeric!==null){
+      if(!best||(profile.lowerIsBetter?n.numeric<best.load:n.numeric>best.load)||
+        (n.numeric===best.load&&reps>best.reps))best={load:n.numeric,reps:reps,n:n};
+    }else if(!best&&(!best||reps>best.reps))best={load:null,reps:reps,n:n};
+  });
+  if(!best)return null;
+  if(best.load!==null){
+    return profile.type==="assistance_reps"?
+      best.load+" "+(best.n.unit||profile.unit)+" assistance \u00d7 "+best.reps:
+      best.load+" "+(best.n.unit||profile.unit)+" \u00d7 "+best.reps;
+  }
+  return best.reps+" reps (BW)";
+};
+
+function p959SessionQualifiesAtCeiling(exId,validSets,targetRepsStr,targetRirStr){
+  const ex=p959FindExercise(exId),profile=p959GetExerciseMetricProfile(exId,ex);
+  const target=p5ParseRepRange(targetRepsStr),targetRir=p5ParseRir(targetRirStr);
+  const tlr=p9GetTargetLoadRangeForExercise(exId),required=p959GetRequiredSets(exId,ex);
+  if(profile.type!=="load_reps"||!target||!tlr||!validSets||validSets.length<required)return false;
+  return validSets.slice(0,required).every(function(s){
+    const reps=parseFloat(s.reps),load=p959NormalizeLoggedLoad(s.wt,profile).numeric;
+    const rir=p5ParseRir(s.rir||"");
+    return reps>=target.hi&&load!==null&&Math.abs(load-tlr.high)<=2&&
+      (targetRir===null||(rir!==null&&rir>=targetRir-0.5));
+  });
+}
+
+function p959CeilingEvidence(exId,targetRepsStr,targetRirStr){
+  const hist=p9GetExerciseHistory(exId);
+  const qualifying=hist.filter(function(h){
+    return p959SessionQualifiesAtCeiling(exId,h.validSets,targetRepsStr,targetRirStr);
+  });
+  return {qualifyingSessionCount:qualifying.length,confirmationRequirement:2,
+    latestQualifies:!!(hist[0]&&p959SessionQualifiesAtCeiling(
+      exId,hist[0].validSets,targetRepsStr,targetRirStr)),
+    qualifyingDates:qualifying.map(function(h){return h.dateKey;})};
+}
+
+function p959AssistanceStep(base,hist){
+  const values=[];
+  hist.slice(0,5).forEach(function(h){h.validSets.forEach(function(s){
+    const n=p959NormalizeLoggedLoad(s.wt,{type:"assistance_reps"}).numeric;
+    if(n!==null)values.push(n);
+  });});
+  const diffs=[];
+  values.forEach(function(a){values.forEach(function(b){const d=Math.abs(a-b);if(d>=2.5)diffs.push(d);});});
+  // Five pounds is conservative on common selectorized assistance stacks;
+  // a smaller observed step wins when the user's own history provides one.
+  return diffs.length?Math.min.apply(null,diffs):Math.min(5,Math.max(2.5,base*0.05));
+}
+
+p9BuildSuggestion=function(exId,validSets,targetRepsStr,targetRirStr){
+  if(!validSets||!validSets.length)return {text:"No performance data. Start conservative.",cls:"neutral",status:"new"};
+  const ex=p959FindExercise(exId),profile=p959GetExerciseMetricProfile(exId,ex);
+  const values=validSets.map(function(s){return parseFloat(s.reps);}).filter(Number.isFinite);
+  if(!values.length)return {text:"No performance data. Start conservative.",cls:"neutral",status:"new"};
+  const target=p5ParseRepRange(targetRepsStr),top=target&&values.every(function(v){return v>=target.hi;});
+  const below=target&&values.some(function(v){return v<target.lo;});
+  const targetRir=p5ParseRir(targetRirStr);
+  const rirs=validSets.map(function(s){return p5ParseRir(s.rir||"");}).filter(function(v){return v!==null;});
+  const rirTight=profile.usesRir&&targetRir!==null&&
+    (!rirs.length||rirs.some(function(v){return v<targetRir-0.5;}));
+  if(profile.type==="duration"){
+    const best=Math.max.apply(null,values),unit=profile.unit;
+    if(!target)return {text:"Continue the programmed duration or target zone.",cls:"neutral",status:"duration_target"};
+    if(best<target.lo)return {text:"Build duration toward "+target.lo+"\u2013"+target.hi+" "+unit+".",cls:"hold",status:"build_duration"};
+    if(best<target.hi)return {text:"Duration target met. Build gradually toward "+target.hi+" "+unit+".",cls:"hold",status:"build_duration"};
+    return {text:profile.isCardio?"Duration target completed. Maintain the target zone or progress duration gradually.":
+      "Top duration reached. Progress control or use a harder hold variation when appropriate.",
+      cls:"up",status:"duration_target"};
+  }
+  const current=p959GetDirectionalLoad(validSets,profile);
+  const tlr=p9GetTargetLoadRangeForExercise(exId),hist=p9GetExerciseHistory(exId);
+  if(profile.type==="assistance_reps"){
+    if(below||rirTight)return {text:"Increase assistance slightly for a safer session, then rebuild quality reps.",
+      cls:"safer-hold",status:"safer_hold"};
+    if(!top)return {text:"Hold "+(current?current.numeric+" "+profile.unit+" assistance":"current assistance")+
+      " and build to "+(target?target.hi:"target")+" reps.",cls:"hold",status:"build_reps"};
+    if(!current)return {text:"Top reps reached. Record assistance before reducing it.",cls:"hold",status:"top_range_hold"};
+    const step=p959AssistanceStep(current.numeric,hist);
+    let suggested=Math.max(0,current.numeric-step);
+    if(tlr)suggested=Math.max(tlr.low,suggested);
+    if(tlr&&current.numeric<=tlr.low+2)return {text:"Hard end of the programmed assistance range reached. Review the target or next progression method.",
+      cls:"up",status:"ceiling_update"};
+    return {text:"Reduce assistance to "+suggested+" "+profile.unit+".",cls:"up",status:"progress_load"};
+  }
+  const bestHist=hist.reduce(function(best,h){
+    const x=p959GetDirectionalLoad(h.validSets,profile);return x&&(!best||x.numeric>best)?x.numeric:best;
+  },null);
+  if(tlr&&bestHist!==null&&bestHist>tlr.high+2)return {text:"Current target is below prior load. Reset to the programmed range and rebuild clean reps.",
+    cls:"reduce",status:"target_reset"};
+  if(below||rirTight)return {text:"Hold load and finish every set at the programmed reps and RIR.",cls:"safer-hold",status:"safer_hold"};
+  if(top&&current&&tlr&&current.numeric>=tlr.high-2){
+    const evidence=p959CeilingEvidence(exId,targetRepsStr,targetRirStr);
+    if(evidence.qualifyingSessionCount>=evidence.confirmationRequirement)
+      return {text:"Programmed ceiling completed. Raise the target ceiling or use the next progression method.",
+        cls:"up",status:"ceiling_update"};
+    return {text:"Ceiling reached once. Confirm one more complete session with qualifying reps and RIR.",
+      cls:"hold",status:"capped_hold"};
+  }
+  if(top&&!rirTight&&current){
+    const bump=current.numeric<30?2.5:5;
+    const suggested=tlr?Math.min(tlr.high,current.numeric+bump):current.numeric+bump;
+    return {text:"Try "+suggested+" "+(current.normalized.unit||profile.unit)+" for "+
+      (target&&target.lo!==target.hi?target.lo+"\u2013"+target.hi:target?target.hi:"target")+" reps.",
+      cls:"up",status:"progress_load"};
+  }
+  if(top)return {text:"Top of range reached. Confirm clean form and RIR before progressing.",
+    cls:"hold",status:"top_range_hold"};
+  return {text:"Hold current load and build toward "+(target?target.hi:"target")+" reps.",
+    cls:"hold",status:"build_reps"};
+};
+
+p9GetProgressionStatus=function(exId,validSets,targetRepsStr,targetRirStr){
+  return p9BuildSuggestion(exId,validSets,targetRepsStr,targetRirStr).status||"build_reps";
+};
+
+p9BadgeHTML=function(status){
+  const map={
+    new:["NEW","new"],build_reps:["\u2192 BUILD REPS","hold"],build_duration:["\u2192 BUILD DURATION","hold"],
+    duration_target:["\u2713 DURATION TARGET","up"],safer_hold:["\u26a0 SAFER HOLD","safer-hold"],
+    top_range_hold:["\u2192 TOP RANGE","hold"],progress_load:["\u2191 PROGRESS","up"],
+    capped_hold:["\u2192 CONFIRM CAP","hold"],ceiling_update:["\u2713 UPDATE CEILING","up"],
+    target_reset:["\u26a0 RESET HOLD","reduce"]
+  };
+  const x=map[status]||["\u2192 HOLD","hold"];
+  return '<div class="p9-badge '+x[1]+'">'+x[0]+'</div>';
+};
+
+p9BuildProgressionExport=function(ex){
+  const hist=p9GetExerciseHistory(ex.id);if(!hist.length)return "";
+  const profile=p959GetExerciseMetricProfile(ex.id,ex);
+  const reps=getF(ex.id,"reps",ex.reps),rir=getF(ex.id,"rir",ex.rir);
+  const sug=p9BuildSuggestion(ex.id,hist[0].validSets,reps,rir);
+  const direction=profile.lowerIsBetter?" (lower is better)":"";
+  const evidence=sug.status==="capped_hold"||sug.status==="ceiling_update"?
+    p959CeilingEvidence(ex.id,reps,rir):null;
+  let out="  Progression:\n";
+  out+="    Metric: "+profile.metric+direction+"\n";
+  out+="    Last: "+p5FormatLastSets(hist[0].validSets,ex.id)+"\n";
+  const best=p9GetBestExercisePerformance(ex.id);if(best)out+="    Best: "+best+"\n";
+  out+="    Status: "+sug.status+"\n";
+  out+="    Suggested: "+sug.text+"\n";
+  if(evidence)out+="    Ceiling evidence: "+evidence.qualifyingSessionCount+"/"+evidence.confirmationRequirement+
+    " qualifying saved sessions; latest "+(evidence.latestQualifies?"qualifies":"does not qualify")+".\n";
+  return out;
+};
+
+const p959LegacyRenderWoExercises=renderWoExercises;
+renderWoExercises=function(){
+  p959LegacyRenderWoExercises();
+  const daySelect=document.getElementById("woDaySelect");
+  if(!daySelect||daySelect.value==="")return;
+  const day=getResolvedDays(logGym).find(function(d){return d._dayIdx===parseInt(daySelect.value,10);});
+  const blocks=document.querySelectorAll("#woExerciseLog .wo-ex-block");
+  (day&&day.exercises||[]).forEach(function(ex,i){
+    const block=blocks[i];if(!block)return;
+    const profile=p959GetExerciseMetricProfile(ex.id,ex);
+    const wtLabel=block.querySelector(".wo-set-label.wt");
+    const valueLabel=block.querySelector(".wo-set-label.rp");
+    if(wtLabel)wtLabel.textContent=profile.type==="assistance_reps"?"ASSIST":
+      profile.type==="duration"&&profile.isCardio?"ZONE / LEVEL":"WEIGHT";
+    if(valueLabel)valueLabel.textContent=profile.valueLabel;
+    block.querySelectorAll(".wo-set-reps").forEach(function(input){
+      input.placeholder=profile.type==="duration"?profile.unit:"reps";
+      input.setAttribute("aria-label",profile.type==="duration"?"Duration in "+profile.unit:"Reps");
+    });
+  });
+};
+
+const p959LegacyWorkoutReview=p949BuildWorkoutReview;
+p949BuildWorkoutReview=function(woData){
+  const review=p959LegacyWorkoutReview(woData);
+  if(!review||review.insufficient)return review;
+  const day=getResolvedDays(woData.gym).find(function(d){return d._dayIdx===parseInt(woData.dayIdx,10);});
+  (day&&day.exercises||[]).forEach(function(ex){
+    const logged=woData.exercises[ex.id],sets=logged&&(logged.sets||[]).filter(function(s){return parseFloat(s.reps)>0;});
+    if(!sets||!sets.length)return;
+    const name=getF(ex.id,"name",ex.name),profile=p959GetExerciseMetricProfile(ex.id,ex);
+    review.wins=review.wins.filter(function(x){return x.indexOf(name+":")!==0;});
+    review.watch=review.watch.filter(function(x){return x.indexOf(name+":")!==0;});
+    review.next=review.next.filter(function(x){return x.indexOf(name+":")!==0;});
+    const reps=getF(ex.id,"reps",ex.reps),rir=getF(ex.id,"rir",ex.rir);
+    const sug=p9BuildSuggestion(ex.id,sets,reps,rir);
+    if(profile.type==="duration"){
+      const best=Math.max.apply(null,sets.map(function(s){return parseFloat(s.reps);}));
+      review.wins.push(name+": logged "+best+" "+profile.unit+" using the correct duration metric.");
+    }else if(profile.type==="assistance_reps"&&sug.status==="progress_load"){
+      review.wins.push(name+": target met; lower assistance is the next progression.");
+    }else if(sug.status==="ceiling_update"){
+      review.wins.push(name+": programmed ceiling completed with repeated qualifying sessions.");
+    }
+    review.next.push(name+": "+sug.text);
+  });
+  return review;
+};
+
+const p959LegacyRecentSignals=p9489GetRecentExerciseSignals;
+p9489GetRecentExerciseSignals=function(ex){
+  const profile=p959GetExerciseMetricProfile(ex.id,ex),hist=p9GetExerciseHistory(ex.id);
+  if(!hist.length)return {hasData:false};
+  const recent=hist.slice(0,5),reps=getF(ex.id,"reps",ex.reps),rir=getF(ex.id,"rir",ex.rir);
+  const statuses=recent.map(function(h){return p9GetProgressionStatus(ex.id,h.validSets,reps,rir);});
+  if(profile.type==="duration")return {hasData:true,sessionCount:hist.length,recentCount:recent.length,
+    statuses:statuses,progressCount:recent.length,cappedCount:0,metricExcludedFromLoadStale:true};
+  let directionalProgress=0;
+  if(profile.type==="assistance_reps"){
+    for(let i=0;i<recent.length-1;i++){
+      const newer=p959GetDirectionalLoad(recent[i].validSets,profile);
+      const older=p959GetDirectionalLoad(recent[i+1].validSets,profile);
+      if(newer&&older&&newer.numeric<older.numeric)directionalProgress++;
+    }
+  }else directionalProgress=statuses.filter(function(s){
+    return s==="progress_load"||s==="ceiling_update";
+  }).length;
+  return {hasData:true,sessionCount:hist.length,recentCount:recent.length,statuses:statuses,
+    progressCount:directionalProgress,cappedCount:statuses.filter(function(s){
+      return s==="capped_hold"||s==="top_range_hold";
+    }).length,ceilingUpdateCount:statuses.filter(function(s){return s==="ceiling_update";}).length};
+};
+
+const p959LegacyRotationAnalysis=p9489AnalyzeExerciseRotation;
+p9489AnalyzeExerciseRotation=function(){
+  const out=p959LegacyRotationAnalysis(),seen=new Set(out.candidates.map(function(c){return c.gym+"|"+c.day+"|"+c.name;}));
+  ["home","partial"].forEach(function(g){getResolvedDays(g).forEach(function(day){
+    (day.exercises||[]).forEach(function(ex){
+      const sig=p9489GetRecentExerciseSignals(ex),name=getF(ex.id,"name",ex.name);
+      const key=g+"|"+(day.name||day.day)+"|"+name;
+      if(sig.hasData&&sig.ceilingUpdateCount>0&&!seen.has(key)){
+        out.candidates.unshift({name:name,gym:g,day:day.name||day.day,signal:"ceiling_update",
+          severity:2,reason:"The programmed ceiling has repeated qualifying completion evidence.",
+          action:"target update or progression-method review",
+          note:"Prefer a higher ceiling, suitable next increment, or rep-range method before considering replacement."});
+      }
+    });
+  });});
+  out.candidates=out.candidates.slice(0,8);out.candidatesTotal=Math.max(out.candidatesTotal,out.candidates.length);
+  return out;
+};
+
+window.mfExerciseMetricDebug=function(exId,exercise){
+  const ex=exercise||p959FindExercise(exId);
+  const profile=p959GetExerciseMetricProfile(exId,ex);
+  const hist=p9GetExerciseHistory(exId);
+  return {exId:exId,resolved:!!ex,profile:profile,
+    targetValueRange:p959GetTargetRange(exId,ex),
+    normalizedTargetLoad:p959NormalizeLoggedLoad(ex&&getF(exId,"load",ex.load),profile),
+    normalizedLoggedLoads:hist.map(function(h){return {dateKey:h.dateKey,loads:h.validSets.map(function(s){
+      return p959NormalizeLoggedLoad(s.wt,profile);
+    })};}),readOnly:true};
+};
+
+window.mfProgressionDebug=function(exId){
+  const ex=p959FindExercise(exId);
+  if(!ex)return {error:"Exercise ID not found in resolved or known programs: "+exId};
+  const profile=p959GetExerciseMetricProfile(exId,ex),reps=getF(exId,"reps",ex.reps);
+  const rir=getF(exId,"rir",ex.rir),hist=p9GetExerciseHistory(exId),last=hist[0]||null;
+  const sug=p9BuildSuggestion(exId,last&&last.validSets,reps,rir);
+  const evidence=p959CeilingEvidence(exId,reps,rir);
+  return {exId:exId,name:getF(exId,"name",ex.name),metricType:profile.type,
+    metric:profile.metric,valueUnit:profile.unit,lowerIsBetter:profile.lowerIsBetter,
+    normalizedTargetLoad:p959NormalizeLoggedLoad(getF(exId,"load",ex.load),profile),
+    normalizedLoggedLoads:last?last.validSets.map(function(s){return p959NormalizeLoggedLoad(s.wt,profile);}):[],
+    targetValueRange:p5ParseRepRange(reps),qualifyingSessionCount:evidence.qualifyingSessionCount,
+    ceilingConfirmationRequirement:evidence.confirmationRequirement,latestSessionQualifies:evidence.latestQualifies,
+    finalStatus:sug.status,exactReason:sug.text,recommendedNextAction:sug.text,
+    bestPerformance:p9GetBestExercisePerformance(exId),readOnly:true};
+};
+mfProgressionDebug=window.mfProgressionDebug;
+
+window.mfProgressionAudit=function(){
+  const exercises=[],known=["new","target_reset","safer_hold","top_range_hold","progress_load",
+    "capped_hold","ceiling_update","build_reps","build_duration","duration_target"];
+  ["home","partial"].forEach(function(g){getResolvedDays(g).forEach(function(day,di){
+    (day.exercises||[]).forEach(function(ex){
+      const d=window.mfProgressionDebug(ex.id);
+      exercises.push({gym:g,dayIndex:di,exId:ex.id,name:d.name,metric:d.metric,
+        status:d.finalStatus,suggestion:d.recommendedNextAction,best:d.bestPerformance});
+    });
+  });});
+  const counts={};known.concat(["unknown"]).forEach(function(s){counts[s]=0;});
+  exercises.forEach(function(ex){counts[known.indexOf(ex.status)>=0?ex.status:"unknown"]++;});
+  return {appVersion:APP_VERSION,generatedAt:new Date().toISOString(),totalExercises:exercises.length,
+    statusCounts:counts,exercises:exercises,warnings:counts.unknown?["Unknown progression statuses detected."]:[]};
+};
+mfProgressionAudit=window.mfProgressionAudit;
+
+p945RenderDiag=function(){
+  const grid=document.getElementById("p945CountGrid"),warnEl=document.getElementById("p945Warnings");
+  if(!grid||!warnEl)return;
+  const audit=window.mfProgressionAudit();
+  if(audit.error){grid.textContent=audit.error;return;}
+  const colors={progress_load:"green",ceiling_update:"green",duration_target:"green",
+    target_reset:"red",safer_hold:"yellow",top_range_hold:"yellow",capped_hold:"yellow",
+    build_reps:"accent",build_duration:"accent",unknown:"red"};
+  const labels={progress_load:"\u2191 Progress",ceiling_update:"\u2713 Update Ceiling",
+    duration_target:"\u2713 Duration Target",target_reset:"\u26a0 Reset Hold",
+    safer_hold:"\u26a0 Safer Hold",top_range_hold:"\u2192 Top Range",
+    capped_hold:"\u2192 Confirm Cap",build_reps:"\u2192 Build Reps",
+    build_duration:"\u2192 Build Duration",new:"New",unknown:"Unknown"};
+  const order=["progress_load","ceiling_update","duration_target","build_reps","build_duration",
+    "top_range_hold","capped_hold","safer_hold","target_reset","new","unknown"];
+  grid.innerHTML=order.filter(function(k){return audit.statusCounts[k]>0||k==="progress_load"||k==="ceiling_update";})
+    .map(function(k){const c=colors[k]||"";return '<div class="p945-count-card"><div class="p945-count-label">'+
+      labels[k]+'</div><div class="p945-count-val'+(c?" "+c:"")+'">'+(audit.statusCounts[k]||0)+"</div></div>";}).join("");
+  warnEl.innerHTML=audit.warnings.length?
+    '<div class="p945-warn-title">\u26a0 '+audit.warnings.length+' Warning(s)</div>'+
+      audit.warnings.map(function(w){return '<div class="p945-warn-item">'+w+"</div>";}).join(""):
+    '<div class="p945-no-warn">\u2705 No warnings \u2014 all '+audit.totalExercises+" exercises processed cleanly.</div>";
+};
+
+// Safe browser fixture: every affected key is restored byte-for-byte in finally.
+window.mf959RunProgressionSelfTest=function(){
+  const ids=["partial-d0-e3"],keys=["day-2099-01-01-wo","day-2099-01-02-wo"];
+  const before={};keys.forEach(function(k){before[k]=localStorage.getItem(k);});
+  const assertions=[];
+  function check(name,pass,actual){assertions.push({name:name,pass:!!pass,actual:actual});}
+  try{
+    const ex=p959FindExercise(ids[0]),sets=function(last){return [20,20,20,last].map(function(r){
+      return {wt:"20 lb",reps:String(r),rir:"2"};
+    });};
+    const make=function(s){return JSON.stringify({exercises:{"partial-d0-e3":{sets:s}}});};
+    localStorage.setItem(keys[0],make(sets(20)));
+    let status=p9GetProgressionStatus(ids[0],sets(20),"15\u201320","1\u20132");
+    check("first ceiling session is capped_hold",status==="capped_hold",status);
+    localStorage.setItem(keys[1],make(sets(20)));
+    status=p9GetProgressionStatus(ids[0],sets(20),"15\u201320","1\u20132");
+    check("second ceiling session is ceiling_update",status==="ceiling_update",status);
+    check("weak set fails qualification",!p959SessionQualifiesAtCeiling(ids[0],sets(14),"15\u201320","1\u20132"),null);
+    const assist={id:"qa-assisted",name:"Assisted Pull-Up",sets:3,reps:"8\u201310",load:"100\u2013120 lb assistance",rir:"1\u20132"};
+    check("assistance classification",p959GetExerciseMetricProfile(assist.id,assist).lowerIsBetter===true,null);
+    check("duration minutes",p959GetExerciseMetricProfile("home-d2-e0").metric==="duration_minutes",null);
+    check("static hold seconds",p959GetExerciseMetricProfile("home-d4-e4").metric==="duration_seconds",null);
+    check("load normalization",p959NormalizeLoggedLoad("40 lb dumbbells").equipment==="dumbbell",null);
+    check("heart rate normalization",p959NormalizeLoggedLoad("HR 130").nonLoadType==="heart_rate",null);
+    return {pass:assertions.every(function(a){return a.pass;}),assertions:assertions,restored:true};
+  }finally{
+    keys.forEach(function(k){before[k]===null?localStorage.removeItem(k):localStorage.setItem(k,before[k]);});
+  }
+};
+
+const p959LegacyGenExport=genExport;
+genExport=function(){
+  const out=p959LegacyGenExport();
+  const guide="--- 9.5.9 PROGRESSION METRIC GUIDE ---\n"+
+    "- Assisted-machine load is assistance: lower assistance is improvement.\n"+
+    "- Cardio minutes and static-hold seconds are duration, never reps.\n"+
+    "- capped_hold means one more qualifying ceiling confirmation is pending.\n"+
+    "- ceiling_update means the programmed ceiling is complete; update the target or method before replacing a productive exercise.\n\n";
+  const updated=String(out||window._exp||"").replace(/(=== MARCUSFIT EXPORT ===\n)/,"$1"+guide);
+  window._exp=updated;const target=document.getElementById("exportOut");if(target)target.textContent=updated;
+  return updated;
+};
+
 function showScreen(n){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
   document.getElementById("screen-"+n).classList.add("active");document.getElementById("tab-"+n).classList.add("active");
   document.getElementById("gymRow").classList.toggle("visible",n==="program");
+  if(n==="program"){renderProgram();}
   if(n==="history"){p7ApplyFilters();}
   if(n==="analytics"){p7RenderAnalytics();}
   if(n==="export"){updateExportMeta();mfRenderLifecycleHealth();p9RenderCoachPrefs();p950RenderUserProfile();p954RenderProgramPersonalization();const ds=document.getElementById("p945DiagSection");if(ds&&ds.classList.contains("open"))p945RenderDiag();}
@@ -13639,6 +14564,11 @@ p952InitAutoShow();
 // export screen becomes active without a showScreen() transition. Read-only
 // render — never generates or clears a proposal on its own.
 p954RenderProgramPersonalization();
+// 9.5.8.4: This is the existing synchronous initialization completion point.
+// Release the transient Program guard only after all starter inputs are ready,
+// then render once through the same guarded path used by gym switching.
+starterProgramStateReady=true;
+renderProgram();
 </script>
 </body>
 </html>
