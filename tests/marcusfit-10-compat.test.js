@@ -105,6 +105,39 @@ if (currentInlineScripts.length === 1) {
   );
   new vm.Script(currentInlineScripts[0].content, { filename: "index.inline.js" });
 }
+const currentExternalScripts = blocks(current, "script")
+  .map(block => {
+    const sourceMatch = block.attributes.match(/\bsrc=["']([^"']+)["']/i);
+    return sourceMatch ? sourceMatch[1] : null;
+  })
+  .filter(Boolean);
+if (currentExternalScripts.length) {
+  const externalSources = currentExternalScripts.map(source => {
+    const sourcePath = path.join(root, ...source.split("/"));
+    const content = fs.readFileSync(sourcePath, "utf8");
+    new vm.Script(content, { filename: source });
+    return content;
+  });
+  const combinedExternalSource = externalSources.join("");
+  new vm.Script(combinedExternalSource, { filename: "MarcusFit10.combined.js" });
+  assert.strictEqual(
+    normalizeEol(combinedExternalSource),
+    normalizeEol(acceptedScript),
+    "External runtime source order/content differs from accepted runtime"
+  );
+  const acceptedRuntimeInventory = extractInventory(`<script>${acceptedScript}</script>`);
+  const currentRuntimeInventory = extractInventory(`<script>${combinedExternalSource}</script>`);
+  assert.deepStrictEqual(
+    currentRuntimeInventory.inlineHandlerFunctions,
+    acceptedRuntimeInventory.inlineHandlerFunctions,
+    "Public inline-handler function surface changed"
+  );
+  assert.deepStrictEqual(
+    currentRuntimeInventory.windowGlobals,
+    acceptedRuntimeInventory.windowGlobals,
+    "Explicit window global surface changed"
+  );
+}
 
 const inventory = extractInventory(accepted);
 const requiredGlobals = [
