@@ -12,6 +12,7 @@ const current = fs.readFileSync(currentPath, "utf8");
 const acceptedSha256 = crypto.createHash("sha256").update(fs.readFileSync(acceptedPath)).digest("hex");
 
 const EXPECTED_ACCEPTED_SHA256 = "69a3a66541d14290a6a7b73bf313365176169fd0d659e6effb29edcaf7a4e34b";
+const TARGET_APP_VERSION = "10.0.0";
 
 function blocks(source, tagName) {
   return [...source.matchAll(new RegExp(`<${tagName}\\b([^>]*)>([\\s\\S]*?)<\\/${tagName}>`, "gi"))]
@@ -29,6 +30,31 @@ function sortedUnique(values) {
 
 function normalizeEol(value) {
   return value.replace(/\r\n/g, "\n");
+}
+
+function extractBalanced(source, startToken) {
+  const start = source.indexOf(startToken);
+  assert(start >= 0, `Missing token: ${startToken}`);
+  const brace = source.indexOf("{", start);
+  let depth = 0;
+  let quote = null;
+  let escaped = false;
+  for (let index = brace; index < source.length; index++) {
+    const character = source[index];
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === quote) quote = null;
+      continue;
+    }
+    if (character === "'" || character === '"' || character === "`") {
+      quote = character;
+      continue;
+    }
+    if (character === "{") depth++;
+    if (character === "}" && --depth === 0) return source.slice(start, index + 1);
+  }
+  throw new Error(`Unbalanced token: ${startToken}`);
 }
 
 function extractInventory(source) {
@@ -112,6 +138,15 @@ const currentExternalScripts = blocks(current, "script")
   })
   .filter(Boolean);
 if (currentExternalScripts.length) {
+  assert.deepStrictEqual(currentExternalScripts, [
+    "assets/js/01-core-data.js",
+    "assets/js/02-state-personalization.js",
+    "assets/js/03-interactions-sync.js",
+    "assets/js/04-backup-boot.js"
+  ], "External script order changed");
+  for (const block of blocks(current, "script")) {
+    assert(/\bdefer(?:\s|>|$)/i.test(block.attributes), "Every production script must use defer");
+  }
   const externalSources = currentExternalScripts.map(source => {
     const sourcePath = path.join(root, ...source.split("/"));
     const content = fs.readFileSync(sourcePath, "utf8");
@@ -120,10 +155,14 @@ if (currentExternalScripts.length) {
   });
   const combinedExternalSource = externalSources.join("");
   new vm.Script(combinedExternalSource, { filename: "MarcusFit10.combined.js" });
+  const expectedExternalSource = acceptedScript.replace(
+    'const APP_VERSION = "9.6.0";',
+    `const APP_VERSION = "${TARGET_APP_VERSION}";`
+  );
   assert.strictEqual(
     normalizeEol(combinedExternalSource),
-    normalizeEol(acceptedScript),
-    "External runtime source order/content differs from accepted runtime"
+    normalizeEol(expectedExternalSource),
+    "External runtime differs from accepted runtime beyond APP_VERSION"
   );
   const acceptedRuntimeInventory = extractInventory(`<script>${acceptedScript}</script>`);
   const currentRuntimeInventory = extractInventory(`<script>${combinedExternalSource}</script>`);
@@ -137,7 +176,34 @@ if (currentExternalScripts.length) {
     acceptedRuntimeInventory.windowGlobals,
     "Explicit window global surface changed"
   );
+  assert.strictEqual(
+    crypto.createHash("sha256").update(normalizeEol(extractBalanced(combinedExternalSource, "const P ="))).digest("hex"),
+    crypto.createHash("sha256").update(normalizeEol(extractBalanced(acceptedScript, "const P ="))).digest("hex"),
+    "Base program P changed"
+  );
+  const restoreSequence = [
+    "p8ValidateBackup(raw)",
+    "p8MigrateBackup(backup)",
+    "p8492SummarizeBackup(backup)",
+    "p8ExecuteRestore(backup)",
+    "mfRunPostRestoreValidation()",
+    "location.reload()"
+  ];
+  const restoreFlowStart = combinedExternalSource.indexOf("function p8RestoreBackup");
+  assert(restoreFlowStart >= 0, "Restore flow is missing");
+  const restoreFlow = combinedExternalSource.slice(restoreFlowStart);
+  const restoreOffsets = restoreSequence.map(token => restoreFlow.indexOf(token));
+  assert(restoreOffsets.every(offset => offset >= 0), "Backup/restore sequence token is missing");
+  assert(
+    restoreOffsets.every((offset, index) => index === 0 || restoreOffsets[index - 1] < offset),
+    "Backup/restore sequence order changed"
+  );
 }
+assert(current.includes(`<title>MarcusFit ${TARGET_APP_VERSION}</title>`), "Current title version is incorrect");
+assert(
+  current.includes(`MarcusFit ${TARGET_APP_VERSION}</strong> &mdash; Personalized Habits`),
+  "Current visible version is incorrect"
+);
 
 const inventory = extractInventory(accepted);
 const requiredGlobals = [
