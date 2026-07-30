@@ -3,689 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarcusFit 9.5.9</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
-:root {
-  --bg:#0b0c10; --surface:#13151a; --surface2:#1a1d24; --border:#252830;
-  --accent:#00e5ff; --accent2:#ff6b35; --text:#eef0f4; --muted:#5a6070;
-  --green:#00e676; --red:#ff3d57; --yellow:#ffd740;
-  --push:#ff6b35; --lower:#ffd740; --cardio:#00e676; --pull:#00e5ff; --pump:#c864ff; --arms:#ff3d57;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:24px;overflow-x:hidden;}
-.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 18px 0;position:sticky;top:0;z-index:200;}
-.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;}
-.logo span:first-child{color:var(--accent);}
-.logo span:last-child{color:var(--accent2);}
-.date-pill{font-size:11px;font-weight:600;color:var(--muted);background:var(--surface2);padding:5px 12px;border-radius:20px;border:1px solid var(--border);}
-.tab-nav{display:flex;border-bottom:1px solid var(--border);margin:0 -18px;}
-.tab-btn{flex:1;padding:10px 4px 9px;border:none;background:none;color:var(--muted);font-size:9px;font-family:'DM Sans',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .15s;border-bottom:2px solid transparent;position:relative;bottom:-1px;}
-.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
-.tab-icon{font-size:16px;}
-.gym-row{display:none;gap:6px;padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);}
-.gym-row.visible{display:flex;}
-.gym-btn{flex:1;padding:7px 4px 6px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;cursor:pointer;text-align:center;text-transform:uppercase;letter-spacing:.6px;transition:all .2s;line-height:1.3;}
-.gym-btn small{display:block;font-size:9px;font-weight:400;opacity:.6;margin-top:1px;}
-.gym-btn.active{background:var(--accent);color:#000;border-color:var(--accent);}
-.screen{display:none;padding:16px 18px;}
-.screen.active{display:block;}
-.screen-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--muted);margin-bottom:14px;}
-.day-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden;transition:border-color .2s;}
-.day-card.open{border-color:var(--card-color,var(--accent));}
-.day-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
-.day-header:active{background:var(--surface2);}
-.day-num{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
-.day-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--card-color,var(--text));}
-.day-focus{font-size:11px;color:var(--muted);margin-top:2px;}
-.day-right{display:flex;align-items:center;gap:8px;}
-.day-tag{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;background:color-mix(in srgb,var(--card-color,var(--accent)) 18%,transparent);color:var(--card-color,var(--accent));}
-.chevron{color:var(--muted);font-size:12px;transition:transform .2s;}
-.day-card.open .chevron{transform:rotate(180deg);}
-.day-body{display:none;border-top:1px solid var(--border);padding:0 16px 16px;}
-.day-card.open .day-body{display:block;}
-.coach-note{font-size:12px;font-style:italic;color:var(--muted);padding:10px 0 4px;line-height:1.5;}
-.ex-item{padding:12px 0 10px;border-bottom:1px solid var(--border);}
-.ex-item:last-child{border-bottom:none;padding-bottom:0;}
-.ex-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:5px;}
-.ex-name{font-weight:600;font-size:14px;}
-.edit-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;white-space:nowrap;flex-shrink:0;margin-left:8px;font-family:'DM Sans',sans-serif;}
-.edit-btn:active{background:var(--border);}
-.edit-btn.active{color:var(--yellow);border-color:var(--yellow);}
-.ex-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;}
-.ex-tag{font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--surface2);color:var(--text);border:1px solid var(--border);}
-.ex-tag.load{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 30%,transparent);}
-.ex-tag.rir-tag{color:var(--accent2);border-color:color-mix(in srgb,var(--accent2) 30%,transparent);}
-.ex-blurb{font-size:11px;color:var(--muted);font-style:italic;line-height:1.5;}
-.ex-editor{display:none;background:var(--surface2);border:1px solid var(--yellow);border-radius:10px;padding:12px;margin-top:10px;}
-.ex-editor.open{display:block;}
-.editor-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);margin-bottom:10px;}
-.editor-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.editor-row:last-child{margin-bottom:0;}
-.editor-label{font-size:11px;color:var(--muted);font-weight:600;width:52px;flex-shrink:0;}
-.editor-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:7px 10px;}
-.editor-input:focus{outline:none;border-color:var(--yellow);}
-.editor-input.full{width:100%;}
-.editor-btn-row{display:flex;gap:8px;margin-top:10px;}
-.editor-save{flex:1;padding:9px;background:var(--yellow);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;}
-.editor-cancel{padding:9px 14px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
-.editor-reset{padding:9px 10px;background:transparent;color:var(--red);border:1px solid var(--red);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;}
-.add-ex-btn{display:block;width:100%;margin-top:10px;padding:9px;background:transparent;border:1px dashed var(--accent);border-radius:8px;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
-.add-ex-btn:active{background:color-mix(in srgb,var(--accent) 12%,transparent);}
-.add-ex-editor{border-color:var(--accent);}
-.add-ex-editor .editor-title{color:var(--accent);}
-.date-nav{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
-.dnav-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 13px;font-size:14px;cursor:pointer;}
-.dnav-label{flex:1;text-align:center;font-size:13px;font-weight:600;}
-.log-gym-row{display:flex;gap:6px;margin-bottom:12px;}
-.log-gym-btn{flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-align:center;text-transform:uppercase;letter-spacing:.6px;transition:all .2s;}
-.log-gym-btn.active{background:var(--accent);color:#000;border-color:var(--accent);}
-.t-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
-.t-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;}
-.t-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.t-row:last-child{margin-bottom:0;}
-.t-emoji{font-size:18px;width:24px;text-align:center;flex-shrink:0;}
-.t-field{flex:1;font-size:13px;font-weight:500;}
-.t-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:7px 10px;width:80px;text-align:center;}
-.t-input:focus{outline:none;border-color:var(--accent);}
-.t-input.wide{width:100%;}
-.weight-hero{text-align:center;padding:8px 0 12px;}
-.weight-hero-num{font-family:'Bebas Neue',sans-serif;font-size:64px;color:var(--accent);letter-spacing:2px;line-height:1;}
-.weight-hero-unit{font-size:13px;color:var(--muted);margin-top:2px;}
-.toggle-row{display:flex;gap:6px;flex-wrap:wrap;}
-.tog-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;}
-.tog-btn.yes{background:rgba(0,230,118,.18);color:var(--green);border-color:var(--green);}
-.tog-btn.no{background:rgba(255,61,87,.15);color:var(--red);border-color:var(--red);}
-.tog-btn.rest{background:rgba(0,229,255,.12);color:var(--accent);border-color:var(--accent);}
-.mood-wrap{display:flex;align-items:center;gap:10px;margin-top:6px;}
-.mood-slider{flex:1;accent-color:var(--accent);}
-.mood-num{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);width:30px;text-align:right;}
-.notes-ta{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;resize:none;margin-top:6px;line-height:1.5;}
-.notes-ta:focus{outline:none;border-color:var(--accent);}
-.save-btn{width:100%;padding:14px;background:var(--green);color:#000;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;cursor:pointer;margin-top:4px;}
-.save-btn:active{opacity:.8;}
-.wo-day-selector label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;}
-.wo-day-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;-webkit-appearance:none;margin-bottom:10px;}
-.wo-day-select:focus{outline:none;border-color:var(--accent);}
-.wo-ex-block{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
-.wo-ex-name{font-weight:600;font-size:14px;margin-bottom:4px;}
-.wo-ex-target{font-size:11px;color:var(--muted);margin-bottom:8px;}
-.wo-ex-target span{color:var(--accent);font-weight:600;}
-.wo-set-labels{display:flex;gap:8px;margin-bottom:4px;padding-left:44px;}
-.wo-set-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
-.wo-set-label.wt{flex:1;text-align:center;}
-.wo-set-label.rp{width:52px;text-align:center;}
-.wo-set-label.ri{width:70px;text-align:center;}
-.wo-set-rows{display:flex;flex-direction:column;gap:7px;margin-bottom:8px;}
-.wo-set-row{display:flex;align-items:center;gap:8px;}
-.wo-set-num{font-size:11px;font-weight:700;color:var(--muted);width:36px;flex-shrink:0;}
-.wo-set-wt{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:6px 8px;text-align:center;}
-.wo-set-wt:focus{outline:none;border-color:var(--accent);}
-.wo-set-reps{width:52px;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:6px 6px;text-align:center;}
-.wo-set-reps:focus{outline:none;border-color:var(--accent2);}
-.wo-set-rir{width:70px;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 4px;-webkit-appearance:none;}
-.wo-set-rir:focus{outline:none;border-color:var(--accent2);}
-.wo-note-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 8px;}
-.wo-note-input:focus{outline:none;border-color:var(--muted);}
-.wo-day-note{font-size:12px;font-style:italic;color:var(--muted);margin-bottom:10px;line-height:1.5;}
-.wo-ex-coach{font-size:11px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;}
-.no-workout-msg{text-align:center;color:var(--muted);padding:20px 10px;font-size:13px;line-height:1.7;}
-.hist-entry{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
-.hist-entry.expandable{cursor:pointer;}
-.hist-date{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;}
-.hist-pills{display:flex;flex-wrap:wrap;gap:5px;}
-.hist-pill{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--surface2);color:var(--text);border:1px solid var(--border);}
-.hist-notes{font-size:12px;color:var(--muted);margin-top:6px;font-style:italic;}
-.hist-wo-detail{display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;}
-.hist-entry.open .hist-wo-detail{display:block;}
-.hist-wo-ex{font-size:11px;margin-bottom:6px;}
-.hist-wo-ex-name{font-weight:700;color:var(--text);margin-bottom:2px;}
-.hist-wo-set{color:var(--muted);padding-left:10px;}
-.empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px;line-height:1.6;}
-.big-btn{width:100%;padding:13px;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1.5px;cursor:pointer;margin-bottom:10px;}
-.big-btn:active{opacity:.8;}
-.big-btn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.45);}
-.btn-export{background:var(--accent);color:#000;}
-.btn-copy{background:transparent;color:var(--accent);border:1px solid var(--accent)!important;display:none;}
-.btn-sync{background:var(--green);color:#000;}
-.export-out{display:none;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:11px;line-height:1.7;white-space:pre-wrap;font-family:'Courier New',monospace;color:var(--text);word-break:break-word;max-height:280px;overflow-y:auto;}
-.sync-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
-.sync-box-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;}
-.sync-ta{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:11px;padding:10px;resize:none;line-height:1.6;margin-bottom:10px;}
-.sync-ta:focus{outline:none;border-color:var(--green);}
-.sync-result{display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;margin-top:8px;}
-.divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
-.section-label{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;}
-.info-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.6;}
-.info-box strong{color:var(--accent);}
-
-/* ── PHASE 2: DRAFT SYSTEM ── */
-.draft-toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:7px 16px;font-size:11px;font-weight:600;color:var(--muted);z-index:999;transition:transform .3s ease,opacity .3s ease;opacity:0;white-space:nowrap;pointer-events:none;}
-.draft-toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
-.resume-banner{background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:none;}
-.resume-banner.visible{display:block;}
-.resume-banner-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:6px;}
-.resume-banner-body{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;}
-.resume-btn-row{display:flex;gap:8px;}
-.resume-btn{flex:1;padding:8px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
-.resume-btn.yes{background:var(--accent);color:#000;}
-.resume-btn.no{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
-
-/* ── DAILY HABITS SYSTEM ── */
-.habits-section{margin-bottom:10px;}
-.habits-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.habits-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--muted);}
-.habits-progress{font-size:11px;font-weight:700;color:var(--muted);background:var(--surface2);padding:3px 10px;border-radius:20px;border:1px solid var(--border);}
-.habits-progress.done{color:var(--green);border-color:color-mix(in srgb,var(--green) 35%,transparent);}
-.habit-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;transition:border-color .2s;}
-.habit-card.completed{border-color:color-mix(in srgb,var(--green) 40%,transparent);}
-.habit-card-top{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;user-select:none;}
-.habit-card-top:active{background:var(--surface2);}
-.habit-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:12px;}
-.habit-card.completed .habit-check{background:var(--green);border-color:var(--green);color:#000;}
-.habit-info{flex:1;}
-.habit-name{font-weight:600;font-size:13px;margin-bottom:2px;}
-.habit-target{font-size:11px;color:var(--muted);}
-.habit-expand{color:var(--muted);font-size:11px;transition:transform .2s;flex-shrink:0;}
-.habit-card.open .habit-expand{transform:rotate(180deg);}
-.habit-body{display:none;border-top:1px solid var(--border);padding:10px 14px 12px;}
-.habit-card.open .habit-body{display:block;}
-.habit-instructions{list-style:none;margin-bottom:10px;}
-.habit-instructions li{font-size:12px;color:var(--muted);line-height:1.6;padding-left:14px;position:relative;}
-.habit-instructions li::before{content:"→";position:absolute;left:0;color:var(--accent);font-size:10px;}
-.habit-note-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:7px 10px;margin-top:2px;}
-.habit-note-input:focus{outline:none;border-color:var(--accent);}
-.habit-note-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px;}
-.wo-recs-section{margin-bottom:10px;}
-.wo-recs-card{background:var(--surface);border:1px solid color-mix(in srgb,var(--accent2) 30%,transparent);border-radius:12px;padding:12px 14px;}
-.wo-recs-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);margin-bottom:10px;}
-.wo-recs-title .recs-ai-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:4px;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);margin-left:6px;vertical-align:middle;text-transform:uppercase;}
-.wo-rec-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
-.wo-rec-item:last-child{margin-bottom:0;}
-.wo-rec-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
-.wo-rec-text{font-size:12px;color:var(--muted);line-height:1.5;}
-.wo-rec-text strong{color:var(--text);font-weight:600;}
-
-/* ── PHASE 5: LAST TIME / SUGGESTED TODAY ── */
-.p5-hist-wrap{margin-bottom:8px;}
-.p5-hist-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:1px 0;}
-.p5-hist-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .15s;}
-.p5-hist-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);transition:color .15s;}
-.p5-hist-toggle:active .p5-hist-label{color:var(--text);}
-.p5-chevron{font-size:9px;color:var(--muted);transition:transform .2s;}
-.p5-hist-wrap.open .p5-chevron{transform:rotate(180deg);}
-.p5-hist-wrap.open .p5-hist-dot{background:var(--accent2);}
-.p5-hist-wrap.open .p5-hist-label{color:var(--accent2);}
-.p5-hist-body{display:none;margin-top:6px;background:color-mix(in srgb,var(--surface2) 80%,transparent);border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-size:11px;line-height:1.6;}
-.p5-hist-wrap.open .p5-hist-body{display:block;}
-.p5-last-line{color:var(--muted);margin-bottom:3px;}
-.p5-last-line strong{color:var(--text);font-weight:600;}
-.p5-suggest-line{color:var(--accent2);font-weight:500;}
-.p5-suggest-line.neutral{color:var(--muted);}
-.p5-suggest-line.go{color:var(--green);}
-.p5-suggest-line.hold{color:var(--yellow);}
-/* ── PHASE 9.4.9: WORKOUT REVIEW AFTER SAVE ── */
-.p949-review-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:12px;margin-bottom:10px;}
-.p949-review-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.p949-review-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--accent);}
-.p949-review-hide{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:700;padding:5px 10px;border-radius:8px;cursor:pointer;}
-.p949-review-hide:active{opacity:.7;}
-.p949-section{margin-top:10px;}
-.p949-section:first-child{margin-top:0;}
-.p949-section-label{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px;}
-.p949-section-label.summary{color:var(--muted);}
-.p949-section-label.wins{color:var(--green);}
-.p949-section-label.watch{color:var(--yellow);}
-.p949-section-label.next{color:var(--accent);}
-.p949-section-label.coach{color:var(--muted);}
-.p949-line{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:4px;padding-left:14px;position:relative;}
-.p949-line:before{content:"\2022";position:absolute;left:2px;color:var(--muted);}
-.p949-line.summary-line{padding-left:0;color:var(--muted);}
-.p949-line.summary-line:before{content:none;}
-.p949-empty-note{font-size:12px;color:var(--muted);font-style:italic;line-height:1.5;}
-/* ── PHASE 9A: PROGRESSION ENGINE ── */
-.p9-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:2px 8px;border-radius:5px;margin-bottom:7px;border:1px solid transparent;}
-.p9-badge.up{color:var(--green);border-color:color-mix(in srgb,var(--green) 35%,transparent);background:color-mix(in srgb,var(--green) 10%,transparent);}
-.p9-badge.hold{color:var(--yellow);border-color:color-mix(in srgb,var(--yellow) 35%,transparent);background:color-mix(in srgb,var(--yellow) 10%,transparent);}
-.p9-badge.reduce{color:var(--red);border-color:color-mix(in srgb,var(--red) 35%,transparent);background:color-mix(in srgb,var(--red) 10%,transparent);}
-.p9-badge.safer-hold{color:var(--yellow);border-color:color-mix(in srgb,var(--yellow) 35%,transparent);background:color-mix(in srgb,var(--yellow) 12%,transparent);}
-.p9-badge.new{color:var(--muted);border-color:var(--border);background:var(--surface2);}
-.p9-best-line{color:var(--accent);font-size:11px;margin-top:2px;}
-.p9-suggest-line{font-size:11px;margin-top:4px;font-weight:500;}
-.p9-suggest-line.up{color:var(--green);}
-.p9-suggest-line.hold{color:var(--yellow);}
-.p9-suggest-line.reduce{color:var(--red);}
-.p9-suggest-line.safer-hold{color:var(--yellow);}
-.p9-suggest-line.neutral{color:var(--muted);}
-.p9-safer-hold-note{font-size:10px;color:var(--muted);font-style:italic;margin-top:2px;}
-/* ── PHASE 6: COLLAPSIBLE SECTIONS ── */
-.p6-section{margin-bottom:10px;}
-.p6-section-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:pointer;user-select:none;transition:border-color .2s,background .15s;-webkit-tap-highlight-color:transparent;}
-.p6-section-header:active{background:var(--surface2);}
-.p6-section.open .p6-section-header{border-radius:12px 12px 0 0;border-bottom-color:transparent;}
-.p6-section-header-left{display:flex;align-items:center;gap:10px;}
-.p6-section-icon{font-size:17px;}
-.p6-section-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--text);}
-.p6-section-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);white-space:nowrap;}
-.p6-section-badge.done{color:var(--green);border-color:color-mix(in srgb,var(--green) 35%,transparent);background:color-mix(in srgb,var(--green) 10%,transparent);}
-.p6-section-badge.partial{color:var(--yellow);border-color:color-mix(in srgb,var(--yellow) 35%,transparent);background:color-mix(in srgb,var(--yellow) 8%,transparent);}
-.p6-chevron{color:var(--muted);font-size:13px;transition:transform .25s;flex-shrink:0;}
-.p6-section.open .p6-chevron{transform:rotate(180deg);}
-.p6-section-body{display:none;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:14px 16px 16px;}
-.p6-section.open .p6-section-body{display:block;}
-
-/* ── PHASE 6: STICKY SAVE BAR ── */
-/* Sticky save bar */
-.p6-sticky-bar{
-  position:fixed;
-  bottom:0;
-  left:50%;
-  transform:translateX(-50%);
-  width:100%;
-  max-width:480px;
-  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
-  background:rgba(11,12,16,.95);
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
-  border-top:1px solid var(--border);
-  border-radius:14px 14px 0 0;
-  z-index:300;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  box-shadow:0 -4px 24px rgba(0,0,0,.5);
-}
-.p6-save-btn{flex:1;padding:13px 10px;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;cursor:pointer;transition:opacity .15s,transform .1s;background:var(--green);color:#000;}
-.p6-save-btn:active{opacity:.8;transform:scale(.98);}
-.p6-save-btn.update-mode{background:var(--accent);}
-.p6-save-status{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);text-align:right;line-height:1.4;flex-shrink:0;min-width:52px;}
-.p6-save-status.draft{color:var(--yellow);}
-.p6-save-status.saved{color:var(--green);}
-
-/* Screen padding: enough for sticky save bar */
-#screen-log{padding-bottom:calc(92px + env(safe-area-inset-bottom));}
-
-/* ── PHASE 6: IMPROVED MOBILE INPUTS ── */
-.t-input{font-size:16px!important;padding:10px 12px!important;min-height:44px;}
-.t-input.wide{font-size:16px!important;}
-.notes-ta{font-size:15px!important;padding:10px 12px!important;min-height:72px;}
-.tog-btn{padding:10px 16px!important;font-size:13px!important;min-height:44px;}
-.t-row{margin-bottom:12px!important;}
-
-/* ── MICRO POLISH: WORKOUT SET LAYOUT ── */
-.wo-ex-block{padding:14px 14px 12px!important;}
-.wo-ex-name{font-size:15px!important;font-weight:700!important;margin-bottom:2px!important;}
-.wo-ex-target{font-size:12px!important;margin-bottom:8px!important;}
-
-/* Column headers — offset to align past the set badge */
-.wo-set-labels{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  margin-bottom:4px;
-  padding-left:46px;
-}
-.wo-set-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.wo-set-label.wt{flex:1;text-align:center;}
-.wo-set-label.rp{width:64px;text-align:center;}
-.wo-set-label.ri{width:80px;text-align:center;}
-
-/* Set rows */
-.wo-set-rows{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
-.wo-set-row{display:flex;align-items:center;gap:6px;}
-
-/* Set badge — horizontal "S1" pill, sits flush in the row */
-.wo-set-num{
-  width:38px;
-  height:44px;
-  flex-shrink:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.wo-set-num::before{display:none!important;}
-.wo-set-num-inner{display:none;}
-.wo-set-num-n{
-  font-family:'DM Sans',sans-serif;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.4px;
-  color:var(--muted);
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:6px;
-  padding:4px 7px;
-  line-height:1;
-  white-space:nowrap;
-}
-
-/* Weight — slightly less dominant, still primary */
-.wo-set-wt{
-  flex:1;
-  background:var(--bg);
-  border:1px solid var(--border);
-  border-radius:8px;
-  color:var(--text);
-  font-family:'DM Sans',sans-serif;
-  font-size:15px!important;
-  font-weight:600;
-  padding:0 6px!important;
-  text-align:center;
-  height:44px;
-  min-height:44px!important;
-}
-.wo-set-wt:focus{outline:none;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--bg));}
-
-/* Reps — wider than before, same height */
-.wo-set-reps{
-  width:64px;
-  background:var(--bg);
-  border:1px solid var(--border);
-  border-radius:8px;
-  color:var(--text);
-  font-family:'DM Sans',sans-serif;
-  font-size:15px!important;
-  padding:0 6px!important;
-  text-align:center;
-  height:44px;
-  min-height:44px!important;
-}
-.wo-set-reps:focus{outline:none;border-color:var(--accent2);background:color-mix(in srgb,var(--accent2) 5%,var(--bg));}
-
-/* RIR — compact dropdown */
-.wo-set-rir{
-  width:70px;
-  background:var(--bg);
-  border:1px solid var(--border);
-  border-radius:8px;
-  color:var(--muted);
-  font-family:'DM Sans',sans-serif;
-  font-size:12px!important;
-  padding:0 2px!important;
-  -webkit-appearance:none;
-  text-align:center;
-  height:44px;
-  min-height:44px!important;
-}
-.wo-set-rir:focus{outline:none;border-color:var(--border);color:var(--text);}
-
-/* Note field */
-.wo-note-input{
-  width:100%;
-  background:var(--bg);
-  border:1px solid var(--border);
-  border-radius:8px;
-  color:var(--text);
-  font-family:'DM Sans',sans-serif;
-  font-size:13px!important;
-  padding:9px 10px!important;
-  min-height:38px!important;
-  margin-top:6px!important;
-}
-.wo-note-input:focus{outline:none;border-color:var(--muted);}
-
-/* Exercise started indicator */
-.wo-ex-block.has-data{border-color:color-mix(in srgb,var(--green) 35%,transparent);}
-.wo-ex-started-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-left:7px;vertical-align:middle;flex-shrink:0;}
-
-/* ── PHASE 6: METRICS FILL INDICATORS ── */
-.p6-metrics-status{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
-.p6-metric-dot{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
-.p6-metric-dot.filled{color:var(--green);border-color:color-mix(in srgb,var(--green) 30%,transparent);background:color-mix(in srgb,var(--green) 8%,transparent);}
-
-/* Hide old inline save button on mobile when sticky bar shows */
-.save-btn{display:none;}
-@media(min-width:600px){
-  .save-btn{display:block!important;}
-  .p6-sticky-bar{display:none!important;}
-  #screen-log{padding-bottom:24px!important;}
-}
-
-/* ── PHASE 7: HISTORY FILTERS ── */
-.p7-filter-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:12px;}
-.p7-filter-row{display:flex;gap:8px;margin-bottom:8px;}
-.p7-filter-row:last-child{margin-bottom:0;}
-.p7-filter-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;min-width:0;}
-.p7-filter-input:focus{outline:none;border-color:var(--accent);}
-.p7-filter-input::placeholder{color:var(--muted);}
-.p7-filter-select{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;-webkit-appearance:none;min-width:0;}
-.p7-filter-select:focus{outline:none;border-color:var(--accent);}
-.p7-toggle-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
-.p7-ftog{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.p7-ftog.active{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent);}
-.p7-filter-stats{font-size:11px;color:var(--muted);font-weight:600;flex:1;}
-.p7-filter-stats span{color:var(--accent);font-weight:700;}
-.p7-clear-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;}
-.p7-clear-btn:active{background:var(--surface2);}
-
-/* ── PHASE 7: ANALYTICS ── */
-.p7-section{margin-bottom:12px;}
-.p7-section-header{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
-.p7-section-header::after{content:'';flex:1;height:1px;background:var(--border);}
-.p7-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
-.p7-stat-grid.cols3{grid-template-columns:1fr 1fr 1fr;}
-.p7-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
-.p7-stat-card.accent{border-color:color-mix(in srgb,var(--accent) 30%,transparent);background:color-mix(in srgb,var(--accent) 5%,var(--surface));}
-.p7-stat-card.green{border-color:color-mix(in srgb,var(--green) 30%,transparent);background:color-mix(in srgb,var(--green) 4%,var(--surface));}
-.p7-stat-card.orange{border-color:color-mix(in srgb,var(--accent2) 30%,transparent);background:color-mix(in srgb,var(--accent2) 4%,var(--surface));}
-.p7-stat-card.purple{border-color:color-mix(in srgb,var(--pump) 30%,transparent);background:color-mix(in srgb,var(--pump) 4%,var(--surface));}
-.p7-stat-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px;}
-.p7-stat-val{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;line-height:1;color:var(--text);}
-.p7-stat-val.accent{color:var(--accent);}
-.p7-stat-val.green{color:var(--green);}
-.p7-stat-val.orange{color:var(--accent2);}
-.p7-stat-val.sm{font-size:18px;}
-.p7-stat-sub{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4;}
-.p7-stat-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
-.p7-stat-badge.up{color:var(--green);border-color:color-mix(in srgb,var(--green) 35%,transparent);background:color-mix(in srgb,var(--green) 8%,transparent);}
-.p7-stat-badge.down{color:var(--red);border-color:color-mix(in srgb,var(--red) 35%,transparent);background:color-mix(in srgb,var(--red) 8%,transparent);}
-.p7-stat-badge.neutral{color:var(--muted);}
-.p7-bar-wrap{margin-top:6px;}
-.p7-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-.p7-bar-label{font-size:11px;color:var(--muted);width:80px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.p7-bar-track{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;}
-.p7-bar-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .3s;}
-.p7-bar-fill.green{background:var(--green);}
-.p7-bar-fill.orange{background:var(--accent2);}
-.p7-bar-fill.red{background:var(--red);}
-.p7-bar-num{font-size:10px;font-weight:700;color:var(--muted);width:28px;text-align:right;flex-shrink:0;}
-.p7-streak-row{display:flex;gap:8px;align-items:stretch;}
-.p7-streak-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;text-align:center;}
-.p7-streak-num{font-family:'Bebas Neue',sans-serif;font-size:40px;color:var(--accent);line-height:1;}
-.p7-streak-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:2px;}
-.p7-wide-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
-.p7-wide-card-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;}
-.p7-mini-dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:6px;}
-.p7-mini-dot{width:10px;height:10px;border-radius:2px;background:var(--surface2);border:1px solid var(--border);}
-.p7-mini-dot.has-wo{background:var(--green);}
-.p7-mini-dot.no-wo{background:var(--surface2);}
-
-/* ── PHASE 9C: LIFECYCLE HEALTH CHECK ── */
-.lc-health-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:12px;}
-.lc-health-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.lc-state-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
-.lc-state-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
-.lc-state-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;}
-.lc-state-val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);letter-spacing:1px;line-height:1;}
-.lc-check-list{display:flex;flex-direction:column;gap:7px;}
-.lc-check-row{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;border-radius:9px;background:var(--surface2);border:1px solid var(--border);}
-.lc-check-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;white-space:nowrap;flex-shrink:0;margin-top:1px;letter-spacing:.5px;text-transform:uppercase;}
-.lc-check-badge.pass{color:var(--green);background:color-mix(in srgb,var(--green) 10%,transparent);border:1px solid color-mix(in srgb,var(--green) 35%,transparent);}
-.lc-check-badge.warn{color:var(--yellow);background:color-mix(in srgb,var(--yellow) 10%,transparent);border:1px solid color-mix(in srgb,var(--yellow) 35%,transparent);}
-.lc-check-badge.error{color:var(--red);background:color-mix(in srgb,var(--red) 10%,transparent);border:1px solid color-mix(in srgb,var(--red) 35%,transparent);}
-.lc-check-text{font-size:12px;color:var(--muted);line-height:1.5;flex:1;}
-.lc-check-text strong{color:var(--text);font-weight:600;}
-.lc-warn-banner{display:none;background:color-mix(in srgb,var(--yellow) 10%,transparent);border:1px solid color-mix(in srgb,var(--yellow) 40%,transparent);border-radius:10px;padding:10px 13px;margin-bottom:10px;font-size:12px;color:var(--yellow);font-weight:600;line-height:1.5;}
-.lc-warn-banner.visible{display:block;}
-
-/* ── v9.4.5: PROGRESSION DIAGNOSTICS SECTION ── */
-.p945-diag-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:12px;}
-.p945-diag-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
-.p945-diag-title .p945-chevron{font-size:11px;transition:transform .2s;margin-left:auto;}
-.p945-diag-section.open .p945-chevron{transform:rotate(180deg);}
-.p945-diag-body{display:none;margin-top:12px;}
-.p945-diag-section.open .p945-diag-body{display:block;}
-.p945-count-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;}
-.p945-count-card{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;}
-.p945-count-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:3px;}
-.p945-count-val{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;line-height:1;color:var(--text);}
-.p945-count-val.green{color:var(--green);}
-.p945-count-val.yellow{color:var(--yellow);}
-.p945-count-val.red{color:var(--red);}
-.p945-count-val.accent{color:var(--accent);}
-.p945-warnings{margin-top:8px;}
-.p945-warn-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--yellow);margin-bottom:6px;}
-.p945-warn-item{font-size:11px;color:var(--muted);line-height:1.5;padding:5px 8px;background:color-mix(in srgb,var(--yellow) 6%,transparent);border:1px solid color-mix(in srgb,var(--yellow) 20%,transparent);border-radius:6px;margin-bottom:4px;}
-.p945-no-warn{font-size:11px;color:var(--green);font-style:italic;}
-.p945-refresh-btn{width:100%;padding:9px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;margin-top:8px;}
-.p945-refresh-btn:active{background:var(--surface2);}
-
-
-.export-range-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);white-space:nowrap;}
-.export-range-select{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:8px 12px;-webkit-appearance:none;cursor:pointer;}
-.export-range-select:focus{outline:none;border-color:var(--accent);}
-.export-meta{font-size:11px;color:var(--muted);margin-bottom:10px;padding:6px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
-.export-meta span{color:var(--accent);font-weight:700;}
-
-/* ── PHASE 9.5.2: ONBOARDING OVERLAY & STEP NAVIGATION ── */
-.p952-overlay{display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;}
-.p952-overlay.open{display:block;}
-.p952-inner{width:100%;max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;box-sizing:border-box;padding:28px 20px calc(28px + env(safe-area-inset-bottom));}
-.p952-top-bar{display:flex;justify-content:flex-end;margin-bottom:6px;}
-.p952-top-skip{font-size:12px;font-weight:600;color:var(--muted);text-decoration:underline;cursor:pointer;padding:6px;}
-.p952-top-close-preview{font-size:12px;font-weight:700;color:var(--red);text-decoration:underline;cursor:pointer;padding:6px;margin-right:auto;background:none;border:none;font-family:'DM Sans',sans-serif;}
-.p952-progress-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
-.p952-progress-wrap{display:flex;gap:6px;margin-bottom:18px;}
-.p952-progress-seg{flex:1;height:4px;border-radius:3px;background:var(--surface2);}
-.p952-progress-seg.done{background:var(--accent);}
-.p952-logo{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:3px;text-align:center;margin:10px 0 8px;}
-.p952-logo span:first-child{color:var(--accent);}
-.p952-logo span:last-child{color:var(--accent2);}
-.p952-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1.5px;margin-bottom:14px;color:var(--text);}
-.p952-body-text{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:10px;}
-.p952-feature-list{list-style:none;margin:14px 0;padding:0;}
-.p952-feature-list li{font-size:13px;color:var(--muted);padding:9px 0;border-bottom:1px solid var(--border);}
-.p952-feature-list li:last-child{border-bottom:none;}
-.p952-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;}
-.p952-field{margin-bottom:14px;}
-.p952-field:last-child{margin-bottom:0;}
-.p952-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
-.p952-input,.p952-select,.p952-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;padding:12px 14px;border-radius:10px;min-height:44px;box-sizing:border-box;-webkit-appearance:none;}
-.p952-input:focus,.p952-select:focus,.p952-textarea:focus{outline:none;border-color:var(--accent);}
-.p952-textarea{resize:none;min-height:70px;line-height:1.5;font-family:'DM Sans',sans-serif;}
-.p952-row{display:flex;gap:10px;}
-.p952-row>*{flex:1;min-width:0;}
-.p952-seg-row{display:flex;gap:8px;flex-wrap:wrap;}
-.p952-seg-btn{flex:1;min-width:64px;padding:11px 8px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-align:center;min-height:44px;}
-.p952-seg-btn.active{background:var(--accent);color:#000;border-color:var(--accent);}
-.p952-seg-btn:focus-visible,.p952-input:focus-visible,.p952-select:focus-visible,.p952-textarea:focus-visible,.p952-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
-.p952-error{font-size:12px;color:var(--red);margin-top:6px;line-height:1.4;}
-.p952-footer{margin-top:auto;padding-top:16px;display:flex;gap:10px;}
-.p952-btn{flex:1;padding:15px;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1.5px;cursor:pointer;min-height:48px;}
-.p952-btn:active{opacity:.8;}
-.p952-btn-primary{background:var(--accent);color:#000;}
-.p952-btn-secondary{background:transparent;color:var(--text);border:1px solid var(--border);}
-.p952-skip-link{display:block;width:100%;text-align:center;background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;text-decoration:underline;padding:12px;cursor:pointer;margin-top:2px;}
-.p952-review-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;}
-.p952-review-row:last-child{border-bottom:none;}
-.p952-review-label{color:var(--muted);font-weight:600;flex-shrink:0;}
-.p952-review-value{color:var(--text);text-align:right;word-break:break-word;}
-.p952-note{font-size:12px;color:var(--muted);font-style:italic;line-height:1.6;margin-top:2px;margin-bottom:14px;}
-.p952-success{font-size:12px;color:var(--green);font-weight:700;margin:4px 0 14px;text-align:center;}
-.p952-skip-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10001;align-items:center;justify-content:center;padding:20px;}
-.p952-skip-backdrop.open{display:flex;}
-.p952-skip-modal{background:var(--surface);border:1px solid var(--accent2);border-radius:14px;padding:18px;max-width:400px;width:100%;box-sizing:border-box;}
-.p952-skip-modal-title{font-size:14px;font-weight:700;color:var(--accent2);margin-bottom:8px;}
-.p952-skip-modal-body{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:14px;}
-.p952-skip-modal-row{display:flex;flex-direction:column;gap:8px;}
-.p952-skip-btn-confirm{padding:12px;background:var(--accent2);color:#fff;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;min-height:44px;}
-.p952-skip-btn-cancel{padding:12px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;}
-
-/* ── PHASE 9.5.4B: DETAILED PROPOSAL REVIEW OVERLAY (read-only) ── */
-.p954r-overlay{display:none;position:fixed;inset:0;z-index:9998;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;}
-.p954r-overlay.open{display:block;}
-.p954r-inner{width:100%;max-width:480px;margin:0 auto;min-height:100%;box-sizing:border-box;padding:16px 16px calc(16px + env(safe-area-inset-bottom));overflow-wrap:anywhere;}
-.p954r-topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2;}
-.p954r-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--text);}
-.p954r-close-x{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:9px 14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;min-width:44px;flex-shrink:0;}
-.p954r-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;box-sizing:border-box;}
-.p954r-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px;}
-.p954r-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
-.p954r-row:last-child{border-bottom:none;}
-.p954r-row-label{color:var(--muted);font-weight:600;flex-shrink:0;}
-.p954r-row-value{color:var(--text);text-align:right;word-break:break-word;}
-.p954r-list-item{font-size:12px;color:var(--text);line-height:1.55;margin-bottom:4px;padding-left:12px;position:relative;}
-.p954r-list-item:before{content:"•";position:absolute;left:0;color:var(--muted);}
-.p954r-list-item.warn{color:var(--red);}
-.p954r-gym-header{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;color:var(--accent);margin:16px 0 8px;}
-.p954r-gym-header:first-child{margin-top:0;}
-.p954r-day-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;box-sizing:border-box;}
-.p954r-day-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px;flex-wrap:wrap;}
-.p954r-day-name{font-weight:700;font-size:14px;color:var(--text);}
-.p954r-day-name-proposed{font-size:11px;color:var(--accent);margin-top:2px;}
-.p954r-day-meta{font-size:11px;color:var(--muted);margin:4px 0 6px;line-height:1.5;}
-.p954r-note{font-size:12px;color:var(--muted);line-height:1.55;margin-top:6px;}
-.p954r-ex-row{border-top:1px solid var(--border);padding:8px 0;font-size:12px;}
-.p954r-ex-row:first-child{border-top:none;}
-.p954r-ex-name{font-weight:700;color:var(--text);margin-bottom:3px;}
-.p954r-ex-name-proposed{color:var(--accent);}
-.p954r-ex-meta{color:var(--muted);line-height:1.5;}
-.p954r-ex-rationale{color:var(--muted);font-style:italic;margin-top:3px;line-height:1.5;}
-.p954r-empty-note{font-size:12px;color:var(--muted);font-style:italic;padding:4px 0;}
-.p954r-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:3px 8px;border-radius:20px;margin-right:6px;white-space:nowrap;}
-.p954r-badge-keep{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green);border:1px solid color-mix(in srgb,var(--green) 45%,transparent);}
-.p954r-badge-modify{background:color-mix(in srgb,var(--yellow) 18%,transparent);color:var(--yellow);border:1px solid color-mix(in srgb,var(--yellow) 45%,transparent);}
-.p954r-badge-reorder{background:color-mix(in srgb,var(--accent2) 18%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 45%,transparent);}
-.p954r-badge-replace{background:color-mix(in srgb,var(--accent2) 18%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 45%,transparent);}
-.p954r-badge-add{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
-.p954r-badge-optional_add{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
-.p954r-badge-remove{background:color-mix(in srgb,var(--red) 18%,transparent);color:var(--red);border:1px solid color-mix(in srgb,var(--red) 45%,transparent);}
-.p954r-footer{position:sticky;bottom:0;background:var(--bg);padding:12px 0 4px;display:flex;flex-direction:column;gap:8px;margin-top:6px;}
-.p954r-btn-later{padding:15px;background:var(--accent);color:#000;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;min-height:48px;width:100%;box-sizing:border-box;}
-.p954r-btn-later:active{opacity:.8;}
-.p954r-btn-keep{padding:15px;background:transparent;color:var(--red);border:1px solid var(--red);border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;min-height:48px;width:100%;box-sizing:border-box;}
-.p954r-btn-keep:active{opacity:.8;}
-.p954r-btn-apply{padding:15px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;min-height:48px;width:100%;box-sizing:border-box;}
-.p954r-btn-apply:active{opacity:.8;}
-.p954ap-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10003;align-items:flex-end;justify-content:center;padding:0;}
-.p954ap-backdrop.open{display:flex;}
-.p954ap-modal{background:var(--surface);border:1px solid var(--accent);border-radius:14px 14px 0 0;padding:18px;max-width:480px;width:100%;box-sizing:border-box;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-.p954ap-title{font-size:16px;font-weight:700;color:var(--accent);margin-bottom:10px;}
-.p954ap-section{margin-bottom:12px;}
-.p954ap-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:6px;}
-.p954ap-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border);}
-.p954ap-row:last-child{border-bottom:none;}
-.p954ap-row-label{color:var(--muted);font-weight:600;}
-.p954ap-row-value{color:var(--text);text-align:right;}
-.p954ap-write-item{font-size:12px;color:var(--text);line-height:1.55;padding:5px 0;border-bottom:1px solid var(--border);}
-.p954ap-write-item:last-child{border-bottom:none;}
-.p954ap-write-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:8px;margin-right:6px;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
-.p954ap-notice{font-size:12px;color:var(--yellow);line-height:1.55;background:color-mix(in srgb,var(--yellow) 10%,transparent);border:1px solid color-mix(in srgb,var(--yellow) 35%,transparent);border-radius:8px;padding:10px;margin-bottom:10px;}
-.p954ap-deferred{font-size:12px;color:var(--muted);line-height:1.55;font-style:italic;margin-bottom:10px;}
-.p954ap-btn-row{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
-.p954ap-btn-confirm{padding:14px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;min-height:46px;}
-.p954ap-btn-confirm:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.45);}
-.p954ap-btn-cancel{padding:12px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;}
-.p954ap-error{font-size:12px;color:var(--red);margin-top:8px;line-height:1.5;}
-.p954r-applied-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:8px;margin-left:6px;vertical-align:middle;}
-.p954r-applied-tag.yes{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green);border:1px solid color-mix(in srgb,var(--green) 45%,transparent);}
-.p954r-applied-tag.no{background:color-mix(in srgb,var(--muted) 15%,transparent);color:var(--muted);border:1px solid var(--border);}
-.p954r-error-box{background:var(--surface2);border:1px solid var(--red);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:12px;color:var(--red);line-height:1.6;}
-.p954r-confirm-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10002;align-items:center;justify-content:center;padding:20px;}
-.p954r-confirm-backdrop.open{display:flex;}
-.p954r-confirm-modal{background:var(--surface);border:1px solid var(--red);border-radius:14px;padding:18px;max-width:400px;width:100%;box-sizing:border-box;}
-.p954r-confirm-title{font-size:14px;font-weight:700;color:var(--red);margin-bottom:8px;}
-.p954r-confirm-body{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:14px;}
-.p954r-confirm-row{display:flex;flex-direction:column;gap:8px;}
-.p954r-confirm-btn-confirm{padding:12px;background:var(--red);color:#fff;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;min-height:44px;}
-.p954r-confirm-btn-cancel{padding:12px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;}
-.p954r-confirm-error{font-size:12px;color:var(--red);margin-top:8px;line-height:1.5;}
-@media (max-width:380px){
-  .p954r-row{flex-direction:column;}
-  .p954r-row-value{text-align:left;}
-}
-</style>
+<title>MarcusFit 9.6.0</title>
+<link rel="stylesheet" href="assets/css/marcusfit.css">
 </head>
 <body>
 <!-- ── PHASE 9.5.2: ONBOARDING OVERLAY (hidden by default — opened only via JS after state evaluation, never via CSS visibility, to avoid a flash for existing users) ── -->
@@ -825,10 +144,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="t-row"><span class="t-emoji">&#128564;</span><span class="t-field">Sleep</span><input class="t-input" type="number" id="sleepIn" placeholder="hrs" step="0.5" oninput="p6UpdateMetricsBadge()"></div>
       <div class="t-row"><span class="t-emoji">&#129385;</span><span class="t-field">Protein</span><input class="t-input" type="number" id="proteinIn" placeholder="g" oninput="p6UpdateMetricsBadge()"></div>
       <div class="t-row"><span class="t-emoji">&#128167;</span><span class="t-field">Water</span><input class="t-input" type="number" id="waterIn" placeholder="oz" oninput="p6UpdateMetricsBadge()"></div>
-      <div class="t-row"><span class="t-emoji">&#128138;</span><span class="t-field">Zepbound</span>
-        <div class="toggle-row">
-          <button class="tog-btn" id="zep-yes" onclick="setTog('zep','yes')">&#9989; Taken</button>
-          <button class="tog-btn" id="zep-no" onclick="setTog('zep','no')">&#10060; Skip</button>
+      <div class="t-row"><span class="t-emoji">&#128138;</span>
+        <div class="p9510-card" id="p9510ZepCard">
+          <div class="p9510-head"><div><div class="p9510-title">Zepbound</div><div class="p9510-status" id="p9510ZepStatus">Schedule not configured</div></div><button class="p9510-link" type="button" onclick="p9510OpenSetup()">Setup</button></div>
+          <div class="p9510-actions" id="p9510ZepActions"></div>
+          <div class="p9510-setup" id="p9510Setup">
+            <div class="p9510-grid">
+              <label class="p9510-field">Scheduled weekday<select id="p9510Weekday"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
+              <label class="p9510-field">Anchor / last known taken<input id="p9510Anchor" type="date"></label>
+              <label class="p9510-field">Grace days<input id="p9510Grace" type="number" min="0" max="7" value="1"></label>
+            </div>
+            <label class="p9510-check"><input id="p9510Enabled" type="checkbox" checked> Tracking enabled</label>
+            <label class="p9510-check"><input id="p9510Paused" type="checkbox"> Paused</label>
+            <div class="p9510-actions"><button class="primary" type="button" onclick="p9510SaveSetup()">Save</button><button type="button" onclick="p9510CancelSetup()">Cancel</button><button type="button" onclick="p9510DisableTracking()">Disable tracking</button></div>
+          </div>
         </div>
       </div>
       <div class="t-row" style="margin-top:2px;"><span class="t-emoji">&#9889;</span><span class="t-field">Energy</span>
@@ -862,11 +191,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <span class="p6-section-title">Daily Habits</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <span class="p6-section-badge" id="habitsProgress">0 / 7</span>
+        <span class="p6-section-badge" id="habitsProgress">0 / 0</span>
         <span class="p6-chevron">&#9662;</span>
       </div>
     </div>
     <div class="p6-section-body">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><button class="p9510-link p960-manage-link" type="button" onclick="p960OpenHabitManager()">Manage Habits</button></div>
       <div id="habitCards"></div>
     </div>
   </div>
@@ -1004,6 +334,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <!-- ── P7: ANALYTICS SCREEN ── -->
 <div class="screen" id="screen-analytics">
   <div class="screen-title">ANALYTICS</div>
+  <div class="p9510-summary" id="p9510StatsSummary" style="display:none"></div>
   <div id="p7-analytics-content">
     <div class="empty">No data yet.<br>Start logging to see your stats!</div>
   </div>
@@ -1013,8 +344,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 9.5.9</strong> &mdash; Progression &amp; Exercise Metrics<br>
-    Progression now distinguishes weighted, assisted, duration, and bodyweight activities. Lower assistance counts as improvement, duration uses minutes or seconds, and completed load ceilings are separated from temporary confirmation holds.
+    <strong style="color:var(--accent);">MarcusFit 9.6.0</strong> &mdash; Personalized Habits<br>
+    Habits are configurable, schedule-aware, and reviewable through explicit AI proposals.
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+    <button class="p9510-link p960-manage-link" type="button" onclick="p960OpenHabitManager()">Manage Habits</button>
+    <button class="p9510-link p960-manage-link" type="button" onclick="p960OpenHabitProposalReview()">Review Habit Proposal</button>
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -1213,7 +548,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 // ── VERSION ────────────────────────────────────────────────────────────────
-const APP_VERSION = "9.5.9";
+const APP_VERSION = "9.6.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 // ── 9.5.6 ARCHITECTURE PREP (DOCUMENTATION ONLY) ──────────────────────────
 // MarcusFit intentionally remains one dependency-free HTML file in this
@@ -2845,6 +2180,11 @@ function mfUpdateExportWarningBanner(){
 // Run lifecycle validation after restore and display results in backup result area
 function mfRunPostRestoreValidation(){
   const checks = mfRunLifecycleValidation();
+  if(typeof p960ValidateStoredHabitData === "function"){
+    p960ValidateStoredHabitData().forEach(function(issue){
+      checks.push({status:issue.level === "error" ? "error" : "warn", label:"Habit storage", detail:issue.message});
+    });
+  }
   const issues = checks.filter(c => c.status !== "pass");
   if(!issues.length){
     p8ShowResult("✅ Backup restored successfully. Lifecycle validation passed. Reloading app...", "ok");
@@ -12517,7 +11857,8 @@ function renderHistoryFromEntries(entries){
   if(!entries.length){c.innerHTML='<div class="empty">No matching entries.<br>Try adjusting your filters.</div>';return;}
   c.innerHTML=entries.slice(0,60).map(({key,data:d})=>{
     const dt=new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
-    const pills=[d.weight?`&#9878; ${d.weight}`:null,d.sleep?`&#128564; ${d.sleep}h`:null,d.protein?`&#129385; ${d.protein}g`:null,d.water?`&#128167; ${d.water}oz`:null,d.bm?`&#128701; ${d.bm}`:null,d.mood?`&#9889; ${d.mood}/10`:null,d.hunger?`&#127860; ${d.hunger}/10`:null,d.zep?`&#128138; ${d.zep}`:null,d.workout?`&#127947; ${d.workout}`:null].filter(Boolean);
+    const recurringOutcome=p9510HistoryOutcome(d.date||key.slice(4));
+    const pills=[d.weight?`&#9878; ${d.weight}`:null,d.sleep?`&#128564; ${d.sleep}h`:null,d.protein?`&#129385; ${d.protein}g`:null,d.water?`&#128167; ${d.water}oz`:null,d.bm?`&#128701; ${d.bm}`:null,d.mood?`&#9889; ${d.mood}/10`:null,d.hunger?`&#127860; ${d.hunger}/10`:null,recurringOutcome||d.zep?recurringOutcome||`&#128138; ${d.zep}`:null,d.workout?`&#127947; ${d.workout}`:null].filter(Boolean);
     const woRaw=localStorage.getItem(key+"-wo");const wo=woRaw?JSON.parse(woRaw):null;
     let woDetail="";
     if(wo&&wo.exercises&&Object.keys(wo.exercises).length){
@@ -12831,7 +12172,7 @@ const SCHEMA_VERSION = 1;
 
 // Identify all localStorage keys owned by MarcusFit
 function p8IsMarcusFitKey(key){
-  return key.startsWith("day-") || key === OVR || key === DRAFT_KEY || key === LIFECYCLE_KEY || key === RECS_KEY || key === AI_PREFS_KEY || key === USER_PROFILE_KEY || key === ONBOARDING_KEY || key === PROGRAM_PROPOSAL_KEY;
+  return key.startsWith("day-") || key === OVR || key === DRAFT_KEY || key === LIFECYCLE_KEY || key === RECS_KEY || key === AI_PREFS_KEY || key === USER_PROFILE_KEY || key === ONBOARDING_KEY || key === PROGRAM_PROPOSAL_KEY || key === "mf-recurring-items" || key === "mf-recurring-events" || key === "mf-habit-definitions" || key === "mf-habit-proposal";
 }
 
 function p8GetMarcusFitKeys(){
@@ -12877,6 +12218,8 @@ function p8492SummarizeBackup(rawOrObj){
     hasOnboardingState: false,
     onboardingStatus: null,
     onboardingCurrentStep: null,
+    hasRecurringItems: false,
+    hasRecurringEvents: false,
     unknownKeyCount: 0,
     approxSizeBytes: 0,
     approxSizeKB: 0,
@@ -12937,6 +12280,20 @@ function p8492SummarizeBackup(rawOrObj){
           result.warnings.push("Onboarding state in this backup could not be parsed.");
         }
       }
+      else if(k === "mf-recurring-items"){
+        result.hasRecurringItems = true;
+        try {
+          const recurringItems = typeof data[k] === "string" ? JSON.parse(data[k]) : data[k];
+          if(!recurringItems || recurringItems.schemaVersion == null) result.warnings.push("Recurring item store has no schemaVersion.");
+        } catch(e){ result.warnings.push("Recurring item store could not be parsed."); }
+      }
+      else if(k === "mf-recurring-events"){
+        result.hasRecurringEvents = true;
+        try {
+          const recurringEvents = typeof data[k] === "string" ? JSON.parse(data[k]) : data[k];
+          if(!recurringEvents || recurringEvents.schemaVersion == null) result.warnings.push("Recurring event store has no schemaVersion.");
+        } catch(e){ result.warnings.push("Recurring event store could not be parsed."); }
+      }
       else result.unknownKeyCount++;
       try {
         const v = data[k];
@@ -12967,6 +12324,7 @@ function p8492FormatSummaryLines(s){
     "Recommendations: " + (s.hasRecommendations ? "yes" : "no") + " | AI coaching prefs: " + (s.hasAiPrefs ? "yes" : "no"),
     "User Profile: " + (s.hasUserProfile ? ("Yes — " + (s.userProfileDisplayName || "unknown") + " (schema v" + (s.userProfileSchemaVersion != null ? s.userProfileSchemaVersion : "?") + ")") : "Not included"),
     "Onboarding State: " + (s.hasOnboardingState ? ("Yes — status: " + (s.onboardingStatus || "unknown") + ", step: " + (s.onboardingCurrentStep != null ? s.onboardingCurrentStep : "?")) : "Not included"),
+    "Recurring schedules: " + (s.hasRecurringItems ? "yes" : "no") + " | Recurring events: " + (s.hasRecurringEvents ? "yes" : "no"),
     "Approx size: " + s.approxSizeKB + " KB"
   ];
   if(s.warnings && s.warnings.length){
@@ -13114,6 +12472,10 @@ function p8ExecuteRestore(backup){
 
     // 9C: Run lifecycle validation post-restore and show summary
     mfRunPostRestoreValidation();
+    const recurringRestoreCheck = mfRecurringStorageDebug();
+    if(recurringRestoreCheck.warnings.length || recurringRestoreCheck.orphanedEventReferences.length){
+      console.warn("[MarcusFit] Recurring adherence restore warnings:", recurringRestoreCheck);
+    }
     console.log("[MarcusFit] Backup restored");
     setTimeout(() => location.reload(), 1800);
   } catch(e) {
@@ -13369,8 +12731,8 @@ window.mfArchitecturePrepDebug = function(){
     currentStructure:"single_file_html",
     targetStructure:"multi_file_static_github_pages",
     proposedModules:proposedModules.slice(),
-    localStorageKeysUsed:["day-YYYY-MM-DD","day-YYYY-MM-DD-wo",OVR,DRAFT_KEY,LIFECYCLE_KEY,RECS_KEY,AI_PREFS_KEY,USER_PROFILE_KEY,ONBOARDING_KEY,PROGRAM_PROPOSAL_KEY],
-    majorSystems:["program data","storage and backup","lifecycle and resolved program","onboarding","proposal engine","proposal apply/undo","proposal UI","daily log and history","analytics","AI export/sync","debug and app initialization"],
+    localStorageKeysUsed:["day-YYYY-MM-DD","day-YYYY-MM-DD-wo",OVR,DRAFT_KEY,LIFECYCLE_KEY,RECS_KEY,AI_PREFS_KEY,USER_PROFILE_KEY,ONBOARDING_KEY,PROGRAM_PROPOSAL_KEY,"mf-recurring-items","mf-recurring-events"],
+    majorSystems:["program data","storage and backup","lifecycle and resolved program","onboarding","proposal engine","proposal apply/undo","proposal UI","daily log and history","recurring adherence","analytics","AI export/sync","debug and app initialization"],
     migrationReadiness:{readyForBoundaryExtraction:true,notes:["Future files must preserve current script dependency order.","Keep globals temporarily for backwards-compatible console helpers and inline handlers."],warnings:["Do not migrate storage schemas during file extraction.","Add browser smoke coverage before changing global initialization order."]},
     firstSyncBridge:{helpers:["p957GetSharedUserFirstSyncStatus","p957BuildFirstSyncExport","mfFirstSyncDebug"],futureOwners:["src/export-sync.js","src/onboarding.js","src/debug.js"],writesStorage:false},
     recommendationForNextPhase:"Extract storage keys/utilities and pure first-sync/proposal helpers first, preserving the single static GitHub Pages entry point and all existing globals."
@@ -13474,7 +12836,9 @@ window.mfArchitectureDebug = function(){
       recommendationsEngine: { storageKeys:[RECS_KEY], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Short-term AI Sync coaching experiments/guidance, works on base and virtual days." },
       workoutLogging: { storageKeys:["day-YYYY-MM-DD-wo"], functions:["getTodayWoData","dKey"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Per-day logged sets/loads/RIR for completed workouts." },
       dailyMetrics: { storageKeys:["day-YYYY-MM-DD"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Daily vitals: weight, water, Zepbound dose, BM, hunger/recovery, etc." },
-      dailyHabits: { storageKeys:["day-YYYY-MM-DD (habit sub-fields, see HABITS array)"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"Habit checklist completion (posture, breathing, kegels, steps, water, BM)." },
+      recurringAdherence: { storageKeys:["mf-recurring-items","mf-recurring-events"], functions:["p9510NormalizeRecurringStore","p9510GetRecurringItems","p9510GetRecurringEvents","p9510GetOccurrenceForDate","p9510GetScheduleStatus","p9510GetNextDueDate","p9510GetPreviousDueDate","p9510ResolveOccurrence","p9510GetAdherenceSummary","mfRecurringAdherenceDebug","mfRecurringStorageDebug","mf9510RunScheduledAdherenceSelfTest"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Optional schedule-aware recurring item definitions and explicit occurrence outcomes. Zepbound is the first UI consumer; legacy daily zep values remain read-only evidence and explicit actions dual-write for compatibility." },
+      dailyHabits: { storageKeys:["mf-habit-definitions","day-YYYY-MM-DD (habit completion sub-fields)"], functions:["p960NormalizeHabitStore","p960GetHabitStore","p960GetActiveHabits","p960IsHabitDueOnDate","p960GetWeeklyHabitProgress","p960GetHabitAnalytics","mfHabitDefinitionsDebug","mfHabitDebug","mf960RunHabitSelfTest"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"Personalized, ordered, schedule-aware definitions remain separate from authoritative daily completion history." },
+      habitProposal: { storageKeys:["mf-habit-proposal"], functions:["p960ValidateHabitProposal","p960ImportHabitProposal","p960ApplyHabitProposal","p960UndoHabitProposal","mfHabitProposalDebug"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:true, purpose:"One reviewable AI habit proposal with explicit apply, conflict checking, and exact definition-store undo; never writes daily history, programs, or recurring medication stores." },
       draftSystem: { storageKeys:[DRAFT_KEY], functions:["getDraft","saveDraft"], mutatesBaseP:false, backupCovered:true, exportSyncRelated:false, purpose:"In-progress/unsaved workout entry state." },
       historyRenderingFiltering: { storageKeys:["day-* (read-only)"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:false, purpose:"Phase 7 history screen: filters/renders past logs. Read-only consumer, not its own storage system." },
       analytics: { storageKeys:["day-* (read-only)"], mutatesBaseP:false, backupCovered:false, exportSyncRelated:false, purpose:"Phase 7 analytics screen: aggregates weight/recovery trends. Read-only consumer." },
@@ -13502,14 +12866,16 @@ window.mfArchitectureDebug = function(){
       "mf-ai-coaching-preferences (AI_PREFS_KEY)": { type:"string", shape:"Free-text persistent coaching preferences block, defaults to AI_PREFS_STARTER_TEMPLATE when reset.", missingIsValid:true, corruptJsonHandled:"N/A — stored as raw string, not JSON." },
       "mf-user-profile (USER_PROFILE_KEY)": { type:"object", shape:"{schemaVersion, profileVersion, identity:{displayName}, body:{heightInches}, goals:{primaryGoal,physiqueOutcome}, preferences:{weightUnit,distanceUnit,firstDayOfWeek}, app:{homeGymLabel,partialGymLabel}, createdAt, updatedAt}", missingIsValid:true, corruptJsonHandled:"Yes — p950GetUserProfile()/p950InitUserProfile() try/catch, malformed JSON recovers to Marcus defaults without crashing." },
       "mf-onboarding-state (ONBOARDING_KEY)": { type:"object", shape:"{schemaVersion, onboardingVersion, status:'not_started'|'in_progress'|'completed'|'skipped', currentStep, startedAt, completedAt, skippedAt, updatedAt, draft:{}}", missingIsValid:true, corruptJsonHandled:"Yes — p951GetOnboardingState()/p951InitOnboardingState() try/catch; malformed JSON is recovered conservatively (re-runs fresh-install evaluation rather than blindly resetting to not_started), added 9.5.1." },
-      "mf-onboarding-program-proposal (PROGRAM_PROPOSAL_KEY)": { type:"object|absent", shape:"{schemaVersion, proposalVersion, status:'draft'|'applied'|'dismissed'|'undone', source, generatedAt, appliedAt, undoneAt, dismissedAt, applicationId, applicationSummary, preApplySnapshot, undoSummary, summary, dayPlans, warnings}", missingIsValid:true, corruptJsonHandled:"Yes — raw inspection reports malformed JSON and genuinely invalid explicit values as a distinct error state. The additive undone status and audit metadata normalize, validate, back up, restore, and render without a new storage key." }
+      "mf-onboarding-program-proposal (PROGRAM_PROPOSAL_KEY)": { type:"object|absent", shape:"{schemaVersion, proposalVersion, status:'draft'|'applied'|'dismissed'|'undone', source, generatedAt, appliedAt, undoneAt, dismissedAt, applicationId, applicationSummary, preApplySnapshot, undoSummary, summary, dayPlans, warnings}", missingIsValid:true, corruptJsonHandled:"Yes — raw inspection reports malformed JSON and genuinely invalid explicit values as a distinct error state. The additive undone status and audit metadata normalize, validate, back up, restore, and render without a new storage key." },
+      "mf-habit-definitions": { type:"object", shape:"{schemaVersion, definitionVersion, habits:{stableId:definition}, order:[stableId], createdAt, updatedAt}", missingIsValid:true, corruptJsonHandled:"Yes — safe read fallback plus explicit debug and post-restore warnings; raw storage is not silently discarded." },
+      "mf-habit-proposal": { type:"object|absent", shape:"{schemaVersion, proposalVersion, proposalId, status, source, summary, rationale, changes, validation, applyState, undoSnapshot}", missingIsValid:true, corruptJsonHandled:"Yes — malformed proposals are ignored for application and reported by read-only debug/post-restore validation." }
     };
   } catch(e){ summary.errors.push("dataSchemas section failed: "+(e&&e.message)); }
 
   // 5. Backup/restore coverage (documentation only — behavior unchanged)
   try {
     summary.backupRestore = {
-      includedKeys: "Any key matched by p8IsMarcusFitKey(): day-* logs/workouts, "+OVR+", "+DRAFT_KEY+", "+LIFECYCLE_KEY+", "+RECS_KEY+", "+AI_PREFS_KEY+", "+USER_PROFILE_KEY+" (added 9.5.0), "+ONBOARDING_KEY+" (added 9.5.1), "+PROGRAM_PROPOSAL_KEY+" (added 9.5.4).",
+      includedKeys: "Any key matched by p8IsMarcusFitKey(): day-* logs/workouts, "+OVR+", "+DRAFT_KEY+", "+LIFECYCLE_KEY+", "+RECS_KEY+", "+AI_PREFS_KEY+", "+USER_PROFILE_KEY+" (added 9.5.0), "+ONBOARDING_KEY+" (added 9.5.1), "+PROGRAM_PROPOSAL_KEY+" (added 9.5.4), mf-habit-definitions and mf-habit-proposal (added 9.6.0).",
       excludedKeys: "Any non-MarcusFit localStorage key, and any future 'mf-*' key not yet added to p8IsMarcusFitKey() (see storage.unrecognizedMarcusFitLookingKeys above).",
       detectionMechanism: "p8IsMarcusFitKey(key) allowlist checked against Object.keys(localStorage); p8GetMarcusFitKeys() filters the full key list through it.",
       restoreFlow: "p8ValidateBackup → p8MigrateBackup (schemaVersion switch, currently only v1) → p8492SummarizeBackup preview + in-app confirm panel (p8RestoreConfirmPanel, replaces native confirm() as of 9.4.9.2) → p8ExecuteRestore: remove existing MarcusFit keys → restore raw strings → mfRunPostRestoreValidation() → reload.",
@@ -14534,6 +13900,461 @@ genExport=function(){
   return updated;
 };
 
+// ── PHASE 9.5.10: SCHEDULE-AWARE RECURRING ADHERENCE ─────────────────────
+// Calendar weekday convention: JavaScript local time, Sunday=0 through Saturday=6.
+// Recurring definitions and explicit outcomes are optional, schema-versioned stores.
+// Rendering, navigation, setup preview, history, analytics, export, and debug never write.
+const P9510_RECURRING_ITEMS_KEY="mf-recurring-items";
+const P9510_RECURRING_EVENTS_KEY="mf-recurring-events";
+const P9510_RECURRING_SCHEMA=1;
+
+function p9510IsDateKey(value){return /^\d{4}-\d{2}-\d{2}$/.test(String(value||""))&&!isNaN(p9510ParseDate(value).getTime());}
+function p9510ParseDate(value){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||""));
+  return m?new Date(+m[1],+m[2]-1,+m[3],12,0,0,0):new Date(NaN);
+}
+function p9510DateKey(value){
+  const d=value instanceof Date?value:p9510ParseDate(value);
+  if(isNaN(d.getTime()))return "";
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function p9510AddDays(value,days){const d=p9510ParseDate(p9510DateKey(value));d.setDate(d.getDate()+Number(days||0));return p9510DateKey(d);}
+function p9510DayDiff(a,b){return Math.round((p9510ParseDate(b)-p9510ParseDate(a))/86400000);}
+function p9510FormatDate(value,withYear){
+  const d=p9510ParseDate(value);return isNaN(d)?String(value||""):d.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric",year:withYear?"numeric":undefined});
+}
+function p9510NormalizeRecurringStore(input){
+  const src=input&&typeof input==="object"?input:{},out=Object.assign({},src);
+  out.schemaVersion=Number.isInteger(src.schemaVersion)?src.schemaVersion:P9510_RECURRING_SCHEMA;
+  out.items={};
+  const items=src.items&&typeof src.items==="object"?src.items:{};
+  Object.keys(items).forEach(function(id){
+    const item=items[id]&&typeof items[id]==="object"?items[id]:{},schedule=item.schedule&&typeof item.schedule==="object"?item.schedule:{};
+    const normalized=Object.assign({},item);
+    normalized.id=String(item.id||id);normalized.name=String(item.name||id);normalized.category=String(item.category||"habit");
+    normalized.enabled=item.enabled!==false;normalized.paused=!!item.paused;normalized.graceDays=Math.max(0,Math.min(7,parseInt(item.graceDays,10)||0));
+    normalized.schedule=Object.assign({},schedule,{type:String(schedule.type||"weekly"),interval:Math.max(1,parseInt(schedule.interval,10)||1),weekdays:Array.isArray(schedule.weekdays)?schedule.weekdays.map(Number).filter(function(n){return n>=0&&n<=6;}):[],anchorDate:p9510IsDateKey(schedule.anchorDate)?schedule.anchorDate:""});
+    out.items[normalized.id]=normalized;
+  });
+  return out;
+}
+function p9510NormalizeEventStore(input){
+  const src=input&&typeof input==="object"?input:{},out=Object.assign({},src);out.schemaVersion=Number.isInteger(src.schemaVersion)?src.schemaVersion:P9510_RECURRING_SCHEMA;out.events={};
+  const events=src.events&&typeof src.events==="object"?src.events:{};
+  Object.keys(events).forEach(function(id){const e=events[id];if(!e||typeof e!=="object")return;const n=Object.assign({},e);n.id=String(e.id||id);n.itemId=String(e.itemId||"");n.scheduledDate=p9510IsDateKey(e.scheduledDate)?e.scheduledDate:"";n.actualDate=p9510IsDateKey(e.actualDate)?e.actualDate:"";n.replacementDate=p9510IsDateKey(e.replacementDate)?e.replacementDate:"";n.status=["completed","skipped","rescheduled","paused"].includes(e.status)?e.status:"";out.events[n.id]=n;});
+  return out;
+}
+function p9510ReadStore(key,normalizer){const raw=localStorage.getItem(key);if(!raw)return normalizer(null);try{return normalizer(JSON.parse(raw));}catch(e){return normalizer(null);}}
+function p9510GetRecurringItems(){return p9510ReadStore(P9510_RECURRING_ITEMS_KEY,p9510NormalizeRecurringStore);}
+function p9510GetRecurringEvents(){return p9510ReadStore(P9510_RECURRING_EVENTS_KEY,p9510NormalizeEventStore);}
+function p9510SaveRecurringItems(store){localStorage.setItem(P9510_RECURRING_ITEMS_KEY,JSON.stringify(p9510NormalizeRecurringStore(store)));}
+function p9510SaveRecurringEvents(store){localStorage.setItem(P9510_RECURRING_EVENTS_KEY,JSON.stringify(p9510NormalizeEventStore(store)));}
+function p9510GetItem(id){return p9510GetRecurringItems().items[id||"zepbound"]||null;}
+function p9510OccurrenceId(itemId,scheduledDate){return String(itemId)+"__"+String(scheduledDate);}
+function p9510ScheduleBase(item){
+  if(!item||!item.schedule||item.schedule.type!=="weekly"||!p9510IsDateKey(item.schedule.anchorDate)||!item.schedule.weekdays.length)return "";
+  let d=item.schedule.anchorDate,guard=0,w=item.schedule.weekdays[0];
+  while(p9510ParseDate(d).getDay()!==w&&guard++<7)d=p9510AddDays(d,1);
+  return d;
+}
+function p9510GetPreviousDueDate(item,date){
+  const base=p9510ScheduleBase(item);if(!base||!p9510IsDateKey(date)||date<base)return null;
+  const period=7*Math.max(1,item.schedule.interval||1),steps=Math.floor(p9510DayDiff(base,date)/period);return p9510AddDays(base,steps*period);
+}
+function p9510GetNextDueDate(item,date){
+  const base=p9510ScheduleBase(item);if(!base||!p9510IsDateKey(date))return null;if(date<base)return base;
+  const period=7*Math.max(1,item.schedule.interval||1),steps=Math.floor(p9510DayDiff(base,date)/period)+1;return p9510AddDays(base,steps*period);
+}
+function p9510FindEventForOccurrence(itemId,scheduledDate){
+  const events=p9510GetRecurringEvents().events,id=p9510OccurrenceId(itemId,scheduledDate);
+  return events[id]||Object.values(events).find(function(e){return e.itemId===itemId&&e.scheduledDate===scheduledDate;})||null;
+}
+function p9510LegacyEvidence(item,scheduledDate){
+  if(!item||!scheduledDate)return {source:"none",status:null,actualDate:null};
+  // Stop before the next weekly occurrence so a later dose is never attributed
+  // to two occurrences. Structured events are required for longer/ambiguous gaps.
+  for(let i=0;i<7*Math.max(1,item.schedule.interval||1);i++){
+    const actual=p9510AddDays(scheduledDate,i),raw=localStorage.getItem("day-"+actual);if(!raw)continue;
+    try{const d=JSON.parse(raw);if(d&&d.zep==="yes")return {source:"legacy_daily_log",status:"completed",actualDate:actual,legacyValue:"yes"};}catch(e){}
+  }
+  return {source:"none",status:null,actualDate:null};
+}
+function p9510ResolveOccurrence(item,scheduledDate){
+  const event=p9510FindEventForOccurrence(item.id,scheduledDate);
+  if(event)return {source:"structured_event",status:event.status,actualDate:event.actualDate||null,replacementDate:event.replacementDate||((event.status==="rescheduled"&&event.actualDate)||null),event:event};
+  return p9510LegacyEvidence(item,scheduledDate);
+}
+function p9510WasPaused(item,scheduledDate){
+  if(!item)return false;if(item.paused)return true;
+  if(Array.isArray(item.pauseIntervals)&&item.pauseIntervals.some(function(interval){
+    return interval&&p9510IsDateKey(interval.startDate)&&scheduledDate>=interval.startDate&&(!p9510IsDateKey(interval.endDate)||scheduledDate<=interval.endDate);
+  }))return true;
+  return !!(p9510IsDateKey(item.pausedAt)&&p9510IsDateKey(item.resumedAt)&&scheduledDate>=item.pausedAt&&scheduledDate<=item.resumedAt);
+}
+function p9510GetOccurrenceForDate(item,date){
+  if(!item||!item.enabled)return {state:"disabled",date:date,scheduledDate:null};
+  if(!p9510ScheduleBase(item))return {state:"schedule_unconfigured",date:date,scheduledDate:null};
+  if(item.paused)return {state:"paused",date:date,scheduledDate:null};
+  const events=Object.values(p9510GetRecurringEvents().events);
+  const replacement=events.find(function(e){return e.itemId===item.id&&e.status==="rescheduled"&&(e.replacementDate||e.actualDate)===date;});
+  const scheduledDate=replacement?replacement.scheduledDate:p9510GetPreviousDueDate(item,date);
+  if(!scheduledDate)return {state:"upcoming",date:date,scheduledDate:null,nextDueDate:p9510GetNextDueDate(item,date)};
+  if(p9510WasPaused(item,scheduledDate))return {state:"paused",date:date,scheduledDate:scheduledDate};
+  const resolution=p9510ResolveOccurrence(item,scheduledDate),targetDate=(resolution.status==="rescheduled"&&(resolution.replacementDate||resolution.actualDate))||scheduledDate;
+  if(resolution.status==="completed")return {state:"completed",timing:resolution.actualDate<=targetDate?"on_time":"late",date:date,scheduledDate:scheduledDate,targetDate:targetDate,resolution:resolution,nextDueDate:p9510GetNextDueDate(item,scheduledDate)};
+  if(resolution.status==="skipped")return {state:"skipped",date:date,scheduledDate:scheduledDate,resolution:resolution,nextDueDate:p9510GetNextDueDate(item,scheduledDate)};
+  if(resolution.status==="paused")return {state:"paused",date:date,scheduledDate:scheduledDate,resolution:resolution};
+  const delta=p9510DayDiff(targetDate,date);
+  if(delta<0)return {state:"upcoming",date:date,scheduledDate:scheduledDate,targetDate:targetDate,nextDueDate:targetDate,resolution:resolution};
+  if(delta===0)return {state:"due_today",date:date,scheduledDate:scheduledDate,targetDate:targetDate,resolution:resolution};
+  if(delta<=item.graceDays)return {state:"due",date:date,scheduledDate:scheduledDate,targetDate:targetDate,daysLate:delta,resolution:resolution};
+  return {state:"late",date:date,scheduledDate:scheduledDate,targetDate:targetDate,daysLate:delta,resolution:resolution};
+}
+function p9510GetScheduleStatus(itemId,date){return p9510GetOccurrenceForDate(p9510GetItem(itemId),date||p9510DateKey(new Date()));}
+function p9510UpsertEvent(event){
+  const store=p9510GetRecurringEvents(),id=p9510OccurrenceId(event.itemId,event.scheduledDate),old=store.events[id]||{},now=new Date().toISOString();
+  store.events[id]=Object.assign({},old,event,{id:id,createdAt:old.createdAt||now,updatedAt:now});p9510SaveRecurringEvents(store);return store.events[id];
+}
+function p9510WriteDailyBridge(date,value){
+  const key="day-"+date,raw=localStorage.getItem(key);let d={date:date};if(raw){try{d=JSON.parse(raw)||d;}catch(e){d={date:date};}}d.zep=value;localStorage.setItem(key,JSON.stringify(d));
+}
+function p9510CurrentOccurrence(){
+  const item=p9510GetItem("zepbound"),date=p9510DateKey(tDate),evaluated=p9510GetOccurrenceForDate(item,date);
+  if(evaluated.scheduledDate)return {item:item,date:date,evaluated:evaluated,scheduledDate:evaluated.scheduledDate};
+  if(evaluated.nextDueDate)return {item:item,date:date,evaluated:evaluated,scheduledDate:evaluated.nextDueDate};
+  return null;
+}
+function p9510RecordTaken(){
+  p9510BeginAction("completed");
+}
+function p9510RecordSkip(){
+  const ctx=p9510CurrentOccurrence();if(!ctx)return;
+  p9510UpsertEvent({itemId:"zepbound",scheduledDate:ctx.scheduledDate,actualDate:ctx.date,status:"skipped",source:"daily_log",note:""});
+  p9510WriteDailyBridge(ctx.date,"no");toggleStates.zep="no";p9510RenderZepbound();
+}
+function p9510RecordReschedule(){
+  p9510BeginAction("rescheduled");
+}
+function p9510BeginAction(type){
+  const ctx=p9510CurrentOccurrence(),actions=document.getElementById("p9510ZepActions");if(!ctx||!actions)return;
+  actions.innerHTML="";
+  const field=document.createElement("label");field.className="p9510-field";field.textContent=type==="completed"?"Actual date taken":"New intended date";
+  const input=document.createElement("input");input.type="date";input.id="p9510ActionDate";input.value=type==="completed"?ctx.date:p9510AddDays(ctx.date,1);field.appendChild(input);actions.appendChild(field);
+  const save=document.createElement("button");save.type="button";save.className="primary";save.textContent=type==="completed"?"Record taken":"Save reschedule";save.onclick=function(){p9510CommitAction(type,ctx.scheduledDate);};actions.appendChild(save);
+  const cancel=document.createElement("button");cancel.type="button";cancel.textContent="Cancel";cancel.onclick=p9510RenderZepbound;actions.appendChild(cancel);
+}
+function p9510CommitAction(type,scheduledDate){
+  const input=document.getElementById("p9510ActionDate"),date=input&&input.value;if(!p9510IsDateKey(date))return;
+  if(type==="completed"){
+    const prior=p9510FindEventForOccurrence("zepbound",scheduledDate);
+    p9510UpsertEvent({itemId:"zepbound",scheduledDate:scheduledDate,actualDate:date,replacementDate:prior&&prior.status==="rescheduled"?(prior.replacementDate||prior.actualDate||""):(prior&&prior.replacementDate)||"",status:"completed",source:"daily_log",note:""});
+    p9510WriteDailyBridge(date,"yes");if(date===p9510DateKey(tDate))toggleStates.zep="yes";
+  }else{
+    p9510UpsertEvent({itemId:"zepbound",scheduledDate:scheduledDate,actualDate:date,replacementDate:date,status:"rescheduled",source:"daily_log",note:""});
+  }
+  p9510RenderZepbound();
+}
+function p9510ClearOccurrence(){
+  const ctx=p9510CurrentOccurrence();if(!ctx)return;const store=p9510GetRecurringEvents(),id=p9510OccurrenceId("zepbound",ctx.scheduledDate),event=store.events[id];if(!event)return;
+  if(event.source==="daily_log"&&event.actualDate){const key="day-"+event.actualDate,raw=localStorage.getItem(key);if(raw){try{const d=JSON.parse(raw);if((event.status==="completed"&&d.zep==="yes")||(event.status==="skipped"&&d.zep==="no")){delete d.zep;localStorage.setItem(key,JSON.stringify(d));}}catch(e){}}}
+  if(event.actualDate===p9510DateKey(tDate))toggleStates.zep=null;
+  delete store.events[id];p9510SaveRecurringEvents(store);p9510RenderZepbound();
+}
+function p9510LatestLegacyTaken(){
+  return Object.keys(localStorage).filter(function(k){return /^day-\d{4}-\d{2}-\d{2}$/.test(k);}).sort().reverse().find(function(k){try{return JSON.parse(localStorage.getItem(k)).zep==="yes";}catch(e){return false;}})?.slice(4)||"";
+}
+function p9510OpenSetup(){
+  const item=p9510GetItem("zepbound"),proposal=p9510LatestLegacyTaken(),anchor=item&&item.schedule.anchorDate||proposal||"";
+  document.getElementById("p9510Anchor").value=anchor;document.getElementById("p9510Weekday").value=String(item&&item.schedule.weekdays[0]!=null?item.schedule.weekdays[0]:(anchor?p9510ParseDate(anchor).getDay():0));
+  document.getElementById("p9510Grace").value=String(item?item.graceDays:1);document.getElementById("p9510Enabled").checked=item?item.enabled:true;document.getElementById("p9510Paused").checked=item?item.paused:false;document.getElementById("p9510Setup").classList.add("open");
+}
+function p9510CancelSetup(){document.getElementById("p9510Setup").classList.remove("open");}
+function p9510SaveSetup(){
+  const anchor=document.getElementById("p9510Anchor").value,weekday=+document.getElementById("p9510Weekday").value,grace=+document.getElementById("p9510Grace").value;if(!p9510IsDateKey(anchor)||weekday<0||weekday>6||grace<0||grace>7)return;
+  const store=p9510GetRecurringItems(),old=store.items.zepbound||{},wasPaused=!!old.paused,paused=!!document.getElementById("p9510Paused").checked,nowDate=p9510DateKey(new Date()),now=new Date().toISOString();
+  const item=Object.assign({},old,{id:"zepbound",name:"Zepbound",category:"medication",enabled:!!document.getElementById("p9510Enabled").checked,paused:paused,graceDays:Math.floor(grace),schedule:Object.assign({},old.schedule||{},{type:"weekly",interval:1,weekdays:[weekday],anchorDate:anchor}),createdAt:old.createdAt||now,updatedAt:now});
+  item.pauseIntervals=Array.isArray(old.pauseIntervals)?old.pauseIntervals.map(function(x){return Object.assign({},x);}):[];
+  if(!wasPaused&&paused){item.pausedAt=nowDate;item.pauseIntervals.push({startDate:nowDate,endDate:null});}
+  if(wasPaused&&!paused){item.resumedAt=nowDate;for(let i=item.pauseIntervals.length-1;i>=0;i--){if(!item.pauseIntervals[i].endDate){item.pauseIntervals[i].endDate=nowDate;break;}}}
+  store.items.zepbound=item;p9510SaveRecurringItems(store);p9510CancelSetup();p9510RenderZepbound();
+}
+function p9510DisableTracking(){const store=p9510GetRecurringItems(),item=store.items.zepbound;if(item){item.enabled=false;item.updatedAt=new Date().toISOString();p9510SaveRecurringItems(store);}p9510CancelSetup();p9510RenderZepbound();}
+function p9510RenderZepbound(){
+  const status=document.getElementById("p9510ZepStatus"),actions=document.getElementById("p9510ZepActions");if(!status||!actions)return;
+  const item=p9510GetItem("zepbound"),date=p9510DateKey(tDate);actions.innerHTML="";
+  if(!item){status.textContent=p9510LatestLegacyTaken()?"Schedule not configured · last taken date available for setup":"Schedule not configured";return;}
+  if(!item.enabled){status.textContent="Tracking disabled";return;}const ev=p9510GetOccurrenceForDate(item,date),buttons=[];
+  if(ev.state==="schedule_unconfigured"){status.textContent="Schedule not configured";return;}
+  if(ev.state==="paused"){status.textContent="Tracking paused";return;}
+  if(ev.state==="upcoming"){status.textContent="Next due: "+p9510FormatDate(ev.nextDueDate);buttons.push(["Record early / other date","p9510RecordTaken()",""]);if(ev.resolution&&ev.resolution.status==="rescheduled")buttons.push(["Clear / correct","p9510ClearOccurrence()",""]);}
+  if(ev.state==="due_today"){status.textContent=(ev.targetDate!==ev.scheduledDate?"Rescheduled · due today":"Due today");buttons.push(["Taken","p9510RecordTaken()","primary"],["Skip","p9510RecordSkip()",""],["Reschedule","p9510RecordReschedule()",""]);if(ev.resolution&&ev.resolution.status==="rescheduled")buttons.push(["Clear / correct","p9510ClearOccurrence()",""]);}
+  if(ev.state==="due"||ev.state==="late"){status.textContent="Due "+p9510FormatDate(ev.targetDate||ev.scheduledDate).split(",")[0]+" · "+ev.daysLate+" day"+(ev.daysLate===1?"":"s")+" "+(ev.state==="late"?"late":"within grace");buttons.push(["Taken today","p9510RecordTaken()","primary"],["Skip","p9510RecordSkip()",""],["Reschedule","p9510RecordReschedule()",""]);if(ev.resolution&&ev.resolution.status==="rescheduled")buttons.push(["Clear / correct","p9510ClearOccurrence()",""]);}
+  if(ev.state==="completed"){status.textContent=ev.timing==="on_time"?"Taken "+(ev.resolution.actualDate===date?"today":p9510FormatDate(ev.resolution.actualDate)):"Taken "+p9510FormatDate(ev.resolution.actualDate)+" for "+p9510FormatDate(ev.scheduledDate)+" dose";buttons.push(["Clear / correct","p9510ClearOccurrence()",""]);}
+  if(ev.state==="skipped"){status.textContent="Skipped for "+p9510FormatDate(ev.scheduledDate);buttons.push(["Clear / correct","p9510ClearOccurrence()",""]);}
+  buttons.forEach(function(b){const el=document.createElement("button");el.type="button";el.textContent=b[0];el.className=b[2];el.setAttribute("onclick",b[1]);actions.appendChild(el);});
+}
+function p9510OccurrenceDates(item,endDate,weeks){
+  const end=endDate||p9510DateKey(new Date()),start=p9510AddDays(end,-7*(weeks||8)),dates=[];let due=p9510GetNextDueDate(item,p9510AddDays(start,-1));while(due&&due<=end&&dates.length<100){dates.push(due);due=p9510AddDays(due,7*Math.max(1,item.schedule.interval||1));}return dates;
+}
+function p9510GetAdherenceSummary(itemId,weeks,endDate){
+  const item=p9510GetItem(itemId||"zepbound"),out={scheduledOccurrences:0,completedOnTime:0,completedLate:0,skipped:0,unresolvedLate:0,pausedExcluded:0,eligibleResolved:0,adherencePercent:null,weeks:weeks||8};
+  if(!item||!item.enabled||!p9510ScheduleBase(item))return out;
+  p9510OccurrenceDates(item,endDate,weeks).forEach(function(date){if(p9510WasPaused(item,date)){out.pausedExcluded++;return;}const state=p9510GetOccurrenceForDate(item,endDate||p9510DateKey(new Date())),r=p9510ResolveOccurrence(item,date),target=r.replacementDate||date;out.scheduledOccurrences++;if(r.status==="completed"){if(r.actualDate<=target)out.completedOnTime++;else out.completedLate++;}else if(r.status==="skipped")out.skipped++;else if(r.status==="paused")out.pausedExcluded++;else if(p9510DayDiff(target,endDate||p9510DateKey(new Date()))>item.graceDays)out.unresolvedLate++;});
+  out.eligibleResolved=out.completedOnTime+out.completedLate+out.skipped+out.unresolvedLate;out.adherencePercent=out.eligibleResolved?Math.round(100*(out.completedOnTime+out.completedLate)/out.eligibleResolved):null;return out;
+}
+function p9510RenderStats(){
+  const el=document.getElementById("p9510StatsSummary");if(!el)return;const item=p9510GetItem("zepbound");if(!item||!item.enabled){el.style.display="none";return;}const s=p9510GetAdherenceSummary("zepbound",8);el.style.display="block";el.innerHTML="<strong>Zepbound · recent 8 weeks</strong><br>Scheduled "+s.scheduledOccurrences+" · On time "+s.completedOnTime+" · Late "+s.completedLate+" · Skipped "+s.skipped+" · Unresolved late "+s.unresolvedLate+"<br>Adherence "+(s.adherencePercent==null?"—":s.adherencePercent+"%")+" (completed ÷ completed, skipped, and unresolved late occurrences; paused/upcoming excluded)";
+}
+function p9510BuildAdherenceExport(){
+  const item=p9510GetItem("zepbound"),today=p9510DateKey(new Date());if(!item)return "--- SCHEDULED ADHERENCE ---\nZepbound tracking: disabled / schedule unconfigured\nBlank non-due days are not misses.\n\n";
+  const s=p9510GetAdherenceSummary("zepbound",8,today),prev=p9510GetPreviousDueDate(item,today),resolved=prev?p9510ResolveOccurrence(item,prev):{source:"none"},next=p9510GetNextDueDate(item,today),weekday=item.schedule.weekdays[0];
+  return "--- SCHEDULED ADHERENCE ---\nZepbound tracking: "+(item.enabled?(item.paused?"paused":"enabled"):"disabled")+"\nSchedule: "+(p9510ScheduleBase(item)?["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][weekday]+" weekly; grace "+item.graceDays+" day(s)":"unconfigured")+"\nLast occurrence: "+(prev||"none")+" · "+(resolved.status||"unresolved")+" · source "+resolved.source+"\nNext due: "+(next||"unconfigured")+"\nRecent 8 weeks: scheduled "+s.scheduledOccurrences+", on-time "+s.completedOnTime+", late "+s.completedLate+", skipped "+s.skipped+", unresolved late "+s.unresolvedLate+", adherence "+(s.adherencePercent==null?"n/a":s.adherencePercent+"%")+".\nGuidance: Blank non-due days are not misses. Only scheduled occurrences belong in adherence calculations. Completed late, skipped, rescheduled, paused, and unresolved are distinct. Discuss patterns neutrally; do not provide medication dosing/timing instructions or automatically change this schedule.\n\n";
+}
+function p9510HistoryOutcome(date){
+  const events=Object.values(p9510GetRecurringEvents().events).filter(function(e){return e.itemId==="zepbound"&&(e.actualDate===date||e.scheduledDate===date||e.replacementDate===date);});if(!events.length)return "";
+  const e=events[0];if(e.status==="completed"){const late=p9510DayDiff(e.replacementDate||e.scheduledDate,e.actualDate);return "💊 Zepbound "+(late>0?"completed "+late+" day"+(late===1?"":"s")+" late":"taken");}if(e.status==="skipped")return "💊 Zepbound skipped";if(e.status==="rescheduled")return "💊 Zepbound rescheduled to "+p9510FormatDate(e.replacementDate||e.actualDate);return "";
+}
+function mfRecurringAdherenceDebug(itemId,date){
+  const id=itemId||"zepbound",item=p9510GetItem(id),when=date||p9510DateKey(new Date()),evaluated=item?p9510GetOccurrenceForDate(item,when):null,scheduled=evaluated&&evaluated.scheduledDate,resolution=item&&scheduled?p9510ResolveOccurrence(item,scheduled):{source:"none"};
+  return {appVersion:APP_VERSION,itemExists:!!item,definition:item,enabled:!!(item&&item.enabled),paused:!!(item&&item.paused),anchorDate:item&&item.schedule.anchorDate||null,weekday:item&&item.schedule.weekdays[0],graceDays:item&&item.graceDays,previousDueDate:item?p9510GetPreviousDueDate(item,when):null,nextDueDate:item?p9510GetNextDueDate(item,when):null,evaluatedOccurrence:evaluated,resolvedStatus:resolution.status||null,evidenceSource:resolution.source,matchingStructuredEvent:resolution.event||null,matchingLegacyEvidence:resolution.source==="legacy_daily_log"?resolution:null,recentAdherenceSummary:p9510GetAdherenceSummary(id,8,when),warnings:[],storageKeysCoveredByBackup:[P9510_RECURRING_ITEMS_KEY,P9510_RECURRING_EVENTS_KEY].filter(p8IsMarcusFitKey),readOnly:true};
+}
+function mfRecurringStorageDebug(){
+  const warnings=[],rawItems=localStorage.getItem(P9510_RECURRING_ITEMS_KEY),rawEvents=localStorage.getItem(P9510_RECURRING_EVENTS_KEY),items=p9510GetRecurringItems(),events=p9510GetRecurringEvents(),ids=Object.keys(items.items),occ={},orphans=[];
+  Object.values(events.events).forEach(function(e){if(!ids.includes(e.itemId))orphans.push(e.id);const k=e.itemId+"|"+e.scheduledDate;occ[k]=(occ[k]||0)+1;});
+  if(rawItems){try{JSON.parse(rawItems);}catch(e){warnings.push("Recurring item store does not parse.");}}if(rawEvents){try{JSON.parse(rawEvents);}catch(e){warnings.push("Recurring event store does not parse.");}}
+  return {keys:{items:{exists:rawItems!==null,parses:!rawItems||!warnings.some(function(w){return w.includes("item store");}),schemaVersion:items.schemaVersion},events:{exists:rawEvents!==null,parses:!rawEvents||!warnings.some(function(w){return w.includes("event store");}),schemaVersion:events.schemaVersion}},itemCount:ids.length,eventCount:Object.keys(events.events).length,orphanedEventReferences:orphans,duplicateOccurrenceIds:Object.keys(occ).filter(function(k){return occ[k]>1;}),backupCoverage:{items:p8IsMarcusFitKey(P9510_RECURRING_ITEMS_KEY),events:p8IsMarcusFitKey(P9510_RECURRING_EVENTS_KEY)},warnings:warnings,readOnly:true};
+}
+function mf9510RunScheduledAdherenceSelfTest(){
+  const keys=[P9510_RECURRING_ITEMS_KEY,P9510_RECURRING_EVENTS_KEY,"day-2026-07-27"],before={};keys.forEach(function(k){before[k]=localStorage.getItem(k);});const assertions=[],failures=[];function check(name,pass,actual){assertions.push({name:name,pass:!!pass,actual:actual});if(!pass)failures.push(name);}
+  let result;
+  try{
+    localStorage.setItem(P9510_RECURRING_ITEMS_KEY,JSON.stringify({schemaVersion:1,items:{zepbound:{id:"zepbound",name:"Zepbound",enabled:true,paused:false,graceDays:1,schedule:{type:"weekly",interval:1,weekdays:[0],anchorDate:"2026-07-26"}}}}));localStorage.removeItem(P9510_RECURRING_EVENTS_KEY);localStorage.removeItem("day-2026-07-27");
+    const item=p9510GetItem("zepbound");check("Saturday is upcoming",p9510GetOccurrenceForDate(item,"2026-07-25").state==="upcoming");check("Sunday is due today",p9510GetOccurrenceForDate(item,"2026-07-26").state==="due_today");localStorage.setItem("day-2026-07-27",JSON.stringify({date:"2026-07-27",zep:"yes",keep:"same"}));check("Monday legacy completion",p9510GetOccurrenceForDate(item,"2026-07-27").state==="completed");check("legacy source",p9510ResolveOccurrence(item,"2026-07-26").source==="legacy_daily_log");check("next Sunday",p9510GetNextDueDate(item,"2026-07-26")==="2026-08-02");check("backup coverage",p8IsMarcusFitKey(P9510_RECURRING_ITEMS_KEY)&&p8IsMarcusFitKey(P9510_RECURRING_EVENTS_KEY));check("DST-safe date add",p9510AddDays("2026-03-08",1)==="2026-03-09");
+    p9510UpsertEvent({itemId:"zepbound",scheduledDate:"2026-07-26",actualDate:"2026-07-27",status:"completed",source:"self_test"});check("structured precedence",p9510ResolveOccurrence(item,"2026-07-26").source==="structured_event");check("single occurrence id",Object.keys(p9510GetRecurringEvents().events).length===1);
+  }catch(e){failures.push("Unexpected error: "+(e&&e.message));}
+  finally{keys.forEach(function(k){before[k]===null?localStorage.removeItem(k):localStorage.setItem(k,before[k]);});}
+  const restored=keys.every(function(k){return localStorage.getItem(k)===before[k];});result={pass:failures.length===0&&restored,assertions:assertions,failures:failures,storageExactlyRestored:restored};return result;
+}
+// Compatibility wrappers: daily zep values remain readable, but the scheduled card owns new actions.
+const p9510LegacySetTog=setTog;
+setTog=function(key,val){if(key==="zep"){toggleStates.zep=val;return;}return p9510LegacySetTog(key,val);};
+const p9510LegacyApplyStateToForm=applyStateToForm;
+applyStateToForm=function(d){const z=d&&d.zep;if(d&&Object.prototype.hasOwnProperty.call(d,"zep"))d=Object.assign({},d,{zep:null});p9510LegacyApplyStateToForm(d);toggleStates.zep=z||null;p9510RenderZepbound();};
+const p9510LegacyLoadDay=loadDay;loadDay=function(){const r=p9510LegacyLoadDay();p9510RenderZepbound();return r;};
+const p9510LegacyAnalytics=p7RenderAnalytics;p7RenderAnalytics=function(){const r=p9510LegacyAnalytics();p9510RenderStats();return r;};
+const p9510LegacyExport=genExport;genExport=function(){const out=p9510LegacyExport(),section=p9510BuildAdherenceExport(),updated=String(out||window._exp||"").replace(/(=== MARCUSFIT EXPORT ===\n)/,"$1"+section);window._exp=updated;const el=document.getElementById("exportOut");if(el)el.textContent=updated;return updated;};
+// ── END PHASE 9.5.10 ──────────────────────────────────────────────────────
+
+// -- PHASE 9.6.0: PERSONALIZED HABITS ---------------------------------------
+const P960_HABIT_DEFINITIONS_KEY="mf-habit-definitions";
+const P960_HABIT_PROPOSAL_KEY="mf-habit-proposal";
+const P960_HABIT_SCHEMA_VERSION=1;
+const P960_PROPOSAL_SCHEMA_VERSION=1;
+const P960_WEEKDAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const P960_TARGET_TYPES=["checkbox","number","duration","count","text"];
+const P960_SCHEDULE_TYPES=["daily","weekdays","weekly_count"];
+const P960_SOURCES=["default","user","ai","imported"];
+const P960_MODIFY_FIELDS=["name","icon","description","target","schedule","instructions","emphasis"];
+let p960HabitManagerDraft=null;
+let p960HabitManagerEditingId=null;
+
+function p960Clone(value){return value==null?value:JSON.parse(JSON.stringify(value));}
+function p960Now(){return new Date().toISOString();}
+function p960DateKey(value){
+  if(typeof value==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(value))return value;
+  const d=value instanceof Date?value:new Date(value||Date.now());
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function p960ParseDate(key){const p=String(key||"").split("-").map(Number);return new Date(p[0],p[1]-1,p[2],12,0,0,0);}
+function p960AddDays(key,count){const d=p960ParseDate(key);d.setDate(d.getDate()+count);return p960DateKey(d);}
+function p960StableStringify(value){
+  if(Array.isArray(value))return "["+value.map(p960StableStringify).join(",")+"]";
+  if(value&&typeof value==="object")return "{"+Object.keys(value).sort().map(function(k){return JSON.stringify(k)+":"+p960StableStringify(value[k]);}).join(",")+"}";
+  return JSON.stringify(value);
+}
+function p960Fingerprint(value){
+  const s=p960StableStringify(value);let h=2166136261;
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}
+  return (h>>>0).toString(16).padStart(8,"0");
+}
+function p960SafeId(name){
+  const base="habit-"+String(name||"custom").toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g,"").trim().replace(/[\s_]+/g,"-").replace(/-+/g,"-").slice(0,42).replace(/-$/,"")||"habit-custom";
+  const used=new Set(Object.keys(p960GetHabitStore().habits));let id=base,n=2;while(used.has(id)){id=base+"-"+n++;}return id;
+}
+function p960DefaultTarget(display){
+  const text=String(display||""),number=text.match(/(\d[\d,]*(?:\.\d+)?)/);let type="checkbox",unit="";
+  if(number){type=/sec|min|hour/i.test(text)?"duration":/step|cycle|rep|hold|round|reset|set/i.test(text)?"count":"number";const m=text.match(/\b(oz|steps?|minutes?|mins?|hours?|hrs?|seconds?|secs?|reps?|sets?|rounds?|cycles?)\b/i);unit=m?m[1]:"";}
+  return {type:type,value:number?Number(number[1].replace(/,/g,"")):null,unit:unit,display:text};
+}
+function p960BuildDefaultDefinitions(at){
+  const stamp=at||p960Now(),habits={};
+  HABITS.forEach(function(h){habits[h.id]={id:h.id,name:h.name,icon:h.icon,description:"",target:p960DefaultTarget(h.target),schedule:{type:"daily"},instructions:p960Clone(h.instructions),emphasis:"normal",active:true,archivedAt:null,source:"default",createdAt:stamp,updatedAt:stamp,legacyEligibilityInferred:true,aiMeta:{lastProposalId:null,lastChangedBy:null}};});
+  return {schemaVersion:1,definitionVersion:"9.6.0",habits:habits,order:HABITS.map(function(h){return h.id;}),createdAt:stamp,updatedAt:stamp};
+}
+function p960EmptyHabitStore(at){const stamp=at||p960Now();return {schemaVersion:1,definitionVersion:"9.6.0",habits:{},order:[],createdAt:stamp,updatedAt:stamp};}
+function p960NormalizeTarget(raw){
+  const source=raw&&typeof raw==="object"?p960Clone(raw):{display:String(raw||"")};
+  source.type=P960_TARGET_TYPES.includes(source.type)?source.type:"checkbox";source.display=String(source.display==null?"":source.display);source.unit=String(source.unit==null?"":source.unit);
+  if(["number","duration","count"].includes(source.type)){const n=Number(source.value);source.value=Number.isFinite(n)&&n>=0?n:null;}else if(!Object.prototype.hasOwnProperty.call(source,"value"))source.value=null;
+  return source;
+}
+function p960NormalizeSchedule(raw){
+  const source=raw&&typeof raw==="object"?p960Clone(raw):{type:"daily"};source.type=P960_SCHEDULE_TYPES.includes(source.type)?source.type:"daily";
+  if(source.type==="weekdays")source.weekdays=[...new Set((Array.isArray(source.weekdays)?source.weekdays:[]).map(Number).filter(function(n){return Number.isInteger(n)&&n>=0&&n<=6;}))].sort();
+  if(source.type==="weekly_count"){const count=Math.floor(Number(source.targetCount));source.targetCount=count>0&&count<=14?count:1;source.weekStartsOn=Number.isInteger(Number(source.weekStartsOn))&&Number(source.weekStartsOn)>=0&&Number(source.weekStartsOn)<=6?Number(source.weekStartsOn):0;}
+  return source;
+}
+function p960NormalizeHabit(raw,id){
+  const source=raw&&typeof raw==="object"?p960Clone(raw):{},stable=String(id||source.id||"");source.id=stable;source.name=String(source.name||stable||"Unnamed habit");source.icon=String(source.icon||"✓");source.description=String(source.description||"");source.instructions=Array.isArray(source.instructions)?source.instructions.map(String):[];
+  source.target=p960NormalizeTarget(source.target);source.schedule=p960NormalizeSchedule(source.schedule);source.emphasis=["low","normal","high"].includes(source.emphasis)?source.emphasis:"normal";source.active=source.active!==false;source.archivedAt=source.active?null:(source.archivedAt||null);source.source=P960_SOURCES.includes(source.source)?source.source:"imported";source.createdAt=source.createdAt||null;source.updatedAt=source.updatedAt||source.createdAt||null;source.aiMeta=Object.assign({lastProposalId:null,lastChangedBy:null},source.aiMeta&&typeof source.aiMeta==="object"?source.aiMeta:{});return source;
+}
+function p960NormalizeHabitStore(raw){
+  const source=raw&&typeof raw==="object"?p960Clone(raw):p960EmptyHabitStore(),normalized=Object.assign({},source);normalized.schemaVersion=1;normalized.definitionVersion=String(source.definitionVersion||"9.6.0");normalized.habits={};
+  const input=source.habits&&typeof source.habits==="object"?source.habits:{};Object.keys(input).forEach(function(id){if(/^habit-[a-z0-9][a-z0-9-]*$/i.test(id))normalized.habits[id]=p960NormalizeHabit(input[id],id);});
+  const seen=new Set();normalized.order=[];(Array.isArray(source.order)?source.order:[]).forEach(function(id){if(normalized.habits[id]&&!seen.has(id)){seen.add(id);normalized.order.push(id);}});Object.keys(normalized.habits).forEach(function(id){if(!seen.has(id))normalized.order.push(id);});normalized.createdAt=source.createdAt||null;normalized.updatedAt=source.updatedAt||null;return normalized;
+}
+function p960HasHistoricalHabits(){return Object.keys(localStorage).some(function(k){if(!/^day-\d{4}-\d{2}-\d{2}$/.test(k))return false;try{const d=JSON.parse(localStorage.getItem(k));return !!(d&&d.habits&&Object.keys(d.habits).length);}catch(e){return false;}});}
+function p960ShouldSeedMarcusDefaults(){
+  if(p960HasHistoricalHabits())return true;
+  try{const p=p950GetUserProfile();if(p&&String(p.firstName||p.name||"").trim().toLowerCase()==="marcus")return true;}catch(e){}
+  try{const basis=getActiveProgramBasis();if(basis&&basis.explicit===true)return false;}catch(e){}
+  try{const o=p951GetOnboardingState();if(o&&["not_started","in_progress","skipped"].includes(o.status))return false;}catch(e){}
+  try{return !!p951HasMeaningfulExistingData();}catch(e){return false;}
+}
+function p960GetHabitStore(){const raw=localStorage.getItem(P960_HABIT_DEFINITIONS_KEY);if(raw!==null){try{return p960NormalizeHabitStore(JSON.parse(raw));}catch(e){return p960EmptyHabitStore();}}return p960ShouldSeedMarcusDefaults()?p960BuildDefaultDefinitions():p960EmptyHabitStore();}
+function p960SaveHabitStore(store){const normalized=p960NormalizeHabitStore(store),now=p960Now();normalized.createdAt=normalized.createdAt||now;normalized.updatedAt=now;normalized.definitionVersion=APP_VERSION;localStorage.setItem(P960_HABIT_DEFINITIONS_KEY,JSON.stringify(normalized));return normalized;}
+function p960InitHabitStore(){if(localStorage.getItem(P960_HABIT_DEFINITIONS_KEY)!==null)return {created:false,store:p960GetHabitStore()};const store=p960ShouldSeedMarcusDefaults()?p960BuildDefaultDefinitions():p960EmptyHabitStore();p960SaveHabitStore(store);return {created:true,seededDefaults:Object.keys(store.habits).length===7,store:store};}
+function p960GetHabitDefinitions(){return p960GetHabitStore().habits;}
+function p960GetActiveHabits(){const store=p960GetHabitStore();return store.order.map(function(id){return store.habits[id];}).filter(function(h){return h&&h.active;});}
+function p960GetHabitById(id){return p960GetHabitStore().habits[id]||p960BuildDefaultDefinitions("legacy").habits[id]||null;}
+function p960GetHabitWeekRange(habit,date){const key=p960DateKey(date),schedule=habit&&habit.schedule||{},startOn=schedule.type==="weekly_count"?Number(schedule.weekStartsOn||0):0,d=p960ParseDate(key),start=p960AddDays(key,-((d.getDay()-startOn+7)%7));return {start:start,end:p960AddDays(start,6)};}
+function p960IsWithinActiveRange(habit,date){const key=p960DateKey(date);if(habit.createdAt&&!habit.legacyEligibilityInferred&&key<p960DateKey(habit.createdAt))return false;if(habit.archivedAt&&key>p960DateKey(habit.archivedAt))return false;return true;}
+function p960IsHabitDueOnDate(habit,date){if(!habit||!p960IsWithinActiveRange(habit,date))return false;const schedule=p960NormalizeSchedule(habit.schedule),day=p960ParseDate(p960DateKey(date)).getDay();if(schedule.type==="daily")return true;if(schedule.type==="weekdays")return schedule.weekdays.includes(day);return schedule.type==="weekly_count";}
+function p960ReadDay(date){try{return JSON.parse(localStorage.getItem("day-"+p960DateKey(date))||"null")||{};}catch(e){return {};}}
+function p960GetWeeklyHabitProgress(habit,date){const range=p960GetHabitWeekRange(habit,date);let completed=0;for(let d=range.start;d<=range.end;d=p960AddDays(d,1)){const state=(p960ReadDay(d).habits||{})[habit.id];if(state&&state.completed)completed++;}const target=Math.max(1,Number(habit.schedule&&habit.schedule.targetCount)||1);return {start:range.start,end:range.end,completed:completed,target:target,met:completed>=target,label:completed+" / "+target+" this week"};}
+function p960GetHabitDisplayState(habit,date){const key=p960DateKey(date),state=(p960ReadDay(key).habits||{})[habit.id]||{},weekly=habit.schedule.type==="weekly_count"?p960GetWeeklyHabitProgress(habit,key):null,due=p960IsHabitDueOnDate(habit,key);return {active:!!habit.active,archived:!habit.active,dueToday:due,notDue:!due,completed:!!state.completed,weeklyProgress:weekly,weeklyTargetMet:!!(weekly&&weekly.met),weeklyTargetNotYetMet:!!(weekly&&!weekly.met)};}
+function p960HabitTargetText(h){const t=h.target||{};return t.display||([t.value,t.unit].filter(function(x){return x!==null&&x!=="";}).join(" "))||"Complete";}
+function p960HabitScheduleText(h){const s=h.schedule||{};if(s.type==="weekdays")return (s.weekdays||[]).map(function(d){return P960_WEEKDAYS[d].slice(0,3);}).join(", ");if(s.type==="weekly_count")return s.targetCount+" times weekly";return "Daily";}
+function p960GetRenderedHabits(date){const key=p960DateKey(date);return p960GetActiveHabits().filter(function(h){return h.schedule.type==="weekly_count"||p960IsHabitDueOnDate(h,key);});}
+
+initHabitState=function(){return p960GetActiveHabits().reduce(function(acc,h){acc[h.id]={completed:false,notes:""};return acc;},{});};
+renderHabits=function(){
+  const container=document.getElementById("habitCards"),progress=document.getElementById("habitsProgress");if(!container||!progress)return;const openCards=new Set(Array.from(document.querySelectorAll(".habit-card.open")).map(function(el){return el.id;}));container.innerHTML="";const habits=p960GetRenderedHabits(p960DateKey(tDate));let done=0;
+  if(!habits.length){const empty=document.createElement("div");empty.className="p960-empty";empty.textContent=p960GetActiveHabits().length?"No habits are due on this date.":"No active habits yet.";const button=document.createElement("button");button.type="button";button.textContent="Manage Habits";button.onclick=p960OpenHabitManager;empty.appendChild(button);container.appendChild(empty);}
+  habits.forEach(function(h){const state=habitState[h.id]||{completed:false,notes:""};if(state.completed)done++;const card=document.createElement("div");card.className="habit-card"+(state.completed?" completed":"")+(openCards.has("hcard-"+h.id)?" open":"");card.id="hcard-"+h.id;
+    const top=document.createElement("div");top.className="habit-card-top";top.onclick=function(){toggleHabitOpen(h.id);};const check=document.createElement("div");check.className="habit-check";check.textContent=state.completed?"✓":"";check.onclick=function(e){toggleHabitDone(e,h.id);};const info=document.createElement("div");info.className="habit-info";const name=document.createElement("div");name.className="habit-name";name.textContent=h.icon+" "+h.name;const target=document.createElement("div");target.className="habit-target";target.textContent=p960HabitTargetText(h)+" · "+p960HabitScheduleText(h);if(h.schedule.type==="weekly_count")target.textContent+=" · "+p960GetWeeklyHabitProgress(h,p960DateKey(tDate)).label;const expand=document.createElement("div");expand.className="habit-expand";expand.textContent="▼";info.append(name,target);top.append(check,info,expand);card.appendChild(top);
+    const body=document.createElement("div");body.className="habit-body";if(h.description){const desc=document.createElement("div");desc.className="p960-description";desc.textContent=h.description;body.appendChild(desc);}const ul=document.createElement("ul");ul.className="habit-instructions";h.instructions.forEach(function(text){const li=document.createElement("li");li.textContent=text;ul.appendChild(li);});body.appendChild(ul);
+    if(["number","duration","count","text"].includes(h.target.type)){const label=document.createElement("label");label.className="habit-note-label";label.textContent="Recorded value";const value=document.createElement("input");value.className="habit-note-input";value.type=h.target.type==="text"?"text":"number";value.value=state.value==null?"":state.value;value.placeholder=h.target.unit||"Optional value";value.oninput=function(){updateHabitValue(h.id,this.value,h.target.type);};body.append(label,value);}
+    const noteLabel=document.createElement("label");noteLabel.className="habit-note-label";noteLabel.textContent="Notes";const note=document.createElement("input");note.className="habit-note-input";note.type="text";note.placeholder="Optional note...";note.value=state.notes||"";note.oninput=function(){updateHabitNote(h.id,this.value);};body.append(noteLabel,note);card.appendChild(body);container.appendChild(card);
+  });progress.textContent=done+" / "+habits.length;progress.className="habits-progress"+(habits.length&&done===habits.length?" done":"");
+};
+function updateHabitValue(id,value,type){if(!habitState[id])habitState[id]={completed:false,notes:""};habitState[id].value=type==="text"?value:(value===""?null:Number(value));autoSaveDraft();}
+
+function p960ValidateHabit(h){const errors=[];if(!h||!/^habit-[a-z0-9][a-z0-9-]*$/i.test(h.id||""))errors.push("Stable habit ID is invalid.");if(!String(h&&h.name||"").trim())errors.push("Name is required.");const rawSchedule=h&&h.schedule||{},s=p960NormalizeSchedule(rawSchedule);if(s.type==="weekdays"&&!s.weekdays.length)errors.push("Select at least one weekday.");if(s.type==="weekly_count"&&(!Number.isInteger(Number(rawSchedule.targetCount))||Number(rawSchedule.targetCount)<1||Number(rawSchedule.targetCount)>14))errors.push("Weekly target must be 1–14.");const t=p960NormalizeTarget(h&&h.target),rawValue=h&&h.target&&h.target.value;if(["number","duration","count"].includes(t.type)&&(rawValue===null||rawValue===""||!Number.isFinite(Number(rawValue))||Number(rawValue)<0))errors.push("A valid numeric target is required.");return {valid:errors.length===0,errors:errors};}
+function p960EnsureManager(){
+  let overlay=document.getElementById("p960HabitManager");if(overlay)return overlay;const style=document.createElement("style");style.textContent=`
+  .p960-manage-link{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700}.p960-empty{padding:20px;text-align:center;border:1px dashed var(--border);border-radius:12px;color:var(--muted)}.p960-empty button{display:block;margin:10px auto 0}
+  .p960-overlay{display:none;position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.72);padding:12px}.p960-overlay.open{display:flex}.p960-panel{margin:auto;width:min(720px,100%);max-height:94vh;overflow:auto;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-sizing:border-box}.p960-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.p960-head h2{margin:0;font-size:20px}
+  .p960-list{display:grid;gap:8px;margin:14px 0}.p960-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px}.p960-row small{display:block;color:var(--muted);margin-top:3px}.p960-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.p960-actions button,.p960-footer button,.p960-form button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:8px;padding:7px 9px}
+  .p960-form{display:none;border:1px solid var(--accent);border-radius:12px;padding:12px;margin:12px 0}.p960-form.open{display:block}.p960-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.p960-field{font-size:10px;color:var(--muted);font-weight:700}.p960-field input,.p960-field select,.p960-field textarea{display:block;width:100%;box-sizing:border-box;margin-top:4px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px}.p960-weekdays{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}.p960-weekdays label{font-size:10px;color:var(--text)}.p960-footer{display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:-16px;background:var(--card);padding:12px 0}.p960-primary{background:var(--accent)!important;color:#000!important;border-color:var(--accent)!important}.p960-msg{white-space:pre-wrap;color:var(--yellow);font-size:11px;margin:8px 0}.p960-proposal-action{padding:10px;border:1px solid var(--border);border-radius:10px;margin:8px 0;white-space:pre-wrap}.p960-badge{display:inline-block;color:#000;background:var(--accent2);padding:2px 6px;border-radius:5px;font-size:9px;font-weight:800;margin-right:6px}
+  @media(max-width:480px){.p960-grid{grid-template-columns:1fr}.p960-panel{padding:12px}.p960-row{grid-template-columns:1fr}.p960-actions{justify-content:flex-start}}`;document.head.appendChild(style);
+  overlay=document.createElement("div");overlay.id="p960HabitManager";overlay.className="p960-overlay";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");const panel=document.createElement("div");panel.className="p960-panel";const head=document.createElement("div");head.className="p960-head";const title=document.createElement("h2");title.textContent="Manage Habits";const close=document.createElement("button");close.type="button";close.textContent="Close";close.onclick=p960CancelHabitManager;head.append(title,close);const msg=document.createElement("div");msg.id="p960ManagerMsg";msg.className="p960-msg";const list=document.createElement("div");list.id="p960HabitList";list.className="p960-list";const add=document.createElement("button");add.type="button";add.textContent="+ Add Habit";add.onclick=function(){p960EditHabit(null);};const form=document.createElement("div");form.id="p960HabitForm";form.className="p960-form";const footer=document.createElement("div");footer.className="p960-footer";const cancel=document.createElement("button");cancel.type="button";cancel.textContent="Cancel";cancel.onclick=p960CancelHabitManager;const save=document.createElement("button");save.type="button";save.className="p960-primary";save.textContent="Save Changes";save.onclick=p960SaveHabitManager;footer.append(cancel,save);panel.append(head,msg,list,add,form,footer);overlay.appendChild(panel);document.body.appendChild(overlay);return overlay;
+}
+function p960OpenHabitManager(){p960HabitManagerDraft=p960Clone(p960GetHabitStore());p960HabitManagerEditingId=null;const overlay=p960EnsureManager();document.getElementById("p960ManagerMsg").textContent="Changes are saved only when you choose Save Changes.";p960RenderHabitManager();overlay.classList.add("open");}
+function p960CancelHabitManager(){const overlay=document.getElementById("p960HabitManager");if(overlay)overlay.classList.remove("open");p960HabitManagerDraft=null;p960HabitManagerEditingId=null;}
+function p960RenderHabitManager(){
+  if(!p960HabitManagerDraft)return;const list=document.getElementById("p960HabitList");list.innerHTML="";const ids=p960HabitManagerDraft.order.slice();Object.keys(p960HabitManagerDraft.habits).forEach(function(id){if(!ids.includes(id))ids.push(id);});
+  ids.forEach(function(id){const h=p960HabitManagerDraft.habits[id],row=document.createElement("div");row.className="p960-row";const text=document.createElement("div"),strong=document.createElement("strong");strong.textContent=h.icon+" "+h.name+(h.active?"":" (Archived)");const small=document.createElement("small");small.textContent=p960HabitTargetText(h)+" · "+p960HabitScheduleText(h)+" · "+h.source;text.append(strong,small);const actions=document.createElement("div");actions.className="p960-actions";
+    [["Edit",function(){p960EditHabit(id);}],["↑",function(){p960MoveHabit(id,-1);}],["↓",function(){p960MoveHabit(id,1);}],[h.active?"Archive":"Reactivate",function(){p960ToggleHabitActive(id);}]].forEach(function(a){const b=document.createElement("button");b.type="button";b.textContent=a[0];b.onclick=a[1];actions.appendChild(b);});row.append(text,actions);list.appendChild(row);
+  });
+}
+function p960MoveHabit(id,delta){const order=p960HabitManagerDraft.order,i=order.indexOf(id),j=i+delta;if(i<0||j<0||j>=order.length)return;const temp=order[i];order[i]=order[j];order[j]=temp;p960RenderHabitManager();}
+function p960ToggleHabitActive(id){const h=p960HabitManagerDraft.habits[id],now=p960Now();h.active=!h.active;h.archivedAt=h.active?null:now;h.updatedAt=now;p960RenderHabitManager();}
+function p960EditHabit(id){
+  p960HabitManagerEditingId=id;const existing=id?p960HabitManagerDraft.habits[id]:null,h=existing?p960Clone(existing):p960NormalizeHabit({id:"",name:"",icon:"✓",source:"user",target:{type:"checkbox",value:null,unit:"",display:""},schedule:{type:"daily"},active:true},"");const form=document.getElementById("p960HabitForm");form.innerHTML="";form.classList.add("open");const grid=document.createElement("div");grid.className="p960-grid";
+  function field(label,key,type,value){const l=document.createElement("label");l.className="p960-field";l.textContent=label;let input;if(type==="select"){input=document.createElement("select");value.options.forEach(function(o){const op=document.createElement("option");op.value=o;op.textContent=o.replace("_"," ");input.appendChild(op);});input.value=value.value;}else if(type==="textarea"){input=document.createElement("textarea");input.rows=3;input.value=value||"";}else{input=document.createElement("input");input.type=type||"text";input.value=value==null?"":value;}input.dataset.key=key;l.appendChild(input);grid.appendChild(l);return input;}
+  field("Name","name","text",h.name);field("Icon / emoji","icon","text",h.icon);field("Description","description","textarea",h.description);field("Target display","targetDisplay","text",h.target.display);field("Target type","targetType","select",{options:P960_TARGET_TYPES,value:h.target.type});field("Numeric target","targetValue","number",h.target.value);field("Unit","targetUnit","text",h.target.unit);field("Schedule","scheduleType","select",{options:P960_SCHEDULE_TYPES,value:h.schedule.type});field("Weekly target count","weeklyCount","number",h.schedule.targetCount||1);field("Instructions (one per line)","instructions","textarea",h.instructions.join("\n"));field("Emphasis","emphasis","select",{options:["low","normal","high"],value:h.emphasis});
+  const weekdayWrap=document.createElement("div");weekdayWrap.className="p960-field";weekdayWrap.textContent="Selected weekdays";const weekdayBoxes=document.createElement("div");weekdayBoxes.className="p960-weekdays";P960_WEEKDAYS.forEach(function(day,i){const label=document.createElement("label"),box=document.createElement("input");box.type="checkbox";box.value=String(i);box.dataset.weekday="1";box.checked=(h.schedule.weekdays||[]).includes(i);label.append(box,document.createTextNode(day.slice(0,3)));weekdayBoxes.appendChild(label);});weekdayWrap.appendChild(weekdayBoxes);grid.appendChild(weekdayWrap);
+  const idNote=document.createElement("div");idNote.className="p960-msg";idNote.textContent=existing?"Stable ID: "+existing.id:"A stable ID will be generated from the name.";const buttons=document.createElement("div");buttons.className="p960-actions";const discard=document.createElement("button");discard.type="button";discard.textContent="Cancel Edit";discard.onclick=function(){form.classList.remove("open");};const done=document.createElement("button");done.type="button";done.className="p960-primary";done.textContent=existing?"Update Draft":"Add to Draft";done.onclick=p960CommitHabitForm;buttons.append(discard,done);form.append(idNote,grid,buttons);form.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function p960CommitHabitForm(){
+  const form=document.getElementById("p960HabitForm"),get=function(k){const el=form.querySelector('[data-key="'+k+'"]');return el?el.value:"";},existing=p960HabitManagerEditingId?p960HabitManagerDraft.habits[p960HabitManagerEditingId]:null,now=p960Now(),name=get("name").trim(),id=existing?existing.id:p960SafeId(name),weekdays=Array.from(form.querySelectorAll("[data-weekday]:checked")).map(function(x){return Number(x.value);});
+  const next=p960NormalizeHabit(Object.assign({},existing||{},{id:id,name:name,icon:get("icon")||"✓",description:get("description"),target:Object.assign({},existing&&existing.target||{},{type:get("targetType"),value:get("targetValue")===""?null:Number(get("targetValue")),unit:get("targetUnit"),display:get("targetDisplay")}),schedule:get("scheduleType")==="weekdays"?{type:"weekdays",weekdays:weekdays}:get("scheduleType")==="weekly_count"?{type:"weekly_count",targetCount:Number(get("weeklyCount")),weekStartsOn:0}:{type:"daily"},instructions:get("instructions").split(/\r?\n/).map(function(x){return x.trim();}).filter(Boolean),emphasis:get("emphasis"),active:existing?existing.active:true,source:existing?existing.source:"user",createdAt:existing&&existing.createdAt||now,updatedAt:now}),id);const validation=p960ValidateHabit(next);if(!validation.valid){document.getElementById("p960ManagerMsg").textContent=validation.errors.join("\n");return;}p960HabitManagerDraft.habits[id]=next;if(!p960HabitManagerDraft.order.includes(id))p960HabitManagerDraft.order.push(id);form.classList.remove("open");p960RenderHabitManager();document.getElementById("p960ManagerMsg").textContent="Draft updated. Choose Save Changes to persist.";
+}
+function p960SaveHabitManager(){const errors=[];Object.values(p960HabitManagerDraft.habits).forEach(function(h){errors.push.apply(errors,p960ValidateHabit(h).errors.map(function(e){return h.name+": "+e;}));});if(errors.length){document.getElementById("p960ManagerMsg").textContent=errors.join("\n");return false;}p960SaveHabitStore(p960HabitManagerDraft);p960HabitManagerDraft=null;document.getElementById("p960HabitManager").classList.remove("open");renderHabits();return true;}
+
+function p960EarliestHistoricalDate(id){let earliest=null;Object.keys(localStorage).filter(function(k){return /^day-\d{4}-\d{2}-\d{2}$/.test(k);}).forEach(function(k){const d=p960ReadDay(k.slice(4));if(d.habits&&d.habits[id]&&(!earliest||k.slice(4)<earliest))earliest=k.slice(4);});return earliest;}
+function p960HabitEligibilityStart(h){return h.legacyEligibilityInferred?p960EarliestHistoricalDate(h.id):(h.createdAt?p960DateKey(h.createdAt):null);}
+function p960AnalyzeHabit(h,start,end){
+  const today=p960DateKey(new Date()),to=end&&end<today?end:today,from=start||p960AddDays(to,-29),out={id:h.id,name:h.name,icon:h.icon,active:h.active,schedule:p960Clone(h.schedule),eligible:0,completed:0,percentage:null,recentTrend:"insufficient data",weeklyCurrent:null,historySourceQuality:h.legacyEligibilityInferred?"legacy eligibility inferred":"definition timestamps",warnings:[]},effective=p960HabitEligibilityStart(h);if(h.legacyEligibilityInferred)out.warnings.push("Eligibility before the definition store is conservatively inferred from the first recorded habit entry.");
+  if(h.schedule.type==="weekly_count"){let cursor=p960GetHabitWeekRange(h,from).start;while(p960AddDays(cursor,6)<to){const weekEnd=p960AddDays(cursor,6);if((!effective||weekEnd>=effective)&&(!h.archivedAt||cursor<=p960DateKey(h.archivedAt))){const w=p960GetWeeklyHabitProgress(h,cursor);out.eligible++;if(w.met)out.completed++;}cursor=p960AddDays(cursor,7);}out.weeklyCurrent=p960GetWeeklyHabitProgress(h,to);}
+  else for(let date=from;date<=to;date=p960AddDays(date,1)){if(effective&&date<effective)continue;if(h.archivedAt&&date>p960DateKey(h.archivedAt))continue;if(!p960IsHabitDueOnDate(h,date))continue;out.eligible++;const s=(p960ReadDay(date).habits||{})[h.id];if(s&&s.completed)out.completed++;}
+  out.percentage=out.eligible?Math.round(100*out.completed/out.eligible):null;return out;
+}
+function p960GetHabitAnalytics(start,end){const rows=Object.values(p960GetHabitDefinitions()).map(function(h){return p960AnalyzeHabit(h,start,end);}),active=rows.filter(function(r){return r.active;}),eligible=active.reduce(function(n,r){return n+r.eligible;},0),completed=active.reduce(function(n,r){return n+r.completed;},0),ranked=active.filter(function(r){return r.percentage!==null;}).sort(function(a,b){return b.percentage-a.percentage;});return {overallPercentage:eligible?Math.round(100*completed/eligible):null,eligibleOpportunities:eligible,completedOpportunities:completed,activeHabitCount:active.length,archivedHabitCount:rows.length-active.length,bestPerforming:ranked[0]||null,needsAttention:ranked[ranked.length-1]||null,habits:rows,sourceQualityWarnings:rows.flatMap(function(r){return r.warnings;})};}
+const p960LegacyCalcAnalytics=p7CalcAnalytics;
+p7CalcAnalytics=function(){const base=p960LegacyCalcAnalytics();if(!base)return base;const a=p960GetHabitAnalytics(),active=a.habits.filter(function(h){return h.active;}).map(function(h){return {id:h.id,name:h.name,icon:h.icon,done:h.completed,total:h.eligible,schedule:h.schedule};});base.habits={overall:a.overallPercentage||0,breakdown:active,best:active.slice().sort(function(x,y){return (y.total?y.done/y.total:0)-(x.total?x.done/x.total:0);})[0]||null,worst:active.slice().sort(function(x,y){return (x.total?x.done/x.total:0)-(y.total?y.done/y.total:0);})[0]||null,eligible:a.eligibleOpportunities,activeCount:a.activeHabitCount};return base;};
+
+const p960LegacyHistoryRenderer=renderHistoryFromEntries;
+renderHistoryFromEntries=function(entries){p960LegacyHistoryRenderer(entries);const cards=document.querySelectorAll("#histList .hist-entry");entries.slice(0,60).forEach(function(entry,i){const states=(entry.data||{}).habits||{},ids=Object.keys(states);if(!ids.length||!cards[i])return;const wrap=document.createElement("div");wrap.className="p960-history";ids.forEach(function(id){const state=states[id];if(!state||(!state.completed&&state.value==null&&!state.notes))return;const def=p960GetHabitById(id),line=document.createElement("div");line.className="hist-notes";const parts=[def?def.icon+" "+def.name:"Habit ("+id+")",state.completed?"Completed":"Recorded"];if(state.value!=null&&state.value!=="")parts.push(String(state.value)+(def&&def.target.unit?" "+def.target.unit:""));if(state.notes)parts.push(state.notes);line.textContent=parts.join(" · ");wrap.appendChild(line);});cards[i].appendChild(wrap);});};
+
+const p960LegacyExecuteSave=p85ExecuteSave;
+p85ExecuteSave=function(){const key=dKey(tDate),raw=localStorage.getItem(key);let before={};try{before=raw?JSON.parse(raw):{};}catch(e){}const priorHabits=before.habits&&typeof before.habits==="object"?before.habits:{};Object.keys(priorHabits).forEach(function(id){habitState[id]=Object.assign({},priorHabits[id],habitState[id]||{});});const result=p960LegacyExecuteSave(),saved=JSON.parse(localStorage.getItem(key)||"{}");Object.keys(before).forEach(function(k){if(!Object.prototype.hasOwnProperty.call(saved,k))saved[k]=before[k];});saved.habits=Object.assign({},priorHabits,saved.habits||{});localStorage.setItem(key,JSON.stringify(saved));return result;};
+
+function p960BuildHabitExport(){const analytics=p960GetHabitAnalytics(),active=p960GetActiveHabits(),proposal=p960GetHabitProposal();let out="--- HABITS ---\n";if(!active.length)out+="Active habits: none configured.\n";active.forEach(function(h){const a=analytics.habits.find(function(x){return x.id===h.id;}),weekly=h.schedule.type==="weekly_count"?"; "+p960GetWeeklyHabitProgress(h,p960DateKey(new Date())).label:"";out+="- "+h.name+" ["+h.source+"]: target "+p960HabitTargetText(h)+"; schedule "+p960HabitScheduleText(h)+"; emphasis "+h.emphasis+"; recent eligible completion "+(a&&a.percentage!=null?a.percentage+"%":"n/a")+weekly+".\n";});out+="Archived habits: "+analytics.archivedHabitCount+".\n";if(analytics.sourceQualityWarnings.length)out+="Data quality: Legacy opportunity dates are conservatively inferred from first recorded evidence.\n";if(proposal&&proposal.status==="pending")out+="Pending habit proposal: "+proposal.summary+" ("+proposal.changes.length+" actions; requires review).\n";out+="Guidance: Only eligible scheduled opportunities count; non-due blanks are neutral; weekly-count habits are judged by weekly totals. AI may propose small sustainable changes but must never silently apply them. Medication schedules, including Zepbound, remain in the separate recurring-adherence system and must not be converted to habits.\n\n";return out;}
+const p960LegacyGenExport=genExport;
+genExport=function(){const out=p960LegacyGenExport(),section=p960BuildHabitExport(),updated=String(out||window._exp||"").replace(/(=== MARCUSFIT EXPORT ===\n)/,"$1"+section);window._exp=updated;const el=document.getElementById("exportOut");if(el)el.textContent=updated;return updated;};
+
+function p960NormalizeProposal(raw){const source=raw&&typeof raw==="object"?p960Clone(raw):{},out=Object.assign({},source);out.schemaVersion=1;out.proposalVersion=String(source.proposalVersion||APP_VERSION);out.proposalId=String(source.proposalId||("habit-proposal-"+Date.now()));out.status=String(source.status||"pending");out.source=String(source.source||"ai_sync");out.createdAt=source.createdAt||p960Now();out.updatedAt=source.updatedAt||out.createdAt;out.summary=String(source.summary||"Habit proposal");out.rationale=String(source.rationale||"");out.changes=Array.isArray(source.changes)?source.changes.map(p960Clone):[];out.validation=source.validation&&typeof source.validation==="object"?p960Clone(source.validation):{valid:false,warnings:[],errors:[]};out.applyState=source.applyState||null;out.undoSnapshot=source.undoSnapshot||null;return out;}
+function p960ValidateHabitProposal(raw,store){
+  const proposal=p960NormalizeProposal(raw),current=store||p960GetHabitStore(),errors=[],warnings=[],supported=[],deferred=[],prohibited=/\b(stableId|history|habits|completion|program|workout|zepbound|medication|recurring|profile|baseP)\b/i;
+  proposal.changes.forEach(function(change,index){const c=change&&typeof change==="object"?p960Clone(change):{},action=String(c.action||"").toLowerCase(),id=String(c.habitId||c.id||"");if(!["keep","add","modify","archive","reactivate","reorder"].includes(action)){errors.push("Action "+(index+1)+" is unsupported.");return;}
+    if(action==="reorder"){const order=Array.isArray(c.order)?c.order:Array.isArray(c.habitOrder)?c.habitOrder:null;if(!order||new Set(order).size!==order.length||order.some(function(x){return !current.habits[x];})){errors.push("Reorder action is invalid.");return;}c.order=order.slice();supported.push(c);return;}
+    if(action==="add"){const definition=c.definition||c.fields||{},newId=String(c.habitId||definition.id||"");if(!/^habit-[a-z0-9][a-z0-9-]*$/i.test(newId)){errors.push("Add action "+(index+1)+" needs a valid stable habit ID.");return;}if(current.habits[newId]){if(proposal.status==="applied"){c.habitId=newId;supported.push(c);return;}errors.push("Add action "+(index+1)+" needs a unique stable habit ID.");return;}if(prohibited.test(Object.keys(definition).filter(function(k){return k!=="id";}).join(" "))){errors.push("Add action contains a prohibited domain field.");return;}const h=p960NormalizeHabit(Object.assign({},definition,{id:newId,source:"ai"}),newId),v=p960ValidateHabit(h);if(!v.valid){errors.push.apply(errors,v.errors);return;}c.habitId=newId;c.definition=h;supported.push(c);return;}
+    if(!current.habits[id]){errors.push(action+" references unknown habit "+id+".");return;}c.habitId=id;c.expectedFingerprint=c.expectedFingerprint||p960Fingerprint(current.habits[id]);
+    if(action==="modify"){const fields=c.fields&&typeof c.fields==="object"?c.fields:{};if(Object.keys(fields).some(function(k){return prohibited.test(k);})){errors.push("Modify action for "+id+" contains a prohibited field.");return;}const safe={};Object.keys(fields).forEach(function(k){if(P960_MODIFY_FIELDS.includes(k))safe[k]=p960Clone(fields[k]);else deferred.push({habitId:id,field:k,reason:"Unsupported modify field"});});if(!Object.keys(safe).length){errors.push("Modify action for "+id+" has no supported fields.");return;}c.fields=safe;}supported.push(c);
+  });proposal.changes=supported;proposal.validation={valid:errors.length===0,warnings:warnings,errors:errors,deferred:deferred};return {valid:errors.length===0,proposal:proposal,errors:errors,warnings:warnings,deferred:deferred,supported:supported};
+}
+function p960GetHabitProposal(){const raw=localStorage.getItem(P960_HABIT_PROPOSAL_KEY);if(!raw)return null;try{return p960NormalizeProposal(JSON.parse(raw));}catch(e){return null;}}
+function p960ImportHabitProposal(raw){const validation=p960ValidateHabitProposal(raw);if(!validation.valid)return validation;validation.proposal.status="pending";validation.proposal.updatedAt=p960Now();localStorage.setItem(P960_HABIT_PROPOSAL_KEY,JSON.stringify(validation.proposal));return validation;}
+function p960ApplyHabitProposal(confirmApply){
+  const proposal=p960GetHabitProposal();if(!proposal)return {applied:false,errors:["No proposal exists."]};if(proposal.status!=="pending")return {applied:false,errors:["Only a pending habit proposal can be applied."],conflicts:[]};const store=p960GetHabitStore(),validation=p960ValidateHabitProposal(proposal,store);if(!validation.valid)return {applied:false,errors:validation.errors,conflicts:[]};const conflicts=[];validation.supported.forEach(function(c){if(c.habitId&&c.action!=="add"&&c.action!=="reorder"&&c.expectedFingerprint!==p960Fingerprint(store.habits[c.habitId]))conflicts.push(c.habitId);});if(conflicts.length)return {applied:false,errors:["User edits conflict with this proposal."],conflicts:[...new Set(conflicts)]};if(confirmApply!==true)return {applied:false,requiresConfirmation:true,expectedWrites:[P960_HABIT_DEFINITIONS_KEY,P960_HABIT_PROPOSAL_KEY],actions:validation.supported,deferred:validation.deferred};
+  const beforeRaw=localStorage.getItem(P960_HABIT_DEFINITIONS_KEY),next=p960Clone(store),now=p960Now(),applied=[];validation.supported.forEach(function(c){if(c.action==="keep"){applied.push({action:"keep",habitId:c.habitId});return;}if(c.action==="add"){const h=p960NormalizeHabit(c.definition,c.habitId);h.source="ai";h.createdAt=h.createdAt||now;h.updatedAt=now;h.aiMeta=Object.assign({},h.aiMeta,{lastProposalId:proposal.proposalId,lastChangedBy:"ai_proposal"});next.habits[h.id]=h;if(!next.order.includes(h.id))next.order.push(h.id);}if(c.action==="modify"){const h=next.habits[c.habitId];Object.keys(c.fields).forEach(function(k){h[k]=p960Clone(c.fields[k]);});next.habits[c.habitId]=p960NormalizeHabit(h,c.habitId);next.habits[c.habitId].updatedAt=now;next.habits[c.habitId].aiMeta=Object.assign({},next.habits[c.habitId].aiMeta,{lastProposalId:proposal.proposalId,lastChangedBy:"ai_proposal"});}if(c.action==="archive"){next.habits[c.habitId].active=false;next.habits[c.habitId].archivedAt=now;next.habits[c.habitId].updatedAt=now;}if(c.action==="reactivate"){next.habits[c.habitId].active=true;next.habits[c.habitId].archivedAt=null;next.habits[c.habitId].updatedAt=now;if(!next.order.includes(c.habitId))next.order.push(c.habitId);}if(c.action==="reorder")next.order=c.order.concat(next.order.filter(function(id){return !c.order.includes(id);}));applied.push({action:c.action,habitId:c.habitId||null});});
+  const saved=p960SaveHabitStore(next),savedRaw=localStorage.getItem(P960_HABIT_DEFINITIONS_KEY);proposal.status="applied";proposal.updatedAt=now;proposal.applyState={appliedAt:now,applied:applied,deferred:validation.deferred,definitionFingerprint:p960Fingerprint(saved)};proposal.undoSnapshot={definitionRaw:beforeRaw,appliedRaw:savedRaw,appliedFingerprint:p960Fingerprint(saved),createdAt:now};localStorage.setItem(P960_HABIT_PROPOSAL_KEY,JSON.stringify(proposal));renderHabits();return {applied:true,appliedChanges:applied,deferred:validation.deferred};
+}
+function p960UndoHabitProposal(confirmUndo){const proposal=p960GetHabitProposal(),snapshot=proposal&&proposal.undoSnapshot;if(!snapshot)return {undone:false,errors:["No valid undo snapshot exists."]};const currentRaw=localStorage.getItem(P960_HABIT_DEFINITIONS_KEY),current=p960GetHabitStore();if(currentRaw!==snapshot.appliedRaw||p960Fingerprint(current)!==snapshot.appliedFingerprint)return {undone:false,conflict:true,errors:["Habit definitions changed after apply; unsafe undo refused."]};if(confirmUndo!==true)return {undone:false,requiresConfirmation:true,expectedWrites:[P960_HABIT_DEFINITIONS_KEY,P960_HABIT_PROPOSAL_KEY]};snapshot.definitionRaw===null?localStorage.removeItem(P960_HABIT_DEFINITIONS_KEY):localStorage.setItem(P960_HABIT_DEFINITIONS_KEY,snapshot.definitionRaw);proposal.status="undone";proposal.updatedAt=p960Now();proposal.undoSnapshot=null;localStorage.setItem(P960_HABIT_PROPOSAL_KEY,JSON.stringify(proposal));renderHabits();return {undone:true};}
+function p960DismissHabitProposal(){const p=p960GetHabitProposal();if(!p)return false;p.status="rejected";p.updatedAt=p960Now();localStorage.setItem(P960_HABIT_PROPOSAL_KEY,JSON.stringify(p));return true;}
+function p960OpenHabitProposalReview(){
+  const p=p960GetHabitProposal();if(!p)return false;let overlay=document.getElementById("p960ProposalReview");if(!overlay){overlay=document.createElement("div");overlay.id="p960ProposalReview";overlay.className="p960-overlay";document.body.appendChild(overlay);}overlay.innerHTML="";const panel=document.createElement("div");panel.className="p960-panel",head=document.createElement("div");head.className="p960-head";const title=document.createElement("h2");title.textContent="Habit Proposal Review";const close=document.createElement("button");close.textContent="Close / Review Later";close.onclick=function(){overlay.classList.remove("open");};head.append(title,close);panel.appendChild(head);const summary=document.createElement("p");summary.textContent=p.summary;const rationale=document.createElement("p");rationale.textContent=p.rationale;panel.append(summary,rationale);const validation=p960ValidateHabitProposal(p);validation.supported.forEach(function(c){const row=document.createElement("div");row.className="p960-proposal-action";const badge=document.createElement("span");badge.className="p960-badge";badge.textContent=String(c.action).toUpperCase();row.append(badge,document.createTextNode((c.habitId?" "+c.habitId:"")+(c.rationale?" — "+c.rationale:"")));panel.appendChild(row);});const expected=document.createElement("p");expected.textContent="Expected writes: mf-habit-definitions and mf-habit-proposal only. Explicit confirmation is required.";panel.appendChild(expected);const confirmPanel=document.createElement("div");confirmPanel.id="p960ProposalConfirm";confirmPanel.style.display="none";confirmPanel.className="p960-msg";confirmPanel.textContent="Apply these supported definition changes? Daily history, programs, and medication stores will not be touched.";const actions=document.createElement("div");actions.className="p960-footer";const keep=document.createElement("button");keep.textContent="Keep Current Habits";keep.onclick=function(){p960DismissHabitProposal();overlay.classList.remove("open");};const apply=document.createElement("button");apply.className="p960-primary";apply.textContent="Apply Supported Changes";apply.onclick=function(){if(confirmPanel.style.display==="none"){confirmPanel.style.display="block";apply.textContent="Confirm Apply";return;}p960ApplyHabitProposal(true);overlay.classList.remove("open");};actions.append(keep,apply);panel.append(confirmPanel,actions);overlay.appendChild(panel);overlay.classList.add("open");return true;
+}
+const p960LegacyApplySync=applySync;
+applySync=function(){const input=document.getElementById("syncInput"),raw=input&&input.value||"",match=raw.match(/MARCUSFIT_UPDATE_START([\s\S]*?)MARCUSFIT_UPDATE_END/);if(match){const inner=match[1].trim().replace(/^```[a-zA-Z]*\n?/,"").replace(/\n?```$/,"").trim();try{const payload=JSON.parse(inner);if(payload&&!Array.isArray(payload)&&payload.habitProposal){const imported=p960ImportHabitProposal(payload.habitProposal),res=document.getElementById("syncResult");if(!imported.valid){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Habit proposal rejected:\n"+imported.errors.join("\n");}return;}const updates=Array.isArray(payload.updates)?payload.updates:[];if(updates.length){input.value="MARCUSFIT_UPDATE_START\n"+JSON.stringify(updates,null,2)+"\nMARCUSFIT_UPDATE_END";p960LegacyApplySync();input.value=raw;}if(res){res.style.display="block";res.style.color="var(--accent)";res.textContent=(updates.length?"Program sync processed. ":"")+"Habit changes are pending explicit review.";}p960OpenHabitProposalReview();return;}}catch(e){}}return p960LegacyApplySync();};
+
+function p960ValidateStoredHabitData(){
+  const issues=[],definitionRaw=localStorage.getItem(P960_HABIT_DEFINITIONS_KEY),proposalRaw=localStorage.getItem(P960_HABIT_PROPOSAL_KEY);let store=null;
+  if(definitionRaw!==null){try{const parsed=JSON.parse(definitionRaw);if(!parsed||typeof parsed!=="object")throw new Error("not an object");if(parsed.schemaVersion==null)issues.push({level:"warn",message:"Habit definition schemaVersion is missing."});const input=parsed.habits&&typeof parsed.habits==="object"?parsed.habits:{};Object.keys(input).forEach(function(id){if(!input[id]||input[id].id!==id)issues.push({level:"error",message:"Habit definition ID does not match object key: "+id});});const order=Array.isArray(parsed.order)?parsed.order:[];if(new Set(order).size!==order.length)issues.push({level:"warn",message:"Habit order contains duplicate IDs."});store=p960NormalizeHabitStore(parsed);}catch(e){issues.push({level:"error",message:"Habit definition store does not parse: "+e.message});}}
+  if(proposalRaw!==null){try{const parsed=JSON.parse(proposalRaw);if(!parsed||typeof parsed!=="object")throw new Error("not an object");const validation=p960ValidateHabitProposal(parsed,store||p960GetHabitStore());if(!validation.valid)issues.push({level:"warn",message:"Habit proposal validation failed: "+validation.errors.join("; ")});if(parsed.undoSnapshot&&typeof parsed.undoSnapshot!=="object")issues.push({level:"warn",message:"Habit proposal undo snapshot is malformed."});}catch(e){issues.push({level:"error",message:"Habit proposal store does not parse: "+e.message});}}
+  return issues;
+}
+function mfHabitDefinitionsDebug(){const raw=localStorage.getItem(P960_HABIT_DEFINITIONS_KEY),warnings=[],store=p960GetHabitStore(),ids=Object.keys(store.habits),duplicates=store.order.filter(function(id,i,a){return a.indexOf(id)!==i;}),missing=store.order.filter(function(id){return !store.habits[id];}),invalidSchedules=[];ids.forEach(function(id){const v=p960ValidateHabit(store.habits[id]);if(v.errors.some(function(x){return /weekday|Weekly|schedule/i.test(x);}))invalidSchedules.push(id);});const historical=new Set();Object.keys(localStorage).filter(function(k){return /^day-\d{4}-\d{2}-\d{2}$/.test(k);}).forEach(function(k){const d=p960ReadDay(k.slice(4));Object.keys(d.habits||{}).forEach(function(id){if(!store.habits[id]&&!p960BuildDefaultDefinitions("legacy").habits[id])historical.add(id);});});if(raw){try{JSON.parse(raw);}catch(e){warnings.push("Definition store does not parse.");}}p960ValidateStoredHabitData().forEach(function(i){warnings.push(i.message);});return {appVersion:APP_VERSION,keyExists:raw!==null,parseStatus:raw===null?"missing":warnings.length?"warning":"valid",schemaVersion:store.schemaVersion,totalDefinitions:ids.length,activeCount:ids.filter(function(id){return store.habits[id].active;}).length,archivedCount:ids.filter(function(id){return !store.habits[id].active;}).length,sourceCounts:ids.reduce(function(a,id){const s=store.habits[id].source;a[s]=(a[s]||0)+1;return a;},{}),order:store.order.slice(),duplicateIds:duplicates,missingOrderedIds:missing,invalidSchedules:invalidSchedules,unknownHistoricalIds:[...historical],backupCoverage:p8IsMarcusFitKey(P960_HABIT_DEFINITIONS_KEY),warnings:warnings,readOnly:true};}
+function mfHabitDebug(habitId,date){const h=p960GetHabitById(habitId),when=p960DateKey(date||new Date()),warnings=[];if(!h)warnings.push("Habit definition is unknown.");const p=p960GetHabitProposal();return {appVersion:APP_VERSION,definition:h,active:!!(h&&h.active),archived:!!(h&&!h.active),source:h&&h.source,target:h&&h.target,schedule:h&&h.schedule,dueState:h?p960GetHabitDisplayState(h,when):null,completionState:((p960ReadDay(when).habits||{})[habitId]||null),weeklyProgress:h&&h.schedule.type==="weekly_count"?p960GetWeeklyHabitProgress(h,when):null,analytics:h?p960AnalyzeHabit(h,p960AddDays(when,-29),when):null,historySourceQuality:h&&h.legacyEligibilityInferred?"legacy inferred":"definition timestamps",proposalInvolvement:!!(p&&p.changes.some(function(c){return c.habitId===habitId;})),warnings:warnings,readOnly:true};}
+function mfHabitProposalDebug(){const raw=localStorage.getItem(P960_HABIT_PROPOSAL_KEY),warnings=[];let proposal=null;if(raw){try{proposal=p960NormalizeProposal(JSON.parse(raw));}catch(e){warnings.push("Proposal store does not parse.");}}const validation=proposal?p960ValidateHabitProposal(proposal):null,preview=proposal?p960ApplyHabitProposal(false):null;return {proposalExists:!!proposal,parseStatus:raw===null?"missing":proposal?"valid":"invalid",proposalId:proposal&&proposal.proposalId,status:proposal&&proposal.status,actionCounts:proposal?proposal.changes.reduce(function(a,c){a[c.action]=(a[c.action]||0)+1;return a;},{}):{},validation:validation&&validation.proposal.validation,conflicts:preview&&preview.conflicts||[],supportedWrites:[P960_HABIT_DEFINITIONS_KEY,P960_HABIT_PROPOSAL_KEY],deferredActions:validation&&validation.deferred||[],undoAvailability:!!(proposal&&proposal.undoSnapshot),backupCoverage:p8IsMarcusFitKey(P960_HABIT_PROPOSAL_KEY),warnings:warnings,readOnly:true};}
+window.mfHabitDefinitionsDebug=mfHabitDefinitionsDebug;window.mfHabitDebug=mfHabitDebug;window.mfHabitProposalDebug=mfHabitProposalDebug;
+
+function mf960RunHabitSelfTest(){
+  const keys=[P960_HABIT_DEFINITIONS_KEY,P960_HABIT_PROPOSAL_KEY,"day-2026-07-06","day-2026-07-08","day-2026-07-12"],before={};keys.forEach(function(k){before[k]=localStorage.getItem(k);});const assertions=[],failures=[];function check(name,pass,actual){assertions.push({name:name,pass:!!pass,actual:actual});if(!pass)failures.push(name);}
+  try{const fixture=p960EmptyHabitStore("2026-07-01T12:00:00.000Z");fixture.habits["habit-daily"]=p960NormalizeHabit({id:"habit-daily",name:"Daily",target:{type:"checkbox"},schedule:{type:"daily"},active:true,source:"user",createdAt:"2026-07-01T12:00:00.000Z"},"habit-daily");fixture.habits["habit-weekday"]=p960NormalizeHabit({id:"habit-weekday",name:"Weekday",target:{type:"count",value:1},schedule:{type:"weekdays",weekdays:[1,3,5]},active:true,source:"user",createdAt:"2026-07-01T12:00:00.000Z",customField:"kept"},"habit-weekday");fixture.habits["habit-weekly"]=p960NormalizeHabit({id:"habit-weekly",name:"Weekly",target:{type:"checkbox"},schedule:{type:"weekly_count",targetCount:2,weekStartsOn:0},active:true,source:"user",createdAt:"2026-07-01T12:00:00.000Z"},"habit-weekly");fixture.order=["habit-daily","habit-weekday","habit-weekly"];p960SaveHabitStore(fixture);
+    check("default template preserves seven IDs",Object.keys(p960BuildDefaultDefinitions().habits).length===7);check("weekday Monday due",p960IsHabitDueOnDate(fixture.habits["habit-weekday"],"2026-07-06"));check("weekday Tuesday neutral",!p960IsHabitDueOnDate(fixture.habits["habit-weekday"],"2026-07-07"));check("daily due",p960IsHabitDueOnDate(fixture.habits["habit-daily"],"2026-07-07"));localStorage.setItem("day-2026-07-06",JSON.stringify({habits:{"habit-weekly":{completed:true,notes:"keep",unknown:"yes"}},other:"same"}));localStorage.setItem("day-2026-07-08",JSON.stringify({habits:{"habit-weekly":{completed:true}}}));check("weekly progress",p960GetWeeklyHabitProgress(fixture.habits["habit-weekly"],"2026-07-08").met);check("weekday denominator",p960AnalyzeHabit(fixture.habits["habit-weekday"],"2026-07-05","2026-07-11").eligible===3);
+    const edited=p960GetHabitStore();edited.habits["habit-weekday"].name="Edited";edited.habits["habit-weekday"].updatedAt=p960Now();p960SaveHabitStore(edited);check("unknown fields survive edit",p960GetHabitById("habit-weekday").customField==="kept");const archived=p960GetHabitStore();archived.habits["habit-weekday"].active=false;archived.habits["habit-weekday"].archivedAt="2026-07-10T12:00:00.000Z";p960SaveHabitStore(archived);check("archive preserves history",JSON.parse(localStorage.getItem("day-2026-07-06")).habits["habit-weekly"].unknown==="yes");archived.habits["habit-weekday"].active=true;archived.habits["habit-weekday"].archivedAt=null;archived.order=["habit-weekly","habit-daily","habit-weekday"];p960SaveHabitStore(archived);check("reactivate and reorder",p960GetActiveHabits()[0].id==="habit-weekly");
+    const proposal={proposalId:"self-test",summary:"Test",changes:[{action:"modify",habitId:"habit-daily",fields:{name:"Daily Updated"}},{action:"add",habitId:"habit-added",definition:{id:"habit-added",name:"Added",target:{type:"checkbox"},schedule:{type:"daily"},instructions:[]}}]},imported=p960ImportHabitProposal(proposal);check("proposal validates",imported.valid);const dayBefore=localStorage.getItem("day-2026-07-06"),preview=p960ApplyHabitProposal(false);check("proposal preview writes no definitions",preview.requiresConfirmation);const applied=p960ApplyHabitProposal(true);check("proposal applies",applied.applied&&p960GetHabitById("habit-daily").name==="Daily Updated");check("daily history byte identical",localStorage.getItem("day-2026-07-06")===dayBefore);check("undo exact snapshot",p960UndoHabitProposal(true).undone&&p960GetHabitById("habit-daily").name==="Daily");p960ImportHabitProposal(proposal);p960ApplyHabitProposal(true);const conflict=p960GetHabitStore();conflict.habits["habit-daily"].name="User Later Edit";p960SaveHabitStore(conflict);check("unsafe undo refused",p960UndoHabitProposal(true).conflict===true);check("backup coverage",p8IsMarcusFitKey(P960_HABIT_DEFINITIONS_KEY)&&p8IsMarcusFitKey(P960_HABIT_PROPOSAL_KEY));
+  }catch(e){failures.push("Unexpected error: "+(e&&e.message));}finally{keys.forEach(function(k){before[k]===null?localStorage.removeItem(k):localStorage.setItem(k,before[k]);});}
+  const restored=keys.every(function(k){return localStorage.getItem(k)===before[k];});return {pass:failures.length===0&&restored,assertions:assertions,failures:failures,storageExactlyRestored:restored};
+}
+window.mf960RunHabitSelfTest=mf960RunHabitSelfTest;
+p960InitHabitStore();
+renderHabits();
+// -- END PHASE 9.6.0 --------------------------------------------------------
+
 function showScreen(n){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
   document.getElementById("screen-"+n).classList.add("active");document.getElementById("tab-"+n).classList.add("active");
@@ -14569,6 +14390,7 @@ p954RenderProgramPersonalization();
 // then render once through the same guarded path used by gym switching.
 starterProgramStateReady=true;
 renderProgram();
+p9510RenderZepbound();
 </script>
 </body>
 </html>

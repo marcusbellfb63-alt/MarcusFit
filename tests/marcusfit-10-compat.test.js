@@ -7,6 +7,8 @@ const vm = require("vm");
 const root = path.resolve(__dirname, "..");
 const acceptedPath = path.join(root, "Releases", "MarcusFit9_6_0.html");
 const accepted = fs.readFileSync(acceptedPath, "utf8");
+const currentPath = path.join(root, "index.html");
+const current = fs.readFileSync(currentPath, "utf8");
 const acceptedSha256 = crypto.createHash("sha256").update(fs.readFileSync(acceptedPath)).digest("hex");
 
 const EXPECTED_ACCEPTED_SHA256 = "69a3a66541d14290a6a7b73bf313365176169fd0d659e6effb29edcaf7a4e34b";
@@ -23,6 +25,10 @@ function blocks(source, tagName) {
 
 function sortedUnique(values) {
   return [...new Set(values)].sort();
+}
+
+function normalizeEol(value) {
+  return value.replace(/\r\n/g, "\n");
 }
 
 function extractInventory(source) {
@@ -76,6 +82,29 @@ assert(accepted.includes('key === "mf-habit-definitions" || key === "mf-habit-pr
 
 const acceptedScript = blocks(accepted, "script")[0].content;
 new vm.Script(acceptedScript, { filename: "MarcusFit9_6_0.inline.js" });
+
+const acceptedStyle = blocks(accepted, "style")[0].content;
+const currentStyles = blocks(current, "style");
+const stylesheetMatch = current.match(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["']([^"']+)["'][^>]*>/i);
+if (stylesheetMatch) {
+  const stylesheetPath = path.join(root, ...stylesheetMatch[1].split("/"));
+  assert.strictEqual(
+    normalizeEol(fs.readFileSync(stylesheetPath, "utf8")),
+    normalizeEol(acceptedStyle),
+    "Extracted stylesheet differs from accepted CSS"
+  );
+  assert.strictEqual(currentStyles.length, 0, "Current entry point unexpectedly retains inline CSS");
+}
+
+const currentInlineScripts = blocks(current, "script").filter(block => !/\bsrc\s*=/.test(block.attributes));
+if (currentInlineScripts.length === 1) {
+  assert.strictEqual(
+    normalizeEol(currentInlineScripts[0].content),
+    normalizeEol(acceptedScript),
+    "CSS-only extraction changed the inline runtime"
+  );
+  new vm.Script(currentInlineScripts[0].content, { filename: "index.inline.js" });
+}
 
 const inventory = extractInventory(accepted);
 const requiredGlobals = [
