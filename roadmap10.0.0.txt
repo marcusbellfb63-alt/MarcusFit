@@ -1,0 +1,9 @@
+10.0.1 — Project handoff and agent documentation
+10.1.0 — Basketball session logging
+10.1.1 — Runtime architecture inventory and dependency map
+10.1.2 — Feature-oriented JavaScript modularization
+10.1.3 — Optional CSS organization and architecture stabilization
+10.2.0 — Basketball programs and progression
+10.3.0 — Basketball-specific AI Sync
+10.4.0 — Habits-specific AI Sync
+10.5.0 — Full cross-domain coaching review
