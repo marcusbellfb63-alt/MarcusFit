@@ -12,7 +12,7 @@ const current = fs.readFileSync(currentPath, "utf8");
 const acceptedSha256 = crypto.createHash("sha256").update(fs.readFileSync(acceptedPath)).digest("hex");
 
 const EXPECTED_ACCEPTED_SHA256 = "69a3a66541d14290a6a7b73bf313365176169fd0d659e6effb29edcaf7a4e34b";
-const TARGET_APP_VERSION = "10.0.0";
+const TARGET_APP_VERSION = "10.1.0";
 
 function blocks(source, tagName) {
   return [...source.matchAll(new RegExp(`<${tagName}\\b([^>]*)>([\\s\\S]*?)<\\/${tagName}>`, "gi"))]
@@ -142,7 +142,8 @@ if (currentExternalScripts.length) {
     "assets/js/01-core-data.js",
     "assets/js/02-state-personalization.js",
     "assets/js/03-interactions-sync.js",
-    "assets/js/04-backup-boot.js"
+    "assets/js/04-backup-boot.js",
+    "assets/js/05-basketball.js"
   ], "External script order changed");
   for (const block of blocks(current, "script")) {
     assert(/\bdefer(?:\s|>|$)/i.test(block.attributes), "Every production script must use defer");
@@ -153,6 +154,7 @@ if (currentExternalScripts.length) {
     new vm.Script(content, { filename: source });
     return content;
   });
+  const legacyExternalSource = externalSources.slice(0, 4).join("");
   const combinedExternalSource = externalSources.join("");
   new vm.Script(combinedExternalSource, { filename: "MarcusFit10.combined.js" });
   const expectedExternalSource = acceptedScript.replace(
@@ -160,22 +162,20 @@ if (currentExternalScripts.length) {
     `const APP_VERSION = "${TARGET_APP_VERSION}";`
   );
   assert.strictEqual(
-    normalizeEol(combinedExternalSource),
+    normalizeEol(legacyExternalSource),
     normalizeEol(expectedExternalSource),
-    "External runtime differs from accepted runtime beyond APP_VERSION"
+    "Original four runtime files differ from accepted runtime beyond APP_VERSION"
   );
   const acceptedRuntimeInventory = extractInventory(`<script>${acceptedScript}</script>`);
   const currentRuntimeInventory = extractInventory(`<script>${combinedExternalSource}</script>`);
-  assert.deepStrictEqual(
-    currentRuntimeInventory.inlineHandlerFunctions,
-    acceptedRuntimeInventory.inlineHandlerFunctions,
-    "Public inline-handler function surface changed"
-  );
-  assert.deepStrictEqual(
-    currentRuntimeInventory.windowGlobals,
-    acceptedRuntimeInventory.windowGlobals,
-    "Explicit window global surface changed"
-  );
+  acceptedRuntimeInventory.inlineHandlerFunctions.forEach(name => assert(
+    currentRuntimeInventory.inlineHandlerFunctions.includes(name),
+    `Accepted inline-handler function disappeared: ${name}`
+  ));
+  acceptedRuntimeInventory.windowGlobals.forEach(name => assert(
+    currentRuntimeInventory.windowGlobals.includes(name),
+    `Accepted explicit window global disappeared: ${name}`
+  ));
   assert.strictEqual(
     crypto.createHash("sha256").update(normalizeEol(extractBalanced(combinedExternalSource, "const P ="))).digest("hex"),
     crypto.createHash("sha256").update(normalizeEol(extractBalanced(acceptedScript, "const P ="))).digest("hex"),
