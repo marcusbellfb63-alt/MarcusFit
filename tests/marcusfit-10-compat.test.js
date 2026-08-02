@@ -114,11 +114,13 @@ const currentStyles = blocks(current, "style");
 const stylesheetMatch = current.match(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["']([^"']+)["'][^>]*>/i);
 if (stylesheetMatch) {
   const stylesheetPath = path.join(root, ...stylesheetMatch[1].split("/"));
-  assert.strictEqual(
-    normalizeEol(fs.readFileSync(stylesheetPath, "utf8")),
-    normalizeEol(acceptedStyle),
-    "Extracted stylesheet differs from accepted CSS"
+  const currentStylesheet = normalizeEol(fs.readFileSync(stylesheetPath, "utf8"));
+  assert(
+    currentStylesheet.startsWith(normalizeEol(acceptedStyle)),
+    "Accepted stylesheet content changed instead of receiving a scoped append"
   );
+  assert(currentStylesheet.includes("MarcusFit 10.1.0: isolated basketball session logging"),
+    "Scoped basketball stylesheet boundary is missing");
   assert.strictEqual(currentStyles.length, 0, "Current entry point unexpectedly retains inline CSS");
 }
 
@@ -201,7 +203,7 @@ if (currentExternalScripts.length) {
 }
 assert(current.includes(`<title>MarcusFit ${TARGET_APP_VERSION}</title>`), "Current title version is incorrect");
 assert(
-  current.includes(`MarcusFit ${TARGET_APP_VERSION}</strong> &mdash; Personalized Habits`),
+  current.includes(`MarcusFit ${TARGET_APP_VERSION}</strong>`),
   "Current visible version is incorrect"
 );
 

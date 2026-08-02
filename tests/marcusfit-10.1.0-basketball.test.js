@@ -40,6 +40,7 @@ function createContext(initial = {}) {
   };
   const context = {
     console, localStorage, APP_VERSION: "10.1.0", tDate: new Date(2026, 6, 6, 12),
+    process: { versions: { node: "test" } },
     crypto: { randomUUID: () => "00000000-0000-4000-8000-000000000001" },
     document: {
       getElementById: element,
@@ -59,6 +60,7 @@ function createContext(initial = {}) {
   context.window = context;
   vm.createContext(context);
   vm.runInContext(source, context, { filename: "05-basketball.js" });
+  Object.assign(context, context.__mfBasketballTest);
   return { context, localStorage, element };
 }
 
