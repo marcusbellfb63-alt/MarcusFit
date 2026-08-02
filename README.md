@@ -4,11 +4,12 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 9.4.3
+MarcusFit 10.1.0
 
 ## Architecture
 
-- Single-file HTML/CSS/JS app (`index.html`)
+- Static multi-file HTML/CSS/JavaScript app with `index.html` as the entry point
+- Five ordered classic deferred scripts; `assets/js/05-basketball.js` is the isolated 10.1.0 feature boundary
 - Hosted with GitHub Pages
 - Vanilla JavaScript — no build step, no frameworks
 - localStorage persistence — no backend, no server
@@ -56,8 +57,14 @@ MarcusFit 9.4.3
 - Workout sets log: key `day-YYYY-MM-DD-wo`
 - Draft in-progress session: key `mf-current-draft`
 
+### Basketball Sessions (`mf-basketball-sessions`)
+- Versioned, independent session store supporting multiple sessions per date
+- Required date, stable session type, and positive minutes
+- Optional dribbling, shooting, free throws, and notes
+- Included in History, Stats, backups, and AI exports without affecting lifting progression, habits, or AI Sync
+
 ### Backup / Restore
-- Full backup serializes all localStorage keys to a JSON blob with `appVersion` field
+- Full backup serializes all MarcusFit-owned localStorage keys to a JSON blob with an `appVersion` field
 - Restore validates schema before applying
 - Always create a backup before major AI sync updates or restoring old data
 
@@ -68,13 +75,14 @@ MarcusFit 9.4.3
 | `mf-exercise-state` | Exercise lifecycle (overrides, custom, replacements, order) |
 | `mf-recommendations` | AI day recommendations |
 | `mf-current-draft` | Current workout draft session |
+| `mf-basketball-sessions` | Versioned basketball session records |
 | `day-YYYY-MM-DD` | Daily body metrics + habits |
 | `day-YYYY-MM-DD-wo` | Workout sets for that day |
 
 ## Development Rules
 
 1. **Do not mutate base program `P`** — all user changes go through the lifecycle/override system
-2. **Do not create duplicate localStorage systems** — extend existing keys only
+2. **Inspect storage ownership first** — add a key only when the feature needs an independent backward-compatible schema
 3. **Preserve backup compatibility** — all new fields must degrade gracefully on restore
 4. **Preserve old logs** — never wipe `day-*` keys during migrations
 5. **Preserve archived exercise IDs** — archived IDs must remain stable for history lookup
@@ -93,14 +101,15 @@ MarcusFit 9.4.3
 ## Version Constants
 
 ```js
-const APP_VERSION      = "9.4.3";
+const APP_VERSION      = "10.1.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
-Both are declared near the top of the `<script>` block. All backup `appVersion`, lifecycle default `lifecycleVersion`, migration targets, and export strings reference these constants.
+Both are declared near the top of `assets/js/01-core-data.js`. Backup `appVersion`, lifecycle default `lifecycleVersion`, migration targets, and export strings reference these constants.
 
 ## Near-Term Roadmap
 
-- **v9.4.x** — stabilization and bugfixes (current)
-- **v9.5.0** — Progression Engine v2 (true reduce-load path, deload week detection)
-- **v9.6.0** — Code organization / potential file split planning
+- **v10.1.0** — Basketball session logging (current draft feature)
+- **v10.1.1** — Runtime architecture inventory and dependency map
+- **v10.1.2** — Behavior-preserving feature-oriented modularization
+- **v10.2.0** — Basketball programs and progression

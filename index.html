@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarcusFit 10.0.0</title>
+<title>MarcusFit 10.1.0</title>
 <link rel="stylesheet" href="assets/css/marcusfit.css">
 </head>
 <body>
@@ -241,7 +241,71 @@
     </div>
   </div>
 
-  <!-- ── SECTION 4: Notes ── -->
+  <!-- SECTION 4: Basketball -->
+  <div class="p6-section" id="p6sec-basketball">
+    <div class="p6-section-header" onclick="p6Toggle('basketball')">
+      <div class="p6-section-header-left">
+        <span class="p6-section-icon">&#127936;</span>
+        <span class="p6-section-title">Basketball</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="p6-section-badge" id="mfBasketballBadge">No sessions</span>
+        <span class="p6-chevron">&#9662;</span>
+      </div>
+    </div>
+    <div class="p6-section-body">
+      <div class="mf-basketball-intro">Log a quick session with just the basics, or add shooting and dribbling details.</div>
+      <div class="mf-basketball-required-grid">
+        <label class="mf-basketball-field" for="mfBasketballDate">Session date
+          <input id="mfBasketballDate" type="date" required>
+        </label>
+        <label class="mf-basketball-field" for="mfBasketballType">Session type
+          <select id="mfBasketballType" required>
+            <option value="">Select a type</option>
+            <option value="skills_practice">Skills Practice</option>
+            <option value="shooting">Shooting</option>
+            <option value="pickup_game">Pickup / Game</option>
+            <option value="basketball_workout">Basketball Workout</option>
+            <option value="casual_play">Casual Play</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label class="mf-basketball-field" for="mfBasketballMinutes">Total minutes
+          <input id="mfBasketballMinutes" type="number" min="0.5" max="1440" step="0.5" inputmode="decimal" placeholder="45" required>
+        </label>
+      </div>
+      <details class="mf-basketball-optional">
+        <summary>Optional session details</summary>
+        <div class="mf-basketball-detail-grid">
+          <label class="mf-basketball-field" for="mfBasketballDribbling">Dribbling minutes
+            <input id="mfBasketballDribbling" type="number" min="0" max="1440" step="0.5" inputmode="decimal" placeholder="10">
+          </label>
+          <label class="mf-basketball-field" for="mfBasketballShootingMade">Shooting makes
+            <input id="mfBasketballShootingMade" type="number" min="0" max="10000" step="1" inputmode="numeric" placeholder="32">
+          </label>
+          <label class="mf-basketball-field" for="mfBasketballShootingAttempted">Shooting attempts
+            <input id="mfBasketballShootingAttempted" type="number" min="0" max="10000" step="1" inputmode="numeric" placeholder="75">
+          </label>
+          <label class="mf-basketball-field" for="mfBasketballFreeThrowsMade">Free throws made
+            <input id="mfBasketballFreeThrowsMade" type="number" min="0" max="10000" step="1" inputmode="numeric" placeholder="8">
+          </label>
+          <label class="mf-basketball-field" for="mfBasketballFreeThrowsAttempted">Free throws attempted
+            <input id="mfBasketballFreeThrowsAttempted" type="number" min="0" max="10000" step="1" inputmode="numeric" placeholder="10">
+          </label>
+        </div>
+        <label class="mf-basketball-field" for="mfBasketballNotes">Notes
+          <textarea id="mfBasketballNotes" rows="3" maxlength="2000" placeholder="What did you work on?"></textarea>
+        </label>
+      </details>
+      <div class="mf-basketball-form-actions">
+        <button type="button" class="mf-basketball-save" id="mfBasketballSave">SAVE BASKETBALL SESSION</button>
+        <button type="button" class="mf-basketball-cancel" id="mfBasketballCancel" hidden>CANCEL EDIT</button>
+      </div>
+      <div class="mf-basketball-message" id="mfBasketballMessage" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: Notes -->
   <div class="p6-section open" id="p6sec-notes">
     <div class="p6-section-header" onclick="p6Toggle('notes')">
       <div class="p6-section-header-left">
@@ -328,6 +392,7 @@
     </div>
   </div>
 
+  <div id="mfBasketballHistory"></div>
   <div id="histList"></div>
 </div>
 
@@ -335,6 +400,7 @@
 <div class="screen" id="screen-analytics">
   <div class="screen-title">ANALYTICS</div>
   <div class="p9510-summary" id="p9510StatsSummary" style="display:none"></div>
+  <div id="mfBasketballStats"></div>
   <div id="p7-analytics-content">
     <div class="empty">No data yet.<br>Start logging to see your stats!</div>
   </div>
@@ -344,8 +410,8 @@
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 10.0.0</strong> &mdash; Personalized Habits<br>
-    Habits are configurable, schedule-aware, and reviewable through explicit AI proposals.
+    <strong style="color:var(--accent);">MarcusFit 10.1.0</strong> &mdash; Basketball Session Logging<br>
+    Basketball activity is stored separately from lifting programs, progression, habits, and AI Sync.
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
     <button class="p9510-link p960-manage-link" type="button" onclick="p960OpenHabitManager()">Manage Habits</button>
@@ -546,9 +612,21 @@
   </div>
 </div>
 
+<div class="mf-basketball-dialog" id="mfBasketballDeleteDialog" role="dialog" aria-modal="true" aria-labelledby="mfBasketballDeleteTitle" aria-hidden="true">
+  <div class="mf-basketball-dialog-panel">
+    <div class="mf-basketball-dialog-title" id="mfBasketballDeleteTitle">Delete basketball session?</div>
+    <div class="mf-basketball-dialog-body" id="mfBasketballDeleteBody">This removes only the selected basketball record. Other MarcusFit data will not change.</div>
+    <div class="mf-basketball-dialog-actions">
+      <button type="button" class="mf-basketball-delete-confirm" id="mfBasketballDeleteConfirm">DELETE SESSION</button>
+      <button type="button" class="mf-basketball-cancel" id="mfBasketballDeleteCancel">CANCEL</button>
+    </div>
+  </div>
+</div>
+
 <script src="assets/js/01-core-data.js" defer></script>
 <script src="assets/js/02-state-personalization.js" defer></script>
 <script src="assets/js/03-interactions-sync.js" defer></script>
 <script src="assets/js/04-backup-boot.js" defer></script>
+<script src="assets/js/05-basketball.js" defer></script>
 </body>
 </html>

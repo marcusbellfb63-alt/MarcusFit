@@ -684,3 +684,53 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .p954r-row{flex-direction:column;}
   .p954r-row-value{text-align:left;}
 }
+
+/* MarcusFit 10.1.0: isolated basketball session logging */
+.mf-basketball-intro{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;}
+.mf-basketball-required-grid,.mf-basketball-detail-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+.mf-basketball-field{display:flex;flex-direction:column;gap:5px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);}
+.mf-basketball-field input,.mf-basketball-field select,.mf-basketball-field textarea{width:100%;min-height:44px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:9px 10px;text-transform:none;letter-spacing:normal;}
+.mf-basketball-field textarea{min-height:82px;resize:vertical;line-height:1.45;}
+.mf-basketball-field input:focus,.mf-basketball-field select:focus,.mf-basketball-field textarea:focus{outline:2px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:1px;border-color:var(--accent);}
+.mf-basketball-optional{margin-top:12px;border-top:1px solid var(--border);padding-top:10px;}
+.mf-basketball-optional summary{min-height:40px;display:flex;align-items:center;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;list-style-position:inside;}
+.mf-basketball-optional[open] summary{margin-bottom:10px;}
+.mf-basketball-detail-grid{margin-bottom:10px;}
+.mf-basketball-form-actions,.mf-basketball-dialog-actions,.mf-basketball-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.mf-basketball-save,.mf-basketball-cancel,.mf-basketball-edit,.mf-basketball-delete,.mf-basketball-delete-confirm{min-height:44px;border-radius:9px;padding:10px 13px;border:1px solid var(--border);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;}
+.mf-basketball-save{flex:1;background:var(--accent);border-color:var(--accent);color:#000;}
+.mf-basketball-save:disabled{opacity:.5;cursor:not-allowed;}
+.mf-basketball-cancel,.mf-basketball-edit{background:transparent;color:var(--text);}
+.mf-basketball-delete,.mf-basketball-delete-confirm{background:color-mix(in srgb,var(--red) 12%,var(--surface));border-color:color-mix(in srgb,var(--red) 50%,transparent);color:var(--red);}
+.mf-basketball-message{display:none;margin-top:10px;border-radius:8px;padding:9px 11px;font-size:12px;font-weight:600;line-height:1.45;white-space:pre-line;}
+.mf-basketball-message.ok{display:block;color:var(--green);background:color-mix(in srgb,var(--green) 8%,transparent);border:1px solid color-mix(in srgb,var(--green) 35%,transparent);}
+.mf-basketball-message.error{display:block;color:var(--red);background:color-mix(in srgb,var(--red) 8%,transparent);border:1px solid color-mix(in srgb,var(--red) 35%,transparent);}
+.mf-basketball-history-section{margin-bottom:14px;}
+.mf-basketball-history-heading{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--accent);margin:12px 0 8px;}
+.mf-basketball-history-empty{background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:14px;color:var(--muted);font-size:12px;text-align:center;margin-bottom:10px;}
+.mf-basketball-entry{background:color-mix(in srgb,var(--accent2) 5%,var(--surface));border:1px solid color-mix(in srgb,var(--accent2) 30%,var(--border));border-radius:12px;margin-bottom:8px;overflow:hidden;}
+.mf-basketball-entry summary{list-style:none;cursor:pointer;padding:12px 14px;min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.mf-basketball-entry summary::-webkit-details-marker{display:none;}
+.mf-basketball-entry-title{font-size:12px;font-weight:700;color:var(--text);line-height:1.4;}
+.mf-basketball-entry-meta{font-size:11px;color:var(--muted);white-space:nowrap;}
+.mf-basketball-entry-detail{border-top:1px solid var(--border);padding:11px 14px 13px;}
+.mf-basketball-metrics{display:flex;flex-wrap:wrap;gap:6px;}
+.mf-basketball-metric{font-size:11px;padding:4px 8px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--text);}
+.mf-basketball-notes{font-size:12px;color:var(--muted);font-style:italic;line-height:1.5;margin-top:9px;white-space:pre-wrap;overflow-wrap:anywhere;}
+.mf-basketball-stats .p7-stat-grid{margin-bottom:8px;}
+.mf-basketball-recent{display:flex;flex-direction:column;gap:6px;}
+.mf-basketball-recent-row{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:var(--muted);padding:7px 0;border-bottom:1px solid var(--border);}
+.mf-basketball-recent-row:last-child{border-bottom:none;}
+.mf-basketball-dialog{display:none;position:fixed;inset:0;z-index:10020;background:rgba(0,0,0,.72);align-items:flex-end;justify-content:center;padding:16px;}
+.mf-basketball-dialog.open{display:flex;}
+.mf-basketball-dialog-panel{width:100%;max-width:480px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 18px 55px rgba(0,0,0,.55);}
+.mf-basketball-dialog-title{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:1px;color:var(--red);margin-bottom:8px;}
+.mf-basketball-dialog-body{font-size:12px;color:var(--muted);line-height:1.5;}
+.mf-basketball-dialog-actions>*{flex:1;}
+body.mf-basketball-dialog-open{overflow:hidden;}
+
+@media(min-width:600px){
+  .mf-basketball-required-grid{grid-template-columns:1fr 1fr 1fr;}
+  .mf-basketball-detail-grid{grid-template-columns:1fr 1fr;}
+  .mf-basketball-dialog{align-items:center;}
+}
