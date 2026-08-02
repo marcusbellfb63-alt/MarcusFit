@@ -38,6 +38,24 @@ Classic deferred scripts must retain this exact order. Top-level lexical
 declarations remain shared across classic scripts, while function declarations
 and explicit `window.*` assignments retain inline-handler and console access.
 
+## 10.1.0 additive basketball boundary
+
+`assets/js/05-basketball.js` loads after the accepted four-file runtime. The
+original four scripts retain their exact relative order and accepted contents
+apart from `APP_VERSION`. The fifth script is enclosed and exposes only the
+read-only `mfBasketballDebug()` helper in production.
+
+Basketball uses the separate `mf-basketball-sessions` key because daily records
+are one-per-date while basketball supports multiple sessions on the same date.
+The key contains `{schemaVersion: 1, sessions: [...]}`. Each session owns a
+stable `bball-*` ID, ISO timestamps, a `YYYY-MM-DD` date, a stable type value,
+positive minutes, and optional dribbling/shooting/free-throw/notes fields.
+
+The feature wraps the existing History, Stats, export, backup allowlist,
+backup preview, backup validation, date-navigation, and screen-navigation entry
+points after all accepted wrappers are installed. It does not wrap `applySync`,
+touch lifting logs, modify daily-log schemas, or mutate base program `P`.
+
 ## Initialization order
 
 The accepted script initializes/migrates several stores during evaluation. Its
@@ -67,6 +85,7 @@ No arbitrary delay may be introduced. External scripts must use ordered classic
 - `mf-recurring-events`
 - `mf-habit-definitions`
 - `mf-habit-proposal`
+- `mf-basketball-sessions`
 
 No key may be added during extraction. Restore ordering remains
 `p8ValidateBackup` → `p8MigrateBackup` → `p8492SummarizeBackup` →
