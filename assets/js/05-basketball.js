@@ -407,7 +407,7 @@ window.mfBasketballDebug=mfBasketballDebug;
 // Dependency-free Node tests receive pure primitives without expanding the
 // production browser's public/global surface.
 if(typeof process!=="undefined"&&process&&process.versions&&process.versions.node){
-  window.__mfBasketballTest={
+  window["__mfBasketballTest"]={
     mfBasketballReadStore:mfBasketballReadStore,
     mfBasketballCreateId:mfBasketballCreateId,
     mfBasketballNormalizeSession:mfBasketballNormalizeSession,
