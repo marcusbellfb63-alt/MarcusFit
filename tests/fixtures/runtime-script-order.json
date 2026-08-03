@@ -2,7 +2,10 @@
   "assets/js/core/01-app-constants.js",
   "assets/js/data/02-program-data.js",
   "assets/js/program/03-lifecycle-resolved.js",
-  "assets/js/02-state-personalization.js",
+  "assets/js/state/04-runtime-state-profile-preferences.js",
+  "assets/js/features/05-onboarding.js",
+  "assets/js/features/06-program-proposals.js",
+  "assets/js/features/07-program-proposal-ui.js",
   "assets/js/03-interactions-sync.js",
   "assets/js/04-backup-boot.js",
   "assets/js/05-basketball.js"
