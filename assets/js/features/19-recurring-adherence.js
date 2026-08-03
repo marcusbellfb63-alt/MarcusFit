@@ -1,3 +1,4 @@
+
 // ── PHASE 9.5.10: SCHEDULE-AWARE RECURRING ADHERENCE ─────────────────────
 // Calendar weekday convention: JavaScript local time, Sunday=0 through Saturday=6.
 // Recurring definitions and explicit outcomes are optional, schema-versioned stores.
@@ -242,4 +243,3 @@ const p9510LegacyLoadDay=loadDay;loadDay=function(){const r=p9510LegacyLoadDay()
 const p9510LegacyAnalytics=p7RenderAnalytics;p7RenderAnalytics=function(){const r=p9510LegacyAnalytics();p9510RenderStats();return r;};
 const p9510LegacyExport=genExport;genExport=function(){const out=p9510LegacyExport(),section=p9510BuildAdherenceExport(),updated=String(out||window._exp||"").replace(/(=== MARCUSFIT EXPORT ===\n)/,"$1"+section);window._exp=updated;const el=document.getElementById("exportOut");if(el)el.textContent=updated;return updated;};
 // ── END PHASE 9.5.10 ──────────────────────────────────────────────────────
-

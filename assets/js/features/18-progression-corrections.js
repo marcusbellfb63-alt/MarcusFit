@@ -1,3 +1,4 @@
+
 // -- 9.5.9 EXERCISE METRICS + PROGRESSION CORRECTNESS -----------------------
 // Metric interpretation is derived at read time. Nothing in this phase writes
 // classifications to storage or changes the compatible {wt,reps,rir} set shape.
@@ -511,4 +512,3 @@ genExport=function(){
   window._exp=updated;const target=document.getElementById("exportOut");if(target)target.textContent=updated;
   return updated;
 };
-

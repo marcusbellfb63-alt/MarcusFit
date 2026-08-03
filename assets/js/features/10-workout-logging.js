@@ -1,3 +1,4 @@
+
 function renderWoExercises(){
   const dayIdx=document.getElementById("woDaySelect").value;
   const noteEl=document.getElementById("woDayNoteOut"),logEl=document.getElementById("woExerciseLog");
@@ -447,4 +448,3 @@ function renderHistory(){
   // Delegate to P7 filter-aware renderer
   p7ApplyFilters();
 }
-

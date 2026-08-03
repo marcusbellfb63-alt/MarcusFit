@@ -1,3 +1,4 @@
+
 // ── PHASE 6: COLLAPSIBLE SECTIONS ───────────────────────────────────────────
 
 function p6Toggle(key){
@@ -156,4 +157,3 @@ window.addEventListener("load",()=>{
 });
 
 // ── END PHASE 6 ──────────────────────────────────────────────────────────────
-

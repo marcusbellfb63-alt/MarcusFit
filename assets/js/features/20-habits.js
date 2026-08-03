@@ -1,3 +1,4 @@
+
 // -- PHASE 9.6.0: PERSONALIZED HABITS ---------------------------------------
 const P960_HABIT_DEFINITIONS_KEY="mf-habit-definitions";
 const P960_HABIT_PROPOSAL_KEY="mf-habit-proposal";
@@ -207,4 +208,3 @@ window.mf960RunHabitSelfTest=mf960RunHabitSelfTest;
 p960InitHabitStore();
 renderHabits();
 // -- END PHASE 9.6.0 --------------------------------------------------------
-

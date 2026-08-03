@@ -1,3 +1,4 @@
+
 // ── FUTURE MODULE: src/proposal-engine.js ───────────────────────────────────
 // ── PHASE 9.5.4: PERSONALIZED PROGRAM PROPOSAL FOUNDATION ───────────────────
 // Read-only-with-respect-to-the-program foundation. Adds a new, independent
@@ -1805,4 +1806,3 @@ function p954MaybeGenerateProposalAfterRealCompletion(){
     console.warn("[MarcusFit] p954MaybeGenerateProposalAfterRealCompletion failed safely:", e && e.message);
   }
 }
-

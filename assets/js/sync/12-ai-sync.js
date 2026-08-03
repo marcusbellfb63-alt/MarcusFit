@@ -1,3 +1,4 @@
+
 // ── PHASE 4: AI SYNC PARSER ───────────────────────────────────────────────────
 function applySync(){
   const raw=document.getElementById("syncInput").value;
@@ -806,4 +807,3 @@ function applySync(){
   document.getElementById("syncInput").value="";
 }
 // ── END PHASE 4 SYNC PARSER ───────────────────────────────────────────────────
-

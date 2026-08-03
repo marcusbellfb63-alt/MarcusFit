@@ -1,3 +1,4 @@
+
 // ── FUTURE MODULE: src/proposal-ui.js ────────────────────────────────────────
 // ── Sync-tab UI ──────────────────────────────────────────────────────────────
 // All rendering uses textContent / safe DOM creation only — never innerHTML

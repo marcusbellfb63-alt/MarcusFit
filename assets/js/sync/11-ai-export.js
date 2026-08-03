@@ -1,3 +1,4 @@
+
 // ── PHASE 3: EXPORT RANGE HELPERS ────────────────────────────────────────────
 function getExportDkeys(){
   const val=document.getElementById("exportRangeSelect").value;
@@ -920,4 +921,3 @@ function genExport(){
 
 
 function doCopy(){if(!window._exp)return;const btn=document.getElementById("copyBtn");navigator.clipboard.writeText(window._exp).then(()=>{btn.textContent="&#9989; COPIED!";setTimeout(()=>btn.textContent="&#128203; COPY TO CLIPBOARD",2000);}).catch(()=>{const ta=document.createElement("textarea");ta.value=window._exp;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);btn.textContent="&#9989; COPIED!";setTimeout(()=>btn.textContent="&#128203; COPY TO CLIPBOARD",2000);});}
-

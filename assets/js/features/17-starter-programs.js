@@ -1,3 +1,5 @@
+
+
 // ── 9.5.8 FRESH USER STARTER PROGRAM PACKS ────────────────────────────────
 // Immutable templates live in code. The only durable selection is the optional
 // userProfile.programBasis field; no storage key or lifecycle record is added.
@@ -389,4 +391,3 @@ window.p958ConfirmStarterSelection=p958ConfirmStarterSelection;
 
 const p958OriginalPersonalizationRender=p954RenderProgramPersonalization;
 p954RenderProgramPersonalization=function(){p958OriginalPersonalizationRender();p958RenderStarterChooser();};
-

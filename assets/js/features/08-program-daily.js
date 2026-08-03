@@ -467,4 +467,3 @@ function populateWoDaySelect(){
   });
   renderWoExercises();
 }
-

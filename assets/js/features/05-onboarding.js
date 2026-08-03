@@ -1,3 +1,4 @@
+
 // ── PHASE 9.5.1: ONBOARDING STATE & FRESH-INSTALL DETECTION FOUNDATION ───────
 // Storage key: "mf-onboarding-state" — structured, schema-versioned JSON
 // object. Tracks onboarding progress/status only — never merged into or
@@ -1721,4 +1722,3 @@ window.mfOnboardingCompletionDebug = function(){
 };
 var mfOnboardingCompletionDebug = window.mfOnboardingCompletionDebug;
 // ── END PHASE 9.5.3 ──────────────────────────────────────────────────────────
-

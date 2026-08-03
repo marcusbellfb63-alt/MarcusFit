@@ -1,3 +1,4 @@
+
 // ── PHASE 7: HISTORY FILTERS ─────────────────────────────────────────────────
 
 const p7FilterState = {
@@ -156,4 +157,3 @@ function renderHistoryFromEntries(entries){
     return `<div class="hist-entry${hasWo?" expandable":""}" onclick="${hasWo?"this.classList.toggle('open')":""}" ><div class="hist-date"><span>${dt} \xb7 ${(d.logGym||"home").toUpperCase()}</span>${hasWo?'<span style="color:var(--muted);font-size:10px;">tap for sets &#9662;</span>':""}</div><div class="hist-pills">${pills.map(p=>`<span class="hist-pill">${p}</span>`).join("")}${habitBadge}</div>${d.notes?`<div class="hist-notes">"${d.notes}"</div>`:""} ${woDetail}</div>`;
   }).join("");
 }
-
