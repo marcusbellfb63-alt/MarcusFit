@@ -69,4 +69,3 @@ The proposed extraction must reverse none of these edges. Where two systems
 currently interact through a shared classic-script binding, 10.1.2 may move the
 definition but must keep an equivalent global binding until all callers and
 inline attributes have a separately tested migration path.
-

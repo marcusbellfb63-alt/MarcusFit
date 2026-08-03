@@ -49,4 +49,3 @@ move. Treat tests and source as authoritative if later accepted work changes the
 runtime. Line numbers in these documents are snapshots and will shift after
 future edits; named functions, stable IDs, storage keys, wrapper order, and
 ownership boundaries are the primary references.
-
