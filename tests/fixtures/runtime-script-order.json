@@ -6,7 +6,14 @@
   "assets/js/features/05-onboarding.js",
   "assets/js/features/06-program-proposals.js",
   "assets/js/features/07-program-proposal-ui.js",
-  "assets/js/03-interactions-sync.js",
+  "assets/js/features/08-program-daily.js",
+  "assets/js/features/09-progression-base.js",
+  "assets/js/features/10-workout-logging.js",
+  "assets/js/sync/11-ai-export.js",
+  "assets/js/sync/12-ai-sync.js",
+  "assets/js/features/13-shared-ui.js",
+  "assets/js/features/14-history.js",
+  "assets/js/features/15-stats.js",
   "assets/js/04-backup-boot.js",
   "assets/js/05-basketball.js"
 ]
