@@ -14,6 +14,11 @@
   "assets/js/features/13-shared-ui.js",
   "assets/js/features/14-history.js",
   "assets/js/features/15-stats.js",
-  "assets/js/04-backup-boot.js",
+  "assets/js/system/16-backup-restore-debug.js",
+  "assets/js/features/17-starter-programs.js",
+  "assets/js/features/18-progression-corrections.js",
+  "assets/js/features/19-recurring-adherence.js",
+  "assets/js/features/20-habits.js",
+  "assets/js/boot/21-app-boot.js",
   "assets/js/05-basketball.js"
 ]
