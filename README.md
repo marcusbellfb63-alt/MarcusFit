@@ -9,7 +9,7 @@ MarcusFit 10.1.0
 ## Architecture
 
 - Static multi-file HTML/CSS/JavaScript app with `index.html` as the entry point
-- Five ordered classic deferred scripts; `assets/js/05-basketball.js` is the isolated 10.1.0 feature boundary
+- Twenty-two feature-oriented classic deferred scripts in explicit numeric order; see `docs/architecture/README.md`
 - Hosted with GitHub Pages
 - Vanilla JavaScript — no build step, no frameworks
 - localStorage persistence — no backend, no server
@@ -105,11 +105,11 @@ const APP_VERSION      = "10.1.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
-Both are declared near the top of `assets/js/01-core-data.js`. Backup `appVersion`, lifecycle default `lifecycleVersion`, migration targets, and export strings reference these constants.
+Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, lifecycle default `lifecycleVersion`, migration targets, and export strings reference these constants.
 
 ## Near-Term Roadmap
 
-- **v10.1.0** — Basketball session logging (current draft feature)
-- **v10.1.1** — Runtime architecture inventory and dependency map
-- **v10.1.2** — Behavior-preserving feature-oriented modularization
+- **v10.1.0** — Basketball session logging (accepted runtime)
+- **v10.1.1** — Runtime architecture inventory and dependency map (complete)
+- **v10.1.2** — Behavior-preserving feature-oriented modularization (implemented on draft branch; awaiting QA)
 - **v10.2.0** — Basketball programs and progression
