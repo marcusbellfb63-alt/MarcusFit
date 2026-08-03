@@ -4,7 +4,7 @@ const path = require("path");
 const vm = require("vm");
 
 const root = path.resolve(__dirname, "..");
-const source = fs.readFileSync(path.join(root, "assets", "js", "05-basketball.js"), "utf8");
+const source = fs.readFileSync(path.join(root, "assets", "js", "features", "22-basketball.js"), "utf8");
 
 function createStorage(initial = {}) {
   const memory = new Map(Object.entries(initial));
