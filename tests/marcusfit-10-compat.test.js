@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
+const childProcess = require("child_process");
 
 const root = path.resolve(__dirname, "..");
 const acceptedPath = path.join(root, "Releases", "MarcusFit9_6_0.html");
@@ -10,8 +11,19 @@ const accepted = fs.readFileSync(acceptedPath, "utf8");
 const currentPath = path.join(root, "index.html");
 const current = fs.readFileSync(currentPath, "utf8");
 const acceptedSha256 = crypto.createHash("sha256").update(fs.readFileSync(acceptedPath)).digest("hex");
+const acceptedGitBytes = Buffer.from(fs.readFileSync(acceptedPath, "utf8").replace(/\r\n/g, "\n"));
+const acceptedBlob = crypto.createHash("sha1")
+  .update(`blob ${acceptedGitBytes.length}\0`)
+  .update(acceptedGitBytes)
+  .digest("hex");
+const expectedScriptOrder = JSON.parse(fs.readFileSync(
+  path.join(root, "tests", "fixtures", "runtime-script-order.json"),
+  "utf8"
+));
 
 const EXPECTED_ACCEPTED_SHA256 = "69a3a66541d14290a6a7b73bf313365176169fd0d659e6effb29edcaf7a4e34b";
+const EXPECTED_ACCEPTED_GIT_BLOB = "c10e4a488296b7ba83311d7fc7bdd1dcd4c4b7e8";
+const EXPECTED_BASKETBALL_SHA256 = "897f46401adf7264843a11a3fe9ba11d647f083b1bc048bffc980c96572a8b92";
 const TARGET_APP_VERSION = "10.1.0";
 
 function blocks(source, tagName) {
@@ -100,6 +112,7 @@ function extractInventory(source) {
 }
 
 assert.strictEqual(acceptedSha256, EXPECTED_ACCEPTED_SHA256, "Accepted 9.6.0 release hash changed");
+assert.strictEqual(acceptedBlob, EXPECTED_ACCEPTED_GIT_BLOB, "Accepted 9.6.0 Git blob changed");
 assert.strictEqual(blocks(accepted, "style").length, 1, "Accepted release must retain one style block");
 assert.strictEqual(blocks(accepted, "script").length, 1, "Accepted release must retain one script block");
 assert(accepted.includes('const APP_VERSION = "9.6.0";'), "Accepted APP_VERSION changed");
@@ -140,15 +153,10 @@ const currentExternalScripts = blocks(current, "script")
   })
   .filter(Boolean);
 if (currentExternalScripts.length) {
-  assert.deepStrictEqual(currentExternalScripts, [
-    "assets/js/01-core-data.js",
-    "assets/js/02-state-personalization.js",
-    "assets/js/03-interactions-sync.js",
-    "assets/js/04-backup-boot.js",
-    "assets/js/05-basketball.js"
-  ], "External script order changed");
+  assert.deepStrictEqual(currentExternalScripts, expectedScriptOrder, "External script order changed");
   for (const block of blocks(current, "script")) {
     assert(/\bdefer(?:\s|>|$)/i.test(block.attributes), "Every production script must use defer");
+    assert(!/\btype=["']module["']/i.test(block.attributes), "Production scripts must remain classic scripts");
   }
   const externalSources = currentExternalScripts.map(source => {
     const sourcePath = path.join(root, ...source.split("/"));
@@ -156,7 +164,8 @@ if (currentExternalScripts.length) {
     new vm.Script(content, { filename: source });
     return content;
   });
-  const legacyExternalSource = externalSources.slice(0, 4).join("");
+  const basketballSource = externalSources[externalSources.length - 1];
+  const legacyExternalSource = externalSources.slice(0, -1).join("");
   const combinedExternalSource = externalSources.join("");
   new vm.Script(combinedExternalSource, { filename: "MarcusFit10.combined.js" });
   const expectedExternalSource = acceptedScript.replace(
@@ -167,6 +176,11 @@ if (currentExternalScripts.length) {
     normalizeEol(legacyExternalSource),
     normalizeEol(expectedExternalSource),
     "Original four runtime files differ from accepted runtime beyond APP_VERSION"
+  );
+  assert.strictEqual(
+    crypto.createHash("sha256").update(basketballSource).digest("hex"),
+    EXPECTED_BASKETBALL_SHA256,
+    "Accepted basketball runtime changed"
   );
   const acceptedRuntimeInventory = extractInventory(`<script>${acceptedScript}</script>`);
   const currentRuntimeInventory = extractInventory(`<script>${combinedExternalSource}</script>`);
@@ -224,6 +238,35 @@ for (const name of sortedUnique(requiredGlobals)) {
     `Required public/global function is absent from accepted release: ${name}`
   );
 }
+
+const currentHtmlInventory = extractInventory(current);
+assert.strictEqual(
+  [...current.matchAll(/\s(on[a-z]+)\s*=\s*(["'])(.*?)\2/gis)].length,
+  83,
+  "Inline attribute count changed"
+);
+assert.strictEqual(currentHtmlInventory.inlineHandlerFunctions.length, 61, "Inline handler function count changed");
+
+const scanner = JSON.parse(childProcess.execFileSync(process.execPath, [
+  path.join(root, "tools", "architecture", "inventory-runtime.js")
+], { encoding: "utf8" }));
+assert.strictEqual(scanner.totals.inlineHandlerAttributes, 83, "Scanner inline attribute contract changed");
+assert.strictEqual(scanner.totals.inlineHandlerFunctions, 61, "Scanner handler function contract changed");
+assert(
+  scanner.totals.uniquePublicOrCrossFileNames >= 257,
+  "The accepted 257-name compatibility surface lost scanner-visible names"
+);
+
+const ownedStorageTokens = [
+  "day-", "mf-overrides", "mf-current-draft", "mf-exercise-state", "mf-recommendations",
+  "mf-ai-coaching-preferences", "mf-user-profile", "mf-onboarding-state",
+  "mf-onboarding-program-proposal", "mf-recurring-items", "mf-recurring-events",
+  "mf-habit-definitions", "mf-habit-proposal", "mf-basketball-sessions"
+];
+const orderedRuntimeSource = expectedScriptOrder
+  .map(source => fs.readFileSync(path.join(root, ...source.split("/")), "utf8"))
+  .join("");
+ownedStorageTokens.forEach(token => assert(orderedRuntimeSource.includes(token), `Owned storage token disappeared: ${token}`));
 
 if (process.argv.includes("--inventory")) {
   process.stdout.write(JSON.stringify({
