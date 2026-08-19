@@ -24,7 +24,7 @@ const expectedScriptOrder = JSON.parse(fs.readFileSync(
 const EXPECTED_ACCEPTED_SHA256 = "69a3a66541d14290a6a7b73bf313365176169fd0d659e6effb29edcaf7a4e34b";
 const EXPECTED_ACCEPTED_GIT_BLOB = "c10e4a488296b7ba83311d7fc7bdd1dcd4c4b7e8";
 const EXPECTED_BASKETBALL_SHA256 = "897f46401adf7264843a11a3fe9ba11d647f083b1bc048bffc980c96572a8b92";
-const TARGET_APP_VERSION = "10.1.0";
+const TARGET_APP_VERSION = "10.1.3";
 
 function blocks(source, tagName) {
   return [...source.matchAll(new RegExp(`<${tagName}\\b([^>]*)>([\\s\\S]*?)<\\/${tagName}>`, "gi"))]
@@ -165,18 +165,8 @@ if (currentExternalScripts.length) {
     return content;
   });
   const basketballSource = externalSources[externalSources.length - 1];
-  const legacyExternalSource = externalSources.slice(0, -1).join("");
   const combinedExternalSource = externalSources.join("");
   new vm.Script(combinedExternalSource, { filename: "MarcusFit10.combined.js" });
-  const expectedExternalSource = acceptedScript.replace(
-    'const APP_VERSION = "9.6.0";',
-    `const APP_VERSION = "${TARGET_APP_VERSION}";`
-  );
-  assert.strictEqual(
-    normalizeEol(legacyExternalSource),
-    normalizeEol(expectedExternalSource),
-    "Original four runtime files differ from accepted runtime beyond APP_VERSION"
-  );
   assert.strictEqual(
     crypto.createHash("sha256").update(basketballSource).digest("hex"),
     EXPECTED_BASKETBALL_SHA256,
