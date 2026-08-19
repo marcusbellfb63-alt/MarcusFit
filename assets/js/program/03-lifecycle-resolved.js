@@ -1054,7 +1054,7 @@ function mfProgramDayIntegrityDebug(){
     validVirtualDayCount:Object.keys(validKeys).length,
     migratedDayCount:migratedDayCount,
     activeUnresolvedDayCount:activeUnresolved.length,
-    archivedOnlyIgnoredCount:archivedOnly.length,
+    archivedOnlyIgnoredCount:archivedOnly.reduce(function(total,g){return total+g.archivedCustomIds.length;},0),
     invalidOrphanCount:evidence.invalidOrphans.length,
     recommendationMissingDayCount:recommendationMissing.length,
     duplicateOrConflictCount:metadataIssues.length,
