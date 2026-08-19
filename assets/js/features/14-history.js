@@ -55,8 +55,9 @@ function p7ApplyFilters(){
       if(!e.data.woDayIdx&&e.data.woDayIdx!==0)return false;
       // 9.4.8.3: use getSafeDayDisplayName — handles base + virtual days
       const gymKey = e.data.logGym||"home";
-      const name = getSafeDayDisplayName(gymKey, e.data.woDayIdx);
-      return name.toLowerCase().includes(woday.toLowerCase());
+      let savedName=null;try{const wo=JSON.parse(localStorage.getItem(e.key+"-wo")||"null");savedName=wo&&wo.dayName;}catch(err){}
+      const identity=getHistoricalDayIdentity(gymKey,e.data.woDayIdx,savedName);
+      return [identity.currentName,identity.historicalName].filter(Boolean).some(function(name){return name.toLowerCase().includes(woday.toLowerCase());});
     });
   }
 
@@ -71,8 +72,8 @@ function p7ApplyFilters(){
           // 9.4.8.3: use safe resolvers — handles base + virtual days
           const gymKey = wo.gym||"home";
           const dayData = getSafeDayForLog(gymKey, wo.dayIdx);
-          const dayName = getSafeDayDisplayName(gymKey, wo.dayIdx);
-          if(dayName.toLowerCase().includes(search))return true;
+          const identity=getHistoricalDayIdentity(gymKey,wo.dayIdx,wo.dayName);
+          if([identity.currentName,identity.historicalName].filter(Boolean).some(function(name){return name.toLowerCase().includes(search);}))return true;
           if(dayData&&(dayData.exercises||[]).some(ex=>getF(ex.id,"name",ex.name).toLowerCase().includes(search)))return true;
         }catch{}
       }
@@ -135,9 +136,10 @@ function renderHistoryFromEntries(entries){
       // 9.4.8.3: use getSafeDayForLog — handles base + virtual days safely
       const gymKey = wo.gym||"home";
       const dayData = getSafeDayForLog(gymKey, wo.dayIdx);
-      const dayName = getSafeDayDisplayName(gymKey, wo.dayIdx);
+      const identity = getHistoricalDayIdentity(gymKey,wo.dayIdx,wo.dayName);
       woDetail='<div class="hist-wo-detail">';
-      woDetail+=`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${gymKey.toUpperCase()} \u2014 ${dayName}</div>`;
+      woDetail+=`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:${identity.showHistoricalName?"3":"8"}px;">${gymKey.toUpperCase()} \u2014 ${identity.currentName}</div>`;
+      if(identity.showHistoricalName)woDetail+=`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Previously logged as: ${identity.historicalName}</div>`;
       if(dayData){
         (dayData.exercises||[]).forEach(ex=>{
           const exLog=wo.exercises[ex.id];if(!exLog)return;
