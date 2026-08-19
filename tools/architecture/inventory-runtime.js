@@ -3,6 +3,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const root = path.resolve(__dirname, "..", "..");
 const htmlPath = path.join(root, "index.html");
@@ -10,8 +11,40 @@ const html = fs.readFileSync(htmlPath, "utf8");
 const scriptSources = [...html.matchAll(/<script\b([^>]*)\bsrc=["']([^"']+)["'][^>]*><\/script>/gi)]
   .map(match => match[2]);
 
+function sha256(value) {
+  return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function extractBalanced(source, startToken) {
+  const start = source.indexOf(startToken);
+  if (start < 0) throw new Error(`Missing token: ${startToken}`);
+  const brace = source.indexOf("{", start);
+  let depth = 0;
+  let quote = null;
+  let escaped = false;
+  for (let index = brace; index < source.length; index++) {
+    const character = source[index];
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === quote) quote = null;
+      continue;
+    }
+    if (character === "'" || character === '"' || character === "`") quote = character;
+    else if (character === "{") depth++;
+    else if (character === "}" && --depth === 0) return source.slice(start, index + 1);
+  }
+  throw new Error(`Unbalanced token: ${startToken}`);
+}
+
 function lineAt(source, offset) {
   return source.slice(0, offset).split(/\r?\n/).length;
+}
+
+function physicalLineCount(source) {
+  if (!source) return 0;
+  const normalized = source.replace(/\r\n/g, "\n");
+  return normalized.split("\n").length - (normalized.endsWith("\n") ? 1 : 0);
 }
 
 function uniqueSorted(values) {
@@ -57,7 +90,7 @@ const scripts = scriptSources.map(relativePath => {
     .map(match => ({ name: match[1], line: lineAt(source, match.index) }));
   return {
     file: relativePath,
-    lines: source.split(/\r?\n/).length,
+    lines: physicalLineCount(source),
     bytes: fs.statSync(absolutePath).size,
     declarations,
     windowAssignments,
@@ -68,6 +101,14 @@ const scripts = scriptSources.map(relativePath => {
     functionReassignments
   };
 });
+const combinedSource = scriptSources
+  .map(relativePath => fs.readFileSync(path.join(root, ...relativePath.split("/")), "utf8"))
+  .join("");
+const programSource = extractBalanced(combinedSource, "const P =");
+const exerciseIds = [...programSource.matchAll(/\bid\s*:\s*["']([^"']+)["']/g)]
+  .map(match => match[1])
+  .sort();
+const acceptedReleasePath = path.join(root, "Releases", "MarcusFit9_6_0.html");
 
 const crossFileSymbols = [];
 for (const definingScript of scripts) {
@@ -109,7 +150,19 @@ const report = {
       ...crossFileSymbols.map(item => item.name)
     ]).length,
     uniqueDomIds: uniqueSorted(scripts.flatMap(script => script.domIds.map(item => item.id))).length,
-    storageOperationSites: scripts.reduce((sum, script) => sum + script.storageOperations.length, 0)
+    storageOperationSites: scripts.reduce((sum, script) => sum + script.storageOperations.length, 0),
+    runtimeFiles: scripts.length,
+    runtimeLines: scripts.reduce((sum, script) => sum + script.lines, 0),
+    maximumFileLines: Math.max(...scripts.map(script => script.lines)),
+    uniqueExplicitWindowNames: uniqueSorted(scripts.flatMap(script => script.windowAssignments.map(item => item.name))).length
+  },
+  protectedInvariants: {
+    acceptedReleaseSha256: sha256(fs.readFileSync(acceptedReleasePath)),
+    programSha256: sha256(programSource.replace(/\r\n/g, "\n")),
+    exerciseIdCount: exerciseIds.length,
+    exerciseIdSha256: sha256(exerciseIds.join("\n")),
+    duplicateExerciseIds: exerciseIds.filter((id, index) => index > 0 && id === exerciseIds[index - 1]),
+    combinedRuntimeSha256: sha256(combinedSource.replace(/\r\n/g, "\n"))
   }
 };
 
