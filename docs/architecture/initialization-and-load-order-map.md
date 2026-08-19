@@ -23,13 +23,14 @@ Evaluation occurs after HTML parsing, in source order, before
    listeners in their accepted order.
 3. Backup, starter, progression, adherence, and habit wrapper captures install.
 4. Habit definitions initialize and habits render.
-5. `21-app-boot.js` synchronously renders preferences/profile, initializes
-   onboarding, may display onboarding, renders personalization, releases the
-   starter guard, renders the program, and renders adherence.
+5. `21-app-boot.js` initializes lifecycle state and runs the idempotent 10.1.3
+   virtual-day repair before synchronously rendering preferences/profile,
+   onboarding, personalization, the program, and adherence.
 6. `22-basketball.js` captures the final backup/History/Stats/export/navigation
    functions, registers its listeners, resets its form, and renders its views.
-7. The three previously registered `window.load` listeners run: migrations and
-   initial daily wiring; delayed badges; MutationObserver/save-hook installation.
+7. The three previously registered `window.load` listeners run: remaining
+   recommendation/specialization migrations and initial daily wiring; delayed
+   badges; MutationObserver/save-hook installation.
 
 Boot intentionally remains before basketball because that is the accepted
 10.1.0 order. Moving basketball before boot or moving boot last would change
