@@ -16,6 +16,10 @@ real-data check below is complete.
 4. For each affected virtual day, apply a minor direct field update, reorder,
    recommendations update, safe remove, and reactivation. Confirm reactivation
    restores the exact archived ID and creates no duplicate.
+   Explicitly repeat direct update/remove/reactivate for legacy persisted IDs
+   `partial-d6-e0`, `partial-d6-e2`, and `partial-d6-e4`; none should be routed
+   through the new-ID “expected next exercise index” check. Confirm a fabricated
+   nonexistent ID is still rejected.
 5. Export the program. Confirm each virtual day appears exactly once, exported
    IDs are the same IDs Sync accepted, and renamed days are not duplicated as
    old/current identities.
