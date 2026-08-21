@@ -2,14 +2,21 @@
 
 ## Current accepted state
 
-MarcusFit 10.1.2 is accepted and merged on `main` through PR #10. The feature
-head was `092665b984f0e98b4aa6c0d6574a8d2c865b4180`; the merge commit is
-`f63645aa42c52b569bcaeefaced1a63aa360f6a3`. The 22-script feature-oriented
-runtime is accepted, and full representative real-data QA is complete.
+MarcusFit 10.1.4 is accepted after full manual QA. The implementation head that
+passed real-device QA was `5929eda93e6a75195dc81acffd33b4a3cc81a919` on
+`codex/10-1-4-mobile-ux-accessibility`. PR #12 is the accepted 10.1.4 delivery
+and is ready to merge to `main` after these acceptance-documentation updates.
 
-MarcusFit 10.1.3 is the active draft phase. It repairs recoverable legacy
-virtual-day parent metadata, aligns AI export and Sync targeting, and presents
-current versus historical day names without rewriting saved workouts.
+The previous accepted baseline was MarcusFit 10.1.3, merged through PR #11.
+Its feature head was `d9482211ca85a3a694a5be90e7e8ea08ff3ef837`; its merge commit was
+`2653566f6a06ad99b184e8fa0bc26dc0c24a2dfe`.
+
+10.1.4 enables pinch zoom and safe-area-aware mobile layout, adds a
+profile-backed text-size preference, reorganizes Sync/settings into accessible
+disclosures, and redesigns the Habit Manager while preserving its save-only
+draft model. Manual QA also caught and cleared two blockers before acceptance:
+mobile workout-set row overflow and duplicate habit creation after renaming an
+existing habit.
 
 ## Implemented 10.1.2 architecture
 
@@ -36,13 +43,16 @@ load order, risks, implementation deviations, and equivalence evidence.
 - Do not introduce modules, npm, TypeScript, bundlers, frameworks, services,
   analytics, service workers, or runtime dependencies.
 
-## Accepted 10.1.2 validation
+## Accepted baseline validation
 
-Automated tests and the architecture scanner pass. HTTP browser smoke testing
-confirmed startup, all screens, save/reload persistence, export generation,
-backup creation, invalid Sync rejection, responsive phone/desktop widths, and
-no console warnings/errors. Marcus completed full representative real-data QA
-before PR #10 was merged.
+All automated regression tests and the architecture scanner pass. The accepted
+10.1.4 implementation preserves 22 runtime scripts, the authoritative core Sync
+binding, protected release/Base-P/63-ID hashes, backup/restore compatibility,
+and existing storage schemas. Real-device iPhone/Safari QA passed after the two
+manual-QA corrections described above, including mobile layout, all four text
+sizes, Sync/settings disclosures, Habit Manager edit/archive/reactivate flows,
+workout logging/history, Stats, AI export/Sync, backup/restore, and basketball
+regression checks.
 
 ## Workflow
 
@@ -64,16 +74,17 @@ before PR #10 was merged.
 10.1.0 — Basketball session logging — Accepted
 10.1.1 — Runtime architecture inventory — Complete
 10.1.2 — Feature-oriented JavaScript modularization — Accepted and merged
-10.1.3 — Program Day Integrity & Historical Identity Repair
-10.1.4 — Mobile accessibility, Sync/settings organization, Habits UI
+10.1.3 — Program Day Integrity & Historical Identity Repair — Accepted
+10.1.4 — Mobile accessibility, Sync/settings organization, Habits UI — Accepted
 10.2.0 — Basketball programs and progression
 10.3.0 — Basketball-specific AI Sync
 10.4.0 — Habits-specific AI Sync
 10.5.0 — Full cross-domain coaching review
 ```
 
-The 10.1.4 scope includes the reported iPhone layout/readability issue, a future
-Compact/Standard/Large/Extra Large text-size preference, collapsible Sync and
-settings sections, and a less dense Habits manager. Standalone CSS organization
-is no longer an active roadmap phase; revisit it only if development friction
-later justifies the work.
+The accepted 10.1.4 implementation keeps the primary Export/Sync workflow
+exposed and uses deterministic disclosure defaults: Profile & Display open,
+secondary sections collapsed unless pending status requires attention.
+`mf-user-profile` owns `preferences.textSize`; no storage key or schema version
+was added. Habit Manager presentation CSS lives in `assets/css/marcusfit.css`,
+with edits preserving stable habit IDs and remaining draft-only until Save.
