@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.1.4 implementation candidate (awaiting manual QA)
+MarcusFit 10.1.4 — accepted
 
 ## Architecture
 
@@ -116,5 +116,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.1.1** — Runtime architecture inventory and dependency map (complete)
 - **v10.1.2** — Feature-oriented 22-script runtime (accepted)
 - **v10.1.3** — Program-day integrity and historical identity repair (accepted)
-- **v10.1.4** — Mobile accessibility, Sync/settings organization, and Habits UI (implemented; awaiting manual QA)
+- **v10.1.4** — Mobile accessibility, Sync/settings organization, and Habits UI (accepted)
 - **v10.2.0** — Basketball programs and progression
