@@ -7,7 +7,7 @@ baseline `8308e7c57135e1bbb2ab8756c571805aa2819c78`.
 |---|---|---|
 | `core/01-app-constants.js` | `APP_VERSION`, lifecycle version | Every later feature |
 | `data/02-program-data.js` | Legacy habit seed/UI helpers, workout recommendations, immutable `P` | lifecycle, daily/workout, starter, export |
-| `program/03-lifecycle-resolved.js` | overrides, recommendations, lifecycle, virtual/disabled days, resolved program, lifecycle diagnostics | proposals, daily/workout, progression, Sync, restore |
+| `program/03-lifecycle-resolved.js` | overrides, recommendations, lifecycle, virtual/disabled days, canonical day identity, legacy virtual-day repair, resolved program, lifecycle diagnostics | proposals, daily/workout, progression, Sync, History, restore |
 | `state/04-runtime-state-profile-preferences.js` | live `gym`, `logGym`, `tDate`, draft state, coaching preferences, profile | onboarding, proposals, daily, export, starter, basketball |
 | `features/05-onboarding.js` | freshness evidence, onboarding state, UI, completion/debug | profile, lifecycle, proposal generation, boot |
 | `features/06-program-proposals.js` | proposal schema, build, apply/undo transaction, conflicts/debug | lifecycle, profile/onboarding, logs, proposal UI |
@@ -24,8 +24,8 @@ baseline `8308e7c57135e1bbb2ab8756c571805aa2819c78`.
 | `features/17-starter-programs.js` | immutable templates, program basis, chooser, export/personalization hooks | `P`, profile, proposal UI, renderProgram |
 | `features/18-progression-corrections.js` | accepted metric direction/duration/cardio/ceiling corrections and self-test | progression base and workout/review functions |
 | `features/19-recurring-adherence.js` | recurring schemas/date math/events/UI/Stats/export/debug wrappers | shared daily records, Stats/export |
-| `features/20-habits.js` | definitions/manager/proposals/daily/History/Stats/export/Sync/debug | onboarding/profile, daily, History/Stats/export/Sync |
-| `boot/21-app-boot.js` | navigation plus synchronous profile/onboarding/program/adherence initialization | every preceding runtime boundary |
+| `features/20-habits.js` | definitions/manager/proposals/daily/History/Stats/export/Sync hook/debug | onboarding/profile, daily, History/Stats/export and canonical applySync |
+| `boot/21-app-boot.js` | early lifecycle/day-integrity migration, navigation, and synchronous profile/onboarding/program/adherence initialization | every preceding runtime boundary |
 | `features/22-basketball.js` | isolated basketball store/UI/History/Stats/export/backup wrappers and immediate initialization | final pre-basketball functions and live `tDate` |
 
 ## Dependency direction

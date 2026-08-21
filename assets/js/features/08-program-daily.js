@@ -177,8 +177,7 @@ function dismissDraft(){
 
 window.addEventListener("load",()=>{
   document.getElementById("headerDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
-  // Phase 9B: Initialize exercise lifecycle state (safe for existing users)
-  exInitLifecycle();
+  // Phase 9B lifecycle initialization now runs in app boot before consumers.
   // Phase 9.4: Initialize recommendation store (safe for existing users — no-op if already present)
   recsInitMigrate();
   // Phase 9.4.7: Apply Day 6 Shoulders & Arms Specialization (idempotent — safe on every load)

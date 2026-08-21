@@ -1,9 +1,9 @@
 # MarcusFit runtime architecture
 
-MarcusFit 10.1.2 reorganizes the accepted 10.1.0 runtime into 22 coherent,
-ordered classic scripts. It changes file boundaries only: the displayed app
-version remains 10.1.0, GitHub Pages still loads static `defer` scripts, and
-there is no build step or runtime dependency.
+MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
+classic scripts. MarcusFit 10.1.3 keeps those boundaries and adds the targeted
+program-day integrity repair. GitHub Pages still loads static `defer` scripts,
+and there is no build step or runtime dependency.
 
 ## Implemented runtime tree
 

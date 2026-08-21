@@ -1,6 +1,9 @@
 
 // ── PHASE 4: AI SYNC PARSER ───────────────────────────────────────────────────
 function applySync(){
+  // Later features may intercept their own payload shape, but this function
+  // remains the single authoritative Sync entry point and core implementation.
+  if(typeof p960HandleSyncExtension==="function"&&p960HandleSyncExtension(applySync))return;
   const raw=document.getElementById("syncInput").value;
   const res=document.getElementById("syncResult");
   res.style.display="block";
@@ -56,10 +59,9 @@ function applySync(){
 
   // ── Step 6: Build valid ID registry ───────────────────────────────────────
   // All known exercise IDs from the RESOLVED program (includes custom exercises)
-  const RP=getResolvedProgram();
   const knownExIds=new Set();
-  ["home","partial"].forEach(g=>{
-    (RP[g]||[]).forEach(day=>{
+  Object.keys(P).forEach(g=>{
+    getResolvedDays(g).forEach(day=>{
       (day.exercises||[]).forEach(ex=>knownExIds.add(ex.id));
     });
   });
@@ -188,18 +190,16 @@ function applySync(){
     }
 
     // Validate gym exists
-    const RP_r = getResolvedProgram();
-    if(!RP_r[gymKey]){
+    if(!P[gymKey]){
       skipped.push("_action reorder: gym '"+gymKey+"' does not exist");
       return false;
     }
     const dayIdx = parseInt(dayIndex, 10);
-    if(isNaN(dayIdx) || dayIdx < 0 || dayIdx >= RP_r[gymKey].length){
+    const resolvedDay = getProgramDay(gymKey,dayIdx);
+    if(isNaN(dayIdx) || dayIdx < 0 || !resolvedDay){
       skipped.push("_action reorder ("+gymKey+"): dayIndex "+dayIndex+" is out of range");
       return false;
     }
-
-    const resolvedDay = RP_r[gymKey][dayIdx];
     const activeIds = new Set((resolvedDay.exercises||[]).map(e => e.id));
 
     // Validate: no duplicate IDs in the order array
@@ -261,9 +261,9 @@ function applySync(){
       return false;
     }
     // Validate dayIdx
-    const RP_c = getResolvedProgram();
     const dayIdx_c = parseInt(dayIdx, 10);
-    if(isNaN(dayIdx_c) || dayIdx_c < 0 || dayIdx_c >= RP_c[gymKey].length){
+    const day_c=getProgramDay(gymKey,dayIdx_c);
+    if(isNaN(dayIdx_c) || dayIdx_c < 0 || !day_c){
       skipped.push("_action day_override_clear ("+gymKey+"): dayIdx "+dayIdx+" is out of range");
       return false;
     }
@@ -276,7 +276,7 @@ function applySync(){
     // Apply clear
     clearDayOverride(gymKey, dayIdx_c);
     dayOverrideClearCount++;
-    const dayName_c = (RP_c[gymKey][dayIdx_c]||{}).day || ("Day "+dayIdx_c);
+    const dayName_c = day_c.day || ("Day "+dayIdx_c);
     dayOverrideClearLog.push("✓ Day override cleared: "+gymKey+" "+dayName_c+(u.reason?" ("+u.reason+")":""));
     return false; // consumed
   });
@@ -301,10 +301,10 @@ function applySync(){
       return false;
     }
     // Validate dayIdx
-    const RP_d = getResolvedProgram();
     const dayIdx_d = parseInt(dayIdx, 10);
-    if(isNaN(dayIdx_d) || dayIdx_d < 0 || dayIdx_d >= RP_d[gymKey].length){
-      skipped.push("_action day_override ("+gymKey+"): dayIdx "+dayIdx+" is out of range (0–"+(RP_d[gymKey].length-1)+")");
+    const day_d=getProgramDay(gymKey,dayIdx_d);
+    if(isNaN(dayIdx_d) || dayIdx_d < 0 || !day_d){
+      skipped.push("_action day_override ("+gymKey+"): dayIdx "+dayIdx+" is out of range");
       return false;
     }
     // Extract only allowed fields (silently drop unknown fields unless placed in meta)
@@ -335,7 +335,7 @@ function applySync(){
     // Apply override (merge with existing)
     setDayOverride(gymKey, dayIdx_d, allowed, reason);
     dayOverrideCount++;
-    const dayName_d = (RP_d[gymKey][dayIdx_d]||{}).day || ("Day "+dayIdx_d);
+    const dayName_d = day_d.day || ("Day "+dayIdx_d);
     const fieldList = Object.keys(allowed).join(", ");
     dayOverrideLog.push("✓ Day override set: "+gymKey+" "+dayName_d+" ["+fieldList+"]"+(reason?" — "+reason:""));
     return false; // consumed
@@ -652,8 +652,8 @@ function applySync(){
         }
         const oldName2=getF(id,"name",null)||(()=>{if(typeof P!=="undefined"){for(const days of Object.values(P)){const ex=(days.flatMap(d=>d.exercises||[])).find(e=>e.id===id);if(ex)return ex.name;}}return id;})();
         exArchiveId(id,null,"AI Sync remove");
-        const lc5=getLifecycle();
-        if(lc5.customExercises[id]){delete lc5.customExercises[id];saveLifecycle(lc5);}
+        // Custom records remain in lifecycle while inactive so exact stable-ID
+        // reactivation can restore the same virtual-day child and its history.
         knownExIds.delete(id);
         lifecycleLog.push("✓ "+oldName2+" archived (removed from program)");
         exUpdated++;
@@ -678,6 +678,14 @@ function applySync(){
         }
       });
       if(changed)habitsUpdated++;
+      return;
+    }
+
+    // Archived IDs are existing lifecycle identities, even though they are
+    // intentionally absent from the active resolved program. Do not let a
+    // normal update fall through to the new-custom-ID allocator.
+    if(knownExIds.has(id) && lc.inactiveIds[id]){
+      skipped.push(id+": exercise is archived — reactivate it before updating");
       return;
     }
 

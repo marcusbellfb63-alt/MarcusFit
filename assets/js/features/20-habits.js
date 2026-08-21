@@ -181,8 +181,26 @@ function p960DismissHabitProposal(){const p=p960GetHabitProposal();if(!p)return 
 function p960OpenHabitProposalReview(){
   const p=p960GetHabitProposal();if(!p)return false;let overlay=document.getElementById("p960ProposalReview");if(!overlay){overlay=document.createElement("div");overlay.id="p960ProposalReview";overlay.className="p960-overlay";document.body.appendChild(overlay);}overlay.innerHTML="";const panel=document.createElement("div");panel.className="p960-panel",head=document.createElement("div");head.className="p960-head";const title=document.createElement("h2");title.textContent="Habit Proposal Review";const close=document.createElement("button");close.textContent="Close / Review Later";close.onclick=function(){overlay.classList.remove("open");};head.append(title,close);panel.appendChild(head);const summary=document.createElement("p");summary.textContent=p.summary;const rationale=document.createElement("p");rationale.textContent=p.rationale;panel.append(summary,rationale);const validation=p960ValidateHabitProposal(p);validation.supported.forEach(function(c){const row=document.createElement("div");row.className="p960-proposal-action";const badge=document.createElement("span");badge.className="p960-badge";badge.textContent=String(c.action).toUpperCase();row.append(badge,document.createTextNode((c.habitId?" "+c.habitId:"")+(c.rationale?" — "+c.rationale:"")));panel.appendChild(row);});const expected=document.createElement("p");expected.textContent="Expected writes: mf-habit-definitions and mf-habit-proposal only. Explicit confirmation is required.";panel.appendChild(expected);const confirmPanel=document.createElement("div");confirmPanel.id="p960ProposalConfirm";confirmPanel.style.display="none";confirmPanel.className="p960-msg";confirmPanel.textContent="Apply these supported definition changes? Daily history, programs, and medication stores will not be touched.";const actions=document.createElement("div");actions.className="p960-footer";const keep=document.createElement("button");keep.textContent="Keep Current Habits";keep.onclick=function(){p960DismissHabitProposal();overlay.classList.remove("open");};const apply=document.createElement("button");apply.className="p960-primary";apply.textContent="Apply Supported Changes";apply.onclick=function(){if(confirmPanel.style.display==="none"){confirmPanel.style.display="block";apply.textContent="Confirm Apply";return;}p960ApplyHabitProposal(true);overlay.classList.remove("open");};actions.append(keep,apply);panel.append(confirmPanel,actions);overlay.appendChild(panel);overlay.classList.add("open");return true;
 }
-const p960LegacyApplySync=applySync;
-applySync=function(){const input=document.getElementById("syncInput"),raw=input&&input.value||"",match=raw.match(/MARCUSFIT_UPDATE_START([\s\S]*?)MARCUSFIT_UPDATE_END/);if(match){const inner=match[1].trim().replace(/^```[a-zA-Z]*\n?/,"").replace(/\n?```$/,"").trim();try{const payload=JSON.parse(inner);if(payload&&!Array.isArray(payload)&&payload.habitProposal){const imported=p960ImportHabitProposal(payload.habitProposal),res=document.getElementById("syncResult");if(!imported.valid){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Habit proposal rejected:\n"+imported.errors.join("\n");}return;}const updates=Array.isArray(payload.updates)?payload.updates:[];if(updates.length){input.value="MARCUSFIT_UPDATE_START\n"+JSON.stringify(updates,null,2)+"\nMARCUSFIT_UPDATE_END";p960LegacyApplySync();input.value=raw;}if(res){res.style.display="block";res.style.color="var(--accent)";res.textContent=(updates.length?"Program sync processed. ":"")+"Habit changes are pending explicit review.";}p960OpenHabitProposalReview();return;}}catch(e){}}return p960LegacyApplySync();};
+function p960HandleSyncExtension(runCoreSync){
+  const input=document.getElementById("syncInput"),raw=input&&input.value||"",match=raw.match(/MARCUSFIT_UPDATE_START([\s\S]*?)MARCUSFIT_UPDATE_END/);
+  if(!match)return false;
+  const inner=match[1].trim().replace(/^```[a-zA-Z]*\n?/,"").replace(/\n?```$/,"").trim();
+  try{
+    const payload=JSON.parse(inner);
+    if(!payload||Array.isArray(payload)||!payload.habitProposal)return false;
+    const imported=p960ImportHabitProposal(payload.habitProposal),res=document.getElementById("syncResult");
+    if(!imported.valid){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Habit proposal rejected:\n"+imported.errors.join("\n");}return true;}
+    const updates=Array.isArray(payload.updates)?payload.updates:[];
+    if(updates.length){
+      input.value="MARCUSFIT_UPDATE_START\n"+JSON.stringify(updates,null,2)+"\nMARCUSFIT_UPDATE_END";
+      runCoreSync();
+      input.value=raw;
+    }
+    if(res){res.style.display="block";res.style.color="var(--accent)";res.textContent=(updates.length?"Program sync processed. ":"")+"Habit changes are pending explicit review.";}
+    p960OpenHabitProposalReview();
+    return true;
+  }catch(e){return false;}
+}
 
 function p960ValidateStoredHabitData(){
   const issues=[],definitionRaw=localStorage.getItem(P960_HABIT_DEFINITIONS_KEY),proposalRaw=localStorage.getItem(P960_HABIT_PROPOSAL_KEY);let store=null;

@@ -2,14 +2,14 @@
 
 ## Current accepted state
 
-MarcusFit 10.1.0 is accepted on `main`. It includes isolated basketball session
-logging and remains the displayed/runtime version.
+MarcusFit 10.1.2 is accepted and merged on `main` through PR #10. The feature
+head was `092665b984f0e98b4aa6c0d6574a8d2c865b4180`; the merge commit is
+`f63645aa42c52b569bcaeefaced1a63aa360f6a3`. The 22-script feature-oriented
+runtime is accepted, and full representative real-data QA is complete.
 
-Roadmap phase 10.1.2 is implemented on
-`codex/10-1-2-feature-modularization` from fetched `origin/main`
-`8308e7c57135e1bbb2ab8756c571805aa2819c78`. It is not accepted until Marcus
-completes manual QA. Keep its pull request draft and do not merge without
-explicit acceptance.
+MarcusFit 10.1.3 is the active draft phase. It repairs recoverable legacy
+virtual-day parent metadata, aligns AI export and Sync targeting, and presents
+current versus historical day names without rewriting saved workouts.
 
 ## Implemented 10.1.2 architecture
 
@@ -36,14 +36,13 @@ load order, risks, implementation deviations, and equivalence evidence.
 - Do not introduce modules, npm, TypeScript, bundlers, frameworks, services,
   analytics, service workers, or runtime dependencies.
 
-## 10.1.2 validation state
+## Accepted 10.1.2 validation
 
 Automated tests and the architecture scanner pass. HTTP browser smoke testing
 confirmed startup, all screens, save/reload persistence, export generation,
 backup creation, invalid Sync rejection, responsive phone/desktop widths, and
-no console warnings/errors. Marcus still must run representative real-data QA,
-especially proposal apply/undo, workout save/reopen, mixed History/Stats,
-progression review, old/current replacement restore, and valid Sync deltas.
+no console warnings/errors. Marcus completed full representative real-data QA
+before PR #10 was merged.
 
 ## Workflow
 
@@ -64,10 +63,17 @@ progression review, old/current replacement restore, and valid Sync deltas.
 10.0.0 — Lean multi-file conversion — Complete
 10.1.0 — Basketball session logging — Accepted
 10.1.1 — Runtime architecture inventory — Complete
-10.1.2 — Feature-oriented JavaScript modularization — Implemented, awaiting QA
-10.1.3 — Optional CSS organization, only if justified
+10.1.2 — Feature-oriented JavaScript modularization — Accepted and merged
+10.1.3 — Program Day Integrity & Historical Identity Repair
+10.1.4 — Mobile accessibility, Sync/settings organization, Habits UI
 10.2.0 — Basketball programs and progression
 10.3.0 — Basketball-specific AI Sync
 10.4.0 — Habits-specific AI Sync
 10.5.0 — Full cross-domain coaching review
 ```
+
+The 10.1.4 scope includes the reported iPhone layout/readability issue, a future
+Compact/Standard/Large/Extra Large text-size preference, collapsible Sync and
+settings sections, and a less dense Habits manager. Standalone CSS organization
+is no longer an active roadmap phase; revisit it only if development friction
+later justifies the work.

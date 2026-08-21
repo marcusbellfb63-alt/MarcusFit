@@ -740,7 +740,7 @@ window.mfArchitectureDebug = function(){
       supportedActionTypes: ["replace","reactivate","remove","reorder","day_override","day_override_clear","day_addition","day_addition_clear","custom_exercise","recommendations"],
       noBaseP_MutationRule: "Explicitly documented in the export instructions themselves ('Never mutate the base program (P) through AI Sync') and enforced structurally — all AI Sync actions write to LIFECYCLE_KEY, RECS_KEY, or OVR, never to P.",
       virtualAdditiveDayCompatibility: "Program snapshot and recommendations both include/target virtual days explicitly (day_addition/day_addition_clear actions, _isVirtual flag).",
-      recommendationsCompatibility: "recommendations action works on base and virtual Day 7+ via the same gymKey/dayIndex validation against getResolvedProgram()."
+      recommendationsCompatibility: "recommendations action works on base and virtual days through canonical getProgramDay()/getResolvedDays() identity validation."
     };
   } catch(e){ summary.errors.push("aiExportSync section failed: "+(e&&e.message)); }
 
@@ -749,7 +749,8 @@ window.mfArchitectureDebug = function(){
     summary.programArchitecture = {
       baseP: "Hardcoded source-of-truth templates per gym/day/exercise. Read-only at runtime.",
       resolvedProgram: "getResolvedProgram() — deep-derives from P + lifecycle (inactiveIds, customExercises, orderOverrides). Never mutates P or lifecycle.",
-      resolvedDays: "getResolvedDays(gymKey) — resolvedProgram's base days plus virtual/additive days from dayAdditions, in display order.",
+      resolvedDays: "getResolvedDays(gymKey) — resolvedProgram's base days plus virtual/additive days from dayAdditions, preserving stable day indexes.",
+      canonicalDayIdentity: "getProgramDay(gymKey, dayIdx) — canonical base/virtual lookup shared by Sync and History; virtual indexes are never treated as array offsets.",
       overrides: "mf-overrides (OVR) — sparse per-exercise field overrides, applied via getF() at render/export time, layered on top of P.",
       customExerciseRole: "Exercises that don't exist in base P, created via AI Sync _action:custom_exercise or manual UI, stored in lifecycle.customExercises, addressable on base or virtual days.",
       orderOverrideRole: "Reorders (never adds/removes) exercises within a resolved day, stored per 'gym:dayIdx' key in lifecycle.orderOverrides.",
@@ -802,6 +803,7 @@ window.mfArchitectureDebug = function(){
       mfProgressionAudit: { available: typeof window.mfProgressionAudit==="function", purpose:"Audits progression status across all active exercises." },
       mfDayOverrideDebug: { available: typeof window.mfDayOverrideDebug==="function", purpose:"Inspects day-level metadata overrides." },
       mfDayAdditionDebug: { available: typeof window.mfDayAdditionDebug==="function", purpose:"Inspects virtual/additive day state." },
+      mfProgramDayIntegrityDebug: { available: typeof window.mfProgramDayIntegrityDebug==="function", purpose:"Read-only 10.1.3 summary of active, valid, migrated, unresolved, archived-only, and invalid virtual-day state." },
       mfFixOrderOverrideIntegrity: { available: typeof window.mfFixOrderOverrideIntegrity==="function", purpose:"Repairs order override integrity issues (mutating — not read-only)." },
       p9489BuildSwapCandidateExport: { available: typeof window.p9489BuildSwapCandidateExport==="function", purpose:"Builds the exercise rotation/swap candidate export section." },
       mfWorkoutReviewDebug: { available: typeof window.mfWorkoutReviewDebug==="function", purpose:"Inspects the most recent workout-review-after-save computation." },

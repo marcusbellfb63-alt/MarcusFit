@@ -228,10 +228,8 @@ function exNormName(s){
 function exFindActiveByName(gymKey, dayIdx, name){
   const norm = exNormName(name);
   if(!norm) return null;
-  const RP = getResolvedProgram();
-  const days = RP[gymKey];
-  if(!days || dayIdx >= days.length) return null;
-  const day = days[dayIdx];
+  const day = getProgramDay(gymKey,dayIdx);
+  if(!day) return null;
   return (day.exercises||[]).find(ex => {
     const exName = getF(ex.id,"name",ex.name)||"";
     return exNormName(exName) === norm;
@@ -393,6 +391,96 @@ function exInitLifecycle(){
     }
   }
 }
+
+// MarcusFit 10.1.3: collect persisted evidence for virtual-day identity without
+// mutating lifecycle state or historical records. A single custom exercise is
+// not sufficient proof by itself; recovery requires multiple active exercises
+// or an active exercise plus another persisted reference to the same gym/day.
+function mfCollectProgramDayIntegrity(lifecycle){
+  const lc = lifecycle || getLifecycle();
+  const groups = {};
+  const invalidOrphans = [];
+  const validGyms = (typeof P === "undefined") ? [] : Object.keys(P);
+  function group(gymKey, dayIdx){
+    const key = gymKey+":"+dayIdx;
+    if(!groups[key]) groups[key] = {key,gymKey,dayIdx,activeCustomIds:[],archivedCustomIds:[],workoutKeys:[],workoutNames:[],dailyKeys:[],hasRecommendation:false,hasOrderOverride:false,hasDayOverride:false,hasDisabledDay:false};
+    return groups[key];
+  }
+  function virtualIndex(gymKey, rawIdx){
+    const idx = typeof rawIdx === "number" ? rawIdx : parseInt(rawIdx,10);
+    return validGyms.includes(gymKey) && Number.isInteger(idx) && idx >= P[gymKey].length ? idx : null;
+  }
+
+  Object.values(lc.customExercises||{}).forEach(function(ex){
+    if(!ex || typeof ex !== "object") { invalidOrphans.push("malformed custom exercise record"); return; }
+    const idx = virtualIndex(ex.gymKey, ex.dayIdx);
+    if(idx === null){
+      if(!validGyms.includes(ex.gymKey) || !Number.isInteger(ex.dayIdx)) invalidOrphans.push("custom exercise '"+(ex.id||"unknown")+"' has invalid gym/day identity");
+      return;
+    }
+    const target = group(ex.gymKey, idx);
+    (lc.inactiveIds||{})[ex.id] ? target.archivedCustomIds.push(ex.id) : target.activeCustomIds.push(ex.id);
+  });
+
+  Object.keys(lc.orderOverrides||{}).forEach(function(key){
+    const split = key.lastIndexOf(":");
+    if(split < 1) return;
+    const gymKey = key.slice(0,split), idx = virtualIndex(gymKey,key.slice(split+1));
+    if(idx !== null) group(gymKey,idx).hasOrderOverride = true;
+  });
+  Object.entries(lc.dayOverrides||{}).forEach(function(pair){
+    Object.keys(pair[1]||{}).forEach(function(rawIdx){const idx=virtualIndex(pair[0],rawIdx);if(idx!==null)group(pair[0],idx).hasDayOverride=true;});
+  });
+  Object.entries(lc.disabledDays||{}).forEach(function(pair){
+    Object.keys(pair[1]||{}).forEach(function(rawIdx){const idx=virtualIndex(pair[0],rawIdx);if(idx!==null)group(pair[0],idx).hasDisabledDay=true;});
+  });
+  Object.keys(getRecs()).forEach(function(key){
+    const split=key.lastIndexOf(":"),gymKey=key.slice(0,split),idx=virtualIndex(gymKey,key.slice(split+1));
+    if(idx!==null)group(gymKey,idx).hasRecommendation=true;
+  });
+  Object.keys(localStorage).filter(function(key){return /^day-/.test(key);}).sort().forEach(function(key){
+    let data;try{data=JSON.parse(localStorage.getItem(key));}catch(e){return;}
+    const isWorkout=/-wo$/.test(key),gymKey=(data&&(isWorkout?data.gym:data.logGym))||"home",rawIdx=data&&(isWorkout?data.dayIdx:data.woDayIdx),idx=virtualIndex(gymKey,rawIdx);
+    if(idx===null)return;
+    const target=group(gymKey,idx);
+    if(isWorkout){target.workoutKeys.push(key);if(typeof data.dayName==="string"&&data.dayName.trim())target.workoutNames.push({key,name:data.dayName.trim()});}
+    else target.dailyKeys.push(key);
+  });
+
+  Object.values(groups).forEach(function(target){
+    const hasCorroboration=target.hasRecommendation||target.hasOrderOverride||target.hasDayOverride||target.hasDisabledDay||target.workoutKeys.length>0||target.dailyKeys.length>0;
+    target.recoverable=target.activeCustomIds.length>=2||(target.activeCustomIds.length>=1&&hasCorroboration);
+    target.archivedOnly=target.activeCustomIds.length===0&&target.archivedCustomIds.length>0&&!target.hasRecommendation&&!target.hasOrderOverride&&!target.hasDayOverride&&!target.hasDisabledDay;
+  });
+  return {groups,invalidOrphans};
+}
+
+function mfRepairLegacyVirtualDays(){
+  const lc=getLifecycle(),integrity=mfCollectProgramDayIntegrity(lc),repairedDays=[];
+  Object.values(integrity.groups).sort(function(a,b){return a.gymKey.localeCompare(b.gymKey)||a.dayIdx-b.dayIdx;}).forEach(function(target){
+    if(!target.recoverable||(((lc.dayAdditions||{})[target.gymKey]||{})[String(target.dayIdx)]))return;
+    const dayOverride=(((lc.dayOverrides||{})[target.gymKey]||{})[String(target.dayIdx)])||{};
+    const historical=target.workoutNames.slice().sort(function(a,b){return b.key.localeCompare(a.key);})[0];
+    const name=(typeof dayOverride.name==="string"&&dayOverride.name.trim())?dayOverride.name.trim():(historical?historical.name:"Recovered Day "+(target.dayIdx+1));
+    lc.dayAdditions=lc.dayAdditions||{};lc.dayAdditions[target.gymKey]=lc.dayAdditions[target.gymKey]||{};
+    const evidence=[];
+    if(target.activeCustomIds.length)evidence.push("active_custom_exercises");
+    if(target.workoutKeys.length)evidence.push("workout_history");
+    if(target.dailyKeys.length)evidence.push("daily_history");
+    if(target.hasRecommendation)evidence.push("recommendations");
+    if(target.hasOrderOverride)evidence.push("order_override");
+    if(target.hasDayOverride)evidence.push("day_override");
+    if(target.hasDisabledDay)evidence.push("disabled_day_reference");
+    const addition={name:name,source:"system",reason:"Recovered legacy virtual day metadata",meta:{migrationVersion:"10.1.3",evidence:evidence}};
+    ["subtitle","focus","note","tag"].forEach(function(field){if(dayOverride[field]!==undefined)addition[field]=dayOverride[field];});
+    lc.dayAdditions[target.gymKey][String(target.dayIdx)]=addition;
+    repairedDays.push({gymKey:target.gymKey,dayIdx:target.dayIdx,name:name,evidence:evidence.slice(),activeExerciseCount:target.activeCustomIds.length});
+  });
+  if(repairedDays.length){saveLifecycle(lc);console.log("[MarcusFit] 10.1.3 repaired "+repairedDays.length+" legacy virtual day(s).",repairedDays);}
+  return {repairedDayCount:repairedDays.length,repairedDays:repairedDays,invalidOrphanCount:integrity.invalidOrphans.length};
+}
+
+window.mfRepairLegacyVirtualDays=mfRepairLegacyVirtualDays;
 
 // ── END PHASE 9B LIFECYCLE HELPERS ───────────────────────────────────────────
 
@@ -823,6 +911,19 @@ function getResolvedDays(gymKey){
   return [...baseDays, ...virtualDays];
 }
 
+// Canonical program-day lookup used by rendering, export, Sync, and History.
+// Stable identity is always gymKey + original dayIdx; virtual gaps never shift.
+function getProgramDay(gymKey, dayIdx){
+  const idx=typeof dayIdx==="number"?dayIdx:parseInt(dayIdx,10);
+  if(!Number.isInteger(idx)||idx<0||typeof P==="undefined"||!P[gymKey])return null;
+  return getResolvedDays(gymKey).find(function(day){return day._dayIdx===idx;})||null;
+}
+function isBaseProgramDay(gymKey,dayIdx){
+  const idx=typeof dayIdx==="number"?dayIdx:parseInt(dayIdx,10);
+  return Number.isInteger(idx)&&idx>=0&&typeof P!=="undefined"&&!!P[gymKey]&&idx<P[gymKey].length;
+}
+function isProgramDay(gymKey,dayIdx){return getProgramDay(gymKey,dayIdx)!==null;}
+
 // Virtual-aware getEffectiveDayMeta — replaces the original (renamed to _getEffectiveDayMetaBase above).
 // For base days: delegates to _getEffectiveDayMetaBase (unchanged behavior).
 // For virtual days: metadata comes from dayAdditions; dayOverrides still applied on top.
@@ -860,6 +961,9 @@ function getEffectiveDayMeta(gymKey, dayIdx, baseDay){
 
 // Expose to window
 window.getResolvedDays = getResolvedDays;
+window.getProgramDay = getProgramDay;
+window.isBaseProgramDay = isBaseProgramDay;
+window.isProgramDay = isProgramDay;
 
 // ── END PHASE 9.4.8.2 ────────────────────────────────────────────────────────
 
@@ -905,6 +1009,19 @@ function getSafeDayForLog(gymKey, dayIdx){
   }
 }
 
+// History keeps the saved label as an immutable snapshot while presenting the
+// current canonical name when the same stable gym/day identity still exists.
+function getHistoricalDayIdentity(gymKey,dayIdx,savedDayName){
+  const day=getProgramDay(gymKey,dayIdx);
+  const historicalName=typeof savedDayName==="string"&&savedDayName.trim()?savedDayName.trim():null;
+  if(!day){
+    return {gymKey:gymKey,dayIdx:parseInt(dayIdx,10),resolved:false,currentName:historicalName||getSafeDayDisplayName(gymKey,dayIdx),historicalName:historicalName,showHistoricalName:false};
+  }
+  const effective=getEffectiveDayMeta(gymKey,day._dayIdx,day),currentName=(effective&&effective.name)||day.name||day.day||getSafeDayDisplayName(gymKey,dayIdx);
+  return {gymKey:gymKey,dayIdx:day._dayIdx,resolved:true,currentName:currentName,historicalName:historicalName,showHistoricalName:!!historicalName&&historicalName.toLowerCase()!==String(currentName).trim().toLowerCase()};
+}
+window.getHistoricalDayIdentity=getHistoricalDayIdentity;
+
 // ── END PHASE 9.4.8.3 ────────────────────────────────────────────────────────
 
 
@@ -913,6 +1030,39 @@ function getSafeDayForLog(gymKey, dayIdx){
 // Runs 6 integrity checks against lifecycle state and historical logs.
 // Returns an array of { id, label, status ("pass"|"warn"|"error"), detail } objects.
 // Safe to call at any time — read-only, no mutations.
+
+function mfProgramDayIntegrityDebug(){
+  const lc=getLifecycle(),evidence=mfCollectProgramDayIntegrity(lc),validGyms=typeof P==="undefined"?[]:Object.keys(P),validKeys={},metadataIssues=[];
+  let migratedDayCount=0;
+  Object.entries(lc.dayAdditions||{}).forEach(function(pair){
+    const gymKey=pair[0],entries=pair[1];
+    if(!validGyms.includes(gymKey)){metadataIssues.push("invalid dayAddition gym '"+gymKey+"'");return;}
+    Object.entries(entries||{}).forEach(function(item){
+      const rawIdx=item[0],entry=item[1],idx=parseInt(rawIdx,10),valid=String(idx)===rawIdx&&idx>=P[gymKey].length&&entry&&typeof entry.name==="string"&&entry.name.trim();
+      if(!valid){metadataIssues.push(gymKey+" '"+rawIdx+"': invalid or conflicting dayAddition metadata");return;}
+      validKeys[gymKey+":"+idx]=true;
+      if(entry.meta&&entry.meta.migrationVersion==="10.1.3")migratedDayCount++;
+    });
+  });
+  const groups=Object.values(evidence.groups),activeEvidenceGroups=groups.filter(function(g){return g.activeCustomIds.length>0||g.hasRecommendation||g.hasOrderOverride||g.hasDayOverride||g.hasDisabledDay;});
+  const activeUnresolved=activeEvidenceGroups.filter(function(g){return !validKeys[g.key];});
+  const archivedOnly=groups.filter(function(g){return g.archivedOnly&&!validKeys[g.key];});
+  const recommendationMissing=groups.filter(function(g){return g.hasRecommendation&&!validKeys[g.key];});
+  const activeKeys={};Object.keys(validKeys).forEach(function(k){activeKeys[k]=true;});activeEvidenceGroups.forEach(function(g){activeKeys[g.key]=true;});
+  return {
+    activeVirtualDayCount:Object.keys(activeKeys).length,
+    validVirtualDayCount:Object.keys(validKeys).length,
+    migratedDayCount:migratedDayCount,
+    activeUnresolvedDayCount:activeUnresolved.length,
+    archivedOnlyIgnoredCount:archivedOnly.reduce(function(total,g){return total+g.archivedCustomIds.length;},0),
+    invalidOrphanCount:evidence.invalidOrphans.length,
+    recommendationMissingDayCount:recommendationMissing.length,
+    duplicateOrConflictCount:metadataIssues.length,
+    activeUnresolvedDays:activeUnresolved.map(function(g){return{gymKey:g.gymKey,dayIdx:g.dayIdx,activeExerciseCount:g.activeCustomIds.length};}),
+    readOnly:true
+  };
+}
+window.mfProgramDayIntegrityDebug=mfProgramDayIntegrityDebug;
 
 function mfRunLifecycleValidation(){
   const results = [];
@@ -1299,6 +1449,17 @@ function mfRunLifecycleValidation(){
     }
   })();
 
+  // 10.1.3 replaces the legacy record-by-record warning total with a concise
+  // parent/child integrity summary. Archived-only debris remains visible in
+  // debug output but is not an active-program warning.
+  const programDayIntegrity=mfProgramDayIntegrityDebug();
+  const dayCheckIndex=results.findIndex(function(check){return check.id==="day-addition-validity";});
+  const unresolved=programDayIntegrity.activeUnresolvedDayCount+programDayIntegrity.invalidOrphanCount+programDayIntegrity.duplicateOrConflictCount;
+  const dayCheck={
+    id:"day-addition-validity",label:"Day Addition Validity",status:unresolved?"warn":"pass",
+    detail:programDayIntegrity.activeVirtualDayCount+" active virtual day(s); "+programDayIntegrity.validVirtualDayCount+" valid; "+programDayIntegrity.migratedDayCount+" migrated; "+programDayIntegrity.activeUnresolvedDayCount+" active unresolved; "+programDayIntegrity.archivedOnlyIgnoredCount+" archived-only ignored; "+programDayIntegrity.invalidOrphanCount+" invalid orphan(s)."
+  };
+  if(dayCheckIndex>=0)results[dayCheckIndex]=dayCheck;else results.push(dayCheck);
   return results;
 }
 
@@ -1392,6 +1553,9 @@ function mfUpdateExportWarningBanner(){
 
 // Run lifecycle validation after restore and display results in backup result area
 function mfRunPostRestoreValidation(){
+  // Restored legacy backups are repaired before any validator or consumer sees
+  // their program-day graph. Raw workout/daily records remain untouched.
+  mfRepairLegacyVirtualDays();
   const checks = mfRunLifecycleValidation();
   if(typeof p960ValidateStoredHabitData === "function"){
     p960ValidateStoredHabitData().forEach(function(issue){
@@ -1443,6 +1607,7 @@ window.mfLifecycleDebug = function(){
   dayOverrideEntries.forEach(([,gymOvrs]) => { dayOverrideCount += Object.keys(gymOvrs||{}).length; });
   // 9.4.8.1: count day additions
   const dayAdditionCount = getDayAdditionCount(lc);
+  const programDayIntegrity = mfProgramDayIntegrityDebug();
   // 9.4.8.5: lightweight per-gym day addition summary for lifecycle debug visibility
   const dayAdditionSummary = {};
   Object.entries(lc.dayAdditions||{}).forEach(([gymKey, gymEntries]) => {
@@ -1473,13 +1638,18 @@ window.mfLifecycleDebug = function(){
       orderOverrides: overrideCount,
       recommendationCount: recKeys.length,
       dayOverrides: dayOverrideCount,  // 9.4.6
-      dayAdditions: dayAdditionCount   // 9.4.8.1
+      dayAdditions: dayAdditionCount,  // 9.4.8.1
+      activeVirtualDays: programDayIntegrity.activeVirtualDayCount,
+      migratedVirtualDays: programDayIntegrity.migratedDayCount,
+      activeUnresolvedVirtualDays: programDayIntegrity.activeUnresolvedDayCount,
+      archivedOnlyVirtualRecordsIgnored: programDayIntegrity.archivedOnlyIgnoredCount
     },
     orderOverrideSummary: overrideEntries.map(([key, order]) => ({ key, orderedCount: order.length, ids: order })),
     replacementSummary,
     archivedIds: Object.entries(lc.inactiveIds||{}).map(([id,info])=>({id,...info})),
     recommendationSummary,
     dayAdditionSummary,
+    programDayIntegrity,
     resolvedProgramSummary: typeof resolved === "object" && !resolved.error
       ? Object.fromEntries(Object.entries(resolved).map(([k,days])=>[k, days.map(d=>({day:d.day,name:d.name,exerciseCount:(d.exercises||[]).length}))]))
       : resolved,
