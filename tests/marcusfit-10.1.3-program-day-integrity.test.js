@@ -26,6 +26,12 @@ function createStorage(initial = {}) {
   });
 }
 
+function storageSnapshot(storage) {
+  const snapshot = {};
+  Object.keys(storage).sort().forEach(key => { snapshot[key] = storage.getItem(key); });
+  return snapshot;
+}
+
 function element() {
   return {
     value: "", textContent: "", innerHTML: "", style: {},
@@ -183,11 +189,88 @@ const writesAfterFirstRepair = localStorage.writes;
 assert.strictEqual(c.mfRepairLegacyVirtualDays().repairedDayCount, 0);
 assert.strictEqual(localStorage.writes, writesAfterFirstRepair, "idempotent migration wrote storage twice");
 
-function sync(updates) {
-  getElementById("syncInput").value = "MARCUSFIT_UPDATE_START\n" + JSON.stringify(updates) + "\nMARCUSFIT_UPDATE_END";
-  c.applySync();
-  return getElementById("syncResult").textContent;
+function runSync(context, elementById, updates) {
+  elementById("syncInput").value = "MARCUSFIT_UPDATE_START\n" + JSON.stringify(updates) + "\nMARCUSFIT_UPDATE_END";
+  context.applySync();
+  return elementById("syncResult").textContent;
 }
+
+function sync(updates) {
+  return runSync(c, getElementById, updates);
+}
+
+// Exact real-data identity state: a persisted custom exercise is archived,
+// its virtual parent is valid, and the active resolved day omits the ID.
+const archivedLifecycle = JSON.parse(JSON.stringify(legacyLifecycle));
+archivedLifecycle.dayAdditions.partial["7"] = {
+  name: "QUICK 45 - BASKETBALL + UPPER PUMP",
+  source: "legacy-repair"
+};
+archivedLifecycle.inactiveIds["partial-d7-e0"] = {
+  inactivatedAt: "2025-02-15T00:00:00.000Z",
+  replacedBy: null
+};
+archivedLifecycle.replacements = {
+  "unrelated-old": { newId: "unrelated-new", replacedAt: null, reason: "preserve" }
+};
+const archivedFixture = createContext({
+  ...initial,
+  "mf-exercise-state": JSON.stringify(archivedLifecycle)
+});
+const archivedContext = archivedFixture.context;
+const archivedStorage = archivedFixture.localStorage;
+const archivedElementById = archivedFixture.getElementById;
+const archivedId = "partial-d7-e0";
+const archivedHistoryBefore = Object.fromEntries(Object.keys(archivedStorage)
+  .filter(key => key.startsWith("day-"))
+  .sort()
+  .map(key => [key, archivedStorage.getItem(key)]));
+const archivedResolvedDay = archivedContext.getProgramDay("partial", 7);
+assert(archivedResolvedDay && archivedResolvedDay._isVirtual);
+assert.strictEqual(archivedResolvedDay._dayIdx, 7);
+assert.strictEqual(archivedResolvedDay.name, "QUICK 45 - BASKETBALL + UPPER PUMP");
+assert(archivedContext.getLifecycle().customExercises[archivedId]);
+assert(archivedContext.getLifecycle().inactiveIds[archivedId]);
+assert(!archivedResolvedDay.exercises.some(ex => ex.id === archivedId));
+
+const beforeArchivedUpdate = storageSnapshot(archivedStorage);
+const beforeArchivedUpdateWrites = archivedStorage.writes;
+const archivedCustomBefore = JSON.stringify(archivedContext.getLifecycle().customExercises[archivedId]);
+let archivedResult = runSync(archivedContext, archivedElementById, [{
+  id: archivedId,
+  blurb: "10.1.3 QA - virtual-day Sync target verified."
+}]);
+assert(archivedResult.includes(archivedId + ": exercise is archived — reactivate it before updating"), archivedResult);
+assert(!archivedResult.includes("expected next exercise index"), archivedResult);
+assert.deepStrictEqual(storageSnapshot(archivedStorage), beforeArchivedUpdate, "rejected archived update mutated storage");
+assert.strictEqual(archivedStorage.writes, beforeArchivedUpdateWrites, "rejected archived update wrote storage");
+
+archivedResult = runSync(archivedContext, archivedElementById, [{ id: archivedId, _action: "reactivate" }]);
+assert(archivedResult.includes("reactivated"), archivedResult);
+assert.strictEqual(archivedContext.getLifecycle().inactiveIds[archivedId], undefined);
+assert(archivedContext.getProgramDay("partial", 7).exercises.some(ex => ex.id === archivedId));
+assert.strictEqual(Object.keys(archivedContext.getLifecycle().customExercises).filter(id => id === archivedId).length, 1);
+
+archivedResult = runSync(archivedContext, archivedElementById, [{
+  id: archivedId,
+  blurb: "10.1.3 QA - virtual-day Sync target verified."
+}]);
+assert(!archivedResult.includes("expected next exercise index"), archivedResult);
+assert(!archivedResult.includes("exercise is archived"), archivedResult);
+assert.strictEqual(JSON.parse(archivedStorage.getItem("mf-overrides"))[archivedId].blurb, "10.1.3 QA - virtual-day Sync target verified.");
+assert.strictEqual(JSON.stringify(archivedContext.getLifecycle().customExercises[archivedId]), archivedCustomBefore, "stable custom record was recreated or changed");
+
+archivedResult = runSync(archivedContext, archivedElementById, [{
+  id: "partial-d7-e99", name: "Fabricated Exercise", sets: 3, reps: "10", load: "TBD", rir: "2"
+}]);
+assert(archivedResult.includes("expected next exercise index would be e5, got e99"), archivedResult);
+assert.strictEqual(archivedContext.getLifecycle().customExercises["partial-d7-e99"], undefined);
+assert.deepStrictEqual(Object.fromEntries(Object.keys(archivedStorage)
+  .filter(key => key.startsWith("day-"))
+  .sort()
+  .map(key => [key, archivedStorage.getItem(key)])), archivedHistoryBefore, "archived identity flow rewrote History/logs");
+assert.strictEqual(archivedStorage.getItem("mf-recommendations"), recsRaw, "archived identity flow rewrote recommendations");
+assert.strictEqual(archivedContext.getLifecycle().replacements["unrelated-old"].newId, "unrelated-new");
 
 let result = sync([{ id: "partial-d7-e0", load: "22.5 lb", sets: "3", reps: "10-15", rir: "1-2" }]);
 assert(!result.includes("not a known exercise"), result);

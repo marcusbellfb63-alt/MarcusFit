@@ -678,6 +678,14 @@ function applySync(){
       return;
     }
 
+    // Archived IDs are existing lifecycle identities, even though they are
+    // intentionally absent from the active resolved program. Do not let a
+    // normal update fall through to the new-custom-ID allocator.
+    if(knownExIds.has(id) && lc.inactiveIds[id]){
+      skipped.push(id+": exercise is archived — reactivate it before updating");
+      return;
+    }
+
     // ── Existing exercise update ──
     if(knownExIds.has(id) && !lc.inactiveIds[id]){
       // ── Phase 9B: Defensive safeguard for name changes ──

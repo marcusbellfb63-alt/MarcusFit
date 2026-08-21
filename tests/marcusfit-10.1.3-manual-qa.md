@@ -20,6 +20,13 @@ real-data check below is complete.
    `partial-d6-e0`, `partial-d6-e2`, and `partial-d6-e4`; none should be routed
    through the new-ID “expected next exercise index” check. Confirm a fabricated
    nonexistent ID is still rejected.
+   Also archive persisted virtual-day ID `partial-d7-e0` and confirm it remains
+   in `customExercises` and `inactiveIds` while absent from the resolved day's
+   active exercises. A normal field update must report “exercise is archived —
+   reactivate it before updating”, must not report an allocator error, and must
+   not change storage. Reactivate it through Sync, confirm the exact stable ID
+   returns without a duplicate, then confirm the normal field update succeeds.
+   Verify `partial-d7-e99` still reaches new-ID validation and is rejected.
 5. Export the program. Confirm each virtual day appears exactly once, exported
    IDs are the same IDs Sync accepted, and renamed days are not duplicated as
    old/current identities.
