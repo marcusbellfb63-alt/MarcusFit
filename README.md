@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.1.3
+MarcusFit 10.1.4 implementation candidate (awaiting manual QA)
 
 ## Architecture
 
@@ -14,6 +14,8 @@ MarcusFit 10.1.3
 - Vanilla JavaScript — no build step, no frameworks
 - localStorage persistence — no backend, no server
 - Mobile-first layout (max-width 480px)
+- Safe-area-aware mobile layout with user zoom enabled
+- Compact, Standard, Large, and Extra Large text-size preferences stored in the user profile
 - Designed to be saved to iPhone home screen as a PWA
 
 ## Core Systems
@@ -76,6 +78,7 @@ MarcusFit 10.1.3
 | `mf-recommendations` | AI day recommendations |
 | `mf-current-draft` | Current workout draft session |
 | `mf-basketball-sessions` | Versioned basketball session records |
+| `mf-user-profile` | Identity, units, gym labels, and display preferences including text size |
 | `day-YYYY-MM-DD` | Daily body metrics + habits |
 | `day-YYYY-MM-DD-wo` | Workout sets for that day |
 
@@ -101,7 +104,7 @@ MarcusFit 10.1.3
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.1.3";
+const APP_VERSION      = "10.1.4";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
@@ -112,6 +115,6 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.1.0** — Basketball session logging (accepted runtime)
 - **v10.1.1** — Runtime architecture inventory and dependency map (complete)
 - **v10.1.2** — Feature-oriented 22-script runtime (accepted)
-- **v10.1.3** — Program-day integrity and historical identity repair
-- **v10.1.4** — Mobile accessibility, Sync/settings organization, and Habits UI
+- **v10.1.3** — Program-day integrity and historical identity repair (accepted)
+- **v10.1.4** — Mobile accessibility, Sync/settings organization, and Habits UI (implemented; awaiting manual QA)
 - **v10.2.0** — Basketball programs and progression
