@@ -20,6 +20,7 @@ p9RenderCoachPrefs();
 // populate the Sync-tab profile card in case the export screen becomes
 // active without a showScreen() transition.
 p950InitUserProfile();
+p950ApplyTextSize();
 p950RenderUserProfile();
 // 9.5.1: initialize/migrate onboarding state early in the load sequence.
 // Storage-only — never opens any UI, never touches mf-user-profile.

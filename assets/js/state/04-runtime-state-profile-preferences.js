@@ -108,6 +108,20 @@ function p9ClearCoachPrefs(){
 // Does not control any workout/program/progression behavior in this release.
 const USER_PROFILE_KEY = "mf-user-profile";
 const USER_PROFILE_SCHEMA = 1;
+const USER_PROFILE_TEXT_SIZES = ["compact", "standard", "large", "extra-large"];
+
+function p950NormalizeTextSize(value){
+  return USER_PROFILE_TEXT_SIZES.includes(value) ? value : "standard";
+}
+
+function p950ApplyTextSize(profile){
+  const root = document && document.documentElement;
+  if(!root) return "standard";
+  const source = profile && profile.preferences ? profile : p950GetUserProfile();
+  const textSize = p950NormalizeTextSize(source.preferences && source.preferences.textSize);
+  root.setAttribute("data-text-size", textSize);
+  return textSize;
+}
 
 // Returns a fresh, independent default profile object (Marcus's defaults).
 // Never returns a shared mutable reference — safe to call repeatedly.
@@ -122,7 +136,7 @@ function p950GetDefaultUserProfile(){
       primaryGoal: "Aesthetics during aggressive fat loss",
       physiqueOutcome: "Athletic muscular physique when lean"
     },
-    preferences: { weightUnit: "lb", distanceUnit: "mi", firstDayOfWeek: "sunday" },
+    preferences: { weightUnit: "lb", distanceUnit: "mi", firstDayOfWeek: "sunday", textSize: "standard" },
     app: { homeGymLabel: "Home", partialGymLabel: "Transition" },
     createdAt: now,
     updatedAt: now
@@ -183,7 +197,8 @@ function p950NormalizeUserProfile(profile){
   out.preferences = Object.assign({}, srcPrefs, {
     weightUnit: srcPrefs.weightUnit === "kg" ? "kg" : "lb",
     distanceUnit: srcPrefs.distanceUnit === "km" ? "km" : "mi",
-    firstDayOfWeek: srcPrefs.firstDayOfWeek === "monday" ? "monday" : "sunday"
+    firstDayOfWeek: srcPrefs.firstDayOfWeek === "monday" ? "monday" : "sunday",
+    textSize: p950NormalizeTextSize(srcPrefs.textSize)
   });
 
   const srcApp = (src.app && typeof src.app === "object") ? src.app : {};
@@ -280,6 +295,7 @@ function p950RenderUserProfile(){
   document.getElementById("p950WeightUnit").value = profile.preferences.weightUnit;
   document.getElementById("p950DistanceUnit").value = profile.preferences.distanceUnit;
   document.getElementById("p950FirstDayOfWeek").value = profile.preferences.firstDayOfWeek;
+  document.getElementById("p950TextSize").value = profile.preferences.textSize;
   document.getElementById("p950HomeGymLabel").value = profile.app.homeGymLabel;
   document.getElementById("p950PartialGymLabel").value = profile.app.partialGymLabel;
 }
@@ -321,6 +337,7 @@ function p950SaveUserProfileFromUI(){
   const weightUnit = document.getElementById("p950WeightUnit").value === "kg" ? "kg" : "lb";
   const distanceUnit = document.getElementById("p950DistanceUnit").value === "km" ? "km" : "mi";
   const firstDayOfWeek = document.getElementById("p950FirstDayOfWeek").value === "monday" ? "monday" : "sunday";
+  const textSize = p950NormalizeTextSize(document.getElementById("p950TextSize").value);
   const primaryGoal = document.getElementById("p950PrimaryGoal").value.trim();
   const physiqueOutcome = document.getElementById("p950PhysiqueOutcome").value.trim();
   const homeGymLabel = document.getElementById("p950HomeGymLabel").value.trim();
@@ -337,7 +354,8 @@ function p950SaveUserProfileFromUI(){
     preferences: Object.assign({}, current.preferences, {
       weightUnit: weightUnit,
       distanceUnit: distanceUnit,
-      firstDayOfWeek: firstDayOfWeek
+      firstDayOfWeek: firstDayOfWeek,
+      textSize: textSize
     }),
     app: Object.assign({}, current.app, {
       homeGymLabel: homeGymLabel || current.app.homeGymLabel,
@@ -347,11 +365,32 @@ function p950SaveUserProfileFromUI(){
 
   const result = p950SaveUserProfile(updated);
   if(result.ok){
+    p950ApplyTextSize(result.profile);
     p950RenderUserProfile();
     p950ShowProfileResult("✅ Profile saved.", "ok");
   } else {
     p950ShowProfileResult("❌ Failed to save profile: " + result.error, "err");
   }
+}
+
+// Text size is an immediate display preference: selecting a value updates the
+// root document state and persists only the normalized profile preference.
+function p950SetTextSizeFromUI(){
+  const select = document.getElementById("p950TextSize");
+  if(!select) return false;
+  const current = p950GetUserProfile();
+  const textSize = p950NormalizeTextSize(select.value);
+  const updated = Object.assign({}, current, {
+    preferences: Object.assign({}, current.preferences, { textSize: textSize })
+  });
+  const result = p950SaveUserProfile(updated);
+  if(!result.ok){
+    p950ShowProfileResult("❌ Failed to save text size: " + result.error, "err");
+    return false;
+  }
+  p950ApplyTextSize(result.profile);
+  p950ShowProfileResult("✅ Text size set to " + select.options[select.selectedIndex].text + ".", "ok");
+  return true;
 }
 
 // Two-step in-app confirmation (same pattern as Restore/Clear App Data —
@@ -372,6 +411,7 @@ function p950ConfirmResetProfile(){
   const def = p950GetDefaultUserProfile();
   const result = p950SaveUserProfile(def);
   if(result.ok){
+    p950ApplyTextSize(result.profile);
     p950RenderUserProfile();
     p950ShowProfileResult("✅ Profile reset to Marcus defaults.", "ok");
   } else {
