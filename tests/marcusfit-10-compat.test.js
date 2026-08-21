@@ -164,6 +164,15 @@ if (currentExternalScripts.length) {
     new vm.Script(content, { filename: source });
     return content;
   });
+  const syncScriptIndex = currentExternalScripts.indexOf("assets/js/sync/12-ai-sync.js");
+  const postSyncSource = externalSources.slice(syncScriptIndex + 1).join("\n");
+  assert(syncScriptIndex >= 0, "Canonical AI Sync script is missing from runtime order");
+  assert(!/(?:^|[;\n])\s*(?:window\.)?applySync\s*=/m.test(postSyncSource),
+    "A later runtime script must not replace the canonical applySync binding");
+  assert(!/\b(?:const|let|var)\s+[A-Za-z_$][\w$]*ApplySync\s*=\s*applySync\b/.test(postSyncSource),
+    "A later runtime script must not capture a stale applySync implementation");
+  assert(!/\bfunction\s+applySync\s*\(/.test(postSyncSource),
+    "A later runtime script must not redeclare the canonical applySync function");
   const basketballSource = externalSources[externalSources.length - 1];
   const combinedExternalSource = externalSources.join("");
   new vm.Script(combinedExternalSource, { filename: "MarcusFit10.combined.js" });

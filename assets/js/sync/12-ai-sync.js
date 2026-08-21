@@ -1,6 +1,9 @@
 
 // ── PHASE 4: AI SYNC PARSER ───────────────────────────────────────────────────
 function applySync(){
+  // Later features may intercept their own payload shape, but this function
+  // remains the single authoritative Sync entry point and core implementation.
+  if(typeof p960HandleSyncExtension==="function"&&p960HandleSyncExtension(applySync))return;
   const raw=document.getElementById("syncInput").value;
   const res=document.getElementById("syncResult");
   res.style.display="block";

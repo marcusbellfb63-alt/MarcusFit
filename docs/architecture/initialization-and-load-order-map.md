@@ -21,7 +21,8 @@ Evaluation occurs after HTML parsing, in source order, before
 1. Constants/data/lifecycle/state and feature declarations evaluate.
 2. Shared UI registers delegated input/change handlers and three `window.load`
    listeners in their accepted order.
-3. Backup, starter, progression, adherence, and habit wrapper captures install.
+3. Backup, starter, progression, and adherence wrapper captures install; Habits
+   declares its Sync interception hook without replacing `applySync`.
 4. Habit definitions initialize and habits render.
 5. `21-app-boot.js` initializes lifecycle state and runs the idempotent 10.1.3
    virtual-day repair before synchronously rendering preferences/profile,

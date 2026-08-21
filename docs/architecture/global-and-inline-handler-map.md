@@ -39,5 +39,7 @@ and are reproducibly listed by `tools/architecture/inventory-runtime.js`.
 - Stats calculation: base -> habits. Rendering: base -> adherence -> basketball.
 - History: base -> habits -> basketball refresh/filter hook.
 - Save: base -> habit-preserving shared-daily wrapper.
-- Sync: base -> habit proposal interception; basketball remains absent.
+- Sync: `12-ai-sync.js` remains the sole `applySync` binding and calls the
+  Habits proposal interception hook dynamically; later scripts may not capture,
+  redeclare, or replace `applySync`. Basketball remains absent.
 - Backup: base predicate/summary/format/validation -> basketball.

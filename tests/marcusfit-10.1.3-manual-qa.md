@@ -27,6 +27,12 @@ real-data check below is complete.
    not change storage. Reactivate it through Sync, confirm the exact stable ID
    returns without a duplicate, then confirm the normal field update succeeds.
    Verify `partial-d7-e99` still reaches new-ID validation and is rejected.
+   After the complete page loads, also confirm
+   `applySync.toString().includes("exercise is archived")` is `true`; this proves
+   the final global handler is the corrected canonical implementation rather
+   than a later copied wrapper. Perform the archived rejection, reactivation,
+   and follow-up field update through the visible Sync textarea/button, then
+   submit a Habit proposal and confirm it still opens pending review.
 5. Export the program. Confirm each virtual day appears exactly once, exported
    IDs are the same IDs Sync accepted, and renamed days are not duplicated as
    old/current identities.
