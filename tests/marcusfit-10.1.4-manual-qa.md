@@ -12,6 +12,7 @@ Before testing, create a MarcusFit backup. Use a local HTTP server or the deploy
 - Confirm the sticky header, navigation labels, and current date remain readable and tappable.
 - Open Program, Daily Log, History, Stats, and Sync; confirm cards and long labels wrap without clipping.
 - Enter Daily Log metrics and workout sets; confirm inputs do not trigger unwanted Safari focus zoom.
+- At 320, 375, 393, and 430 CSS-pixel portrait widths, check bodyweight and weighted set rows at Compact, Standard, Large, and Extra Large; confirm Set, Weight, Reps, and RIR stay fully inside each exercise card with no horizontal scrolling.
 - Open the keyboard on notes, set inputs, profile fields, and Sync textareas; confirm Save/action controls remain reachable.
 - Confirm the workout Save bar remains reachable above the bottom safe area.
 - In Sync > Profile & Display, select Compact, Standard, Large, and Extra Large; confirm each applies immediately.
@@ -38,6 +39,8 @@ Before testing, create a MarcusFit backup. Use a local HTTP server or the deploy
 - Confirm the header and footer actions stay reachable while the habit list/form body scrolls.
 - Confirm active rows are easy to scan and initially show icon/name, description or target, schedule, and one Details affordance.
 - Expand Details; confirm Edit, Move Up, Move Down, and Archive remain available with touch-friendly targets.
+- Through Details > Edit, rename an existing habit and choose Update Draft > Save Changes; confirm its stable ID/history remain attached and no renamed duplicate appears.
+- Use Add Habit separately; confirm it creates exactly one new habit with a new stable ID and leaves existing habits unchanged.
 - Edit a habit without saving, then Cancel the manager; reopen and confirm the edit did not persist.
 - Reorder a habit, archive a habit, and choose Save Changes.
 - Confirm Daily Habits reflects the saved order/archive state.

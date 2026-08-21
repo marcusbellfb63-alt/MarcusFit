@@ -24,6 +24,23 @@ assert(css.includes("env(safe-area-inset-top)"));
 assert(css.includes("env(safe-area-inset-bottom)"));
 assert(css.includes("100dvh"));
 
+// The rendered controls share one shrinkable grid; this is a structural guard,
+// not a substitute for the real-device width/text-size QA checklist.
+const workoutCorrection = css.slice(css.indexOf("MarcusFit 10.1.4 correction: keep every workout set control inside its card."));
+assert(workoutCorrection.includes("grid-template-columns:38px minmax(0,1fr) 64px 70px"));
+assert(workoutCorrection.includes("grid-template-columns:28px minmax(0,1fr) 50px 64px"));
+assert(workoutCorrection.includes(".wo-set-wt,.wo-set-reps,.wo-set-rir{width:100%;min-width:0;}"));
+assert(workoutCorrection.includes(".wo-set-labels::before{content:\"\";}"));
+const workoutTrackBudget = width => {
+  const narrow = width <= 350;
+  const nestedHorizontalPaddingAndBorders = narrow ? 88 : 100; // screen + section body + exercise card
+  const fixedTracksAndGaps = narrow ? 154 : 190;
+  return width - nestedHorizontalPaddingAndBorders - fixedTracksAndGaps;
+};
+[320, 375, 393, 430].forEach(width => {
+  assert(workoutTrackBudget(width) >= 78, `${width}px leaves too little room for the shrinkable weight track`);
+});
+
 // Script order and authoritative Sync ownership remain unchanged.
 const currentScripts = [...html.matchAll(/<script\s+src="([^"]+)"\s+defer><\/script>/g)].map(match => match[1]);
 assert.deepStrictEqual(currentScripts, scriptOrder);
@@ -174,5 +191,179 @@ assert.strictEqual(persisted.habits["habit-a"].active, false);
 assert.strictEqual(persisted.habits["habit-b"].name, "Beta Saved");
 assert.strictEqual(persisted.habits["habit-old"].id, "habit-old");
 assert.strictEqual(persisted.habits["habit-old"].active, false);
+
+// Exercise the actual Habit Manager controls: Details -> Edit -> Update Draft -> Save.
+class FakeElement {
+  constructor(tagName, ownerDocument) {
+    this.tagName = String(tagName).toUpperCase();
+    this.ownerDocument = ownerDocument;
+    this.parentNode = null;
+    this.children = [];
+    this.dataset = {};
+    this.style = {};
+    this.attributes = {};
+    this.className = "";
+    this.id = "";
+    this.hidden = false;
+    this.checked = false;
+    this.value = "";
+    this.type = "";
+    this._text = "";
+    this._listeners = {};
+    this.classList = {
+      add: (...names) => { const set = new Set(this.className.split(/\s+/).filter(Boolean)); names.forEach(name => set.add(name)); this.className = [...set].join(" "); },
+      remove: (...names) => { const remove = new Set(names); this.className = this.className.split(/\s+/).filter(name => name && !remove.has(name)).join(" "); },
+      toggle: (name, force) => { const present = this.classList.contains(name), next = force === undefined ? !present : !!force; next ? this.classList.add(name) : this.classList.remove(name); return next; },
+      contains: name => this.className.split(/\s+/).includes(name)
+    };
+  }
+  get textContent() { return this._text + this.children.map(child => child.textContent).join(""); }
+  set textContent(value) { this._text = String(value == null ? "" : value); this.children = []; }
+  set innerHTML(value) { assert.strictEqual(value, "", "Fake DOM supports only clearing innerHTML"); this._text = ""; this.children = []; }
+  get innerHTML() { return ""; }
+  append(...children) { children.forEach(child => this.appendChild(typeof child === "string" ? this.ownerDocument.createTextNode(child) : child)); }
+  appendChild(child) { child.parentNode = this; this.children.push(child); return child; }
+  setAttribute(name, value) { this.attributes[name] = String(value); }
+  getAttribute(name) { return Object.prototype.hasOwnProperty.call(this.attributes, name) ? this.attributes[name] : null; }
+  addEventListener(type, handler) { (this._listeners[type] ||= []).push(handler); }
+  focus() { this.ownerDocument.activeElement = this; }
+  scrollIntoView() {}
+  click() { if (typeof this.onclick === "function") return this.onclick({ target: this, currentTarget: this }); }
+  querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
+  querySelectorAll(selector) {
+    const found = [];
+    const visit = node => {
+      node.children.forEach(child => {
+        if (matchesFakeSelector(child, selector)) found.push(child);
+        visit(child);
+      });
+    };
+    visit(this);
+    return found;
+  }
+}
+
+function matchesFakeSelector(element, selector) {
+  let simple = selector.trim(), requiresChecked = false;
+  if (simple.endsWith(":checked")) { requiresChecked = true; simple = simple.slice(0, -8); }
+  if (requiresChecked && !element.checked) return false;
+  if (simple.startsWith("#")) return element.id === simple.slice(1);
+  if (simple.startsWith(".")) return simple.slice(1).split(".").every(name => element.classList.contains(name));
+  const data = simple.match(/^\[data-([a-z-]+)(?:="([^"]*)")?\]$/);
+  if (data) {
+    const key = data[1].replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+    return Object.prototype.hasOwnProperty.call(element.dataset, key) && (data[2] === undefined || String(element.dataset[key]) === data[2]);
+  }
+  return element.tagName.toLowerCase() === simple.toLowerCase();
+}
+
+class FakeDocument {
+  constructor() {
+    this.activeElement = null;
+    this.body = new FakeElement("body", this);
+    this.head = new FakeElement("head", this);
+  }
+  createElement(tagName) { return new FakeElement(tagName, this); }
+  createTextNode(value) { const node = new FakeElement("#text", this); node._text = String(value); return node; }
+  getElementById(id) {
+    if (this.body.id === id) return this.body;
+    return this.body.querySelectorAll("#" + id)[0] || this.head.querySelectorAll("#" + id)[0] || null;
+  }
+  querySelector(selector) { return this.body.querySelector(selector); }
+  querySelectorAll(selector) { return this.body.querySelectorAll(selector); }
+}
+
+function buttonByText(rootElement, text) {
+  const button = rootElement.querySelectorAll("button").find(candidate => candidate.textContent.trim() === text);
+  assert(button, `Missing button: ${text}`);
+  return button;
+}
+
+function habitRowByName(document, name) {
+  const row = document.querySelectorAll(".p960-row").find(candidate => candidate.textContent.includes(name));
+  assert(row, `Missing habit row: ${name}`);
+  return row;
+}
+
+const uiHabitStore = {
+  schemaVersion: 1, definitionVersion: "10.1.3", createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
+  habits: {
+    "habit-kegel": { id: "habit-kegel", name: "Pelvic Floor", icon: "K", description: "Original", target: { type: "checkbox", display: "Complete" }, schedule: { type: "daily" }, instructions: [], emphasis: "normal", active: true, source: "user" },
+    "habit-journal": { id: "habit-journal", name: "Journal", icon: "J", description: "Unrelated", target: { type: "checkbox", display: "Write" }, schedule: { type: "daily" }, instructions: [], emphasis: "normal", active: true, source: "user" }
+  },
+  order: ["habit-kegel", "habit-journal"]
+};
+const historicalDay = JSON.stringify({ habits: { "habit-kegel": { completed: true, notes: "preserve" } }, unrelated: { keep: true } });
+const uiHabitStorage = makeStorage({
+  "mf-habit-definitions": JSON.stringify(uiHabitStore),
+  "day-2026-01-01": historicalDay
+});
+const uiDocument = new FakeDocument();
+const uiHabitContext = {
+  APP_VERSION: "10.1.4", console, localStorage: uiHabitStorage.api,
+  HABITS: [], habitState: {}, tDate: new Date(2026, 0, 1), document: uiDocument,
+  autoSaveDraft() {}, dKey() { return "day-2026-01-01"; }
+};
+uiHabitContext.window = uiHabitContext;
+vm.createContext(uiHabitContext);
+vm.runInContext(habitsSource.slice(0, habitCoreEnd), uiHabitContext);
+vm.runInContext("renderHabits=function(){};p960UpdateSettingsStatus=function(){};", uiHabitContext);
+
+// Closing the whole manager during an edit must discard the still-rendered form.
+uiHabitContext.p960OpenHabitManager();
+let kegelRow = habitRowByName(uiDocument, "Pelvic Floor");
+buttonByText(kegelRow, "Details").click();
+kegelRow = habitRowByName(uiDocument, "Pelvic Floor");
+buttonByText(kegelRow, "Edit").click();
+let uiForm = uiDocument.getElementById("p960HabitForm");
+assert.strictEqual(uiForm.dataset.mode, "edit");
+assert.strictEqual(uiForm.dataset.editingId, "habit-kegel", "Edit form did not retain the stable ID");
+uiForm.querySelector('[data-key="name"]').value = "Stale Unsaved Rename";
+buttonByText(uiDocument.getElementById("p960HabitManager"), "Cancel").click();
+assert.strictEqual(uiHabitStorage.api.getItem("mf-habit-definitions"), JSON.stringify(uiHabitStore));
+uiHabitContext.p960OpenHabitManager();
+uiForm = uiDocument.getElementById("p960HabitForm");
+assert(!uiForm.classList.contains("open"), "Canceled edit form remained open after manager reopen");
+assert.strictEqual(uiForm.dataset.editingId, "");
+assert.strictEqual(uiForm.querySelector('[data-key="name"]'), null, "Canceled edit fields survived manager reopen");
+
+kegelRow = habitRowByName(uiDocument, "Pelvic Floor");
+buttonByText(kegelRow, "Details").click();
+kegelRow = habitRowByName(uiDocument, "Pelvic Floor");
+buttonByText(kegelRow, "Edit").click();
+uiForm = uiDocument.getElementById("p960HabitForm");
+uiForm.querySelector('[data-key="name"]').value = "Kegel Routine";
+buttonByText(uiForm, "Update Draft").click();
+buttonByText(uiDocument.getElementById("p960HabitManager"), "Save Changes").click();
+
+let uiPersisted = JSON.parse(uiHabitStorage.api.getItem("mf-habit-definitions"));
+assert.strictEqual(uiPersisted.habits["habit-kegel"].name, "Kegel Routine");
+assert.strictEqual(uiPersisted.habits["habit-kegel"].id, "habit-kegel");
+assert(!uiPersisted.habits["habit-kegel-routine"], "Rename created a duplicate slug ID");
+assert.strictEqual(uiPersisted.order.filter(id => id === "habit-kegel").length, 1);
+assert.strictEqual(uiPersisted.habits["habit-journal"].description, "Unrelated");
+assert.strictEqual(uiHabitStorage.api.getItem("day-2026-01-01"), historicalDay, "Rename changed historical completion data");
+
+// Cancel Edit changes neither the draft nor storage; Add Habit still generates a new ID.
+uiHabitContext.p960OpenHabitManager();
+kegelRow = habitRowByName(uiDocument, "Kegel Routine");
+buttonByText(kegelRow, "Details").click();
+kegelRow = habitRowByName(uiDocument, "Kegel Routine");
+buttonByText(kegelRow, "Edit").click();
+uiForm = uiDocument.getElementById("p960HabitForm");
+uiForm.querySelector('[data-key="name"]').value = "Should Not Persist";
+buttonByText(uiForm, "Cancel Edit").click();
+assert.strictEqual(JSON.parse(vm.runInContext("JSON.stringify(p960HabitManagerDraft)", uiHabitContext)).habits["habit-kegel"].name, "Kegel Routine");
+buttonByText(uiDocument.getElementById("p960HabitManager"), "+ Add Habit").click();
+uiForm = uiDocument.getElementById("p960HabitForm");
+assert.strictEqual(uiForm.dataset.mode, "add");
+uiForm.querySelector('[data-key="name"]').value = "Read Book";
+buttonByText(uiForm, "Add to Draft").click();
+buttonByText(uiDocument.getElementById("p960HabitManager"), "Save Changes").click();
+uiPersisted = JSON.parse(uiHabitStorage.api.getItem("mf-habit-definitions"));
+assert.strictEqual(uiPersisted.habits["habit-read-book"].name, "Read Book");
+assert.strictEqual(uiPersisted.habits["habit-kegel"].name, "Kegel Routine");
+assert.strictEqual(uiPersisted.habits["habit-journal"].description, "Unrelated");
+assert.strictEqual(uiHabitStorage.api.getItem("day-2026-01-01"), historicalDay, "Add changed historical completion data");
 
 console.log("MarcusFit 10.1.4 mobile/accessibility contract: PASS");
