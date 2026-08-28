@@ -5,6 +5,8 @@ const vm = require("vm");
 
 const root = path.resolve(__dirname, "..");
 const source = fs.readFileSync(path.join(root, "assets", "js", "features", "22-basketball.js"), "utf8");
+const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const css = fs.readFileSync(path.join(root, "assets", "css", "marcusfit.css"), "utf8");
 
 function createStorage(initial = {}) {
   const memory = new Map(Object.entries(initial));
@@ -217,6 +219,44 @@ assert.throws(() => c.p8ValidateBackup(JSON.stringify({ app: "MarcusFit", data: 
 const summary = c.p8492SummarizeBackup(backup);
 assert.strictEqual(summary.hasBasketballProgramState, true);
 assert.strictEqual(summary.basketballProgramName, "Guard Skills — 3 Session");
+
+// AI Export includes active queue context and structured drill guidance, while
+// preserving the program-only range contract and sensible empty behavior.
+let exported = c.mfBasketballBuildExport("program", [], c.mfBasketballReadProgramState());
+assert(exported.includes("Active program: Guard Skills — 3 Session"));
+assert(exported.includes("Next planned session: Session B — Change of Pace"));
+assert(!exported.includes("Sessions:"));
+exported = c.mfBasketballBuildExport("full", c.mfBasketballReadStore().sessions, c.mfBasketballReadProgramState());
+assert(exported.includes("confidence"));
+assert(exported.includes("Free Throws — Benchmark"));
+const emptyContext = createContext();
+assert.strictEqual(emptyContext.context.mfBasketballBuildExport("program", [], emptyContext.context.mfBasketballReadProgramState()), "");
+
+// Structured UI exposes clear mobile controls without new inline handlers or
+// native confirmation dialogs.
+[
+  "mfBasketballProgramSelect", "mfBasketballNextSession", "mfBasketballStructuredLogger",
+  "mfBasketballDrillLogger", "mfBasketballSessionSummary", "mfBasketballFinishAdvance",
+  "mfBasketballFinishRepeat", "mfBasketballProgramDialog"
+].forEach(id => assert(html.includes(`id="${id}"`), `Missing 10.2.0 UI hook: ${id}`));
+assert(html.includes("START PLANNED SESSION") === false, "Start action is rendered from the current queue, not hard-coded markup");
+assert(source.includes("START PLANNED SESSION"));
+assert(source.includes("Confidence: 1–10"));
+assert(css.includes("grid-template-columns:repeat(5,minmax(0,1fr))"));
+assert(css.includes("min-height:44px"));
+assert(css.includes("position:sticky"));
+assert.strictEqual((html.match(/\son[a-z]+\s*=/gi) || []).length, 83, "10.2.0 must not expand the accepted inline-handler surface");
+assert(!/\bconfirm\s*\(/.test(source));
+
+// A malformed structured record is isolated without rewriting valid legacy data.
+const malformedContext = createContext({
+  "mf-basketball-sessions": JSON.stringify({ schemaVersion: 1, sessions: [
+    { id: "bball-valid-legacy", schemaVersion: 1, date: "2026-02-01", type: "casual_play", minutes: 20, createdAt: "2026-02-01T10:00:00.000Z", updatedAt: "2026-02-01T10:00:00.000Z" },
+    { id: "bball-bad-structured", schemaVersion: 1, date: "2026-02-02", type: "basketball_workout", minutes: 20, createdAt: "2026-02-02T10:00:00.000Z", updatedAt: "2026-02-02T10:00:00.000Z", programId: "bad", drills: [] }
+  ] })
+});
+assert.strictEqual(malformedContext.context.mfBasketballReadStore().sessions.length, 1);
+assert.strictEqual(malformedContext.context.mfBasketballReadStore().invalidRecordCount, 1);
 
 // Core Sync remains the sole authority.
 assert(!/\bapplySync\s*=/.test(source));
