@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.2.0 — implementation candidate awaiting manual QA
+MarcusFit 10.2.0 — accepted
 
 ## Architecture
 
@@ -71,6 +71,7 @@ MarcusFit 10.2.0 — implementation candidate awaiting manual QA
 - Built-in Fundamentals, Guard Skills, and Shooting Focus templates use stable versioned identities
 - Drill tracking is basketball-specific: confidence, duration, makes target, shooting benchmark, count, or completion
 - Finish & Advance moves the queue only after a successful structured save; Finish & Repeat leaves the same session next
+- Partial sessions preserve skipped drills without counting them as progression exposures
 - Deterministic local guidance uses recent same-drill exposures and never mutates a program automatically
 
 ### Backup / Restore
@@ -126,4 +127,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.1.2** — Feature-oriented 22-script runtime (accepted)
 - **v10.1.3** — Program-day integrity and historical identity repair (accepted)
 - **v10.1.4** — Mobile accessibility, Sync/settings organization, and Habits UI (accepted)
-- **v10.2.0** — Basketball programs and progression (implementation candidate awaiting manual QA)
+- **v10.2.0** — Basketball programs and progression (accepted)
+- **v10.3.0** — Basketball-specific AI Sync
