@@ -987,6 +987,7 @@ body.p960-manager-open{overflow:hidden;}
 .mf-basketball-restart,.mf-basketball-close-session{background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:var(--mf-font-xs);font-weight:800;letter-spacing:.4px;}
 .mf-basketball-freeform-heading{font-family:'Bebas Neue',sans-serif;font-size:var(--mf-font-heading);letter-spacing:1px;color:var(--accent);margin-top:3px;}
 .mf-basketball-structured{background:var(--surface);border-color:var(--accent);padding-bottom:calc(16px + env(safe-area-inset-bottom));}
+body.mf-basketball-structured-open .p6-sticky-bar{display:none;}
 .mf-basketball-structured-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
 .mf-basketball-close-session{flex:0 0 auto;}
 .mf-basketball-structured-meta{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin-bottom:12px;}

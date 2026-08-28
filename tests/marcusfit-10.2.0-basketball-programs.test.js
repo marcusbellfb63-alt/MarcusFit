@@ -272,9 +272,11 @@ assert.strictEqual(emptyContext.context.mfBasketballBuildExport("program", [], e
 assert(html.includes("START PLANNED SESSION") === false, "Start action is rendered from the current queue, not hard-coded markup");
 assert(source.includes("START PLANNED SESSION"));
 assert(source.includes("Confidence: 1–10"));
+assert(source.includes('made.value!==""&&attempted.value!==""'), "Benchmark percentage must wait for both explicit inputs");
 assert(css.includes("grid-template-columns:repeat(5,minmax(0,1fr))"));
 assert(css.includes("min-height:44px"));
 assert(css.includes("position:sticky"));
+assert(css.includes("body.mf-basketball-structured-open .p6-sticky-bar{display:none;}"));
 assert.strictEqual((html.match(/\son[a-z]+\s*=/gi) || []).length, 83, "10.2.0 must not expand the accepted inline-handler surface");
 assert(!/\bconfirm\s*\(/.test(source));
 
