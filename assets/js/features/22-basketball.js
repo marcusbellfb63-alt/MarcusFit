@@ -1,6 +1,7 @@
-// MarcusFit 10.2.0: Basketball Programs & Progression
-// Basketball remains an isolated, final-load feature boundary. Core AI Sync is
-// intentionally not captured, wrapped, or extended here.
+// MarcusFit 10.3.0: Basketball-Specific AI Sync
+// MarcusFit 10.2.0: Basketball Programs & Progression (accepted foundation)
+// Basketball remains an isolated, final-load feature boundary. Core AI Sync
+// stays authoritative; this file composes through its accepted extension hook.
 
 (function(){
 "use strict";
@@ -9,6 +10,10 @@ const MF_BASKETBALL_STORAGE_KEY = "mf-basketball-sessions";
 const MF_BASKETBALL_SCHEMA_VERSION = 1;
 const MF_BASKETBALL_PROGRAM_STATE_KEY = "mf-basketball-program-state";
 const MF_BASKETBALL_PROGRAM_STATE_SCHEMA_VERSION = 1;
+const MF_BASKETBALL_OVERRIDES_KEY = "mf-basketball-program-overrides";
+const MF_BASKETBALL_OVERRIDES_SCHEMA_VERSION = 1;
+const MF_BASKETBALL_PROPOSAL_KEY = "mf-basketball-proposal";
+const MF_BASKETBALL_PROPOSAL_SCHEMA_VERSION = 1;
 const MF_BASKETBALL_TRACKING_MODES = Object.freeze(["confidence","duration","makes_target","benchmark_shooting","count","completion"]);
 const MF_BASKETBALL_TYPES = Object.freeze({
   skills_practice: "Skills Practice",
@@ -105,6 +110,118 @@ function mfBasketballGetProgram(programId,version){
   return MF_BASKETBALL_PROGRAMS.find(function(program){return program.id===programId&&(version==null||program.version===Number(version));})||null;
 }
 
+function mfBasketballClone(value){return value==null?value:JSON.parse(JSON.stringify(value));}
+
+function mfBasketballStableValue(value){
+  if(Array.isArray(value))return value.map(mfBasketballStableValue);
+  if(value&&typeof value==="object")return Object.keys(value).sort().reduce(function(out,key){out[key]=mfBasketballStableValue(value[key]);return out;},{});
+  return value;
+}
+
+function mfBasketballFingerprint(value){
+  const text=JSON.stringify(mfBasketballStableValue(value));let hash=2166136261;
+  for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}
+  return "bball-fp-"+(hash>>>0).toString(16).padStart(8,"0");
+}
+
+function mfBasketballDefaultOverrides(){
+  return {schemaVersion:MF_BASKETBALL_OVERRIDES_SCHEMA_VERSION,programs:{},updatedAt:null};
+}
+
+function mfBasketballValidateTarget(target,mode,options){
+  options=options||{};const errors=[],warnings=[],value=target==null?null:target;
+  if(value!==null&&(typeof value!=="object"||Array.isArray(value)))return {valid:false,target:null,errors:["Target must be an object."],warnings:[]};
+  const allowed={confidence:["durationMinutes"],duration:["durationMinutes"],makes_target:["makes"],benchmark_shooting:["attempts","minAttempts"],count:["count"],completion:[]}[mode];
+  if(!allowed)return {valid:false,target:null,errors:["Tracking mode is unsupported."],warnings:[]};
+  const keys=value?Object.keys(value):[];
+  keys.forEach(function(key){if(allowed.indexOf(key)===-1)errors.push("Target field "+key+" is not allowed for "+mode+".");});
+  const out={};
+  function number(key,max,required,allowZero){
+    if(!value||value[key]==null){if(required)errors.push("Target "+key+" is required for "+mode+".");return;}
+    const n=Number(value[key]);if(!Number.isFinite(n)||!Number.isInteger(n)||n<0||(!allowZero&&n===0)||n>max)errors.push("Target "+key+" is outside the safe basketball range.");else out[key]=n;
+  }
+  if(mode==="confidence")number("durationMinutes",120,false,false);
+  if(mode==="duration")number("durationMinutes",120,true,false);
+  if(mode==="makes_target")number("makes",250,true,false);
+  if(mode==="benchmark_shooting"){number("attempts",500,true,false);number("minAttempts",500,true,false);if(out.minAttempts!=null&&out.attempts!=null&&out.minAttempts>out.attempts)errors.push("Benchmark minimum attempts cannot exceed planned attempts.");}
+  if(mode==="count")number("count",500,true,false);
+  if(mode==="completion"&&keys.length)errors.push("Completion drills do not accept numeric targets.");
+  const prior=options.priorTarget||null;
+  Object.keys(out).forEach(function(key){const before=prior&&Number(prior[key]);if(!Number.isFinite(before)||before<=0)return;if(out[key]>before*3)errors.push("Target "+key+" is too large relative to the current basketball target.");else if(out[key]>before*1.5||out[key]<before*.5)warnings.push("Target "+key+" changes by more than 50%.");});
+  return {valid:errors.length===0,target:Object.keys(out).length?out:null,errors:errors,warnings:warnings};
+}
+
+function mfBasketballValidateDrillDefinition(raw,options){
+  options=options||{};const errors=[],warnings=[],source=raw&&typeof raw==="object"&&!Array.isArray(raw)?raw:{};
+  const id=String(source.id||options.id||"").trim(),name=String(source.name||"").trim(),mode=String(source.trackingMode||"").trim();
+  if(!/^bball-ai-[a-z0-9][a-z0-9-]*-v[1-9][0-9]*$/.test(id))errors.push("AI-added drill ID must use bball-ai-…-vN.");
+  if(!name||name.length>120)errors.push("Drill name must be 1 to 120 characters.");
+  if(MF_BASKETBALL_TRACKING_MODES.indexOf(mode)===-1)errors.push("Drill tracking mode is unsupported.");
+  const targetResult=mfBasketballValidateTarget(source.target==null?null:source.target,mode);errors.push.apply(errors,targetResult.errors);warnings.push.apply(warnings,targetResult.warnings);
+  const allowed=["id","name","trackingMode","confidence","target","rationale","source","addedByProposalId"];
+  Object.keys(source).forEach(function(key){if(allowed.indexOf(key)===-1)errors.push("Added drill field "+key+" is unsupported.");});
+  if(source.confidence!=null&&typeof source.confidence!=="boolean")errors.push("Drill confidence flag must be true or false.");
+  const drill={id:id,name:name,trackingMode:mode};if(source.confidence===true)drill.confidence=true;if(targetResult.target)drill.target=targetResult.target;
+  if(source.rationale){const rationale=String(source.rationale).trim();if(rationale.length>500)errors.push("Drill rationale must be 500 characters or fewer.");else drill.rationale=rationale;}
+  if(source.source)drill.source=String(source.source);if(source.addedByProposalId)drill.addedByProposalId=String(source.addedByProposalId);
+  return {valid:errors.length===0,drill:drill,errors:errors,warnings:warnings};
+}
+
+function mfBasketballNormalizeOverrides(input,options){
+  options=options||{};const errors=[],source=input&&typeof input==="object"&&!Array.isArray(input)?input:null,out=mfBasketballDefaultOverrides();
+  if(!source)return {ok:false,errors:["Basketball overrides must be an object."],store:out};
+  if(Number(source.schemaVersion)!==MF_BASKETBALL_OVERRIDES_SCHEMA_VERSION)errors.push("Basketball override schema is unsupported.");
+  if(source.updatedAt!=null&&!mfBasketballIsIsoTimestamp(source.updatedAt))errors.push("Basketball override updatedAt is malformed.");
+  if(!source.programs||typeof source.programs!=="object"||Array.isArray(source.programs))errors.push("Basketball override programs must be an object.");
+  const programs=source.programs&&typeof source.programs==="object"&&!Array.isArray(source.programs)?source.programs:{};
+  Object.keys(programs).forEach(function(programId){
+    const rawProgram=programs[programId],base=mfBasketballGetProgram(programId,rawProgram&&rawProgram.baseVersion);
+    if(!base){errors.push("Override references an unknown basketball program/version: "+programId+".");return;}
+    if(!rawProgram||typeof rawProgram!=="object"||Array.isArray(rawProgram)||!rawProgram.sessions||typeof rawProgram.sessions!=="object"||Array.isArray(rawProgram.sessions)){errors.push("Override program "+programId+" is malformed.");return;}
+    const programOut={baseVersion:base.version,sessions:{}};
+    Object.keys(rawProgram.sessions).forEach(function(sessionId){
+      const baseSession=base.sessions.find(function(session){return session.id===sessionId;}),rawSession=rawProgram.sessions[sessionId];
+      if(!baseSession){errors.push("Override references an unknown planned session: "+sessionId+".");return;}
+      if(!rawSession||typeof rawSession!=="object"||Array.isArray(rawSession)){errors.push("Override session "+sessionId+" is malformed.");return;}
+      const sessionOut={modified:{},added:{},disabled:{}};
+      const added=rawSession.added&&typeof rawSession.added==="object"&&!Array.isArray(rawSession.added)?rawSession.added:{};
+      Object.keys(added).forEach(function(drillId){const validation=mfBasketballValidateDrillDefinition(added[drillId],{id:drillId});if(!validation.valid||validation.drill.id!==drillId){errors.push.apply(errors,validation.errors.map(function(error){return sessionId+": "+error;}));if(validation.drill.id!==drillId)errors.push("Added drill ID does not match its override key.");return;}sessionOut.added[drillId]=validation.drill;});
+      const knownIds=baseSession.drills.map(function(drill){return drill.id;}).concat(Object.keys(sessionOut.added));
+      const modified=rawSession.modified&&typeof rawSession.modified==="object"&&!Array.isArray(rawSession.modified)?rawSession.modified:{};
+      Object.keys(modified).forEach(function(drillId){const fields=modified[drillId];if(knownIds.indexOf(drillId)===-1||!fields||typeof fields!=="object"||Array.isArray(fields)){errors.push("Modified drill override is invalid: "+drillId+".");return;}const allowed=["name","target","confidence","source","proposalId"];if(Object.keys(fields).some(function(key){return allowed.indexOf(key)===-1;})){errors.push("Modified drill "+drillId+" contains unsupported fields.");return;}const baseDrill=baseSession.drills.find(function(drill){return drill.id===drillId;})||sessionOut.added[drillId],safe={};if(fields.name!=null){const name=String(fields.name).trim();if(!name||name.length>120)errors.push("Modified drill name is invalid: "+drillId+".");else safe.name=name;}if(fields.confidence!=null){if(typeof fields.confidence!=="boolean")errors.push("Modified confidence flag is invalid: "+drillId+".");else safe.confidence=fields.confidence;}if(fields.target!=null){const result=mfBasketballValidateTarget(fields.target,baseDrill.trackingMode,{priorTarget:baseDrill.target});if(!result.valid)errors.push.apply(errors,result.errors.map(function(error){return drillId+": "+error;}));else safe.target=result.target;}if(fields.source)safe.source=String(fields.source);if(fields.proposalId)safe.proposalId=String(fields.proposalId);sessionOut.modified[drillId]=safe;});
+      const disabled=rawSession.disabled&&typeof rawSession.disabled==="object"&&!Array.isArray(rawSession.disabled)?rawSession.disabled:{};Object.keys(disabled).forEach(function(drillId){if(knownIds.indexOf(drillId)===-1||disabled[drillId]!==true)errors.push("Disabled drill override is invalid: "+drillId+".");else sessionOut.disabled[drillId]=true;});
+      const enabledIds=knownIds.filter(function(id){return !sessionOut.disabled[id];});
+      if(rawSession.order!=null){if(!Array.isArray(rawSession.order)||new Set(rawSession.order).size!==rawSession.order.length||rawSession.order.length!==enabledIds.length||rawSession.order.some(function(id){return enabledIds.indexOf(id)===-1;}))errors.push("Override order is invalid for session "+sessionId+".");else sessionOut.order=rawSession.order.slice();}
+      if(Object.keys(sessionOut.modified).length||Object.keys(sessionOut.added).length||Object.keys(sessionOut.disabled).length||sessionOut.order)programOut.sessions[sessionId]=sessionOut;
+    });
+    if(Object.keys(programOut.sessions).length)out.programs[programId]=programOut;
+  });
+  out.updatedAt=source.updatedAt==null?null:new Date(source.updatedAt).toISOString();
+  return {ok:errors.length===0,errors:errors,store:errors.length&&options.strict?mfBasketballDefaultOverrides():out};
+}
+
+function mfBasketballParseOverridesValue(raw,options){
+  if(raw==null||raw==="")return {parseOk:true,keyExists:false,error:null,store:mfBasketballDefaultOverrides()};
+  let parsed;try{parsed=typeof raw==="string"?JSON.parse(raw):raw;}catch(e){return {parseOk:false,keyExists:true,error:"Basketball overrides are not valid JSON.",store:mfBasketballDefaultOverrides()};}
+  const normalized=mfBasketballNormalizeOverrides(parsed,Object.assign({strict:true},options));return {parseOk:normalized.ok,keyExists:true,error:normalized.ok?null:normalized.errors.join(" "),store:normalized.store};
+}
+
+function mfBasketballReadOverrides(){
+  try{return mfBasketballParseOverridesValue(localStorage.getItem(MF_BASKETBALL_OVERRIDES_KEY));}catch(e){return {parseOk:false,keyExists:false,error:"Basketball overrides could not be read.",store:mfBasketballDefaultOverrides()};}
+}
+
+function mfBasketballWriteOverrides(store,nowValue){
+  const candidate=mfBasketballClone(store);candidate.updatedAt=new Date(nowValue||new Date()).toISOString();const normalized=mfBasketballNormalizeOverrides(candidate,{strict:true});if(!normalized.ok)throw new Error(normalized.errors.join(" "));localStorage.setItem(MF_BASKETBALL_OVERRIDES_KEY,JSON.stringify(normalized.store));return normalized.store;
+}
+
+function mfBasketballGetResolvedProgram(programId,version,overrideValue){
+  const base=mfBasketballGetProgram(programId,version);if(!base)return null;
+  const parsed=overrideValue&&overrideValue.store?overrideValue:overrideValue?mfBasketballParseOverridesValue(overrideValue):mfBasketballReadOverrides(),resolved=mfBasketballClone(base),programOverride=parsed.parseOk&&parsed.store.programs[base.id];
+  if(!programOverride||programOverride.baseVersion!==base.version)return resolved;
+  resolved.sessions.forEach(function(session){const overlay=programOverride.sessions[session.id];if(!overlay)return;const additions=Object.keys(overlay.added||{}).map(function(id){return mfBasketballClone(overlay.added[id]);});let drills=session.drills.concat(additions).filter(function(drill){return !(overlay.disabled&&overlay.disabled[drill.id]);});drills=drills.map(function(drill){const fields=overlay.modified&&overlay.modified[drill.id];if(!fields)return drill;const next=Object.assign({},drill,mfBasketballClone(fields));delete next.source;delete next.proposalId;next.personalization={source:fields.source||"personalized",proposalId:fields.proposalId||null};return next;});if(overlay.order){const byId={};drills.forEach(function(drill){byId[drill.id]=drill;});drills=overlay.order.map(function(id){return byId[id];}).filter(Boolean);}session.drills=drills;});
+  return resolved;
+}
+
 function mfBasketballDefaultProgramState(){
   return {schemaVersion:MF_BASKETBALL_PROGRAM_STATE_SCHEMA_VERSION,activeProgramId:null,activeProgramVersion:null,nextSessionIndex:0,selectedAt:null,updatedAt:null};
 }
@@ -163,6 +280,144 @@ function mfBasketballRestartProgram(nowValue){
   const current=mfBasketballReadProgramState();if(!current.parseOk||!current.state.activeProgramId)return {ok:false,error:current.error||"No basketball program is active.",state:current.state};
   const state=Object.assign({},current.state,{nextSessionIndex:0,updatedAt:new Date(nowValue||new Date()).toISOString()});
   try{return {ok:true,error:null,state:mfBasketballWriteProgramState(state)};}catch(e){return {ok:false,error:"Basketball program could not be restarted.",state:current.state};}
+}
+
+function mfBasketballNormalizeProposal(raw){
+  const source=raw&&typeof raw==="object"&&!Array.isArray(raw)?mfBasketballClone(raw):{},now=new Date().toISOString();
+  return {
+    schemaVersion:source.schemaVersion==null?MF_BASKETBALL_PROPOSAL_SCHEMA_VERSION:Number(source.schemaVersion),
+    proposalVersion:source.proposalVersion==null?1:Number(source.proposalVersion),
+    proposalId:String(source.proposalId||"").trim(),status:String(source.status||"pending").toLowerCase(),source:String(source.source||"ai_sync"),
+    createdAt:source.createdAt||now,updatedAt:source.updatedAt||source.createdAt||now,summary:String(source.summary||"").trim(),rationale:String(source.rationale||"").trim(),
+    changes:Array.isArray(source.changes)?source.changes.map(mfBasketballClone):[],validation:source.validation&&typeof source.validation==="object"?mfBasketballClone(source.validation):{valid:false,warnings:[],errors:[]},
+    applyState:source.applyState&&typeof source.applyState==="object"?mfBasketballClone(source.applyState):null,undoSnapshot:source.undoSnapshot&&typeof source.undoSnapshot==="object"?mfBasketballClone(source.undoSnapshot):null
+  };
+}
+
+function mfBasketballAllKnownDrillIds(overrides){
+  const ids=new Set();MF_BASKETBALL_PROGRAMS.forEach(function(program){program.sessions.forEach(function(session){session.drills.forEach(function(drill){ids.add(drill.id);});});});
+  const store=overrides&&overrides.programs?overrides:mfBasketballReadOverrides().store;Object.keys(store.programs||{}).forEach(function(programId){Object.keys(store.programs[programId].sessions||{}).forEach(function(sessionId){Object.keys(store.programs[programId].sessions[sessionId].added||{}).forEach(function(drillId){ids.add(drillId);});});});return ids;
+}
+
+function mfBasketballProposalSession(working,programId,version,sessionId,overrides){
+  const program=working[programId]||(working[programId]=mfBasketballGetResolvedProgram(programId,version,overrides));return program&&program.version===Number(version)?program.sessions.find(function(session){return session.id===sessionId;})||null:null;
+}
+
+function mfBasketballValidateProposal(raw,options){
+  options=options||{};const proposal=mfBasketballNormalizeProposal(raw),errors=[],warnings=[],supported=[],conflicts=[],working={},overrideResult=options.overrides&&options.overrides.store?options.overrides:options.overrides?mfBasketballParseOverridesValue(options.overrides):mfBasketballReadOverrides(),knownIds=mfBasketballAllKnownDrillIds(overrideResult.store),addedInProposal=new Set();
+  const rawSource=raw&&typeof raw==="object"&&!Array.isArray(raw)?raw:{};
+  const allowedTop=["schemaVersion","proposalVersion","proposalId","status","source","createdAt","updatedAt","summary","rationale","changes","validation","applyState","undoSnapshot"];
+  Object.keys(rawSource).forEach(function(key){if(allowedTop.indexOf(key)===-1)errors.push("Proposal field "+key+" is unsupported.");});
+  if(proposal.schemaVersion!==MF_BASKETBALL_PROPOSAL_SCHEMA_VERSION)errors.push("Basketball proposal schema is unsupported.");
+  if(proposal.proposalVersion!==1)errors.push("Basketball proposal version is unsupported.");
+  if(!/^bball-proposal-[a-z0-9][a-z0-9-]{2,79}$/i.test(proposal.proposalId))errors.push("Basketball proposal ID is missing or malformed.");
+  if(["pending","applied","rejected","undone"].indexOf(proposal.status)===-1)errors.push("Basketball proposal status is unsupported.");
+  if(!proposal.summary||proposal.summary.length>240)errors.push("Basketball proposal summary must be 1 to 240 characters.");
+  if(proposal.rationale.length>2000)errors.push("Basketball proposal rationale must be 2000 characters or fewer.");
+  if(!proposal.changes.length||proposal.changes.length>30)errors.push("Basketball proposal must contain 1 to 30 changes.");
+  if(!mfBasketballIsIsoTimestamp(proposal.createdAt)||!mfBasketballIsIsoTimestamp(proposal.updatedAt))errors.push("Basketball proposal timestamps are malformed.");
+  const prohibited=/history|historical|result|workout|habit|medication|recurring|profile|backup|timestamp|advance|completeSession|baseP/i;
+  proposal.changes.forEach(function(change,index){
+    if(!change||typeof change!=="object"||Array.isArray(change)){errors.push("Change "+(index+1)+" must be an object.");return;}
+    const c=mfBasketballClone(change),action=String(c.action||"").toLowerCase();c.action=action;
+    const allowedByAction={
+      modify_drill:["action","programId","programVersion","sessionId","drillId","fields","rationale","expectedDrillFingerprint"],
+      add_drill:["action","programId","programVersion","sessionId","drillId","drill","position","rationale","expectedSessionFingerprint","resultOrder"],
+      remove_drill:["action","programId","programVersion","sessionId","drillId","rationale","expectedDrillFingerprint","expectedSessionFingerprint","resultOrder"],
+      reorder_drills:["action","programId","programVersion","sessionId","order","rationale","expectedSessionFingerprint"],
+      switch_program:["action","targetProgramId","targetProgramVersion","rationale","expectedActiveProgram"]
+    }[action];
+    if(!allowedByAction){errors.push("Change "+(index+1)+" uses unsupported action "+(action||"(missing)")+".");return;}
+    Object.keys(c).forEach(function(key){if(allowedByAction.indexOf(key)===-1)errors.push("Change "+(index+1)+" field "+key+" is unsupported.");if(key!=="resultOrder"&&prohibited.test(key))errors.push("Change "+(index+1)+" contains a prohibited domain field.");});
+    if(c.rationale!=null&&String(c.rationale).length>500)errors.push("Change "+(index+1)+" rationale must be 500 characters or fewer.");
+    if(action==="switch_program"){
+      const target=mfBasketballGetProgram(String(c.targetProgramId||""),c.targetProgramVersion);if(!target){errors.push("Program switch references an unknown built-in program/version.");return;}
+      const state=options.programState&&options.programState.state?options.programState.state:options.programState||mfBasketballReadProgramState().state,expected={activeProgramId:state.activeProgramId,activeProgramVersion:state.activeProgramVersion};
+      if(c.expectedActiveProgram&&mfBasketballFingerprint(c.expectedActiveProgram)!==mfBasketballFingerprint(expected))conflicts.push("active_program");else c.expectedActiveProgram=expected;
+      c.targetProgramId=target.id;c.targetProgramVersion=target.version;supported.push(c);return;
+    }
+    const program=mfBasketballGetProgram(String(c.programId||""),c.programVersion);if(!program){errors.push("Change "+(index+1)+" references an unknown basketball program/version.");return;}
+    c.programId=program.id;c.programVersion=program.version;const session=mfBasketballProposalSession(working,program.id,program.version,String(c.sessionId||""),overrideResult);
+    if(!session){errors.push("Change "+(index+1)+" references an unknown planned session.");return;}c.sessionId=session.id;
+    const sessionFingerprint=mfBasketballFingerprint(session.drills.map(function(drill){return drill.id;}));
+    if(action==="reorder_drills"){
+      const order=Array.isArray(c.order)?c.order.map(String):null,ids=session.drills.map(function(item){return item.id;});
+      if(!order||order.length!==ids.length||new Set(order).size!==order.length||order.some(function(id){return ids.indexOf(id)===-1;})){errors.push("Reorder-drills must list every resolved drill exactly once.");return;}
+      if(c.expectedSessionFingerprint&&c.expectedSessionFingerprint!==sessionFingerprint)conflicts.push(session.id);else c.expectedSessionFingerprint=sessionFingerprint;const byId={};session.drills.forEach(function(item){byId[item.id]=item;});session.drills=order.map(function(id){return byId[id];});c.order=order;supported.push(c);return;
+    }
+    if(action==="add_drill"){
+      const rawDrill=c.drill&&typeof c.drill==="object"?Object.assign({},c.drill,{id:c.drillId||c.drill.id}):{},validation=mfBasketballValidateDrillDefinition(rawDrill),position=Number(c.position);
+      if(!validation.valid){errors.push.apply(errors,validation.errors.map(function(error){return "Change "+(index+1)+": "+error;}));return;}
+      const id=validation.drill.id;if(knownIds.has(id)||addedInProposal.has(id)){if(!(proposal.status!=="pending"&&session.drills.some(function(drill){return drill.id===id;}))){errors.push("AI-added drill ID already exists: "+id+".");return;}}
+      if(!Number.isInteger(position)||position<0||position>session.drills.length){errors.push("Add-drill position is invalid.");return;}
+      if(c.expectedSessionFingerprint&&c.expectedSessionFingerprint!==sessionFingerprint)conflicts.push(session.id);else c.expectedSessionFingerprint=sessionFingerprint;
+      c.drillId=id;c.drill=validation.drill;c.position=position;warnings.push.apply(warnings,validation.warnings);session.drills.splice(position,0,mfBasketballClone(validation.drill));knownIds.add(id);addedInProposal.add(id);c.resultOrder=session.drills.map(function(drill){return drill.id;});supported.push(c);return;
+    }
+    const drill=session.drills.find(function(item){return item.id===String(c.drillId||"");});if(!drill){errors.push("Change "+(index+1)+" references an unknown drill.");return;}c.drillId=drill.id;
+    const drillFingerprint=mfBasketballFingerprint(drill);if(c.expectedDrillFingerprint&&c.expectedDrillFingerprint!==drillFingerprint)conflicts.push(drill.id);else if(action!=="reorder_drills")c.expectedDrillFingerprint=drillFingerprint;
+    if(action==="modify_drill"){
+      const fields=c.fields&&typeof c.fields==="object"&&!Array.isArray(c.fields)?c.fields:null;if(!fields){errors.push("Modify-drill fields must be an object.");return;}const safe={};Object.keys(fields).forEach(function(key){if(["name","target","confidence"].indexOf(key)===-1||prohibited.test(key))errors.push("Modify-drill field "+key+" is unsupported.");});
+      if(fields.name!=null){const name=String(fields.name).trim();if(!name||name.length>120)errors.push("Modified drill name must be 1 to 120 characters.");else safe.name=name;}
+      if(fields.confidence!=null){if(typeof fields.confidence!=="boolean")errors.push("Modified confidence flag must be true or false.");else safe.confidence=fields.confidence;}
+      if(fields.target!=null){const target=mfBasketballValidateTarget(fields.target,drill.trackingMode,{priorTarget:drill.target});if(!target.valid)errors.push.apply(errors,target.errors);else safe.target=target.target;warnings.push.apply(warnings,target.warnings);}
+      if(!Object.keys(safe).length){errors.push("Modify-drill change has no supported fields.");return;}c.fields=safe;Object.assign(drill,mfBasketballClone(safe));supported.push(c);return;
+    }
+    if(action==="remove_drill"){
+      if(c.expectedSessionFingerprint&&c.expectedSessionFingerprint!==sessionFingerprint)conflicts.push(session.id);else c.expectedSessionFingerprint=sessionFingerprint;session.drills=session.drills.filter(function(item){return item.id!==drill.id;});if(!session.drills.length){errors.push("A planned session must retain at least one drill.");return;}c.resultOrder=session.drills.map(function(item){return item.id;});supported.push(c);return;
+    }
+  });
+  if(conflicts.length)errors.push("Basketball program changed after this proposal was created. Review a fresh proposal.");
+  proposal.changes=supported;proposal.validation={valid:errors.length===0,warnings:warnings.slice(),errors:errors.slice(),conflicts:[...new Set(conflicts)]};
+  return {valid:errors.length===0,proposal:proposal,errors:errors,warnings:warnings,conflicts:[...new Set(conflicts)],supported:supported};
+}
+
+function mfBasketballGetProposal(){
+  const raw=localStorage.getItem(MF_BASKETBALL_PROPOSAL_KEY);if(!raw)return null;try{return mfBasketballNormalizeProposal(JSON.parse(raw));}catch(e){return null;}
+}
+
+function mfBasketballImportProposal(raw,nowValue){
+  const existing=mfBasketballGetProposal();if(existing&&existing.status==="pending")return {valid:false,errors:["A basketball proposal is already pending. Review or dismiss it before importing another."],warnings:[],conflicts:[]};
+  const validation=mfBasketballValidateProposal(raw);if(!validation.valid)return validation;const now=new Date(nowValue||new Date()).toISOString();validation.proposal.status="pending";validation.proposal.createdAt=validation.proposal.createdAt||now;validation.proposal.updatedAt=now;validation.proposal.validation={valid:true,warnings:validation.warnings,errors:[],conflicts:[]};localStorage.setItem(MF_BASKETBALL_PROPOSAL_KEY,JSON.stringify(validation.proposal));mfBasketballRenderProposalStatus();return validation;
+}
+
+function mfBasketballEnsureOverrideSession(store,programId,version,sessionId){
+  if(!store.programs[programId])store.programs[programId]={baseVersion:version,sessions:{}};if(!store.programs[programId].sessions[sessionId])store.programs[programId].sessions[sessionId]={modified:{},added:{},disabled:{}};return store.programs[programId].sessions[sessionId];
+}
+
+function mfBasketballRestoreRaw(key,raw){raw==null?localStorage.removeItem(key):localStorage.setItem(key,raw);}
+
+function mfBasketballApplyProposal(confirmApply,nowValue){
+  const proposal=mfBasketballGetProposal();if(!proposal)return {applied:false,errors:["No basketball proposal exists."]};if(proposal.status!=="pending")return {applied:false,errors:["Only a pending basketball proposal can be applied."]};
+  const validation=mfBasketballValidateProposal(proposal);if(!validation.valid)return {applied:false,errors:validation.errors,conflicts:validation.conflicts};
+  const hasProgramChanges=validation.supported.some(function(change){return change.action!=="switch_program";}),hasSwitch=validation.supported.some(function(change){return change.action==="switch_program";}),expectedWrites=[MF_BASKETBALL_PROPOSAL_KEY];if(hasProgramChanges)expectedWrites.unshift(MF_BASKETBALL_OVERRIDES_KEY);if(hasSwitch)expectedWrites.splice(expectedWrites.length-1,0,MF_BASKETBALL_PROGRAM_STATE_KEY);
+  if(confirmApply!==true)return {applied:false,requiresConfirmation:true,expectedWrites:expectedWrites,actions:validation.supported,warnings:validation.warnings};
+  const beforeOverrides=localStorage.getItem(MF_BASKETBALL_OVERRIDES_KEY),beforeProgramState=localStorage.getItem(MF_BASKETBALL_PROGRAM_STATE_KEY),sessionsBefore=localStorage.getItem(MF_BASKETBALL_STORAGE_KEY),next=mfBasketballClone(mfBasketballReadOverrides().store),now=new Date(nowValue||new Date()).toISOString(),applied=[];
+  try{
+    validation.supported.forEach(function(change){
+      if(change.action==="switch_program"){const selected=mfBasketballSelectProgram(change.targetProgramId,now);if(!selected.ok)throw new Error(selected.error||"Program switch could not be saved.");applied.push({action:change.action,targetProgramId:change.targetProgramId});return;}
+      const session=mfBasketballEnsureOverrideSession(next,change.programId,change.programVersion,change.sessionId);
+      if(change.action==="modify_drill")session.modified[change.drillId]=Object.assign({},session.modified[change.drillId]||{},mfBasketballClone(change.fields),{source:"ai_proposal",proposalId:proposal.proposalId});
+      if(change.action==="add_drill")session.added[change.drillId]=Object.assign({},mfBasketballClone(change.drill),{source:"ai_proposal",addedByProposalId:proposal.proposalId});
+      if(change.action==="remove_drill")session.disabled[change.drillId]=true;
+      if(change.action==="reorder_drills")session.order=change.order.slice();else if(change.resultOrder)session.order=change.resultOrder.slice();
+      applied.push({action:change.action,programId:change.programId,sessionId:change.sessionId,drillId:change.drillId||null});
+    });
+    if(hasProgramChanges)mfBasketballWriteOverrides(next,now);
+    if(localStorage.getItem(MF_BASKETBALL_STORAGE_KEY)!==sessionsBefore)throw new Error("Basketball history changed unexpectedly; apply was rolled back.");
+    const appliedOverrides=localStorage.getItem(MF_BASKETBALL_OVERRIDES_KEY),appliedProgramState=localStorage.getItem(MF_BASKETBALL_PROGRAM_STATE_KEY);proposal.status="applied";proposal.updatedAt=now;proposal.applyState={appliedAt:now,applied:applied,warnings:validation.warnings,expectedWrites:expectedWrites,appliedFingerprint:mfBasketballFingerprint({overrides:appliedOverrides,programState:appliedProgramState})};proposal.undoSnapshot={beforeOverridesRaw:beforeOverrides,beforeProgramStateRaw:beforeProgramState,appliedOverridesRaw:appliedOverrides,appliedProgramStateRaw:appliedProgramState,createdAt:now};localStorage.setItem(MF_BASKETBALL_PROPOSAL_KEY,JSON.stringify(proposal));
+  }catch(e){mfBasketballRestoreRaw(MF_BASKETBALL_OVERRIDES_KEY,beforeOverrides);mfBasketballRestoreRaw(MF_BASKETBALL_PROGRAM_STATE_KEY,beforeProgramState);return {applied:false,errors:[e.message||"Basketball proposal apply failed and was rolled back."]};}
+  mfBasketballRenderProgramSurface();mfBasketballRenderProposalStatus();return {applied:true,appliedChanges:applied,expectedWrites:expectedWrites,warnings:validation.warnings};
+}
+
+function mfBasketballUndoProposal(confirmUndo,nowValue){
+  const proposal=mfBasketballGetProposal(),snapshot=proposal&&proposal.undoSnapshot;if(!proposal||proposal.status!=="applied"||!snapshot)return {undone:false,errors:["No valid basketball undo snapshot exists."]};
+  if(localStorage.getItem(MF_BASKETBALL_OVERRIDES_KEY)!==snapshot.appliedOverridesRaw||localStorage.getItem(MF_BASKETBALL_PROGRAM_STATE_KEY)!==snapshot.appliedProgramStateRaw)return {undone:false,conflict:true,errors:["Basketball settings changed after this proposal was applied; unsafe undo refused."]};
+  if(confirmUndo!==true)return {undone:false,requiresConfirmation:true,expectedWrites:[MF_BASKETBALL_OVERRIDES_KEY,MF_BASKETBALL_PROGRAM_STATE_KEY,MF_BASKETBALL_PROPOSAL_KEY]};
+  mfBasketballRestoreRaw(MF_BASKETBALL_OVERRIDES_KEY,snapshot.beforeOverridesRaw);mfBasketballRestoreRaw(MF_BASKETBALL_PROGRAM_STATE_KEY,snapshot.beforeProgramStateRaw);proposal.status="undone";proposal.updatedAt=new Date(nowValue||new Date()).toISOString();proposal.undoSnapshot=null;localStorage.setItem(MF_BASKETBALL_PROPOSAL_KEY,JSON.stringify(proposal));mfBasketballRenderProgramSurface();mfBasketballRenderProposalStatus();return {undone:true};
+}
+
+function mfBasketballRejectProposal(nowValue){
+  const proposal=mfBasketballGetProposal();if(!proposal||proposal.status!=="pending")return false;proposal.status="rejected";proposal.updatedAt=new Date(nowValue||new Date()).toISOString();localStorage.setItem(MF_BASKETBALL_PROPOSAL_KEY,JSON.stringify(proposal));mfBasketballRenderProposalStatus();return true;
 }
 
 let mfBasketballEditingId = null;
@@ -265,7 +520,7 @@ function mfBasketballDrillWasAttempted(input,trackingMode){
 function mfBasketballNormalizeDrillResult(input,options,errors){
   options=options||{};input=input&&typeof input==="object"&&!Array.isArray(input)?input:{};
   const drillId=String(input.drillId||"").trim(),trackingMode=String(input.trackingMode||"").trim();
-  if(!/^[a-z0-9][a-z0-9_]{2,79}$/.test(drillId))errors.push("Drill ID is missing or malformed.");
+  if(!/^[a-z0-9][a-z0-9_-]{2,79}$/.test(drillId))errors.push("Drill ID is missing or malformed.");
   if(MF_BASKETBALL_TRACKING_MODES.indexOf(trackingMode)===-1)errors.push("Drill tracking mode is unsupported.");
   const nameSnapshot=mfBasketballSnapshotText(input.nameSnapshot,"Drill name snapshot",160,errors);
   const plannedTargetSnapshot=mfBasketballNormalizePlannedTarget(input.plannedTargetSnapshot,trackingMode,errors);
@@ -417,7 +672,7 @@ function mfBasketballSaveSession(input,options){
 
 function mfBasketballBuildStructuredInput(payload){
   payload=payload&&typeof payload==="object"?payload:{};
-  const program=mfBasketballGetProgram(String(payload.programId||""),payload.programVersion),planned=program&&program.sessions.find(function(session){return session.id===payload.plannedSessionId;});
+  const program=payload.existingId&&payload.programSnapshot?payload.programSnapshot:mfBasketballGetResolvedProgram(String(payload.programId||""),payload.programVersion),planned=payload.existingId&&payload.plannedSnapshot?payload.plannedSnapshot:program&&program.sessions.find(function(session){return session.id===payload.plannedSessionId;});
   if(!program||!planned)return {ok:false,errors:["The planned basketball session is unavailable."],input:null};
   const supplied=Array.isArray(payload.drills)?payload.drills:[],byId={};supplied.forEach(function(result){if(result&&result.drillId)byId[result.drillId]=result;});
   const drills=planned.drills.map(function(definition){
@@ -485,8 +740,9 @@ function mfBasketballAggregate(sessions){
 }
 
 function mfBasketballFindDrillDefinition(drillId){
-  for(let p=0;p<MF_BASKETBALL_PROGRAMS.length;p++)for(let s=0;s<MF_BASKETBALL_PROGRAMS[p].sessions.length;s++){
-    const drill=MF_BASKETBALL_PROGRAMS[p].sessions[s].drills.find(function(item){return item.id===drillId;});if(drill)return drill;
+  for(let p=0;p<MF_BASKETBALL_PROGRAMS.length;p++){const program=mfBasketballGetResolvedProgram(MF_BASKETBALL_PROGRAMS[p].id,MF_BASKETBALL_PROGRAMS[p].version);for(let s=0;s<program.sessions.length;s++){
+    const drill=program.sessions[s].drills.find(function(item){return item.id===drillId;});if(drill)return drill;
+  }
   }
   return null;
 }
@@ -557,6 +813,59 @@ function mfBasketballElement(tag,className,textValue){
   const element=document.createElement(tag);if(className)element.className=className;if(textValue!=null)element.textContent=String(textValue);return element;
 }
 
+function mfBasketballChangeDescription(change){
+  if(change.action==="switch_program"){
+    const state=mfBasketballReadProgramState().state,from=mfBasketballGetProgram(state.activeProgramId,state.activeProgramVersion),to=mfBasketballGetProgram(change.targetProgramId,change.targetProgramVersion);
+    return "Switch active basketball program from "+(from?from.name:"No active program")+" to "+(to?to.name:change.targetProgramId)+". The selected program will start at Session 1. Basketball history will be preserved.";
+  }
+  const program=mfBasketballGetResolvedProgram(change.programId,change.programVersion),session=program&&program.sessions.find(function(item){return item.id===change.sessionId;}),drill=session&&session.drills.find(function(item){return item.id===change.drillId;});
+  if(change.action==="add_drill")return (change.drill&&change.drill.name||change.drillId)+" · "+mfBasketballDescribeTarget(change.drill||{})+" · Position "+(Number(change.position)+1)+" in "+(session?session.name:change.sessionId)+".";
+  if(change.action==="remove_drill")return "Remove "+(drill?drill.name:change.drillId)+" from future planned sessions. Historical sessions remain unchanged.";
+  if(change.action==="reorder_drills"){const names=(change.order||[]).map(function(id){const found=session&&session.drills.find(function(item){return item.id===id;});return found?found.name:id;});return "Set future order for "+(session?session.name:change.sessionId)+": "+names.join(" → ")+".";}
+  if(change.action==="modify_drill"){
+    const before=drill||{id:change.drillId,name:change.drillId,trackingMode:"completion"},after=Object.assign({},before,mfBasketballClone(change.fields||{})),parts=[];
+    if(change.fields&&change.fields.name!=null)parts.push("Name: "+before.name+" → "+after.name);
+    if(change.fields&&change.fields.target!=null)parts.push("Target: "+mfBasketballDescribeTarget(before)+" → "+mfBasketballDescribeTarget(after));
+    if(change.fields&&change.fields.confidence!=null)parts.push("Confidence tracking: "+(before.confidence?"On":"Off")+" → "+(after.confidence?"On":"Off"));
+    return before.name+"\n"+parts.join("\n");
+  }
+  return String(change.action||"Basketball change");
+}
+
+function mfBasketballCloseProposalReview(){
+  const overlay=document.getElementById("mfBasketballProposalReview");if(overlay)overlay.classList.remove("open");if(document.body&&document.body.classList)document.body.classList.remove("mf-basketball-proposal-open");
+}
+
+function mfBasketballRenderProposalStatus(){
+  const root=document.getElementById("mfBasketballProposalStatus");if(!root)return;const proposal=mfBasketballGetProposal();root.replaceChildren();root.hidden=true;root.className="mf-basketball-proposal-status";
+  if(!proposal)return;
+  if(proposal.status==="pending"){
+    root.hidden=false;root.appendChild(mfBasketballElement("strong","","Pending basketball proposal"));root.appendChild(document.createTextNode(" · "+proposal.summary));const review=mfBasketballElement("button","","REVIEW BASKETBALL PROPOSAL");review.type="button";review.addEventListener("click",mfBasketballOpenProposalReview);root.appendChild(review);
+  }else if(proposal.status==="applied"&&proposal.undoSnapshot){
+    root.hidden=false;root.className+=" applied";root.appendChild(mfBasketballElement("strong","","Basketball personalization applied"));root.appendChild(document.createTextNode(" · "+proposal.summary));const review=mfBasketballElement("button","","REVIEW / UNDO LAST APPLY");review.type="button";review.addEventListener("click",mfBasketballOpenProposalReview);root.appendChild(review);
+  }
+}
+
+function mfBasketballOpenProposalReview(){
+  const proposal=mfBasketballGetProposal();if(!proposal)return false;let overlay=document.getElementById("mfBasketballProposalReview");if(!overlay){overlay=mfBasketballElement("div","p960-overlay mf-basketball-proposal-overlay");overlay.id="mfBasketballProposalReview";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-labelledby","mfBasketballProposalReviewTitle");overlay.addEventListener("click",function(event){if(event.target===overlay)mfBasketballCloseProposalReview();});document.body.appendChild(overlay);}overlay.replaceChildren();
+  const panel=mfBasketballElement("div","p960-panel"),head=mfBasketballElement("div","p960-head"),title=mfBasketballElement("h2","","Basketball Proposal Review"),close=mfBasketballElement("button","","Close / Review Later");title.id="mfBasketballProposalReviewTitle";close.type="button";close.addEventListener("click",mfBasketballCloseProposalReview);head.append(title,close);panel.appendChild(head);
+  const summary=mfBasketballElement("p","mf-basketball-proposal-copy");summary.appendChild(mfBasketballElement("strong","",proposal.summary));panel.appendChild(summary);if(proposal.rationale)panel.appendChild(mfBasketballElement("p","mf-basketball-proposal-copy",proposal.rationale));
+  let validation=null;if(proposal.status==="pending")validation=mfBasketballValidateProposal(proposal);
+  const changes=validation&&validation.supported.length?validation.supported:proposal.changes;changes.forEach(function(change){const row=mfBasketballElement("div","p960-proposal-action"),badge=mfBasketballElement("span","p960-badge",String(change.action||"").replace(/_/g," ").toUpperCase());row.append(badge,document.createTextNode("\n"+mfBasketballChangeDescription(change)));panel.appendChild(row);});
+  const warnings=validation?validation.warnings:(proposal.applyState&&proposal.applyState.warnings)||[];warnings.forEach(function(warning){panel.appendChild(mfBasketballElement("div","mf-basketball-proposal-warning",warning));});
+  const message=mfBasketballElement("div","p960-msg");message.setAttribute("role","status");message.setAttribute("aria-live","polite");panel.appendChild(message);
+  const footer=mfBasketballElement("div","p960-footer");
+  if(proposal.status==="pending"){
+    if(!validation.valid)message.className="mf-basketball-proposal-error",message.textContent=validation.errors.join("\n");
+    else{const preview=mfBasketballApplyProposal(false);panel.appendChild(mfBasketballElement("p","mf-basketball-proposal-copy","Expected writes: "+preview.expectedWrites.join(", ")+". Basketball session history is never written."));}
+    const keep=mfBasketballElement("button","","Keep Current Basketball Program");keep.type="button";keep.addEventListener("click",function(){mfBasketballRejectProposal();mfBasketballCloseProposalReview();});
+    const apply=mfBasketballElement("button","p960-primary","Apply Supported Changes");apply.type="button";apply.disabled=!validation.valid;apply.addEventListener("click",function(){if(apply.dataset.confirm!=="true"){apply.dataset.confirm="true";apply.textContent="Confirm Apply";message.className="p960-msg";message.textContent="Confirm these future-program changes. Basketball history and logged results will remain untouched.";return;}const result=mfBasketballApplyProposal(true);if(!result.applied){message.className="mf-basketball-proposal-error";message.textContent=(result.errors||["Apply failed."]).join("\n");apply.dataset.confirm="false";apply.textContent="Apply Supported Changes";return;}mfBasketballCloseProposalReview();});footer.append(keep,apply);
+  }else if(proposal.status==="applied"&&proposal.undoSnapshot){
+    const undo=mfBasketballElement("button","p960-primary","Undo Last Basketball Apply");undo.type="button";undo.addEventListener("click",function(){if(undo.dataset.confirm!=="true"){const preview=mfBasketballUndoProposal(false);if(preview.conflict){message.className="mf-basketball-proposal-error";message.textContent=preview.errors.join("\n");return;}undo.dataset.confirm="true";undo.textContent="Confirm Undo";message.textContent="Restore the exact prior basketball personalization and program selection? History will remain untouched.";return;}const result=mfBasketballUndoProposal(true);if(!result.undone){message.className="mf-basketball-proposal-error";message.textContent=(result.errors||["Undo failed."]).join("\n");return;}mfBasketballCloseProposalReview();});footer.append(undo);
+  }
+  const footerClose=mfBasketballElement("button","","Close / Review Later");footerClose.type="button";footerClose.addEventListener("click",mfBasketballCloseProposalReview);footer.appendChild(footerClose);panel.appendChild(footer);overlay.appendChild(panel);overlay.classList.add("open");if(document.body&&document.body.classList)document.body.classList.add("mf-basketball-proposal-open");if(typeof close.focus==="function")close.focus();return true;
+}
+
 function mfBasketballDescribeTarget(drill){
   const target=drill.target||drill.plannedTargetSnapshot||{};
   if(drill.trackingMode==="confidence")return target.durationMinutes?target.durationMinutes+" planned minutes · Confidence 1–10":"Confidence 1–10";
@@ -573,10 +882,11 @@ function mfBasketballShowStructuredMessage(message,type){
 
 function mfBasketballRenderProgramSurface(){
   const select=document.getElementById("mfBasketballProgramSelect"),status=document.getElementById("mfBasketballProgramStatus"),summary=document.getElementById("mfBasketballProgramSummary"),nextRoot=document.getElementById("mfBasketballNextSession"),actions=document.getElementById("mfBasketballProgramActions");
+  mfBasketballRenderProposalStatus();
   if(!select||!status||!summary||!nextRoot)return;
   const prior=select.value;select.replaceChildren();const empty=mfBasketballElement("option","","Select a program");empty.value="";select.appendChild(empty);
   MF_BASKETBALL_PROGRAMS.forEach(function(program){const option=mfBasketballElement("option","",program.name);option.value=program.id;select.appendChild(option);});
-  const stored=mfBasketballReadProgramState(),program=mfBasketballGetProgram(stored.state.activeProgramId,stored.state.activeProgramVersion);
+  const stored=mfBasketballReadProgramState(),program=mfBasketballGetResolvedProgram(stored.state.activeProgramId,stored.state.activeProgramVersion);
   select.value=program?program.id:(prior&&mfBasketballGetProgram(prior)?prior:"");summary.replaceChildren();nextRoot.replaceChildren();
   if(!stored.parseOk){status.textContent="Program state is unavailable. Restore a valid backup or choose a program to replace it.";status.className="mf-basketball-program-status error";if(actions)actions.hidden=true;return;}
   if(!program){status.textContent="No structured program selected. Free-form logging remains available.";status.className="mf-basketball-program-status";summary.textContent="Choose a flexible session queue. Training advances only when you finish and explicitly choose Advance.";if(actions)actions.hidden=true;return;}
@@ -635,11 +945,11 @@ function mfBasketballOpenStructuredLogger(program,planned,existing){
 }
 
 function mfBasketballStartPlannedSession(){
-  const state=mfBasketballReadProgramState(),program=mfBasketballGetProgram(state.state.activeProgramId,state.state.activeProgramVersion),planned=program&&program.sessions[state.state.nextSessionIndex];if(!state.parseOk||!program||!planned){mfBasketballShowMessage(state.error||"Choose a basketball program first.","error");return;}mfBasketballOpenStructuredLogger(program,planned,null);
+  const state=mfBasketballReadProgramState(),program=mfBasketballGetResolvedProgram(state.state.activeProgramId,state.state.activeProgramVersion),planned=program&&program.sessions[state.state.nextSessionIndex];if(!state.parseOk||!program||!planned){mfBasketballShowMessage(state.error||"Choose a basketball program first.","error");return;}mfBasketballOpenStructuredLogger(program,planned,null);
 }
 
 function mfBasketballStartStructuredEdit(session){
-  const program=mfBasketballGetProgram(session.programId,session.programVersion),planned=program&&program.sessions.find(function(item){return item.id===session.plannedSessionId;});if(!program||!planned){mfBasketballShowMessage("This historical program version can be viewed but is not editable in the current templates.","error");return;}if(typeof showScreen==="function")showScreen("log");const section=document.getElementById("p6sec-basketball");if(section)section.classList.add("open");mfBasketballOpenStructuredLogger(program,planned,session);
+  const base=mfBasketballGetProgram(session.programId,session.programVersion);if(!base){mfBasketballShowMessage("This historical program version can be viewed but is not editable in the current templates.","error");return;}const program={id:session.programId,version:session.programVersion,name:session.programNameSnapshot||base.name},planned={id:session.plannedSessionId,name:session.plannedSessionNameSnapshot||"Planned Session",drills:(session.drills||[]).map(function(drill){const definition={id:drill.drillId,name:drill.nameSnapshot,trackingMode:drill.trackingMode};if(drill.plannedTargetSnapshot)definition.target=mfBasketballClone(drill.plannedTargetSnapshot);if(drill.confidence!=null||mfBasketballFindDrillDefinition(drill.drillId)&&mfBasketballFindDrillDefinition(drill.drillId).confidence)definition.confidence=true;return definition;})};if(typeof showScreen==="function")showScreen("log");const section=document.getElementById("p6sec-basketball");if(section)section.classList.add("open");mfBasketballOpenStructuredLogger(program,planned,session);
 }
 
 function mfBasketballCloseStructured(){const root=document.getElementById("mfBasketballStructuredLogger");if(root)root.hidden=true;if(document.body&&document.body.classList)document.body.classList.remove("mf-basketball-structured-open");mfBasketballStructuredContext=null;mfBasketballShowStructuredMessage("");}
@@ -663,7 +973,7 @@ function mfBasketballUpdateStructuredSummary(){
 function mfBasketballFinishFromUI(action){
   if(!mfBasketballStructuredContext||mfBasketballSaving)return;mfBasketballSaving=true;const advance=document.getElementById("mfBasketballFinishAdvance"),repeat=document.getElementById("mfBasketballFinishRepeat");if(advance)advance.disabled=true;if(repeat)repeat.disabled=true;
   try{
-    const context=mfBasketballStructuredContext,result=mfBasketballFinishStructuredSession({programId:context.programId,programVersion:context.programVersion,plannedSessionId:context.plannedSessionId,date:mfBasketballFormValue("mfBasketballStructuredDate"),minutes:mfBasketballFormValue("mfBasketballStructuredMinutes"),notes:mfBasketballFormValue("mfBasketballStructuredNotes"),drills:mfBasketballCollectStructuredDrills(),existingId:context.existingId},context.existingId?"edit":action);
+    const context=mfBasketballStructuredContext,programSnapshot=context.existingId?{id:context.programId,version:context.programVersion,name:document.getElementById("mfBasketballStructuredProgram").textContent}:null,result=mfBasketballFinishStructuredSession({programId:context.programId,programVersion:context.programVersion,plannedSessionId:context.plannedSessionId,date:mfBasketballFormValue("mfBasketballStructuredDate"),minutes:mfBasketballFormValue("mfBasketballStructuredMinutes"),notes:mfBasketballFormValue("mfBasketballStructuredNotes"),drills:mfBasketballCollectStructuredDrills(),existingId:context.existingId,programSnapshot:programSnapshot,plannedSnapshot:context.existingId?context.planned:null},context.existingId?"edit":action);
     if(!result.ok){mfBasketballShowStructuredMessage(result.errors.join("\n"),"error");return;}mfBasketballCloseStructured();mfBasketballRenderProgramSurface();mfBasketballRenderHistory();mfBasketballRenderStats();mfBasketballUpdateBadge();mfBasketballShowMessage(context.existingId?"Structured basketball session updated.":result.advanced?"Session saved. The program advanced to the next session.":"Session saved. This planned session remains next.","ok");
   }finally{mfBasketballSaving=false;if(advance)advance.disabled=false;if(repeat)repeat.disabled=false;}
 }
@@ -837,13 +1147,18 @@ function mfBasketballSessionsForRange(range,sessions){
 }
 
 function mfBasketballBuildExport(range,sessions,programStateValue){
-  const allSessions=Array.isArray(sessions)?sessions:[],selected=mfBasketballSessionsForRange(String(range||""),allSessions),stateResult=programStateValue&&programStateValue.state?programStateValue:programStateValue?mfBasketballParseProgramStateValue(programStateValue):mfBasketballReadProgramState(),program=stateResult.parseOk&&mfBasketballGetProgram(stateResult.state.activeProgramId,stateResult.state.activeProgramVersion),next=program&&program.sessions[stateResult.state.nextSessionIndex];if(!selected.length&&!program)return "";
-  const stats=mfBasketballAggregate(selected);let output="--- BASKETBALL ACTIVITY ---\n";
-  if(program){output+="Active program: "+program.name+" (v"+program.version+")\n";output+="Next planned session: "+next.name+" | Position "+(stateResult.state.nextSessionIndex+1)+" of "+program.sessions.length+"\n";output+="Next drills: "+next.drills.map(function(drill){return drill.name+" ["+mfBasketballDescribeTarget(drill)+"]";}).join("; ")+"\n";}
+  const allSessions=Array.isArray(sessions)?sessions:[],selected=mfBasketballSessionsForRange(String(range||""),allSessions),stateResult=programStateValue&&programStateValue.state?programStateValue:programStateValue?mfBasketballParseProgramStateValue(programStateValue):mfBasketballReadProgramState(),program=stateResult.parseOk&&mfBasketballGetResolvedProgram(stateResult.state.activeProgramId,stateResult.state.activeProgramVersion),next=program&&program.sessions[stateResult.state.nextSessionIndex];if(!selected.length&&!program)return "";
+  const stats=mfBasketballAggregate(selected),overrides=mfBasketballReadOverrides(),overrideCounts=mfBasketballOverrideCounts(overrides.store),proposal=mfBasketballGetProposal();let output="--- BASKETBALL ACTIVITY ---\n";
+  if(program){output+="Active program: "+program.name+" [programId="+program.id+", version="+program.version+"]\n";output+="Next planned session: "+next.name+" [sessionId="+next.id+"] | Position "+(stateResult.state.nextSessionIndex+1)+" of "+program.sessions.length+"\n";output+="Resolved next drills:\n";next.drills.forEach(function(drill,index){const source=drill.source==="ai_proposal"||drill.personalization?"personalized":"base";output+="  "+(index+1)+". "+drill.name+" [drillId="+drill.id+", mode="+drill.trackingMode+", source="+source+"] — "+mfBasketballDescribeTarget(drill)+"\n";});}
+  output+="Applied personalization: "+overrideCounts.modified+" modified, "+overrideCounts.added+" added, "+overrideCounts.disabled+" disabled, "+overrideCounts.reordered+" reordered session(s).\n";
+  output+="Pending basketball proposal: "+(proposal&&proposal.status==="pending"?proposal.summary+" ("+proposal.changes.length+" actions; review required)":"none")+".\n";
   if(selected.length)output+="Sessions: "+stats.totalSessions+" | Structured: "+stats.structuredSessions+" | Total minutes: "+stats.totalMinutes+" | Average minutes: "+stats.averageMinutes.toFixed(1)+"\n";
   if(stats.shooting.attempted>0)output+="Shooting: "+stats.shooting.made+" / "+stats.shooting.attempted+" ("+stats.shooting.percentage.toFixed(1)+"%)\n";
   if(stats.freeThrows.attempted>0)output+="Free throws: "+stats.freeThrows.made+" / "+stats.freeThrows.attempted+" ("+stats.freeThrows.percentage.toFixed(1)+"%)\n";
-  selected.forEach(function(session){let line="- "+session.date+" | "+(session.plannedSessionNameSnapshot||mfBasketballTypeLabel(session.type))+" | "+session.minutes+" min";if(session.programNameSnapshot)line+=" | program: "+session.programNameSnapshot+" v"+session.programVersion;if(session.dribblingMinutes!=null)line+=" | dribbling "+session.dribblingMinutes+" min";if(session.shooting)line+=" | shooting "+session.shooting.made+"/"+session.shooting.attempted;if(session.freeThrows)line+=" | FT "+session.freeThrows.made+"/"+session.freeThrows.attempted;if(session.notes)line+=" | notes: "+session.notes.replace(/\s+/g," ");output+=line+"\n";(session.drills||[]).forEach(function(drill){output+="  · "+drill.nameSnapshot+": "+mfBasketballDrillResultText(drill);if(!drill.skipped){const progression=mfBasketballProgressionForDrill(drill.drillId,allSessions);output+=(drill.confidence!=null?" | confidence "+drill.confidence+"/10":"")+" | "+progression.label+" — "+progression.guidance;}output+=(drill.notes?" | note: "+drill.notes.replace(/\s+/g," "):"")+"\n";});});
+  selected.forEach(function(session){let line="- "+session.date+" | "+(session.plannedSessionNameSnapshot||mfBasketballTypeLabel(session.type))+" | "+session.minutes+" min";if(session.programNameSnapshot)line+=" | program: "+session.programNameSnapshot+" v"+session.programVersion;if(session.dribblingMinutes!=null)line+=" | dribbling "+session.dribblingMinutes+" min";if(session.shooting)line+=" | shooting "+session.shooting.made+"/"+session.shooting.attempted;if(session.freeThrows)line+=" | FT "+session.freeThrows.made+"/"+session.freeThrows.attempted;if(session.notes)line+=" | notes: "+session.notes.replace(/\s+/g," ");output+=line+"\n";(session.drills||[]).forEach(function(drill){output+="  · "+drill.nameSnapshot+" [drillId="+drill.drillId+"]: "+mfBasketballDrillResultText(drill);if(!drill.skipped){const progression=mfBasketballProgressionForDrill(drill.drillId,allSessions);output+=(drill.confidence!=null?" | confidence "+drill.confidence+"/10":"")+" | "+progression.label+" — "+progression.guidance;}output+=(drill.notes?" | note: "+drill.notes.replace(/\s+/g," "):"")+"\n";});});
+  output+="Basketball rules: History and logged results are immutable. Skipped drills are neutral. The queue is session-driven and advances only through the user's Finish & Advance action. AI may propose, never auto-apply or auto-advance.\n";
+  output+="Basketball proposal contract: Return basketballProposal beside updates and/or habitProposal inside the existing MARCUSFIT_UPDATE markers. Use schemaVersion 1, proposalVersion 1, proposalId beginning bball-proposal-, summary, rationale, and changes. Supported actions: modify_drill (name, target, confidence only; never trackingMode), add_drill (stable bball-ai-…-vN drillId, supported mode/target, zero-based position), remove_drill (future disable), reorder_drills (complete resolved order), switch_program (existing built-in only; starts Session 1). Use the exact stable IDs above. Do not include history, results, queue advancement, workout, habit, profile, medication, or backup fields.\n";
+  output+="Example: {\"basketballProposal\":{\"schemaVersion\":1,\"proposalVersion\":1,\"proposalId\":\"bball-proposal-example-1\",\"summary\":\"Small target adjustment\",\"rationale\":\"Repeated evidence supports a modest change.\",\"changes\":[{\"action\":\"modify_drill\",\"programId\":\"guard_skills_3_session\",\"programVersion\":1,\"sessionId\":\"guard_a_handle_weak_hand\",\"drillId\":\"guard_behind_back_foundation\",\"fields\":{\"target\":{\"durationMinutes\":10}}}]}}\n";
   return output+"\n";
 }
 
@@ -860,34 +1175,57 @@ function mfBasketballValidateBackupProgramState(value){
   return parsed.state;
 }
 
+function mfBasketballValidateBackupOverrides(value){
+  const parsed=mfBasketballParseOverridesValue(value,{strict:true});if(!parsed.parseOk)throw new Error("Basketball overrides in backup are malformed: "+parsed.error);return parsed.store;
+}
+
+function mfBasketballValidateBackupProposal(value){
+  let parsed;try{parsed=typeof value==="string"?JSON.parse(value):value;}catch(e){throw new Error("Basketball proposal in backup is not valid JSON.");}
+  const proposal=mfBasketballNormalizeProposal(parsed),actions=["modify_drill","add_drill","remove_drill","reorder_drills","switch_program"];
+  if(!parsed||typeof parsed!=="object"||Array.isArray(parsed)||proposal.schemaVersion!==MF_BASKETBALL_PROPOSAL_SCHEMA_VERSION||proposal.proposalVersion!==1)throw new Error("Basketball proposal in backup has an unsupported schema/version.");
+  if(!/^bball-proposal-[a-z0-9][a-z0-9-]{2,79}$/i.test(proposal.proposalId)||["pending","applied","rejected","undone"].indexOf(proposal.status)===-1||!proposal.summary||!proposal.changes.length||proposal.changes.length>30)throw new Error("Basketball proposal in backup is malformed.");
+  if(proposal.changes.some(function(change){return !change||typeof change!=="object"||actions.indexOf(String(change.action||"").toLowerCase())===-1;}))throw new Error("Basketball proposal in backup contains an unsupported action.");
+  return proposal;
+}
+
+function mfBasketballOverrideCounts(store){
+  const counts={programs:0,modified:0,added:0,disabled:0,reordered:0};Object.keys(store.programs||{}).forEach(function(programId){counts.programs++;Object.keys(store.programs[programId].sessions||{}).forEach(function(sessionId){const session=store.programs[programId].sessions[sessionId];counts.modified+=Object.keys(session.modified||{}).length;counts.added+=Object.keys(session.added||{}).length;counts.disabled+=Object.keys(session.disabled||{}).length;if(session.order)counts.reordered++;});});return counts;
+}
+
+function mfBasketballMarkBackupKeyRecognized(summary){
+  if(summary.unknownKeyCount>0)summary.unknownKeyCount--;summary.warnings=(summary.warnings||[]).filter(function(warning){return !/key\(s\).*not recognized/i.test(warning);});if(summary.unknownKeyCount>0)summary.warnings.push(summary.unknownKeyCount+" key(s) in this backup are not recognized by the current app version.");
+}
+
 // Backup ownership and preview integration. Existing backups without this key remain valid.
 if(typeof p8IsMarcusFitKey==="function"){
   const mfBasketballLegacyIsMarcusFitKey=p8IsMarcusFitKey;
-  p8IsMarcusFitKey=function(key){return key===MF_BASKETBALL_STORAGE_KEY||key===MF_BASKETBALL_PROGRAM_STATE_KEY||mfBasketballLegacyIsMarcusFitKey(key);};
+  p8IsMarcusFitKey=function(key){return key===MF_BASKETBALL_STORAGE_KEY||key===MF_BASKETBALL_PROGRAM_STATE_KEY||key===MF_BASKETBALL_OVERRIDES_KEY||key===MF_BASKETBALL_PROPOSAL_KEY||mfBasketballLegacyIsMarcusFitKey(key);};
 }
 if(typeof p8492SummarizeBackup==="function"){
   const mfBasketballLegacySummarizeBackup=p8492SummarizeBackup;
   p8492SummarizeBackup=function(rawOrObj){
     const summary=mfBasketballLegacySummarizeBackup(rawOrObj),backup=typeof rawOrObj==="string"?function(){try{return JSON.parse(rawOrObj);}catch(e){return null;}}():rawOrObj;
-    summary.hasBasketballSessions=false;summary.basketballSessionCount=0;summary.hasBasketballProgramState=false;summary.basketballProgramName=null;summary.basketballNextSession=null;
+    summary.hasBasketballSessions=false;summary.basketballSessionCount=0;summary.hasBasketballProgramState=false;summary.basketballProgramName=null;summary.basketballNextSession=null;summary.hasBasketballOverrides=false;summary.basketballOverrideCounts={programs:0,modified:0,added:0,disabled:0,reordered:0};summary.hasBasketballProposal=false;summary.basketballProposalStatus=null;
     if(backup&&backup.data&&Object.prototype.hasOwnProperty.call(backup.data,MF_BASKETBALL_STORAGE_KEY)){
       summary.hasBasketballSessions=true;
-      try{const parsed=mfBasketballValidateBackupStore(backup.data[MF_BASKETBALL_STORAGE_KEY]);summary.basketballSessionCount=parsed.sessions.length;if(summary.unknownKeyCount>0)summary.unknownKeyCount--;summary.warnings=(summary.warnings||[]).filter(function(w){return !/key\(s\).*not recognized/i.test(w);});if(summary.unknownKeyCount>0)summary.warnings.push(summary.unknownKeyCount+" key(s) in this backup are not recognized by the current app version.");}catch(e){summary.warnings=(summary.warnings||[]).concat([e.message]);}
+      try{const parsed=mfBasketballValidateBackupStore(backup.data[MF_BASKETBALL_STORAGE_KEY]);summary.basketballSessionCount=parsed.sessions.length;mfBasketballMarkBackupKeyRecognized(summary);}catch(e){summary.warnings=(summary.warnings||[]).concat([e.message]);}
     }
     if(backup&&backup.data&&Object.prototype.hasOwnProperty.call(backup.data,MF_BASKETBALL_PROGRAM_STATE_KEY)){
       summary.hasBasketballProgramState=true;
-      try{const state=mfBasketballValidateBackupProgramState(backup.data[MF_BASKETBALL_PROGRAM_STATE_KEY]),program=mfBasketballGetProgram(state.activeProgramId,state.activeProgramVersion),next=program&&program.sessions[state.nextSessionIndex];summary.basketballProgramName=program&&program.name||null;summary.basketballNextSession=next&&next.name||null;if(summary.unknownKeyCount>0)summary.unknownKeyCount--;summary.warnings=(summary.warnings||[]).filter(function(w){return !/key\(s\).*not recognized/i.test(w);});if(summary.unknownKeyCount>0)summary.warnings.push(summary.unknownKeyCount+" key(s) in this backup are not recognized by the current app version.");}catch(e){summary.warnings=(summary.warnings||[]).concat([e.message]);}
+      try{const state=mfBasketballValidateBackupProgramState(backup.data[MF_BASKETBALL_PROGRAM_STATE_KEY]),program=mfBasketballGetProgram(state.activeProgramId,state.activeProgramVersion),next=program&&program.sessions[state.nextSessionIndex];summary.basketballProgramName=program&&program.name||null;summary.basketballNextSession=next&&next.name||null;mfBasketballMarkBackupKeyRecognized(summary);}catch(e){summary.warnings=(summary.warnings||[]).concat([e.message]);}
     }
+    if(backup&&backup.data&&Object.prototype.hasOwnProperty.call(backup.data,MF_BASKETBALL_OVERRIDES_KEY)){summary.hasBasketballOverrides=true;try{summary.basketballOverrideCounts=mfBasketballOverrideCounts(mfBasketballValidateBackupOverrides(backup.data[MF_BASKETBALL_OVERRIDES_KEY]));mfBasketballMarkBackupKeyRecognized(summary);}catch(e){summary.warnings=(summary.warnings||[]).concat([e.message]);}}
+    if(backup&&backup.data&&Object.prototype.hasOwnProperty.call(backup.data,MF_BASKETBALL_PROPOSAL_KEY)){summary.hasBasketballProposal=true;try{summary.basketballProposalStatus=mfBasketballValidateBackupProposal(backup.data[MF_BASKETBALL_PROPOSAL_KEY]).status;mfBasketballMarkBackupKeyRecognized(summary);}catch(e){summary.warnings=(summary.warnings||[]).concat([e.message]);}}
     return summary;
   };
 }
 if(typeof p8492FormatSummaryLines==="function"){
   const mfBasketballLegacyFormatSummaryLines=p8492FormatSummaryLines;
-  p8492FormatSummaryLines=function(summary){const lines=mfBasketballLegacyFormatSummaryLines(summary);const index=Math.max(0,lines.findIndex(function(line){return /^Approx size:/.test(line);}));lines.splice(index,0,"Basketball sessions: "+(summary.hasBasketballSessions?summary.basketballSessionCount:"not included"),"Basketball program: "+(summary.hasBasketballProgramState?(summary.basketballProgramName||"no active program")+(summary.basketballNextSession?" · Next: "+summary.basketballNextSession:""):"not included"));return lines;};
+  p8492FormatSummaryLines=function(summary){const lines=mfBasketballLegacyFormatSummaryLines(summary),counts=summary.basketballOverrideCounts||{},index=Math.max(0,lines.findIndex(function(line){return /^Approx size:/.test(line);}));lines.splice(index,0,"Basketball sessions: "+(summary.hasBasketballSessions?summary.basketballSessionCount:"not included"),"Basketball program: "+(summary.hasBasketballProgramState?(summary.basketballProgramName||"no active program")+(summary.basketballNextSession?" · Next: "+summary.basketballNextSession:""):"not included"),"Basketball personalization: "+(summary.hasBasketballOverrides?(counts.modified+counts.added+counts.disabled)+" drill override(s), "+counts.reordered+" reordered session(s)":"not included"),"Basketball proposal: "+(summary.hasBasketballProposal?summary.basketballProposalStatus:"not included"));return lines;};
 }
 if(typeof p8ValidateBackup==="function"){
   const mfBasketballLegacyValidateBackup=p8ValidateBackup;
-  p8ValidateBackup=function(raw){const backup=mfBasketballLegacyValidateBackup(raw);if(backup&&backup.data&&Object.prototype.hasOwnProperty.call(backup.data,MF_BASKETBALL_STORAGE_KEY))mfBasketballValidateBackupStore(backup.data[MF_BASKETBALL_STORAGE_KEY]);if(backup&&backup.data&&Object.prototype.hasOwnProperty.call(backup.data,MF_BASKETBALL_PROGRAM_STATE_KEY))mfBasketballValidateBackupProgramState(backup.data[MF_BASKETBALL_PROGRAM_STATE_KEY]);return backup;};
+  p8ValidateBackup=function(raw){const backup=mfBasketballLegacyValidateBackup(raw);if(backup&&backup.data&&Object.prototype.hasOwnProperty.call(backup.data,MF_BASKETBALL_STORAGE_KEY))mfBasketballValidateBackupStore(backup.data[MF_BASKETBALL_STORAGE_KEY]);if(backup&&backup.data&&Object.prototype.hasOwnProperty.call(backup.data,MF_BASKETBALL_PROGRAM_STATE_KEY))mfBasketballValidateBackupProgramState(backup.data[MF_BASKETBALL_PROGRAM_STATE_KEY]);if(backup&&backup.data&&Object.prototype.hasOwnProperty.call(backup.data,MF_BASKETBALL_OVERRIDES_KEY))mfBasketballValidateBackupOverrides(backup.data[MF_BASKETBALL_OVERRIDES_KEY]);if(backup&&backup.data&&Object.prototype.hasOwnProperty.call(backup.data,MF_BASKETBALL_PROPOSAL_KEY))mfBasketballValidateBackupProposal(backup.data[MF_BASKETBALL_PROPOSAL_KEY]);return backup;};
 }
 
 // Late wrappers preserve all earlier History, Stats, navigation, and export behavior.
@@ -914,11 +1252,63 @@ if(typeof genExport==="function"){
   };
 }
 
+// Final-load composition over the accepted habit extension hook. The function
+// passed in is always the live authoritative core applySync binding from file 12.
+let mfBasketballLegacySyncExtension=null;
+function mfBasketballHandleSyncExtension(runCoreSync){
+    const input=document.getElementById("syncInput"),res=document.getElementById("syncResult"),raw=input&&input.value||"",match=raw.match(/MARCUSFIT_UPDATE_START([\s\S]*?)MARCUSFIT_UPDATE_END/);
+    if(!match)return false;
+    const inner=match[1].trim().replace(/^```[a-zA-Z]*\n?/,"").replace(/\n?```$/,"").trim();let payload;
+    try{payload=JSON.parse(inner);}catch(e){return mfBasketballLegacySyncExtension?mfBasketballLegacySyncExtension(runCoreSync):false;}
+    if(!payload||Array.isArray(payload)||!payload.basketballProposal)return mfBasketballLegacySyncExtension?mfBasketballLegacySyncExtension(runCoreSync):false;
+    const basketballExisting=mfBasketballGetProposal(),basketballValidation=basketballExisting&&basketballExisting.status==="pending"?{valid:false,errors:["A basketball proposal is already pending. Review or dismiss it before importing another."]}:mfBasketballValidateProposal(payload.basketballProposal);
+    let habitValidation=null,habitExisting=null;
+    if(payload.habitProposal&&typeof p960ValidateHabitProposal==="function"){
+      habitExisting=typeof p960GetHabitProposal==="function"?p960GetHabitProposal():null;habitValidation=habitExisting&&habitExisting.status==="pending"?{valid:false,errors:["A habit proposal is already pending. Review or dismiss it before importing another."]}:p960ValidateHabitProposal(payload.habitProposal);
+    }
+    const importErrors=[];if(!basketballValidation.valid)importErrors.push.apply(importErrors,basketballValidation.errors||["Basketball proposal is invalid."]);if(payload.habitProposal&&(!habitValidation||!habitValidation.valid))importErrors.push.apply(importErrors,habitValidation&&habitValidation.errors||["Habit proposal is invalid."]);
+    if(importErrors.length){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Sync proposal import rejected before any proposal or core processing:\n"+importErrors.join("\n");}return true;}
+    const updates=Array.isArray(payload.updates)?payload.updates:[],habitBefore=localStorage.getItem("mf-habit-proposal"),basketballBefore=localStorage.getItem(MF_BASKETBALL_PROPOSAL_KEY);let coreMessage="";
+    if(updates.length){try{input.value="MARCUSFIT_UPDATE_START\n"+JSON.stringify(updates,null,2)+"\nMARCUSFIT_UPDATE_END";runCoreSync();coreMessage=res&&res.textContent||"";}finally{input.value=raw;}}
+    try{
+      if(payload.habitProposal){const importedHabit=p960ImportHabitProposal(payload.habitProposal);if(!importedHabit.valid)throw new Error((importedHabit.errors||["Habit proposal import failed."]).join(" "));}
+      const importedBasketball=mfBasketballImportProposal(payload.basketballProposal);if(!importedBasketball.valid)throw new Error((importedBasketball.errors||["Basketball proposal import failed."]).join(" "));
+    }catch(e){mfBasketballRestoreRaw("mf-habit-proposal",habitBefore);mfBasketballRestoreRaw(MF_BASKETBALL_PROPOSAL_KEY,basketballBefore);if(res){res.style.display="block";res.style.color="var(--red)";res.textContent=(updates.length?"Core program sync completed, but proposal imports were rolled back together. ":"")+String(e.message||e);}return true;}
+    if(res){const parts=[];if(updates.length)parts.push("Program sync processed.");if(payload.habitProposal)parts.push("Habit changes are pending explicit review.");parts.push(updates.length||payload.habitProposal?"Basketball changes are pending explicit review.":"Basketball proposal imported. Review required before any basketball program changes are applied.");res.style.display="block";res.style.color="var(--yellow)";res.textContent=parts.join(" ")+(coreMessage&&/skipped|error|rollback|invalid/i.test(coreMessage)?"\n\nCore Sync details:\n"+coreMessage:"");}
+    mfBasketballRenderProposalStatus();mfBasketballOpenProposalReview();return true;
+}
+if(typeof p960HandleSyncExtension==="function"){
+  mfBasketballLegacySyncExtension=p960HandleSyncExtension;
+  p960HandleSyncExtension=mfBasketballHandleSyncExtension;
+}
+
 function mfBasketballDebug(){
-  const state=mfBasketballReadStore(),programState=mfBasketballReadProgramState(),program=mfBasketballGetProgram(programState.state.activeProgramId,programState.state.activeProgramVersion),stats=mfBasketballAggregate(state.sessions),dates=state.sessions.map(function(session){return session.date;}).sort();
-  return {appVersion:typeof APP_VERSION!=="undefined"?APP_VERSION:null,storageKey:MF_BASKETBALL_STORAGE_KEY,programStateKey:MF_BASKETBALL_PROGRAM_STATE_KEY,keyExists:state.keyExists,parseStatus:state.parseOk?"valid":"invalid",schemaVersion:state.schemaVersion,sessionCount:state.sessions.length,structuredSessionCount:stats.structuredSessions,invalidRecordCount:state.invalidRecordCount,totalMinutes:stats.totalMinutes,dateRange:dates.length?{first:dates[0],last:dates[dates.length-1]}:null,duplicateIds:state.duplicateIds.slice(),activeProgram:program?{id:program.id,version:program.version,name:program.name,nextSessionIndex:programState.state.nextSessionIndex,nextSessionId:program.sessions[programState.state.nextSessionIndex].id}:null,programStateParseStatus:programState.parseOk?"valid":"invalid",backupCoverage:{sessions:typeof p8IsMarcusFitKey==="function"?p8IsMarcusFitKey(MF_BASKETBALL_STORAGE_KEY):false,programState:typeof p8IsMarcusFitKey==="function"?p8IsMarcusFitKey(MF_BASKETBALL_PROGRAM_STATE_KEY):false},readOnly:true,error:state.error||programState.error};
+  const state=mfBasketballReadStore(),programState=mfBasketballReadProgramState(),program=mfBasketballGetResolvedProgram(programState.state.activeProgramId,programState.state.activeProgramVersion),stats=mfBasketballAggregate(state.sessions),dates=state.sessions.map(function(session){return session.date;}).sort();
+  return {appVersion:typeof APP_VERSION!=="undefined"?APP_VERSION:null,storageKey:MF_BASKETBALL_STORAGE_KEY,programStateKey:MF_BASKETBALL_PROGRAM_STATE_KEY,keyExists:state.keyExists,parseStatus:state.parseOk?"valid":"invalid",schemaVersion:state.schemaVersion,sessionCount:state.sessions.length,structuredSessionCount:stats.structuredSessions,invalidRecordCount:state.invalidRecordCount,totalMinutes:stats.totalMinutes,dateRange:dates.length?{first:dates[0],last:dates[dates.length-1]}:null,duplicateIds:state.duplicateIds.slice(),activeProgram:program?{id:program.id,version:program.version,name:program.name,nextSessionIndex:programState.state.nextSessionIndex,nextSessionId:program.sessions[programState.state.nextSessionIndex].id}:null,programStateParseStatus:programState.parseOk?"valid":"invalid",backupCoverage:{sessions:typeof p8IsMarcusFitKey==="function"?p8IsMarcusFitKey(MF_BASKETBALL_STORAGE_KEY):false,programState:typeof p8IsMarcusFitKey==="function"?p8IsMarcusFitKey(MF_BASKETBALL_PROGRAM_STATE_KEY):false,overrides:typeof p8IsMarcusFitKey==="function"?p8IsMarcusFitKey(MF_BASKETBALL_OVERRIDES_KEY):false,proposal:typeof p8IsMarcusFitKey==="function"?p8IsMarcusFitKey(MF_BASKETBALL_PROPOSAL_KEY):false},readOnly:true,error:state.error||programState.error};
 }
 window.mfBasketballDebug=mfBasketballDebug;
+
+function mfBasketballOverridesDebug(){
+  const parsed=mfBasketballReadOverrides(),counts=mfBasketballOverrideCounts(parsed.store),state=mfBasketballReadProgramState().state;return {schemaVersion:parsed.store.schemaVersion,keyExists:parsed.keyExists,parseStatus:parsed.parseOk?"valid":"invalid",activeProgram:state.activeProgramId,overrideProgramCount:counts.programs,modifiedDrillCount:counts.modified,addedDrillCount:counts.added,disabledDrillCount:counts.disabled,reorderedSessionCount:counts.reordered,expectedWriteKeys:[MF_BASKETBALL_OVERRIDES_KEY,MF_BASKETBALL_PROPOSAL_KEY,MF_BASKETBALL_PROGRAM_STATE_KEY],backupCoverage:typeof p8IsMarcusFitKey==="function"&&p8IsMarcusFitKey(MF_BASKETBALL_OVERRIDES_KEY),warnings:parsed.error?[parsed.error]:[],readOnly:true};
+}
+
+function mfBasketballProposalDebug(){
+  const raw=localStorage.getItem(MF_BASKETBALL_PROPOSAL_KEY),proposal=mfBasketballGetProposal(),validation=proposal&&proposal.status==="pending"?mfBasketballValidateProposal(proposal):null,preview=proposal&&proposal.status==="pending"?mfBasketballApplyProposal(false):null;return {proposalExists:!!proposal,parseStatus:raw===null?"missing":proposal?"valid":"invalid",schemaVersion:proposal&&proposal.schemaVersion,proposalId:proposal&&proposal.proposalId,status:proposal&&proposal.status,actionCounts:proposal?proposal.changes.reduce(function(out,change){out[change.action]=(out[change.action]||0)+1;return out;},{}):{},validationErrors:validation?validation.errors:[],validationWarnings:validation?validation.warnings:(proposal&&proposal.validation&&proposal.validation.warnings)||[],conflicts:validation?validation.conflicts:[],undoAvailability:!!(proposal&&proposal.status==="applied"&&proposal.undoSnapshot),expectedWriteKeys:preview&&preview.expectedWrites||proposal&&proposal.applyState&&proposal.applyState.expectedWrites||[MF_BASKETBALL_PROPOSAL_KEY],backupCoverage:typeof p8IsMarcusFitKey==="function"&&p8IsMarcusFitKey(MF_BASKETBALL_PROPOSAL_KEY),readOnly:true};
+}
+
+function mfBasketballProposalSelfTest(){
+  const keys=[MF_BASKETBALL_STORAGE_KEY,MF_BASKETBALL_PROGRAM_STATE_KEY,MF_BASKETBALL_OVERRIDES_KEY,MF_BASKETBALL_PROPOSAL_KEY],before={};keys.forEach(function(key){before[key]=localStorage.getItem(key);});const results=[];function check(name,passed){results.push({name:name,passed:!!passed});}
+  try{
+    mfBasketballRestoreRaw(MF_BASKETBALL_OVERRIDES_KEY,null);mfBasketballRestoreRaw(MF_BASKETBALL_PROPOSAL_KEY,null);mfBasketballSelectProgram("guard_skills_3_session","2026-08-28T12:00:00.000Z");const historyBefore=localStorage.getItem(MF_BASKETBALL_STORAGE_KEY),proposal={schemaVersion:1,proposalVersion:1,proposalId:"bball-proposal-self-test-1",summary:"Self-test target",rationale:"Read-only diagnostic transaction.",changes:[{action:"modify_drill",programId:"guard_skills_3_session",programVersion:1,sessionId:"guard_a_handle_weak_hand",drillId:"guard_behind_back_foundation",fields:{target:{durationMinutes:10}}}]};
+    check("import",mfBasketballImportProposal(proposal,"2026-08-28T12:01:00.000Z").valid);check("preview is write-free",mfBasketballApplyProposal(false).requiresConfirmation&&localStorage.getItem(MF_BASKETBALL_OVERRIDES_KEY)===null);check("apply",mfBasketballApplyProposal(true,"2026-08-28T12:02:00.000Z").applied);check("resolved target",mfBasketballGetResolvedProgram("guard_skills_3_session",1).sessions[0].drills.find(function(drill){return drill.id==="guard_behind_back_foundation";}).target.durationMinutes===10);check("history unchanged",localStorage.getItem(MF_BASKETBALL_STORAGE_KEY)===historyBefore);check("undo",mfBasketballUndoProposal(true,"2026-08-28T12:03:00.000Z").undone&&localStorage.getItem(MF_BASKETBALL_OVERRIDES_KEY)===null);
+    proposal.proposalId="bball-proposal-self-test-2";check("second import",mfBasketballImportProposal(proposal,"2026-08-28T12:04:00.000Z").valid);check("second apply",mfBasketballApplyProposal(true,"2026-08-28T12:05:00.000Z").applied);const changed=mfBasketballReadOverrides().store;changed.updatedAt="2026-08-28T12:06:00.000Z";localStorage.setItem(MF_BASKETBALL_OVERRIDES_KEY,JSON.stringify(changed));check("unsafe undo refused",mfBasketballUndoProposal(true).conflict===true);
+  }catch(e){results.push({name:"unexpected error",passed:false,error:String(e&&e.message||e)});}finally{keys.forEach(function(key){mfBasketballRestoreRaw(key,before[key]);});mfBasketballRenderProgramSurface();mfBasketballRenderProposalStatus();}
+  check("stores restored byte-for-byte",keys.every(function(key){return localStorage.getItem(key)===before[key];}));return {passed:results.every(function(result){return result.passed;}),results:results,restored:true,readOnlyAfterCompletion:true};
+}
+
+window.mfBasketballOverridesDebug=mfBasketballOverridesDebug;
+window.mfBasketballProposalDebug=mfBasketballProposalDebug;
+window.mfBasketballProposalSelfTest=mfBasketballProposalSelfTest;
 
 // Dependency-free Node tests receive pure primitives without expanding the
 // production browser's public/global surface.
@@ -944,7 +1334,22 @@ if(typeof process!=="undefined"&&process&&process.versions&&process.versions.nod
     mfBasketballNormalizeDrillResult:mfBasketballNormalizeDrillResult,
     mfBasketballDrillHistory:mfBasketballDrillHistory,
     mfBasketballProgressionForDrill:mfBasketballProgressionForDrill,
-    mfBasketballValidateBackupProgramState:mfBasketballValidateBackupProgramState
+    mfBasketballValidateBackupProgramState:mfBasketballValidateBackupProgramState,
+    mfBasketballDefaultOverrides:mfBasketballDefaultOverrides,
+    mfBasketballParseOverridesValue:mfBasketballParseOverridesValue,
+    mfBasketballReadOverrides:mfBasketballReadOverrides,
+    mfBasketballGetResolvedProgram:mfBasketballGetResolvedProgram,
+    mfBasketballValidateTarget:mfBasketballValidateTarget,
+    mfBasketballValidateProposal:mfBasketballValidateProposal,
+    mfBasketballImportProposal:mfBasketballImportProposal,
+    mfBasketballGetProposal:mfBasketballGetProposal,
+    mfBasketballApplyProposal:mfBasketballApplyProposal,
+    mfBasketballUndoProposal:mfBasketballUndoProposal,
+    mfBasketballRejectProposal:mfBasketballRejectProposal,
+    mfBasketballValidateBackupOverrides:mfBasketballValidateBackupOverrides,
+    mfBasketballValidateBackupProposal:mfBasketballValidateBackupProposal,
+    mfBasketballFingerprint:mfBasketballFingerprint,
+    mfBasketballHandleSyncExtension:mfBasketballHandleSyncExtension
   };
 }
 
@@ -954,8 +1359,8 @@ function mfBasketballInit(){
   if(programSelect)programSelect.addEventListener("click",mfBasketballChooseProgramFromUI);if(restart)restart.addEventListener("click",function(){mfBasketballOpenProgramDialog({kind:"restart"});});if(programConfirm)programConfirm.addEventListener("click",mfBasketballConfirmProgramAction);if(programCancel)programCancel.addEventListener("click",mfBasketballCloseProgramDialog);if(closeStructured)closeStructured.addEventListener("click",mfBasketballCloseStructured);if(finishAdvance)finishAdvance.addEventListener("click",function(){mfBasketballFinishFromUI("advance");});if(finishRepeat)finishRepeat.addEventListener("click",function(){mfBasketballFinishFromUI("repeat");});
   if(dialog)dialog.addEventListener("click",function(event){if(event.target===dialog)mfBasketballCloseDelete();});
   if(programDialog)programDialog.addEventListener("click",function(event){if(event.target===programDialog)mfBasketballCloseProgramDialog();});
-  if(document&&typeof document.addEventListener==="function")document.addEventListener("keydown",function(event){if(event.key!=="Escape")return;if(mfBasketballPendingDeleteId)mfBasketballCloseDelete();else if(mfBasketballPendingProgramAction)mfBasketballCloseProgramDialog();});
-  mfBasketballResetForm();mfBasketballRenderProgramSurface();mfBasketballRenderHistory();mfBasketballRenderStats();
+  if(document&&typeof document.addEventListener==="function")document.addEventListener("keydown",function(event){if(event.key!=="Escape")return;const proposalReview=document.getElementById("mfBasketballProposalReview");if(proposalReview&&proposalReview.classList.contains("open"))mfBasketballCloseProposalReview();else if(mfBasketballPendingDeleteId)mfBasketballCloseDelete();else if(mfBasketballPendingProgramAction)mfBasketballCloseProgramDialog();});
+  mfBasketballResetForm();mfBasketballRenderProgramSurface();mfBasketballRenderProposalStatus();mfBasketballRenderHistory();mfBasketballRenderStats();
 }
 
 mfBasketballInit();
