@@ -1,5 +1,14 @@
 # MarcusFit Project Handoff
 
+## Active implementation candidate
+
+MarcusFit 10.3.0 basketball-specific AI Sync is under development on
+`codex/10-3-0-basketball-ai-sync` from exact accepted baseline
+`28053354b0ffc1654a398456d5fc7447059340e5`. It adds sparse future-program
+overrides and review-first basketball proposals without changing accepted core
+Sync or historical basketball records. This candidate is not accepted and must
+remain in a draft PR until manual QA is explicitly approved.
+
 ## Current accepted state
 
 MarcusFit 10.2.0 is accepted after full automated and real-device manual QA.

@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.2.0 — accepted
+MarcusFit 10.3.0 — implementation candidate awaiting manual QA
 
 ## Architecture
 
@@ -74,6 +74,13 @@ MarcusFit 10.2.0 — accepted
 - Partial sessions preserve skipped drills without counting them as progression exposures
 - Deterministic local guidance uses recent same-drill exposures and never mutates a program automatically
 
+### Basketball AI Sync (`mf-basketball-program-overrides`, `mf-basketball-proposal`)
+- Built-in basketball templates remain deeply frozen; sparse schema-1 overrides resolve only future planned sessions
+- AI may propose bounded drill modification, stable-ID addition, future disable, within-session reorder, or a switch among built-in programs
+- Proposals import as pending and require review plus a second explicit confirmation before applying
+- Expected-state fingerprints refuse stale apply, and one-level undo refuses to overwrite later user changes
+- Basketball session history and stored drill snapshots are never rewritten by proposal apply or undo
+
 ### Backup / Restore
 - Full backup serializes all MarcusFit-owned localStorage keys to a JSON blob with an `appVersion` field
 - Restore validates schema before applying
@@ -88,6 +95,8 @@ MarcusFit 10.2.0 — accepted
 | `mf-current-draft` | Current workout draft session |
 | `mf-basketball-sessions` | Versioned basketball session records |
 | `mf-basketball-program-state` | Active basketball program and next-session queue position |
+| `mf-basketball-program-overrides` | Sparse future-program basketball personalization overlays |
+| `mf-basketball-proposal` | Basketball proposal review, apply metadata, and safe undo snapshot |
 | `mf-user-profile` | Identity, units, gym labels, and display preferences including text size |
 | `day-YYYY-MM-DD` | Daily body metrics + habits |
 | `day-YYYY-MM-DD-wo` | Workout sets for that day |
@@ -114,7 +123,7 @@ MarcusFit 10.2.0 — accepted
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.2.0";
+const APP_VERSION      = "10.3.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
@@ -128,4 +137,4 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.1.3** — Program-day integrity and historical identity repair (accepted)
 - **v10.1.4** — Mobile accessibility, Sync/settings organization, and Habits UI (accepted)
 - **v10.2.0** — Basketball programs and progression (accepted)
-- **v10.3.0** — Basketball-specific AI Sync
+- **v10.3.0** — Basketball-specific AI Sync (implementation candidate awaiting manual QA)

@@ -16,7 +16,7 @@ baseline `8308e7c57135e1bbb2ab8756c571805aa2819c78`.
 | `features/09-progression-base.js` | accepted base lookup, progression, diagnostics, specialization helpers | resolved program, workout logs; corrected by file 18 |
 | `features/10-workout-logging.js` | workout render/collect/save/load and review/save flow | daily state, progression, resolved program |
 | `sync/11-ai-export.js` | base range/log/program/profile/proposal export and `_exp` | all read models; extended by 17–20 and 22 |
-| `sync/12-ai-sync.js` | accepted parse/validate/plan/apply/rollback flow | lifecycle, proposals; extended by habits in 20 |
+| `sync/12-ai-sync.js` | accepted authoritative parse/validate/plan/apply/rollback flow | lifecycle, proposals; late extension hook composed by habits in 20 and basketball in 22 |
 | `features/13-shared-ui.js` | collapse/badge/sticky behavior and three `window.load` listeners | daily/workout and final wrapped bindings |
 | `features/14-history.js` | discovery, filters, search, rendering/reopen | daily/workout; extended by habits and basketball |
 | `features/15-stats.js` | base analytics calculation/rendering | daily/workout; extended by habits/adherence/basketball |
@@ -26,7 +26,7 @@ baseline `8308e7c57135e1bbb2ab8756c571805aa2819c78`.
 | `features/19-recurring-adherence.js` | recurring schemas/date math/events/UI/Stats/export/debug wrappers | shared daily records, Stats/export |
 | `features/20-habits.js` | definitions/manager/proposals/daily/History/Stats/export/Sync hook/debug | onboarding/profile, daily, History/Stats/export and canonical applySync |
 | `boot/21-app-boot.js` | early lifecycle/day-integrity migration, navigation, and synchronous profile/onboarding/program/adherence initialization | every preceding runtime boundary |
-| `features/22-basketball.js` | basketball templates, queue state, free-form/structured sessions, deterministic drill progression, UI, History/Stats/export/backup wrappers, immediate initialization | final pre-basketball functions and live `tDate`; never core Sync |
+| `features/22-basketball.js` | immutable basketball templates, sparse resolved-program overlays, review-first AI proposals, queue state, free-form/structured sessions, deterministic drill progression, UI, History/Stats/export/backup wrappers, final Sync-extension dispatcher, immediate initialization | final pre-basketball functions, habit Sync hook, and live `tDate`; never replaces or captures a stale core Sync implementation |
 
 ## Dependency direction
 
