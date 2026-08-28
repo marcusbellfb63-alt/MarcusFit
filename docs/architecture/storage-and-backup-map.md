@@ -1,7 +1,8 @@
 # Storage and backup map
 
-The effective `p8IsMarcusFitKey()` predicate still owns 15 exact keys or key
-patterns. No key, schema, default, migration, or replacement behavior changed.
+The effective `p8IsMarcusFitKey()` predicate owns 16 exact keys or key patterns.
+10.2.0 adds one independent basketball program-state key; existing schemas and
+replacement restore behavior remain compatible.
 
 | Key/pattern | Owner |
 |---|---|
@@ -20,6 +21,7 @@ patterns. No key, schema, default, migration, or replacement behavior changed.
 | `mf-habit-definitions` | habits |
 | `mf-habit-proposal` | habits/Sync proposal bridge |
 | `mf-basketball-sessions` | basketball |
+| `mf-basketball-program-state` | active basketball program and queue position |
 
 ## Backup/restore contract
 
@@ -27,7 +29,7 @@ patterns. No key, schema, default, migration, or replacement behavior changed.
 2. Creation copies exact raw strings into schema-1 `data` with current `APP_VERSION` metadata.
 3. Preview summarizes without writing; known preview quirks remain unchanged.
 4. Validation accepts current/older optional-key absence and rejects malformed
-   envelopes or malformed basketball data when that optional key is present.
+   envelopes, basketball sessions, or basketball program state when present.
 5. Restore captures a safety backup, deletes all currently owned keys, restores
    only accepted incoming keys as raw strings, repairs recoverable legacy
    virtual-day parents, validates, then reloads.
@@ -37,6 +39,8 @@ full backup is deleted. Shared daily-record unknown fields, lifecycle raw
 snapshots, profile/proposal unknown fields, and old workout IDs remain governed
 by their accepted feature normalizers and writers.
 
-10.1.3 adds no key or schema-version bump. Recovered `dayAdditions` use existing
-fields (`source`, `reason`, and `meta.migrationVersion/evidence`); workout and
-daily log strings are never rewritten by the migration.
+10.2.0 keeps `mf-basketball-sessions` at schema 1 and adds optional structured
+metadata to new records. Legacy free-form records are normalized without eager
+rewrites. `mf-basketball-program-state` uses schema 1 and stores only active
+program identity/version, next-session index, and timestamps. A legacy backup
+without that optional key remains valid and restores with no active program.

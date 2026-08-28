@@ -86,6 +86,7 @@ No arbitrary delay may be introduced. External scripts must use ordered classic
 - `mf-habit-definitions`
 - `mf-habit-proposal`
 - `mf-basketball-sessions`
+- `mf-basketball-program-state` (added in 10.2.0 after the extraction phase)
 
 No key may be added during extraction. Restore ordering remains
 `p8ValidateBackup` → `p8MigrateBackup` → `p8492SummarizeBackup` →

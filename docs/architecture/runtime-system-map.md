@@ -26,7 +26,7 @@ baseline `8308e7c57135e1bbb2ab8756c571805aa2819c78`.
 | `features/19-recurring-adherence.js` | recurring schemas/date math/events/UI/Stats/export/debug wrappers | shared daily records, Stats/export |
 | `features/20-habits.js` | definitions/manager/proposals/daily/History/Stats/export/Sync hook/debug | onboarding/profile, daily, History/Stats/export and canonical applySync |
 | `boot/21-app-boot.js` | early lifecycle/day-integrity migration, navigation, and synchronous profile/onboarding/program/adherence initialization | every preceding runtime boundary |
-| `features/22-basketball.js` | isolated basketball store/UI/History/Stats/export/backup wrappers and immediate initialization | final pre-basketball functions and live `tDate` |
+| `features/22-basketball.js` | basketball templates, queue state, free-form/structured sessions, deterministic drill progression, UI, History/Stats/export/backup wrappers, immediate initialization | final pre-basketball functions and live `tDate`; never core Sync |
 
 ## Dependency direction
 

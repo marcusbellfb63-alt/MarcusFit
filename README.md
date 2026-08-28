@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.1.4 — accepted
+MarcusFit 10.2.0 — accepted
 
 ## Architecture
 
@@ -63,7 +63,16 @@ MarcusFit 10.1.4 — accepted
 - Versioned, independent session store supporting multiple sessions per date
 - Required date, stable session type, and positive minutes
 - Optional dribbling, shooting, free throws, and notes
+- Additive structured records snapshot stable program/session/drill identity and user-facing names
 - Included in History, Stats, backups, and AI exports without affecting lifting progression, habits, or AI Sync
+
+### Basketball Programs (`mf-basketball-program-state`)
+- Session-driven, cyclical queue with no weekly schedule or missed-session penalties
+- Built-in Fundamentals, Guard Skills, and Shooting Focus templates use stable versioned identities
+- Drill tracking is basketball-specific: confidence, duration, makes target, shooting benchmark, count, or completion
+- Finish & Advance moves the queue only after a successful structured save; Finish & Repeat leaves the same session next
+- Partial sessions preserve skipped drills without counting them as progression exposures
+- Deterministic local guidance uses recent same-drill exposures and never mutates a program automatically
 
 ### Backup / Restore
 - Full backup serializes all MarcusFit-owned localStorage keys to a JSON blob with an `appVersion` field
@@ -78,6 +87,7 @@ MarcusFit 10.1.4 — accepted
 | `mf-recommendations` | AI day recommendations |
 | `mf-current-draft` | Current workout draft session |
 | `mf-basketball-sessions` | Versioned basketball session records |
+| `mf-basketball-program-state` | Active basketball program and next-session queue position |
 | `mf-user-profile` | Identity, units, gym labels, and display preferences including text size |
 | `day-YYYY-MM-DD` | Daily body metrics + habits |
 | `day-YYYY-MM-DD-wo` | Workout sets for that day |
@@ -104,7 +114,7 @@ MarcusFit 10.1.4 — accepted
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.1.4";
+const APP_VERSION      = "10.2.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
@@ -117,4 +127,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.1.2** — Feature-oriented 22-script runtime (accepted)
 - **v10.1.3** — Program-day integrity and historical identity repair (accepted)
 - **v10.1.4** — Mobile accessibility, Sync/settings organization, and Habits UI (accepted)
-- **v10.2.0** — Basketball programs and progression
+- **v10.2.0** — Basketball programs and progression (accepted)
+- **v10.3.0** — Basketball-specific AI Sync
