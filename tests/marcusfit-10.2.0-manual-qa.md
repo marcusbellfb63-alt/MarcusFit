@@ -34,8 +34,15 @@ repository through local HTTP; do not use `file://`.
 
 ## Repeat and incomplete flows
 
-- Start Session B, enter valid drill data, and choose **Finish & Repeat Session**.
-  Verify the record saves but Session B remains next after reload.
+- Start Session B, enter a valid result for only one drill, leave the remaining
+  drills untouched, and choose **Finish & Repeat Session**. Verify the partial
+  record saves, untouched drills read **Skipped**, and Session B remains next.
+- Repeat the partial flow with **Finish & Advance**. Verify the partial record
+  saves and the queue advances exactly once.
+- Try to finish a structured session with total minutes but no drill result.
+  Verify it is rejected as empty and nothing saves or advances.
+- For a completion drill, verify **Skipped / no result**, **Completed**, and
+  **Not completed** remain distinct after save and reopen.
 - Start a planned session, change some fields, then Close without finishing.
   Verify no session was saved and the queue did not advance.
 - Trigger a validation error (for example, benchmark makes above attempts).
@@ -73,6 +80,8 @@ repository through local HTTP; do not use `file://`.
 
 - Open a structured History entry and verify stored program/session snapshots,
   each drill result, confidence, benchmark percentage, notes, and guidance.
+- Verify skipped drills are labeled **Skipped**, contain no fabricated zero or
+  confidence value, and do not count in most-practiced or progression evidence.
 - Edit a structured entry. Verify its stable `bball-*` session ID is preserved
   and editing does not move the active queue.
 - Verify a free-form entry remains visually distinct and fully readable.
@@ -111,6 +120,9 @@ Compact, Standard, Large, and Extra Large.
 - Check program picker, next-session card, drill list, confidence buttons,
   makes-target and benchmark inputs, summary, both Finish buttons, structured
   History, and basketball Stats.
+- Inspect structured **Session Date** and **Total Minutes** at 320, 375, 393,
+  430, and 480px in every text mode. Verify both stay fully inside the metadata
+  grid, including the native iOS date value and picker affordance.
 - Verify no page or component has horizontal overflow.
 - Verify interactive targets are approximately 44px or larger and form controls
   do not trigger unwanted iOS zoom.

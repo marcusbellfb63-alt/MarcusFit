@@ -246,6 +246,22 @@ function mfBasketballNormalizePlannedTarget(value,mode,errors){
   return Object.keys(target).length?target:null;
 }
 
+function mfBasketballHasEnteredValue(value){
+  return value!==null&&value!==undefined&&(typeof value==="boolean"||String(value).trim()!=="");
+}
+
+function mfBasketballDrillWasAttempted(input,trackingMode){
+  input=input&&typeof input==="object"&&!Array.isArray(input)?input:{};
+  const source=input.actualResult&&typeof input.actualResult==="object"&&!Array.isArray(input.actualResult)?input.actualResult:{};
+  if(String(input.notes||"").trim()||mfBasketballHasEnteredValue(input.confidence))return true;
+  if(trackingMode==="confidence"||trackingMode==="duration")return mfBasketballHasEnteredValue(source.durationMinutes);
+  if(trackingMode==="makes_target")return mfBasketballHasEnteredValue(source.makes);
+  if(trackingMode==="benchmark_shooting")return mfBasketballHasEnteredValue(source.made)||mfBasketballHasEnteredValue(source.attempted);
+  if(trackingMode==="count")return mfBasketballHasEnteredValue(source.count);
+  if(trackingMode==="completion")return mfBasketballHasEnteredValue(source.completed);
+  return false;
+}
+
 function mfBasketballNormalizeDrillResult(input,options,errors){
   options=options||{};input=input&&typeof input==="object"&&!Array.isArray(input)?input:{};
   const drillId=String(input.drillId||"").trim(),trackingMode=String(input.trackingMode||"").trim();
@@ -254,35 +270,36 @@ function mfBasketballNormalizeDrillResult(input,options,errors){
   const nameSnapshot=mfBasketballSnapshotText(input.nameSnapshot,"Drill name snapshot",160,errors);
   const plannedTargetSnapshot=mfBasketballNormalizePlannedTarget(input.plannedTargetSnapshot,trackingMode,errors);
   const notes=String(input.notes||"").trim();if(notes.length>MF_BASKETBALL_LIMITS.notes)errors.push("Drill notes must be 2000 characters or fewer.");
+  const confidenceEntered=mfBasketballHasEnteredValue(input.confidence);
   let confidence=null;
-  if(input.confidence!=null&&String(input.confidence).trim()!==""){
+  if(confidenceEntered){
     confidence=Number(input.confidence);if(!Number.isInteger(confidence)||confidence<1||confidence>10){errors.push("Confidence must be a whole number from 1 to 10.");confidence=null;}
   }
   const source=input.actualResult&&typeof input.actualResult==="object"&&!Array.isArray(input.actualResult)?input.actualResult:{};
+  const result={drillId:drillId,nameSnapshot:nameSnapshot,trackingMode:trackingMode};
+  if(plannedTargetSnapshot)result.plannedTargetSnapshot=plannedTargetSnapshot;
+  if(!mfBasketballDrillWasAttempted(input,trackingMode)){result.skipped=true;return result;}
   let actualResult=null;
   if(trackingMode==="confidence"){
-    if(confidence==null)errors.push("Confidence is required for confidence drills.");
+    if(!confidenceEntered)errors.push("Confidence is required for confidence drills.");
     actualResult={};
-    if(source.durationMinutes!=null&&String(source.durationMinutes).trim()!==""){
+    if(mfBasketballHasEnteredValue(source.durationMinutes)){
       const duration=Number(source.durationMinutes);if(!Number.isFinite(duration)||duration<0||duration>MF_BASKETBALL_LIMITS.minutes)errors.push("Actual drill duration is invalid.");else actualResult.durationMinutes=duration;
     }
   }else if(trackingMode==="duration"){
-    const duration=Number(source.durationMinutes);if(!Number.isFinite(duration)||duration<0||duration>MF_BASKETBALL_LIMITS.minutes)errors.push("Actual drill duration is required and must be valid.");else actualResult={durationMinutes:duration};
+    if(!mfBasketballHasEnteredValue(source.durationMinutes))errors.push("Actual drill duration is required and must be valid.");else{const duration=Number(source.durationMinutes);if(!Number.isFinite(duration)||duration<0||duration>MF_BASKETBALL_LIMITS.minutes)errors.push("Actual drill duration is required and must be valid.");else actualResult={durationMinutes:duration};}
   }else if(trackingMode==="makes_target"){
-    const makes=Number(source.makes);if(!Number.isInteger(makes)||makes<0||makes>MF_BASKETBALL_LIMITS.count)errors.push("Makes completed must be a whole number from 0 to 10000.");else actualResult={makes:makes,targetAchieved:!!(plannedTargetSnapshot&&makes>=plannedTargetSnapshot.makes)};
+    if(!mfBasketballHasEnteredValue(source.makes))errors.push("Makes completed must be a whole number from 0 to 10000.");else{const makes=Number(source.makes);if(!Number.isInteger(makes)||makes<0||makes>MF_BASKETBALL_LIMITS.count)errors.push("Makes completed must be a whole number from 0 to 10000.");else actualResult={makes:makes,targetAchieved:!!(plannedTargetSnapshot&&makes>=plannedTargetSnapshot.makes)};}
   }else if(trackingMode==="benchmark_shooting"){
-    const made=Number(source.made),attempted=Number(source.attempted);
-    if(!Number.isInteger(attempted)||attempted<=0||attempted>MF_BASKETBALL_LIMITS.count)errors.push("Benchmark attempts must be a whole number greater than 0.");
-    if(!Number.isInteger(made)||made<0||made>MF_BASKETBALL_LIMITS.count)errors.push("Benchmark makes must be a whole number from 0 to 10000.");
-    if(Number.isInteger(made)&&Number.isInteger(attempted)&&made>attempted)errors.push("Benchmark makes cannot exceed attempts.");
-    if(Number.isInteger(made)&&Number.isInteger(attempted)&&attempted>0&&made<=attempted)actualResult={made:made,attempted:attempted,percentage:Math.round(made/attempted*1000)/10};
+    const madeEntered=mfBasketballHasEnteredValue(source.made),attemptedEntered=mfBasketballHasEnteredValue(source.attempted);
+    if(!madeEntered||!attemptedEntered)errors.push("Benchmark made and attempted must both be supplied.");
+    else{const made=Number(source.made),attempted=Number(source.attempted);if(!Number.isInteger(attempted)||attempted<=0||attempted>MF_BASKETBALL_LIMITS.count)errors.push("Benchmark attempts must be a whole number greater than 0.");if(!Number.isInteger(made)||made<0||made>MF_BASKETBALL_LIMITS.count)errors.push("Benchmark makes must be a whole number from 0 to 10000.");if(Number.isInteger(made)&&Number.isInteger(attempted)&&made>attempted)errors.push("Benchmark makes cannot exceed attempts.");if(Number.isInteger(made)&&Number.isInteger(attempted)&&attempted>0&&made<=attempted)actualResult={made:made,attempted:attempted,percentage:Math.round(made/attempted*1000)/10};}
   }else if(trackingMode==="count"){
-    const count=Number(source.count);if(!Number.isInteger(count)||count<0||count>MF_BASKETBALL_LIMITS.count)errors.push("Actual count must be a whole number from 0 to 10000.");else actualResult={count:count};
+    if(!mfBasketballHasEnteredValue(source.count))errors.push("Actual count must be a whole number from 0 to 10000.");else{const count=Number(source.count);if(!Number.isInteger(count)||count<0||count>MF_BASKETBALL_LIMITS.count)errors.push("Actual count must be a whole number from 0 to 10000.");else actualResult={count:count};}
   }else if(trackingMode==="completion"){
     if(typeof source.completed!=="boolean")errors.push("Completion drill must be marked completed or not completed.");else actualResult={completed:source.completed};
   }
-  const result={drillId:drillId,nameSnapshot:nameSnapshot,trackingMode:trackingMode,actualResult:actualResult};
-  if(plannedTargetSnapshot)result.plannedTargetSnapshot=plannedTargetSnapshot;
+  result.actualResult=actualResult;
   if(confidence!=null)result.confidence=confidence;
   if(notes)result.notes=notes;
   return result;
@@ -299,6 +316,7 @@ function mfBasketballNormalizeStructuredFields(input,errors){
   const plannedSessionNameSnapshot=mfBasketballSnapshotText(input.plannedSessionNameSnapshot,"Planned session name snapshot",160,errors);
   if(!Array.isArray(input.drills)||!input.drills.length||input.drills.length>30)errors.push("Structured basketball session must contain 1 to 30 drill results.");
   const seen=new Set(),drills=Array.isArray(input.drills)?input.drills.slice(0,30).map(function(drill){const normalized=mfBasketballNormalizeDrillResult(drill,{},errors);if(seen.has(normalized.drillId))errors.push("Structured basketball session contains a duplicate drill ID.");seen.add(normalized.drillId);return normalized;}):[];
+  if(drills.length&&!drills.some(function(drill){return !drill.skipped;}))errors.push("Record at least one drill result before finishing the structured basketball session.");
   return {programId:programId,programVersion:programVersion,programNameSnapshot:programNameSnapshot,plannedSessionId:plannedSessionId,plannedSessionNameSnapshot:plannedSessionNameSnapshot,drills:drills};
 }
 
@@ -451,6 +469,7 @@ function mfBasketballAggregate(sessions){
     if(Array.isArray(session.drills)){
       totals.structuredSessions++;
       session.drills.forEach(function(drill){
+        if(drill.skipped)return;
         totals.drillCounts[drill.drillId]=(totals.drillCounts[drill.drillId]||{name:drill.nameSnapshot,count:0});totals.drillCounts[drill.drillId].count++;
         if(drill.confidence!=null){if(!totals.confidenceByDrill[drill.drillId])totals.confidenceByDrill[drill.drillId]={name:drill.nameSnapshot,values:[]};totals.confidenceByDrill[drill.drillId].values.push({date:session.date,value:drill.confidence});}
         if(drill.trackingMode==="benchmark_shooting"&&drill.actualResult){if(!totals.benchmarksByDrill[drill.drillId])totals.benchmarksByDrill[drill.drillId]={name:drill.nameSnapshot,values:[]};totals.benchmarksByDrill[drill.drillId].values.push({date:session.date,made:drill.actualResult.made,attempted:drill.actualResult.attempted,percentage:drill.actualResult.percentage});}
@@ -473,7 +492,7 @@ function mfBasketballFindDrillDefinition(drillId){
 }
 
 function mfBasketballDrillHistory(drillId,sessions){
-  const exposures=[];(Array.isArray(sessions)?sessions:[]).forEach(function(session){(session.drills||[]).forEach(function(drill){if(drill.drillId===drillId)exposures.push({date:session.date,createdAt:session.createdAt,sessionId:session.id,drill:drill});});});
+  const exposures=[];(Array.isArray(sessions)?sessions:[]).forEach(function(session){(session.drills||[]).forEach(function(drill){if(drill.drillId===drillId&&!drill.skipped)exposures.push({date:session.date,createdAt:session.createdAt,sessionId:session.id,drill:drill});});});
   return exposures.sort(function(a,b){return b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt)||a.sessionId.localeCompare(b.sessionId);});
 }
 
@@ -591,15 +610,15 @@ function mfBasketballRenderDrillCard(definition,index,existing){
     if(target.durationMinutes!=null)card.appendChild(mfBasketballCreateNumberField("Actual minutes (optional)","durationMinutes",0,1440,.5,result.durationMinutes));
     mfBasketballAddConfidenceControl(card,existing.confidence);
   }else if(definition.trackingMode==="duration"){
-    card.appendChild(mfBasketballCreateNumberField("Actual minutes","durationMinutes",0,1440,.5,result.durationMinutes==null?target.durationMinutes:result.durationMinutes));if(definition.confidence)mfBasketballAddConfidenceControl(card,existing.confidence);
+    card.appendChild(mfBasketballCreateNumberField("Actual minutes","durationMinutes",0,1440,.5,result.durationMinutes));if(definition.confidence)mfBasketballAddConfidenceControl(card,existing.confidence);
   }else if(definition.trackingMode==="makes_target"){
     card.appendChild(mfBasketballCreateNumberField("Makes completed","makes",0,10000,1,result.makes));if(definition.confidence)mfBasketballAddConfidenceControl(card,existing.confidence);
   }else if(definition.trackingMode==="benchmark_shooting"){
-    const grid=mfBasketballElement("div","mf-basketball-benchmark-grid");grid.append(mfBasketballCreateNumberField("Made","made",0,10000,1,result.made),mfBasketballCreateNumberField("Attempted","attempted",1,10000,1,result.attempted==null?target.attempts:result.attempted));card.appendChild(grid);const percent=mfBasketballElement("div","mf-basketball-benchmark-percent",result.attempted?"Percentage: "+(Math.round(result.made/result.attempted*1000)/10)+"%":"Percentage: —");percent.dataset.role="percentage";card.appendChild(percent);
+    const grid=mfBasketballElement("div","mf-basketball-benchmark-grid");grid.append(mfBasketballCreateNumberField("Made","made",0,10000,1,result.made),mfBasketballCreateNumberField("Attempted","attempted",1,10000,1,result.attempted));card.appendChild(grid);const percent=mfBasketballElement("div","mf-basketball-benchmark-percent",result.attempted?"Percentage: "+(Math.round(result.made/result.attempted*1000)/10)+"%":"Percentage: —");percent.dataset.role="percentage";card.appendChild(percent);
   }else if(definition.trackingMode==="count"){
     card.appendChild(mfBasketballCreateNumberField("Completed count","count",0,10000,1,result.count));if(definition.confidence)mfBasketballAddConfidenceControl(card,existing.confidence);
   }else{
-    const label=mfBasketballElement("label","mf-basketball-completion"),input=mfBasketballElement("input");input.type="checkbox";input.dataset.field="completed";input.checked=result.completed===true;label.append(input,mfBasketballElement("span","","Completed"));card.appendChild(label);
+    const label=mfBasketballElement("label","mf-basketball-field mf-basketball-completion-field","Result"),select=mfBasketballElement("select");select.dataset.field="completed";[["","Skipped / no result"],["true","Completed"],["false","Not completed"]].forEach(function(optionData){const option=mfBasketballElement("option","",optionData[1]);option.value=optionData[0];select.appendChild(option);});select.value=result.completed===true?"true":result.completed===false?"false":"";label.appendChild(select);card.appendChild(label);
   }
   const notesDetails=mfBasketballElement("details","mf-basketball-drill-notes"),notesSummary=mfBasketballElement("summary","","Add drill note"),notes=mfBasketballElement("textarea");notes.rows=2;notes.maxLength=2000;notes.placeholder="Optional note";notes.dataset.field="notes";notes.value=existing.notes||"";notesDetails.append(notesSummary,notes);if(existing.notes)notesDetails.open=true;card.appendChild(notesDetails);
   card.addEventListener("input",mfBasketballUpdateStructuredSummary);card.addEventListener("change",mfBasketballUpdateStructuredSummary);return card;
@@ -628,8 +647,8 @@ function mfBasketballCloseStructured(){const root=document.getElementById("mfBas
 function mfBasketballCollectStructuredDrills(){
   const root=document.getElementById("mfBasketballDrillLogger"),results=[];if(!root)return results;
   root.querySelectorAll(".mf-basketball-drill-card").forEach(function(card){
-    const get=function(field){const input=card.querySelector("[data-field='"+field+"']");if(!input)return null;if(input.type==="checkbox")return input.checked;return input.value;};
-    const mode=card.dataset.trackingMode,actual={};if(mode==="confidence"||mode==="duration")actual.durationMinutes=get("durationMinutes");if(mode==="makes_target")actual.makes=get("makes");if(mode==="benchmark_shooting"){actual.made=get("made");actual.attempted=get("attempted");}if(mode==="count")actual.count=get("count");if(mode==="completion")actual.completed=get("completed");
+    const get=function(field){const input=card.querySelector("[data-field='"+field+"']");return input?input.value:null;};
+    const mode=card.dataset.trackingMode,actual={};if(mode==="confidence"||mode==="duration")actual.durationMinutes=get("durationMinutes");if(mode==="makes_target")actual.makes=get("makes");if(mode==="benchmark_shooting"){actual.made=get("made");actual.attempted=get("attempted");}if(mode==="count")actual.count=get("count");if(mode==="completion"){const completed=get("completed");actual.completed=completed===""||completed==null?null:completed==="true";}
     results.push({drillId:card.dataset.drillId,actualResult:actual,confidence:get("confidence"),notes:get("notes")});
   });return results;
 }
@@ -637,7 +656,7 @@ function mfBasketballCollectStructuredDrills(){
 function mfBasketballUpdateStructuredSummary(){
   if(!mfBasketballStructuredContext)return;const root=document.getElementById("mfBasketballSessionSummary");if(!root)return;root.replaceChildren();root.appendChild(mfBasketballElement("div","mf-basketball-summary-title","SESSION SUMMARY"));
   const minutes=mfBasketballFormValue("mfBasketballStructuredMinutes");root.appendChild(mfBasketballElement("div","mf-basketball-summary-row","Duration: "+(minutes?minutes+" min":"not entered")));
-  const results=mfBasketballCollectStructuredDrills(),byId={};results.forEach(function(result){byId[result.drillId]=result;});mfBasketballStructuredContext.planned.drills.forEach(function(drill){const entry=byId[drill.id]||{},actual=entry.actualResult||{};let value="not entered";if(drill.trackingMode==="confidence")value=entry.confidence?entry.confidence+"/10":"not scored";if(drill.trackingMode==="duration")value=actual.durationMinutes!==null&&actual.durationMinutes!==""?actual.durationMinutes+" min":"not entered";if(drill.trackingMode==="makes_target")value=actual.makes!==null&&actual.makes!==""?actual.makes+" / "+drill.target.makes+" makes":"not entered";if(drill.trackingMode==="benchmark_shooting"&&actual.made!==""&&actual.attempted){value=actual.made+" / "+actual.attempted+" ("+(Math.round(Number(actual.made)/Number(actual.attempted)*1000)/10)+"%)";}if(drill.trackingMode==="count")value=actual.count!==null&&actual.count!==""?actual.count+" / "+drill.target.count:"not entered";if(drill.trackingMode==="completion")value=actual.completed?"Completed":"Not completed";root.appendChild(mfBasketballElement("div","mf-basketball-summary-row",drill.name+": "+value));});
+  const results=mfBasketballCollectStructuredDrills(),byId={};results.forEach(function(result){byId[result.drillId]=result;});mfBasketballStructuredContext.planned.drills.forEach(function(drill){const entry=byId[drill.id]||{},actual=entry.actualResult||{},attempted=mfBasketballDrillWasAttempted(entry,drill.trackingMode),value="Skipped";if(attempted&&drill.trackingMode==="confidence")value=entry.confidence?entry.confidence+"/10":"Incomplete — confidence required";if(attempted&&drill.trackingMode==="duration")value=mfBasketballHasEnteredValue(actual.durationMinutes)?actual.durationMinutes+" min":"Incomplete result";if(attempted&&drill.trackingMode==="makes_target")value=mfBasketballHasEnteredValue(actual.makes)?actual.makes+" / "+drill.target.makes+" makes":"Incomplete result";if(attempted&&drill.trackingMode==="benchmark_shooting")value=mfBasketballHasEnteredValue(actual.made)&&mfBasketballHasEnteredValue(actual.attempted)?actual.made+" / "+actual.attempted+" ("+(Math.round(Number(actual.made)/Number(actual.attempted)*1000)/10)+"%)":"Incomplete benchmark";if(attempted&&drill.trackingMode==="count")value=mfBasketballHasEnteredValue(actual.count)?actual.count+" / "+drill.target.count:"Incomplete result";if(attempted&&drill.trackingMode==="completion")value=actual.completed===true?"Completed":"Not completed";root.appendChild(mfBasketballElement("div","mf-basketball-summary-row",drill.name+": "+value));});
   const logger=document.getElementById("mfBasketballDrillLogger");if(logger)logger.querySelectorAll(".mf-basketball-drill-card").forEach(function(card){if(card.dataset.trackingMode!=="benchmark_shooting")return;const made=card.querySelector("[data-field='made']"),attempted=card.querySelector("[data-field='attempted']"),out=card.querySelector("[data-role='percentage']");if(out)out.textContent=made&&attempted&&made.value!==""&&attempted.value!==""&&Number(attempted.value)>0&&Number(made.value)<=Number(attempted.value)?"Percentage: "+(Math.round(Number(made.value)/Number(attempted.value)*1000)/10)+"%":"Percentage: —";});
 }
 
@@ -754,6 +773,7 @@ function mfBasketballHistoryFilters(sessions){
 function mfBasketballMetricNode(text){const span=document.createElement("span");span.className="mf-basketball-metric";span.textContent=text;return span;}
 
 function mfBasketballDrillResultText(drill){
+  if(drill.skipped)return "Skipped";
   const result=drill.actualResult||{},target=drill.plannedTargetSnapshot||{};
   if(drill.trackingMode==="confidence")return result.durationMinutes!=null?result.durationMinutes+" min":"Skill work";
   if(drill.trackingMode==="duration")return result.durationMinutes+" / "+target.durationMinutes+" min";
@@ -780,7 +800,7 @@ function mfBasketballRenderHistory(){
     if(session.freeThrows){const pct=mfBasketballPercent(session.freeThrows);metrics.appendChild(mfBasketballMetricNode("Free throws "+session.freeThrows.made+" / "+session.freeThrows.attempted+(pct==null?"":" ("+pct+"%)")));}
     body.appendChild(metrics);
     if(Array.isArray(session.drills)){
-      const drillList=mfBasketballElement("div","mf-basketball-history-drills");session.drills.forEach(function(drill){const row=mfBasketballElement("div","mf-basketball-history-drill"),head=mfBasketballElement("div","mf-basketball-history-drill-head"),name=mfBasketballElement("strong","",drill.nameSnapshot),value=mfBasketballElement("span","",mfBasketballDrillResultText(drill));head.append(name,value);row.appendChild(head);if(drill.confidence!=null)row.appendChild(mfBasketballElement("div","mf-basketball-history-confidence","Confidence "+drill.confidence+" / 10"));const progression=mfBasketballProgressionForDrill(drill.drillId,state.sessions);if(progression.status!=="no_data")row.appendChild(mfBasketballElement("div","mf-basketball-history-guidance",progression.label+" — "+progression.guidance));if(drill.notes)row.appendChild(mfBasketballElement("div","mf-basketball-notes",drill.notes));drillList.appendChild(row);});body.appendChild(drillList);
+      const drillList=mfBasketballElement("div","mf-basketball-history-drills");session.drills.forEach(function(drill){const row=mfBasketballElement("div","mf-basketball-history-drill"),head=mfBasketballElement("div","mf-basketball-history-drill-head"),name=mfBasketballElement("strong","",drill.nameSnapshot),value=mfBasketballElement("span","",mfBasketballDrillResultText(drill));head.append(name,value);row.appendChild(head);if(drill.confidence!=null)row.appendChild(mfBasketballElement("div","mf-basketball-history-confidence","Confidence "+drill.confidence+" / 10"));if(!drill.skipped){const progression=mfBasketballProgressionForDrill(drill.drillId,state.sessions);if(progression.status!=="no_data")row.appendChild(mfBasketballElement("div","mf-basketball-history-guidance",progression.label+" — "+progression.guidance));}if(drill.notes)row.appendChild(mfBasketballElement("div","mf-basketball-notes",drill.notes));drillList.appendChild(row);});body.appendChild(drillList);
     }
     if(session.notes){const notes=document.createElement("div");notes.className="mf-basketball-notes";notes.textContent=session.notes;body.appendChild(notes);}
     const actions=document.createElement("div");actions.className="mf-basketball-card-actions";const edit=document.createElement("button"),remove=document.createElement("button");edit.type="button";remove.type="button";edit.className="mf-basketball-edit";remove.className="mf-basketball-delete";edit.textContent="EDIT";remove.textContent="DELETE";edit.addEventListener("click",function(event){event.preventDefault();mfBasketballStartEdit(session.id);});remove.addEventListener("click",function(event){event.preventDefault();mfBasketballOpenDelete(session.id);});actions.append(edit,remove);body.appendChild(actions);details.appendChild(body);container.appendChild(details);
@@ -823,7 +843,7 @@ function mfBasketballBuildExport(range,sessions,programStateValue){
   if(selected.length)output+="Sessions: "+stats.totalSessions+" | Structured: "+stats.structuredSessions+" | Total minutes: "+stats.totalMinutes+" | Average minutes: "+stats.averageMinutes.toFixed(1)+"\n";
   if(stats.shooting.attempted>0)output+="Shooting: "+stats.shooting.made+" / "+stats.shooting.attempted+" ("+stats.shooting.percentage.toFixed(1)+"%)\n";
   if(stats.freeThrows.attempted>0)output+="Free throws: "+stats.freeThrows.made+" / "+stats.freeThrows.attempted+" ("+stats.freeThrows.percentage.toFixed(1)+"%)\n";
-  selected.forEach(function(session){let line="- "+session.date+" | "+(session.plannedSessionNameSnapshot||mfBasketballTypeLabel(session.type))+" | "+session.minutes+" min";if(session.programNameSnapshot)line+=" | program: "+session.programNameSnapshot+" v"+session.programVersion;if(session.dribblingMinutes!=null)line+=" | dribbling "+session.dribblingMinutes+" min";if(session.shooting)line+=" | shooting "+session.shooting.made+"/"+session.shooting.attempted;if(session.freeThrows)line+=" | FT "+session.freeThrows.made+"/"+session.freeThrows.attempted;if(session.notes)line+=" | notes: "+session.notes.replace(/\s+/g," ");output+=line+"\n";(session.drills||[]).forEach(function(drill){const progression=mfBasketballProgressionForDrill(drill.drillId,allSessions);output+="  · "+drill.nameSnapshot+": "+mfBasketballDrillResultText(drill)+(drill.confidence!=null?" | confidence "+drill.confidence+"/10":"")+" | "+progression.label+" — "+progression.guidance+(drill.notes?" | note: "+drill.notes.replace(/\s+/g," "):"")+"\n";});});
+  selected.forEach(function(session){let line="- "+session.date+" | "+(session.plannedSessionNameSnapshot||mfBasketballTypeLabel(session.type))+" | "+session.minutes+" min";if(session.programNameSnapshot)line+=" | program: "+session.programNameSnapshot+" v"+session.programVersion;if(session.dribblingMinutes!=null)line+=" | dribbling "+session.dribblingMinutes+" min";if(session.shooting)line+=" | shooting "+session.shooting.made+"/"+session.shooting.attempted;if(session.freeThrows)line+=" | FT "+session.freeThrows.made+"/"+session.freeThrows.attempted;if(session.notes)line+=" | notes: "+session.notes.replace(/\s+/g," ");output+=line+"\n";(session.drills||[]).forEach(function(drill){output+="  · "+drill.nameSnapshot+": "+mfBasketballDrillResultText(drill);if(!drill.skipped){const progression=mfBasketballProgressionForDrill(drill.drillId,allSessions);output+=(drill.confidence!=null?" | confidence "+drill.confidence+"/10":"")+" | "+progression.label+" — "+progression.guidance;}output+=(drill.notes?" | note: "+drill.notes.replace(/\s+/g," "):"")+"\n";});});
   return output+"\n";
 }
 

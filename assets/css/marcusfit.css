@@ -990,7 +990,10 @@ body.p960-manager-open{overflow:hidden;}
 body.mf-basketball-structured-open .p6-sticky-bar{display:none;}
 .mf-basketball-structured-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
 .mf-basketball-close-session{flex:0 0 auto;}
-.mf-basketball-structured-meta{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin-bottom:12px;}
+.mf-basketball-structured-meta{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin-bottom:12px;width:100%;min-width:0;max-width:100%;}
+.mf-basketball-structured-meta .mf-basketball-field{width:100%;min-width:0;max-width:100%;}
+.mf-basketball-structured-meta input{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;inline-size:100%;min-inline-size:0;max-inline-size:100%;}
+.mf-basketball-structured-meta input[type="date"]::-webkit-date-and-time-value{min-width:0;text-align:left;}
 .mf-basketball-drills{display:flex;flex-direction:column;gap:11px;margin-bottom:12px;}
 .mf-basketball-drill-card{border:1px solid var(--border);border-radius:12px;background:var(--bg);padding:12px;min-width:0;overflow:hidden;}
 .mf-basketball-drill-head{display:flex;align-items:flex-start;gap:9px;margin-bottom:10px;}
@@ -1008,8 +1011,7 @@ body.mf-basketball-structured-open .p6-sticky-bar{display:none;}
 .mf-basketball-confidence-button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#000;box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent);}
 .mf-basketball-benchmark-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;}
 .mf-basketball-benchmark-percent{font-size:var(--mf-font-sm);font-weight:800;color:var(--accent);margin-top:7px;}
-.mf-basketball-completion{min-height:48px;display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:var(--surface2);font-size:var(--mf-font-base);font-weight:800;cursor:pointer;}
-.mf-basketball-completion input{width:24px;height:24px;accent-color:var(--accent);}
+.mf-basketball-completion-field{margin-top:4px;}
 .mf-basketball-drill-notes{margin-top:10px;border-top:1px solid var(--border);padding-top:6px;}
 .mf-basketball-drill-notes summary{min-height:44px;display:flex;align-items:center;font-size:var(--mf-font-xs);font-weight:800;color:var(--muted);cursor:pointer;}
 .mf-basketball-drill-notes textarea{width:100%;min-height:70px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 10px;font-family:'DM Sans',sans-serif;font-size:var(--mf-font-control);resize:vertical;}

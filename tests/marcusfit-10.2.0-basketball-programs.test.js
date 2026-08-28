@@ -127,6 +127,31 @@ const completionResult = normalizeDrill({ ...base, trackingMode: "completion", a
 assert.strictEqual(completionResult.errors.length, 0);
 assert.strictEqual(completionResult.result.actualResult.completed, false);
 
+// Completely blank planned drills are explicit skipped results; partial input
+// still takes the normal validation path for its tracking mode.
+const blankConfidence = normalizeDrill({ ...base, trackingMode: "confidence", actualResult: { durationMinutes: "" }, confidence: "", notes: "" });
+assert.strictEqual(blankConfidence.errors.length, 0);
+assert.strictEqual(blankConfidence.result.skipped, true);
+assert.strictEqual("actualResult" in blankConfidence.result, false);
+assert(normalizeDrill({ ...base, trackingMode: "confidence", actualResult: { durationMinutes: 8 }, confidence: "" }).errors.some(x => /Confidence is required/));
+const blankMakes = normalizeDrill({ ...base, trackingMode: "makes_target", plannedTargetSnapshot: { makes: 20 }, actualResult: { makes: "" } });
+assert.strictEqual(blankMakes.errors.length, 0);
+assert.strictEqual(blankMakes.result.skipped, true);
+const blankBenchmark = normalizeDrill({ ...base, trackingMode: "benchmark_shooting", plannedTargetSnapshot: { attempts: 20 }, actualResult: { made: "", attempted: "" } });
+assert.strictEqual(blankBenchmark.errors.length, 0);
+assert.strictEqual(blankBenchmark.result.skipped, true);
+assert(normalizeDrill({ ...base, trackingMode: "benchmark_shooting", plannedTargetSnapshot: { attempts: 20 }, actualResult: { made: 8, attempted: "" } }).errors.some(x => /both be supplied/));
+assert(normalizeDrill({ ...base, trackingMode: "benchmark_shooting", plannedTargetSnapshot: { attempts: 20 }, actualResult: { made: "", attempted: 20 } }).errors.some(x => /both be supplied/));
+const blankDuration = normalizeDrill({ ...base, trackingMode: "duration", plannedTargetSnapshot: { durationMinutes: 8 }, actualResult: { durationMinutes: "" } });
+assert.strictEqual(blankDuration.errors.length, 0);
+assert.strictEqual(blankDuration.result.skipped, true);
+const blankCount = normalizeDrill({ ...base, trackingMode: "count", plannedTargetSnapshot: { count: 12 }, actualResult: { count: "" } });
+assert.strictEqual(blankCount.errors.length, 0);
+assert.strictEqual(blankCount.result.skipped, true);
+const blankCompletion = normalizeDrill({ ...base, trackingMode: "completion", actualResult: { completed: null } });
+assert.strictEqual(blankCompletion.errors.length, 0);
+assert.strictEqual(blankCompletion.result.skipped, true);
+
 function drillResult(definition, values = {}) {
   return {
     drillId: definition.id,
@@ -144,6 +169,54 @@ function validGuardA(confidence = 3, finishMakes = 20, ftMade = 16) {
     return drillResult(drill, { actualResult: { made: ftMade, attempted: 20 } });
   });
 }
+
+function partialGuardA(confidence = 6) {
+  const session = c.mfBasketballGetProgram("guard_skills_3_session").sessions[0];
+  return session.drills.map(drill => drill.id === "guard_behind_back_foundation"
+    ? drillResult(drill, { actualResult: { durationMinutes: "" }, confidence })
+    : drillResult(drill, { actualResult: {}, confidence: "", notes: "" }));
+}
+
+// Partial sessions save through both explicit finish actions, while a wholly
+// empty session is rejected and skipped entries never become exposures.
+const { context: partial } = createContext();
+partial.mfBasketballSelectProgram("guard_skills_3_session", "2026-08-28T08:00:00.000Z");
+let partialFinished = partial.mfBasketballFinishStructuredSession({
+  programId: "guard_skills_3_session", programVersion: 1,
+  plannedSessionId: "guard_a_handle_weak_hand", date: "2026-08-28", minutes: 30,
+  drills: partialGuardA(6), id: "bball-partial-repeat", now: "2026-08-28T09:00:00.000Z"
+}, "repeat");
+assert.strictEqual(partialFinished.ok, true);
+assert.strictEqual(partialFinished.advanced, false);
+assert.strictEqual(partial.mfBasketballReadProgramState().state.nextSessionIndex, 0);
+partialFinished = partial.mfBasketballFinishStructuredSession({
+  programId: "guard_skills_3_session", programVersion: 1,
+  plannedSessionId: "guard_a_handle_weak_hand", date: "2026-08-29", minutes: 32,
+  drills: partialGuardA(7), id: "bball-partial-advance", now: "2026-08-29T09:00:00.000Z"
+}, "advance");
+assert.strictEqual(partialFinished.ok, true);
+assert.strictEqual(partialFinished.advanced, true);
+assert.strictEqual(partial.mfBasketballReadProgramState().state.nextSessionIndex, 1);
+const partialSessions = partial.mfBasketballReadStore().sessions;
+assert.strictEqual(partialSessions.length, 2);
+const skippedStored = partialSessions[0].drills.find(drill => drill.drillId === "guard_weak_hand_control");
+assert.strictEqual(skippedStored.skipped, true);
+assert.strictEqual("actualResult" in skippedStored, false);
+assert.strictEqual("confidence" in skippedStored, false);
+assert.strictEqual(partial.mfBasketballDrillHistory("guard_weak_hand_control", partialSessions).length, 0);
+assert.strictEqual(partial.mfBasketballDrillHistory("guard_behind_back_foundation", partialSessions).length, 2);
+assert.strictEqual(partial.mfBasketballAggregate(partialSessions).drillCounts.guard_weak_hand_control, undefined);
+
+const { context: emptyStructured } = createContext();
+emptyStructured.mfBasketballSelectProgram("guard_skills_3_session", "2026-08-30T08:00:00.000Z");
+const emptyFinished = emptyStructured.mfBasketballFinishStructuredSession({
+  programId: "guard_skills_3_session", programVersion: 1,
+  plannedSessionId: "guard_a_handle_weak_hand", date: "2026-08-30", minutes: 30,
+  drills: partialGuardA("")
+}, "repeat");
+assert.strictEqual(emptyFinished.ok, false);
+assert(emptyFinished.errors.some(error => /at least one drill result/));
+assert.strictEqual(emptyStructured.mfBasketballReadStore().sessions.length, 0);
 
 // Structured save snapshots identity; repeat does not advance; advance does.
 c.mfBasketballSelectProgram("guard_skills_3_session", "2026-08-29T10:00:00.000Z");
@@ -272,11 +345,14 @@ assert.strictEqual(emptyContext.context.mfBasketballBuildExport("program", [], e
 assert(html.includes("START PLANNED SESSION") === false, "Start action is rendered from the current queue, not hard-coded markup");
 assert(source.includes("START PLANNED SESSION"));
 assert(source.includes("Confidence: 1–10"));
+assert(source.includes("Skipped / no result"));
 assert(source.includes('made.value!==""&&attempted.value!==""'), "Benchmark percentage must wait for both explicit inputs");
 assert(css.includes("grid-template-columns:repeat(5,minmax(0,1fr))"));
 assert(css.includes("min-height:44px"));
 assert(css.includes("position:sticky"));
 assert(css.includes("body.mf-basketball-structured-open .p6-sticky-bar{display:none;}"));
+assert(css.includes(".mf-basketball-structured-meta input{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;"));
+assert(css.includes('input[type="date"]::-webkit-date-and-time-value{min-width:0;'));
 assert.strictEqual((html.match(/\son[a-z]+\s*=/gi) || []).length, 83, "10.2.0 must not expand the accepted inline-handler surface");
 assert(!/\bconfirm\s*\(/.test(source));
 
