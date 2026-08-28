@@ -121,8 +121,10 @@ Compact, Standard, Large, and Extra Large.
   makes-target and benchmark inputs, summary, both Finish buttons, structured
   History, and basketball Stats.
 - Inspect structured **Session Date** and **Total Minutes** at 320, 375, 393,
-  430, and 480px in every text mode. Verify both stay fully inside the metadata
-  grid, including the native iOS date value and picker affordance.
+  430, and 480px in every text mode. Verify they remain vertically stacked,
+  the date input's bottom stays above the minutes field's top, and both stay
+  fully inside the metadata grid, including the native iOS date value and
+  picker affordance.
 - Verify no page or component has horizontal overflow.
 - Verify interactive targets are approximately 44px or larger and form controls
   do not trigger unwanted iOS zoom.

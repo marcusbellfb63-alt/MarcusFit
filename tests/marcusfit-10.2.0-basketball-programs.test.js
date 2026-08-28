@@ -351,8 +351,11 @@ assert(css.includes("grid-template-columns:repeat(5,minmax(0,1fr))"));
 assert(css.includes("min-height:44px"));
 assert(css.includes("position:sticky"));
 assert(css.includes("body.mf-basketball-structured-open .p6-sticky-bar{display:none;}"));
+assert(css.includes(".mf-basketball-structured-meta{display:grid;grid-template-columns:minmax(0,1fr);"));
 assert(css.includes(".mf-basketball-structured-meta input{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;"));
 assert(css.includes('input[type="date"]::-webkit-date-and-time-value{min-width:0;'));
+assert(!/\.mf-basketball-structured-meta[^\{]*\{[^\}]*grid-template-columns\s*:\s*minmax\(0,1fr\)\s+minmax\(0,1fr\)/.test(css), "Structured metadata must remain stacked at every viewport width");
+assert(!css.includes(".mf-basketball-structured-meta,.mf-basketball-finish-actions"), "Finish-action breakpoints must not change the metadata grid");
 assert.strictEqual((html.match(/\son[a-z]+\s*=/gi) || []).length, 83, "10.2.0 must not expand the accepted inline-handler surface");
 assert(!/\bconfirm\s*\(/.test(source));
 

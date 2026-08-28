@@ -1036,7 +1036,7 @@ body.mf-basketball-structured-open .p6-sticky-bar{display:none;}
 
 @media(min-width:420px){
   .mf-basketball-program-picker{grid-template-columns:minmax(0,1fr) auto;align-items:end;}
-  .mf-basketball-structured-meta,.mf-basketball-finish-actions{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+  .mf-basketball-finish-actions{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
 }
 
 @media(max-width:350px){
