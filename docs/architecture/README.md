@@ -1,9 +1,9 @@
 # MarcusFit runtime architecture
 
 MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
-classic scripts. MarcusFit 10.1.3 keeps those boundaries and adds the targeted
-program-day integrity repair. GitHub Pages still loads static `defer` scripts,
-and there is no build step or runtime dependency.
+classic scripts. The 10.2.0 implementation candidate keeps those boundaries
+and expands only the final basketball feature file. GitHub Pages still loads
+static `defer` scripts, and there is no build step or runtime dependency.
 
 ## Implemented runtime tree
 
@@ -33,14 +33,14 @@ assets/js/
 `-- features/22-basketball.js
 ```
 
-The runtime remains 14,275 physical lines. The largest file fell from 5,224 to
+The 10.2.0 candidate runtime has 15,097 physical lines. The largest file remains
 1,808 lines. Numeric prefixes are globally ordered and match `index.html`.
 
 ## Guide
 
 - `runtime-system-map.md` records ownership and direct dependencies.
 - `global-and-inline-handler-map.md` records the compatibility surface.
-- `storage-and-backup-map.md` records all 15 owned keys/patterns.
+- `storage-and-backup-map.md` records all 16 owned keys/patterns.
 - `initialization-and-load-order-map.md` records the exact execution order.
 - `dependency-risk-register.md` records mitigated and remaining risks.
 - `proposed-module-plan.md` records implementation decisions and deviations.

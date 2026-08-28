@@ -18,6 +18,24 @@ draft model. Manual QA also caught and cleared two blockers before acceptance:
 mobile workout-set row overflow and duplicate habit creation after renaming an
 existing habit.
 
+## 10.2.0 implementation candidate
+
+`codex/10-2-0-basketball-programs-progression` is the 10.2.0 candidate branch,
+started from exact accepted `main` SHA
+`35b176870fdad9aed0ed37dc5e631a327eae9b1c`. It adds three immutable,
+versioned basketball program templates; a session-driven cyclical queue in
+`mf-basketball-program-state`; drill-specific structured logging; deterministic
+confidence, makes-target, benchmark, and duration guidance; structured History,
+focused Stats, AI Export context, and backup/restore coverage. Existing
+schema-1 free-form basketball records remain readable and editable without an
+eager migration.
+
+Core `assets/js/sync/12-ai-sync.js`, the 22-script order, base program `P`, all
+63 exercise IDs, and accepted `Releases/` files remain protected. Basketball
+adds no Sync mutation path. The candidate requires Marcus's real-device manual
+QA in `tests/marcusfit-10.2.0-manual-qa.md` and must not be called accepted or
+merged before explicit approval.
+
 ## Implemented 10.1.2 architecture
 
 MarcusFit remains a dependency-free static HTML/CSS/classic-JavaScript app for
@@ -76,7 +94,7 @@ regression checks.
 10.1.2 — Feature-oriented JavaScript modularization — Accepted and merged
 10.1.3 — Program Day Integrity & Historical Identity Repair — Accepted
 10.1.4 — Mobile accessibility, Sync/settings organization, Habits UI — Accepted
-10.2.0 — Basketball programs and progression
+10.2.0 — Basketball programs and progression — Implementation candidate
 10.3.0 — Basketball-specific AI Sync
 10.4.0 — Habits-specific AI Sync
 10.5.0 — Full cross-domain coaching review

@@ -106,6 +106,8 @@ assert.strictEqual(c.mfBasketballSelectProgram("shooting_focus_2_session", "2026
 assert.strictEqual(c.mfBasketballRestartProgram("2026-08-28T11:00:00.000Z").state.nextSessionIndex, 0);
 assert.strictEqual(source.includes("setDate("), true, "Date filtering may exist, but program advancement must remain explicit");
 assert(!/setInterval|weekly advancement|missed-session/i.test(source));
+const noCalendarAdvance = localStorage.getItem("mf-basketball-program-state");
+assert.strictEqual(localStorage.getItem("mf-basketball-program-state"), noCalendarAdvance);
 
 // Drill validation is mode-specific and confidence accepts only 1-10.
 function normalizeDrill(input) { const errors = []; const result = c.mfBasketballNormalizeDrillResult(input, {}, errors); return { errors, result }; }
@@ -118,6 +120,12 @@ assert(normalizeDrill({ ...base, trackingMode: "benchmark_shooting", plannedTarg
 const benchmark = normalizeDrill({ ...base, trackingMode: "benchmark_shooting", plannedTargetSnapshot: { attempts: 20 }, actualResult: { made: 16, attempted: 20 } });
 assert.strictEqual(benchmark.errors.length, 0);
 assert.strictEqual(benchmark.result.actualResult.percentage, 80);
+const countResult = normalizeDrill({ ...base, trackingMode: "count", plannedTargetSnapshot: { count: 12 }, actualResult: { count: 9 }, confidence: 6 });
+assert.strictEqual(countResult.errors.length, 0);
+assert.strictEqual(countResult.result.actualResult.count, 9);
+const completionResult = normalizeDrill({ ...base, trackingMode: "completion", actualResult: { completed: false } });
+assert.strictEqual(completionResult.errors.length, 0);
+assert.strictEqual(completionResult.result.actualResult.completed, false);
 
 function drillResult(definition, values = {}) {
   return {
@@ -154,6 +162,15 @@ assert.strictEqual(structured.programNameSnapshot, "Guard Skills — 3 Session")
 assert.strictEqual(structured.plannedSessionId, "guard_a_handle_weak_hand");
 assert.strictEqual(structured.drills[2].drillId, "guard_behind_back_foundation");
 assert.strictEqual(structured.drills[2].confidence, 3);
+const beforeAbandonedSessions = localStorage.getItem("mf-basketball-sessions");
+const beforeAbandonedQueue = localStorage.getItem("mf-basketball-program-state");
+assert.strictEqual(c.mfBasketballBuildStructuredInput({
+  programId: "guard_skills_3_session", programVersion: 1,
+  plannedSessionId: "guard_a_handle_weak_hand", date: "2026-08-29", minutes: 42,
+  drills: validGuardA(5)
+}).ok, true);
+assert.strictEqual(localStorage.getItem("mf-basketball-sessions"), beforeAbandonedSessions);
+assert.strictEqual(localStorage.getItem("mf-basketball-program-state"), beforeAbandonedQueue);
 finished = c.mfBasketballFinishStructuredSession({
   programId: "guard_skills_3_session", programVersion: 1,
   plannedSessionId: "guard_a_handle_weak_hand", date: "2026-08-30", minutes: 44,
@@ -205,6 +222,13 @@ assert.strictEqual("percentage" in makesDrill(20, 8).actualResult, false, "makes
 function benchmarkDrill(made, attempted) { return { drillId: "guard_ft_benchmark", nameSnapshot: "Free Throws — Benchmark", trackingMode: "benchmark_shooting", plannedTargetSnapshot: { attempts: 20, minAttempts: 10 }, actualResult: { made, attempted, percentage: Math.round(made / attempted * 1000) / 10 } }; }
 guidance = c.mfBasketballProgressionForDrill("guard_ft_benchmark", [exposure("bball-b1", "2026-01-01", benchmarkDrill(7, 10)), exposure("bball-b2", "2026-01-02", benchmarkDrill(15, 20)), exposure("bball-b3", "2026-01-03", benchmarkDrill(16, 20))]);
 assert.strictEqual(guidance.status, "improving");
+guidance = c.mfBasketballProgressionForDrill("guard_ft_benchmark", [exposure("bball-small", "2026-01-01", benchmarkDrill(1, 2))]);
+assert.strictEqual(guidance.status, "small_sample");
+
+function durationDrill(minutes, confidence) { return { drillId: "fundamentals_weak_hand_stationary", nameSnapshot: "Weak-Hand Pound Dribble", trackingMode: "duration", plannedTargetSnapshot: { durationMinutes: 5 }, actualResult: { durationMinutes: minutes }, confidence }; }
+guidance = c.mfBasketballProgressionForDrill("fundamentals_weak_hand_stationary", [exposure("bball-d1", "2026-01-01", durationDrill(5, 7)), exposure("bball-d2", "2026-01-02", durationDrill(5, 8)), exposure("bball-d3", "2026-01-03", durationDrill(6, 8))]);
+assert.strictEqual(guidance.ready, true);
+assert(guidance.guidance.includes("Moving Weak-Hand Control"));
 
 // Backup owns and validates both stores; legacy backups may omit program state.
 assert.strictEqual(c.p8IsMarcusFitKey("mf-basketball-sessions"), true);
@@ -219,6 +243,12 @@ assert.throws(() => c.p8ValidateBackup(JSON.stringify({ app: "MarcusFit", data: 
 const summary = c.p8492SummarizeBackup(backup);
 assert.strictEqual(summary.hasBasketballProgramState, true);
 assert.strictEqual(summary.basketballProgramName, "Guard Skills — 3 Session");
+const sessionBytesBeforeSwitch = localStorage.getItem("mf-basketball-sessions");
+assert.strictEqual(c.mfBasketballSelectProgram("shooting_focus_2_session", "2026-09-02T10:00:00.000Z").ok, true);
+assert.strictEqual(localStorage.getItem("mf-basketball-sessions"), sessionBytesBeforeSwitch, "program switching must not rewrite history");
+assert.strictEqual(c.mfBasketballReadProgramState().state.nextSessionIndex, 0);
+c.mfBasketballSelectProgram("guard_skills_3_session", "2026-09-02T11:00:00.000Z");
+c.mfBasketballAdvanceProgramState("2026-09-02T12:00:00.000Z");
 
 // AI Export includes active queue context and structured drill guidance, while
 // preserving the program-only range contract and sensible empty behavior.
@@ -262,4 +292,4 @@ assert.strictEqual(malformedContext.context.mfBasketballReadStore().invalidRecor
 assert(!/\bapplySync\s*=/.test(source));
 assert(!/\bfunction\s+applySync\s*\(/.test(source));
 
-console.log("MarcusFit 10.2.0 basketball programs/progression foundation: PASS");
+console.log("MarcusFit 10.2.0 basketball programs/progression contract: PASS");

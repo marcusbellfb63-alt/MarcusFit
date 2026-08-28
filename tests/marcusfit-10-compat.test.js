@@ -23,8 +23,8 @@ const expectedScriptOrder = JSON.parse(fs.readFileSync(
 
 const EXPECTED_ACCEPTED_SHA256 = "69a3a66541d14290a6a7b73bf313365176169fd0d659e6effb29edcaf7a4e34b";
 const EXPECTED_ACCEPTED_GIT_BLOB = "c10e4a488296b7ba83311d7fc7bdd1dcd4c4b7e8";
-const EXPECTED_BASKETBALL_SHA256 = "897f46401adf7264843a11a3fe9ba11d647f083b1bc048bffc980c96572a8b92";
-const TARGET_APP_VERSION = "10.1.4";
+const EXPECTED_AI_SYNC_SHA256 = "25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e";
+const TARGET_APP_VERSION = "10.2.0";
 
 function blocks(source, tagName) {
   return [...source.matchAll(new RegExp(`<${tagName}\\b([^>]*)>([\\s\\S]*?)<\\/${tagName}>`, "gi"))]
@@ -165,8 +165,14 @@ if (currentExternalScripts.length) {
     return content;
   });
   const syncScriptIndex = currentExternalScripts.indexOf("assets/js/sync/12-ai-sync.js");
+  const syncSource = externalSources[syncScriptIndex];
   const postSyncSource = externalSources.slice(syncScriptIndex + 1).join("\n");
   assert(syncScriptIndex >= 0, "Canonical AI Sync script is missing from runtime order");
+  assert.strictEqual(
+    crypto.createHash("sha256").update(syncSource).digest("hex"),
+    EXPECTED_AI_SYNC_SHA256,
+    "Accepted authoritative AI Sync runtime changed"
+  );
   assert(!/(?:^|[;\n])\s*(?:window\.)?applySync\s*=/m.test(postSyncSource),
     "A later runtime script must not replace the canonical applySync binding");
   assert(!/\b(?:const|let|var)\s+[A-Za-z_$][\w$]*ApplySync\s*=\s*applySync\b/.test(postSyncSource),
@@ -176,11 +182,12 @@ if (currentExternalScripts.length) {
   const basketballSource = externalSources[externalSources.length - 1];
   const combinedExternalSource = externalSources.join("");
   new vm.Script(combinedExternalSource, { filename: "MarcusFit10.combined.js" });
-  assert.strictEqual(
-    crypto.createHash("sha256").update(basketballSource).digest("hex"),
-    EXPECTED_BASKETBALL_SHA256,
-    "Accepted basketball runtime changed"
-  );
+  assert(basketballSource.includes("MarcusFit 10.2.0: Basketball Programs & Progression"),
+    "10.2.0 basketball feature boundary is missing");
+  assert(basketballSource.includes('const MF_BASKETBALL_SCHEMA_VERSION = 1'),
+    "Backward-compatible basketball session schema changed");
+  assert(basketballSource.includes('mf-basketball-program-state'),
+    "Basketball program-state ownership is missing");
   const acceptedRuntimeInventory = extractInventory(`<script>${acceptedScript}</script>`);
   const currentRuntimeInventory = extractInventory(`<script>${combinedExternalSource}</script>`);
   acceptedRuntimeInventory.inlineHandlerFunctions.forEach(name => assert(
@@ -260,7 +267,8 @@ const ownedStorageTokens = [
   "day-", "mf-overrides", "mf-current-draft", "mf-exercise-state", "mf-recommendations",
   "mf-ai-coaching-preferences", "mf-user-profile", "mf-onboarding-state",
   "mf-onboarding-program-proposal", "mf-recurring-items", "mf-recurring-events",
-  "mf-habit-definitions", "mf-habit-proposal", "mf-basketball-sessions"
+  "mf-habit-definitions", "mf-habit-proposal", "mf-basketball-sessions",
+  "mf-basketball-program-state"
 ];
 const orderedRuntimeSource = expectedScriptOrder
   .map(source => fs.readFileSync(path.join(root, ...source.split("/")), "utf8"))
