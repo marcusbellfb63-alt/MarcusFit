@@ -27,9 +27,11 @@ Evaluation occurs after HTML parsing, in source order, before
 5. `21-app-boot.js` initializes lifecycle state and runs the idempotent 10.1.3
    virtual-day repair before synchronously rendering preferences/profile,
    onboarding, personalization, the program, and adherence.
-6. `22-basketball.js` defines immutable program templates and local progression,
-   captures the final backup/History/Stats/export/navigation functions, registers
-   its listeners, resets its forms, and renders the current session queue.
+6. `22-basketball.js` defines immutable program templates, sparse override and
+   proposal resolution, and local progression; captures the final
+   backup/History/Stats/export/navigation functions; composes the existing habit
+   Sync hook while preserving file 12 as the live core authority; registers its
+   listeners; resets its forms; and renders the current session queue/proposal status.
 7. The three previously registered `window.load` listeners run: remaining
    recommendation/specialization migrations and initial daily wiring; delayed
    badges; MutationObserver/save-hook installation.

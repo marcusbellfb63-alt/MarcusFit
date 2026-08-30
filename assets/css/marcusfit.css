@@ -1033,6 +1033,17 @@ body.mf-basketball-structured-open .p6-sticky-bar{display:none;}
 .mf-basketball-trend-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:var(--mf-font-sm);color:var(--muted);}
 .mf-basketball-trend-row:last-child{border-bottom:0;}
 .mf-basketball-trend-row strong{text-align:right;color:var(--text);}
+.mf-basketball-proposal-status{margin:10px 0;padding:11px;border:1px solid color-mix(in srgb,var(--yellow) 55%,var(--border));border-radius:10px;background:color-mix(in srgb,var(--yellow) 8%,var(--surface));color:var(--text);font-size:var(--mf-font-sm);line-height:1.45;overflow-wrap:anywhere;}
+.mf-basketball-proposal-status.applied{border-color:color-mix(in srgb,var(--accent) 45%,var(--border));background:color-mix(in srgb,var(--accent) 7%,var(--surface));}
+.mf-basketball-proposal-status button{display:block;width:100%;min-height:44px;margin-top:8px;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--text);font:800 var(--mf-font-sm) 'DM Sans',sans-serif;cursor:pointer;white-space:normal;overflow-wrap:anywhere;}
+.mf-basketball-proposal-overlay{overflow:hidden;}
+.mf-basketball-proposal-overlay .p960-panel{min-width:0;min-height:0;max-height:calc(100vh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;}
+.mf-basketball-proposal-overlay .p960-footer{position:sticky;bottom:0;flex-wrap:wrap;padding-bottom:max(4px,env(safe-area-inset-bottom));}
+.mf-basketball-proposal-overlay .p960-footer button{flex:1 1 190px;white-space:normal;overflow-wrap:anywhere;}
+.mf-basketball-proposal-copy{font-size:var(--mf-font-sm);line-height:1.55;overflow-wrap:anywhere;}
+.mf-basketball-proposal-warning{padding:9px 10px;border-left:3px solid var(--yellow);background:color-mix(in srgb,var(--yellow) 8%,transparent);font-size:var(--mf-font-sm);line-height:1.45;overflow-wrap:anywhere;}
+.mf-basketball-proposal-error{padding:9px 10px;border-left:3px solid var(--red);color:var(--red);white-space:pre-wrap;font-size:var(--mf-font-sm);line-height:1.45;overflow-wrap:anywhere;}
+body.mf-basketball-proposal-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 
 @media(min-width:420px){
   .mf-basketball-program-picker{grid-template-columns:minmax(0,1fr) auto;align-items:end;}
