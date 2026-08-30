@@ -24,6 +24,8 @@ const MF_BASKETBALL_TYPES = Object.freeze({
   other: "Other"
 });
 const MF_BASKETBALL_LIMITS = Object.freeze({ minutes: 1440, count: 10000, notes: 2000 });
+let mfBasketballProposalScrollLock = null;
+let mfBasketballProposalReturnFocus = null;
 
 function mfBasketballDeepFreeze(value){
   if(!value||typeof value!=="object"||Object.isFrozen(value))return value;
@@ -832,8 +834,22 @@ function mfBasketballChangeDescription(change){
   return String(change.action||"Basketball change");
 }
 
+function mfBasketballLockProposalScroll(){
+  const body=document.body;if(!body||!body.style||mfBasketballProposalScrollLock)return mfBasketballProposalScrollLock;
+  const scrollX=Number(window.pageXOffset||window.scrollX||0),scrollY=Number(window.pageYOffset||window.scrollY||document.documentElement&&document.documentElement.scrollTop||0);
+  mfBasketballProposalScrollLock={scrollX:scrollX,scrollY:scrollY,styles:{position:body.style.position||"",top:body.style.top||"",left:body.style.left||"",right:body.style.right||"",width:body.style.width||"",overflow:body.style.overflow||""}};
+  body.style.position="fixed";body.style.top=(-scrollY)+"px";body.style.left="0";body.style.right="0";body.style.width="100%";body.style.overflow="hidden";if(body.classList)body.classList.add("mf-basketball-proposal-open");return mfBasketballProposalScrollLock;
+}
+
+function mfBasketballUnlockProposalScroll(){
+  const body=document.body,lock=mfBasketballProposalScrollLock;if(body&&body.classList)body.classList.remove("mf-basketball-proposal-open");if(!lock||!body||!body.style){mfBasketballProposalScrollLock=null;return lock;}
+  Object.keys(lock.styles).forEach(function(property){body.style[property]=lock.styles[property];});mfBasketballProposalScrollLock=null;return lock;
+}
+
 function mfBasketballCloseProposalReview(){
-  const overlay=document.getElementById("mfBasketballProposalReview");if(overlay)overlay.classList.remove("open");if(document.body&&document.body.classList)document.body.classList.remove("mf-basketball-proposal-open");
+  const overlay=document.getElementById("mfBasketballProposalReview");if(overlay)overlay.classList.remove("open");const lock=mfBasketballUnlockProposalScroll(),returnFocus=mfBasketballProposalReturnFocus;mfBasketballProposalReturnFocus=null;
+  if(returnFocus&&typeof returnFocus.focus==="function"&&returnFocus.isConnected!==false){try{returnFocus.focus({preventScroll:true});}catch(e){returnFocus.focus();}}
+  if(lock&&typeof window.scrollTo==="function")window.scrollTo(lock.scrollX,lock.scrollY);
 }
 
 function mfBasketballRenderProposalStatus(){
@@ -847,7 +863,7 @@ function mfBasketballRenderProposalStatus(){
 }
 
 function mfBasketballOpenProposalReview(){
-  const proposal=mfBasketballGetProposal();if(!proposal)return false;let overlay=document.getElementById("mfBasketballProposalReview");if(!overlay){overlay=mfBasketballElement("div","p960-overlay mf-basketball-proposal-overlay");overlay.id="mfBasketballProposalReview";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-labelledby","mfBasketballProposalReviewTitle");overlay.addEventListener("click",function(event){if(event.target===overlay)mfBasketballCloseProposalReview();});document.body.appendChild(overlay);}overlay.replaceChildren();
+  const proposal=mfBasketballGetProposal();if(!proposal)return false;let overlay=document.getElementById("mfBasketballProposalReview");if(!overlay){overlay=mfBasketballElement("div","p960-overlay mf-basketball-proposal-overlay");overlay.id="mfBasketballProposalReview";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-labelledby","mfBasketballProposalReviewTitle");overlay.addEventListener("click",function(event){if(event.target===overlay)mfBasketballCloseProposalReview();});document.body.appendChild(overlay);}const wasOpen=overlay.classList.contains("open");overlay.replaceChildren();
   const panel=mfBasketballElement("div","p960-panel"),head=mfBasketballElement("div","p960-head"),title=mfBasketballElement("h2","","Basketball Proposal Review"),close=mfBasketballElement("button","","Close / Review Later");title.id="mfBasketballProposalReviewTitle";close.type="button";close.addEventListener("click",mfBasketballCloseProposalReview);head.append(title,close);panel.appendChild(head);
   const summary=mfBasketballElement("p","mf-basketball-proposal-copy");summary.appendChild(mfBasketballElement("strong","",proposal.summary));panel.appendChild(summary);if(proposal.rationale)panel.appendChild(mfBasketballElement("p","mf-basketball-proposal-copy",proposal.rationale));
   let validation=null;if(proposal.status==="pending")validation=mfBasketballValidateProposal(proposal);
@@ -863,7 +879,7 @@ function mfBasketballOpenProposalReview(){
   }else if(proposal.status==="applied"&&proposal.undoSnapshot){
     const undo=mfBasketballElement("button","p960-primary","Undo Last Basketball Apply");undo.type="button";undo.addEventListener("click",function(){if(undo.dataset.confirm!=="true"){const preview=mfBasketballUndoProposal(false);if(preview.conflict){message.className="mf-basketball-proposal-error";message.textContent=preview.errors.join("\n");return;}undo.dataset.confirm="true";undo.textContent="Confirm Undo";message.textContent="Restore the exact prior basketball personalization and program selection? History will remain untouched.";return;}const result=mfBasketballUndoProposal(true);if(!result.undone){message.className="mf-basketball-proposal-error";message.textContent=(result.errors||["Undo failed."]).join("\n");return;}mfBasketballCloseProposalReview();});footer.append(undo);
   }
-  const footerClose=mfBasketballElement("button","","Close / Review Later");footerClose.type="button";footerClose.addEventListener("click",mfBasketballCloseProposalReview);footer.appendChild(footerClose);panel.appendChild(footer);overlay.appendChild(panel);overlay.classList.add("open");if(document.body&&document.body.classList)document.body.classList.add("mf-basketball-proposal-open");if(typeof close.focus==="function")close.focus();return true;
+  const footerClose=mfBasketballElement("button","","Close / Review Later");footerClose.type="button";footerClose.addEventListener("click",mfBasketballCloseProposalReview);footer.appendChild(footerClose);panel.appendChild(footer);overlay.appendChild(panel);if(!wasOpen){mfBasketballProposalReturnFocus=document.activeElement||null;mfBasketballLockProposalScroll();}overlay.classList.add("open");if(typeof close.focus==="function")close.focus();return true;
 }
 
 function mfBasketballDescribeTarget(drill){
@@ -1349,7 +1365,11 @@ if(typeof process!=="undefined"&&process&&process.versions&&process.versions.nod
     mfBasketballValidateBackupOverrides:mfBasketballValidateBackupOverrides,
     mfBasketballValidateBackupProposal:mfBasketballValidateBackupProposal,
     mfBasketballFingerprint:mfBasketballFingerprint,
-    mfBasketballHandleSyncExtension:mfBasketballHandleSyncExtension
+    mfBasketballHandleSyncExtension:mfBasketballHandleSyncExtension,
+    mfBasketballOpenProposalReview:mfBasketballOpenProposalReview,
+    mfBasketballCloseProposalReview:mfBasketballCloseProposalReview,
+    mfBasketballLockProposalScroll:mfBasketballLockProposalScroll,
+    mfBasketballUnlockProposalScroll:mfBasketballUnlockProposalScroll
   };
 }
 

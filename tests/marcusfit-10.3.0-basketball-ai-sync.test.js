@@ -35,10 +35,11 @@ function createStorage(initial = {}) {
 
 function createElement() {
   const classes = new Set();
+  const style = { position: "", top: "", left: "", right: "", width: "", overflow: "", setProperty(name, value) { this[name] = value; }, removeProperty(name) { this[name] = ""; } };
   return {
     value: "", textContent: "", innerHTML: "", className: "", id: "", checked: false,
     disabled: false, hidden: false, selectedIndex: 0, children: [], options: [], dataset: {},
-    style: { setProperty() {}, removeProperty() {} },
+    style, isConnected: true,
     classList: {
       add(...names) { names.forEach(name => classes.add(name)); },
       remove(...names) { names.forEach(name => classes.delete(name)); },
@@ -51,7 +52,7 @@ function createElement() {
     appendChild(child) { this.children.push(child); return child; },
     replaceChildren(...children) { this.children = children; },
     querySelector() { return null; }, querySelectorAll() { return []; },
-    closest() { return null; }, focus() {}, click() {}, remove() {}, scrollIntoView() {}
+    closest() { return null; }, focus() { this.focused = true; }, click() {}, remove() {}, scrollIntoView() {}
   };
 }
 
@@ -75,9 +76,12 @@ function createContext(initial = {}) {
     navigator: { clipboard: { writeText() { return Promise.resolve(); } } },
     location: { reload() {} }, URL: { createObjectURL() { return "blob:test"; }, revokeObjectURL() {} },
     Blob: global.Blob, getComputedStyle() { return {}; }, alert() {}, confirm() { throw new Error("native confirm called"); },
+    pageXOffset: 0, pageYOffset: 0, scrollX: 0, scrollY: 0,
+    scrollTo(x, y) { this.pageXOffset = this.scrollX = Number(x); this.pageYOffset = this.scrollY = Number(y); this.lastScrollTo = [Number(x), Number(y)]; },
     addEventListener() {}, removeEventListener() {}, setTimeout, clearTimeout, setInterval, clearInterval,
     window: null
   };
+  context.document.activeElement = null;
   context.window = context;
   vm.createContext(context);
   scriptOrder.forEach(file => vm.runInContext(fs.readFileSync(path.join(root, ...file.split("/")), "utf8"), context, { filename: file }));
@@ -310,8 +314,17 @@ assert(basketballSource.includes("Close / Review Later"));
 assert(css.includes(".mf-basketball-proposal-overlay .p960-footer"));
 assert(css.includes("env(safe-area-inset-bottom)"));
 assert(css.includes("overflow-wrap:anywhere"));
-assert(css.includes("body.mf-basketball-proposal-open{overflow:hidden;}"));
-assert(!/\bconfirm\s*\(/.test(basketballSource));
+assert(css.includes("body.mf-basketball-proposal-open{position:fixed;"));
+assert(css.includes("overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain"));
+assert(!/\b(?:confirm|alert)\s*\(/.test(basketballSource));
 assert(html.includes('content="width=device-width, initial-scale=1, viewport-fit=cover"'));
+
+// Basketball review owns vertical scrolling and restores exact page/body state on close.
+c.mfBasketballCloseProposalReview();clearProposalState();assert(c.mfBasketballImportProposal(modify("bball-proposal-scroll-lock-1")).valid);
+const proposalBeforeReview=storage.getItem("mf-basketball-proposal"),body=env.context.document.body,returnFocus=createElement();
+body.style.position="relative";body.style.top="3px";body.style.left="4px";body.style.right="5px";body.style.width="95%";body.style.overflow="visible";
+c.pageXOffset=c.scrollX=7;c.pageYOffset=c.scrollY=427;env.context.document.activeElement=returnFocus;
+assert.strictEqual(c.mfBasketballOpenProposalReview(),true);assert.strictEqual(body.classList.contains("mf-basketball-proposal-open"),true);assert.strictEqual(body.style.position,"fixed");assert.strictEqual(body.style.top,"-427px");assert.strictEqual(body.style.left,"0");assert.strictEqual(body.style.right,"0");assert.strictEqual(body.style.width,"100%");assert.strictEqual(body.style.overflow,"hidden");assert.strictEqual(storage.getItem("mf-basketball-proposal"),proposalBeforeReview);
+c.mfBasketballCloseProposalReview();assert.strictEqual(body.classList.contains("mf-basketball-proposal-open"),false);assert.deepStrictEqual({position:body.style.position,top:body.style.top,left:body.style.left,right:body.style.right,width:body.style.width,overflow:body.style.overflow},{position:"relative",top:"3px",left:"4px",right:"5px",width:"95%",overflow:"visible"});assert.deepStrictEqual(c.lastScrollTo,[7,427]);assert.strictEqual(returnFocus.focused,true);assert.strictEqual(storage.getItem("mf-basketball-proposal"),proposalBeforeReview);
 
 console.log("MarcusFit 10.3.0 basketball AI Sync: PASS");
