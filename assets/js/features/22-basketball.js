@@ -1294,7 +1294,7 @@ function mfBasketballHandleSyncExtension(runCoreSync){
     const basketballExisting=mfBasketballGetProposal(),basketballValidation=basketballExisting&&basketballExisting.status==="pending"?{valid:false,errors:["A basketball proposal is already pending. Review or dismiss it before importing another."]}:mfBasketballValidateProposal(payload.basketballProposal,{captureExpectedState:true});
     let habitValidation=null,habitExisting=null;
     if(payload.habitProposal&&typeof p960ValidateHabitProposal==="function"){
-      habitExisting=typeof p960GetHabitProposal==="function"?p960GetHabitProposal():null;habitValidation=habitExisting&&habitExisting.status==="pending"?{valid:false,errors:["A habit proposal is already pending. Review or dismiss it before importing another."]}:p960ValidateHabitProposal(payload.habitProposal);
+      habitExisting=typeof p960GetHabitProposal==="function"?p960GetHabitProposal():null;habitValidation=habitExisting&&habitExisting.status==="pending"?{valid:false,errors:["A habit proposal is already pending. Review or dismiss it before importing another."]}:p960ValidateHabitProposal(payload.habitProposal,null,{captureExpectedState:true});
     }
     const importErrors=[];if(!basketballValidation.valid)importErrors.push.apply(importErrors,basketballValidation.errors||["Basketball proposal is invalid."]);if(payload.habitProposal&&(!habitValidation||!habitValidation.valid))importErrors.push.apply(importErrors,habitValidation&&habitValidation.errors||["Habit proposal is invalid."]);
     if(importErrors.length){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Sync proposal import rejected before any proposal or core processing:\n"+importErrors.join("\n");}return true;}

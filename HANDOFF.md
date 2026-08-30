@@ -4,13 +4,15 @@
 
 MarcusFit 10.3.0 basketball-specific AI Sync is accepted after full automated and real-device manual QA.
 
-Exact accepted starting baseline:
-`28053354b0ffc1654a398456d5fc7447059340e5`
+Exact accepted 10.3.0 merge commit / 10.4.0 starting baseline:
+`adb0d081707d85c4e0e8f61c2453be16ec387cf7`
 
 QA-approved implementation head:
 `74402eeb3f3c2c76cb54fd6a3b0d5bde828e878d`
 
 Acceptance documentation follows that implementation head only; no runtime changes are permitted after the QA-approved head before merge.
+
+MarcusFit 10.4.0 Habit AI Sync safety work is an implementation candidate only. It must remain on its draft PR until automated review and Marcus's real-browser/iPhone manual QA are complete.
 
 10.3.0 adds sparse future-program basketball overrides plus review-first basketball proposals while preserving accepted core Sync and historical basketball records. Supported proposal actions are bounded drill modification, stable-ID addition, future disable, within-session reorder, and switching among built-in basketball programs. Proposals import pending, require explicit review and two-stage apply, preserve immutable import-time expected state for stale-conflict detection, and support one-level safe undo without overwriting later user changes.
 

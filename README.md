@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.3.0 — accepted and merged-ready after full automated and real-device QA
+MarcusFit 10.4.0 — implementation candidate; automated validation complete, manual browser/iPhone QA required before acceptance
 
 ## Architecture
 
@@ -81,6 +81,12 @@ MarcusFit 10.3.0 — accepted and merged-ready after full automated and real-dev
 - Expected-state fingerprints refuse stale apply, and one-level undo refuses to overwrite later user changes
 - Basketball session history and stored drill snapshots are never rewritten by proposal apply or undo
 
+### Habit AI Sync (`mf-habit-definitions`, `mf-habit-proposal`)
+- Existing schema-1 Habit definitions remain the mutable source of truth; no override store is introduced
+- Proposal import alone captures granular per-Habit, scoped-order, or add-ID absence evidence
+- Reopen, preview, apply, diagnostics, and backup validation are comparison-only and never refresh missing evidence
+- Apply and one-level exact-snapshot Undo require two explicit clicks and never rewrite `day-YYYY-MM-DD` adherence
+
 ### Backup / Restore
 - Full backup serializes all MarcusFit-owned localStorage keys to a JSON blob with an `appVersion` field
 - Restore validates schema before applying
@@ -123,7 +129,7 @@ MarcusFit 10.3.0 — accepted and merged-ready after full automated and real-dev
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.3.0";
+const APP_VERSION      = "10.4.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
@@ -131,6 +137,8 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 
 ## Acceptance Record
 
+- 10.4.0 starts from accepted 10.3.0 merge commit `adb0d081707d85c4e0e8f61c2453be16ec387cf7`
+- 10.4.0 is not accepted; manual browser/iPhone QA is required before merge
 - 10.3.0 exact accepted starting baseline: `28053354b0ffc1654a398456d5fc7447059340e5`
 - 10.3.0 QA-approved implementation head: `74402eeb3f3c2c76cb54fd6a3b0d5bde828e878d`
 - Manual QA accepted: 2026-08-30
