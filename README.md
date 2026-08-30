@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.3.0 — implementation candidate awaiting manual QA
+MarcusFit 10.3.0 — accepted and merged-ready after full automated and real-device QA
 
 ## Architecture
 
@@ -129,6 +129,14 @@ const LIFECYCLE_VERSION = APP_VERSION;
 
 Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, lifecycle default `lifecycleVersion`, migration targets, and export strings reference these constants.
 
+## Acceptance Record
+
+- 10.3.0 exact accepted starting baseline: `28053354b0ffc1654a398456d5fc7447059340e5`
+- 10.3.0 QA-approved implementation head: `74402eeb3f3c2c76cb54fd6a3b0d5bde828e878d`
+- Manual QA accepted: 2026-08-30
+- Real-device iPhone Safari QA passed, including proposal scrolling, add/remove/reorder, safe undo, stale conflict protection, mixed Sync, backup/restore, and regression sanity
+- Core Sync remained byte-identical with SHA-256 `25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e`
+
 ## Near-Term Roadmap
 
 - **v10.1.0** — Basketball session logging (accepted runtime)
@@ -137,4 +145,6 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.1.3** — Program-day integrity and historical identity repair (accepted)
 - **v10.1.4** — Mobile accessibility, Sync/settings organization, and Habits UI (accepted)
 - **v10.2.0** — Basketball programs and progression (accepted)
-- **v10.3.0** — Basketball-specific AI Sync (implementation candidate awaiting manual QA)
+- **v10.3.0** — Basketball-specific AI Sync (accepted)
+- **v10.4.0** — Habits-specific AI Sync
+- **v10.5.0** — Full cross-domain coaching review
