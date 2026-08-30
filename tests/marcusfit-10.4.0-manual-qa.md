@@ -61,8 +61,10 @@ Do not mark this checklist passed until it has been completed in a real browser 
 
 ## J. Stale reorder conflict
 
-- [ ] Import a reorder proposal, manually reorder Habits, then apply the old proposal.
-- [ ] Confirm the old proposal is refused and the user's newer order remains intact.
+- [ ] With order A, B, C, import a reorder proposal containing only B, A.
+- [ ] Manually move proposal-external Habit C ahead of the proposed subset, producing C, A, B.
+- [ ] Apply the old proposal and confirm it is refused, remains pending, and performs zero definition writes.
+- [ ] Confirm the user's newer full order C, A, B and daily history remain intact.
 
 ## K. Add-ID conflict
 
