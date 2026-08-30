@@ -1,75 +1,64 @@
 # MarcusFit Project Handoff
 
-## Active implementation candidate
-
-MarcusFit 10.3.0 basketball-specific AI Sync is under development on
-`codex/10-3-0-basketball-ai-sync` from exact accepted baseline
-`28053354b0ffc1654a398456d5fc7447059340e5`. It adds sparse future-program
-overrides and review-first basketball proposals without changing accepted core
-Sync or historical basketball records. This candidate is not accepted and must
-remain in a draft PR until manual QA is explicitly approved.
-
 ## Current accepted state
 
-MarcusFit 10.2.0 is accepted after full automated and real-device manual QA.
-The implementation head that passed final QA was
-`8ec91be0690358bdb9e680ecb9af12af2ffc4330` on
-`codex/10-2-0-basketball-programs-progression`.
+MarcusFit 10.3.0 basketball-specific AI Sync is accepted after full automated and real-device manual QA.
 
-The exact accepted baseline before 10.2.0 was MarcusFit 10.1.4 merged on `main`
-at `35b176870fdad9aed0ed37dc5e631a327eae9b1c` through PR #12.
+Exact accepted starting baseline:
+`28053354b0ffc1654a398456d5fc7447059340e5`
 
-10.2.0 adds three immutable, versioned basketball program templates; a
-session-driven cyclical queue in `mf-basketball-program-state`; drill-specific
-structured logging; confidence, duration, makes-target, benchmark, count, and
-completion tracking; deterministic basketball progression guidance; structured
-History; focused Stats; AI Export context; and backup/restore coverage. Existing
-schema-1 free-form basketball records remain readable and editable without eager
-migration.
+QA-approved implementation head:
+`74402eeb3f3c2c76cb54fd6a3b0d5bde828e878d`
 
-Real-device QA found and cleared two product/layout issues before acceptance:
-structured sessions now support partial completion with explicit skipped drills
-that do not count as progression exposures, and Session Date / Total Minutes use
-stacked full-width metadata controls to avoid iPhone Safari date-input overlap.
+Acceptance documentation follows that implementation head only; no runtime changes are permitted after the QA-approved head before merge.
 
-Core `assets/js/sync/12-ai-sync.js`, the accepted 22-script order, base program
-`P`, all 63 exercise IDs, and accepted `Releases/` files remain protected.
-Basketball adds no Sync mutation path; basketball-specific AI Sync remains the
-next roadmap phase.
+10.3.0 adds sparse future-program basketball overrides plus review-first basketball proposals while preserving accepted core Sync and historical basketball records. Supported proposal actions are bounded drill modification, stable-ID addition, future disable, within-session reorder, and switching among built-in basketball programs. Proposals import pending, require explicit review and two-stage apply, preserve immutable import-time expected state for stale-conflict detection, and support one-level safe undo without overwriting later user changes.
+
+Real-device iPhone Safari QA passed on 2026-08-30, including proposal-owned scrolling and background lock, add/remove/reorder behavior, invalid reorder rejection, normal safe undo, stale program-switch conflict protection, mixed core+habit+basketball Sync composition, backup/restore, structured and free-form basketball logging, repeat/advance behavior, lifting/habits regressions, AI Export, and console sanity.
+
+## Previous accepted state
+
+MarcusFit 10.2.0 was accepted after full automated and real-device manual QA and merged through PR #13. The exact 10.3.0 starting baseline is the 10.2.0 merge commit:
+`28053354b0ffc1654a398456d5fc7447059340e5`.
+
+10.2.0 added three immutable, versioned basketball program templates; a session-driven cyclical queue in `mf-basketball-program-state`; drill-specific structured logging; confidence, duration, makes-target, benchmark, count, and completion tracking; deterministic basketball progression guidance; structured History; focused Stats; AI Export context; and backup/restore coverage. Existing schema-1 free-form basketball records remain readable and editable without eager migration.
+
+Core `assets/js/sync/12-ai-sync.js`, the accepted 22-script order, base program `P`, all 63 exercise IDs, and accepted `Releases/` files remain protected.
 
 ## Implemented architecture
 
-MarcusFit remains a dependency-free static HTML/CSS/classic-JavaScript app for
-GitHub Pages. `index.html` explicitly loads 22 globally numbered `defer`
-scripts under `assets/js/{core,data,program,state,features,sync,system,boot}`.
+MarcusFit remains a dependency-free static HTML/CSS/classic-JavaScript app for GitHub Pages. `index.html` explicitly loads 22 globally numbered `defer` scripts under `assets/js/{core,data,program,state,features,sync,system,boot}`.
 
-See `docs/architecture/README.md` for the exact tree, ownership, storage map,
-load order, risks, implementation deviations, and equivalence evidence.
+See `docs/architecture/README.md` for the exact tree, ownership, storage map, load order, risks, implementation deviations, and equivalence evidence.
+
+### Basketball-specific AI Sync ownership
+
+- Built-in basketball templates remain immutable.
+- `mf-basketball-program-overrides` schema 1 stores sparse personalization overlays for future resolved sessions.
+- `mf-basketball-proposal` schema 1 owns pending review state, expected-state evidence, apply metadata, and the one-level undo snapshot.
+- `assets/js/features/22-basketball.js` owns basketball proposal normalization, validation, resolution, review/apply/undo/reject behavior, and late Sync extension composition.
+- `assets/js/sync/12-ai-sync.js` remains the sole authoritative core `applySync` implementation and is byte-identical to the accepted baseline.
+- Historical `mf-basketball-sessions` records and stored drill snapshots are never rewritten by proposal import, apply, reject, or undo.
 
 ## Protected invariants
 
 - Never modify accepted files in `Releases/`.
 - Never mutate base program `P` or change its 63 stable exercise IDs.
-- Preserve owned storage keys/patterns, schemas, raw backup strings, and
-  replacement restore behavior unless an explicit backward-compatible migration
-  is approved.
-- Preserve public globals, inline attributes/handlers, debug names/result shapes,
-  and classic-script scope/order.
+- Preserve owned storage keys/patterns, schemas, raw backup strings, and replacement restore behavior unless an explicit backward-compatible migration is approved.
+- Preserve public globals, inline attributes/handlers, debug names/result shapes, and classic-script scope/order.
 - Preserve AI export text/order and AI Sync valid/invalid/rollback behavior.
-- Preserve synchronous boot, load listeners, and basketball-last
-  wrapper capture/initialization.
-- Do not introduce modules, npm, TypeScript, bundlers, frameworks, services,
-  analytics, service workers, or runtime dependencies.
+- Preserve synchronous boot, load listeners, and basketball-last wrapper capture/initialization.
+- `assets/js/sync/12-ai-sync.js` is the sole authoritative core `applySync`; later features may compose only through accepted hooks and must never capture/wrap a competing obsolete `applySync`.
+- Do not introduce modules, npm, TypeScript, bundlers, frameworks, services, analytics, service workers, or runtime dependencies.
 
-## Accepted 10.2.0 validation
+## Accepted 10.3.0 validation
 
-All nine automated regression test files pass, along with architecture inventory,
-`git diff --check`, local HTTP smoke, responsive rendered checks, and protected
-hash checks. Real-device iPhone/Safari QA passed after the manual-QA corrections,
-including structured partial-session save/repeat/advance behavior, skipped-drill
-handling, stacked metadata controls, program queue behavior, free-form isolation,
-History, Stats, AI Export, backup/restore, lifting regression, Habits, valid and
-invalid AI Sync, text-size modes, and console sanity.
+All 10 automated regression test files pass, along with architecture inventory, `git diff --check`, local HTTP smoke, responsive rendered checks, protected-hash checks, and full real-device iPhone/Safari manual QA.
+
+Manual QA specifically cleared two defects before acceptance:
+
+1. Basketball proposal review now owns vertical scrolling on iOS while the underlying page remains locked and exact page position is restored on close.
+2. Proposal expected-state evidence is captured exactly once during import and remains immutable during reopen/preview/apply. Switch-program expected state includes active program ID, version, and queue position; drill/session fingerprints likewise cannot be silently refreshed. Stale proposals now refuse with zero writes and remain pending for review or rejection.
 
 Protected values at acceptance:
 
@@ -84,9 +73,9 @@ Protected values at acceptance:
 - Never work directly on `main`.
 - Use multiple meaningful rollback commits for substantial work.
 - Test browser behavior through a local HTTP server, never `file://`.
-- Back up production data before restoring it to localhost; origins have separate
-  `localStorage`.
+- Back up production data before restoring it to localhost; origins have separate `localStorage`.
 - Keep feature PRs draft until Marcus explicitly accepts manual QA.
+- After explicit acceptance, only documentation commits may follow the QA-approved implementation head before merge.
 
 ## Roadmap
 
@@ -101,7 +90,7 @@ Protected values at acceptance:
 10.1.3 — Program Day Integrity & Historical Identity Repair — Accepted
 10.1.4 — Mobile accessibility, Sync/settings organization, Habits UI — Accepted
 10.2.0 — Basketball programs and progression — Accepted
-10.3.0 — Basketball-specific AI Sync
+10.3.0 — Basketball-specific AI Sync — Accepted
 10.4.0 — Habits-specific AI Sync
 10.5.0 — Full cross-domain coaching review
 ```
