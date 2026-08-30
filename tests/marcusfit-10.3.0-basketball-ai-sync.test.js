@@ -116,6 +116,10 @@ function modify(id = "bball-proposal-modify-1", minutes = 10) {
   }]);
 }
 
+function validateImport(candidate) {
+  return c.mfBasketballValidateProposal(candidate, { captureExpectedState: true });
+}
+
 function runSync(payload) {
   env.getElementById("syncInput").value = "MARCUSFIT_UPDATE_START\n" + JSON.stringify(payload) + "\nMARCUSFIT_UPDATE_END";
   c.applySync();
@@ -151,27 +155,27 @@ assert.deepStrictEqual(JSON.parse(JSON.stringify(c.mfBasketballGetResolvedProgra
 storage.removeItem("mf-basketball-program-overrides");
 
 // Proposal validation is strict, mode-specific, bounded, and rejects prohibited domains.
-assert.strictEqual(c.mfBasketballValidateProposal(modify()).valid, true);
+assert.strictEqual(validateImport(modify()).valid, true);
 let bad = modify("bball-proposal-bad-program"); bad.changes[0].programId = "unknown";
-assert.strictEqual(c.mfBasketballValidateProposal(bad).valid, false);
+assert.strictEqual(validateImport(bad).valid, false);
 bad = modify("bball-proposal-bad-version"); bad.changes[0].programVersion = 2;
-assert.strictEqual(c.mfBasketballValidateProposal(bad).valid, false);
+assert.strictEqual(validateImport(bad).valid, false);
 bad = modify("bball-proposal-bad-session"); bad.changes[0].sessionId = "unknown";
-assert.strictEqual(c.mfBasketballValidateProposal(bad).valid, false);
+assert.strictEqual(validateImport(bad).valid, false);
 bad = modify("bball-proposal-bad-drill"); bad.changes[0].drillId = "unknown";
-assert.strictEqual(c.mfBasketballValidateProposal(bad).valid, false);
+assert.strictEqual(validateImport(bad).valid, false);
 bad = modify("bball-proposal-track-mode"); bad.changes[0].fields = { trackingMode: "duration" };
-assert.strictEqual(c.mfBasketballValidateProposal(bad).valid, false);
+assert.strictEqual(validateImport(bad).valid, false);
 bad = modify("bball-proposal-large-warning", 13);
-assert.strictEqual(c.mfBasketballValidateProposal(bad).warnings.length > 0, true);
+assert.strictEqual(validateImport(bad).warnings.length > 0, true);
 bad = modify("bball-proposal-too-extreme", 120);
-assert.strictEqual(c.mfBasketballValidateProposal(bad).valid, false);
+assert.strictEqual(validateImport(bad).valid, false);
 bad = modify("bball-proposal-history"); bad.changes[0].historicalResults = [];
-assert.strictEqual(c.mfBasketballValidateProposal(bad).valid, false);
+assert.strictEqual(validateImport(bad).valid, false);
 const invalidAdd = proposal("bball-proposal-invalid-add", [{ action: "add_drill", programId: guard.id, programVersion: 1, sessionId: guardA.id, drillId: "bad-id", position: 0, drill: { id: "bad-id", name: "Bad", trackingMode: "confidence", target: { durationMinutes: 5 } } }]);
-assert.strictEqual(c.mfBasketballValidateProposal(invalidAdd).valid, false);
+assert.strictEqual(validateImport(invalidAdd).valid, false);
 const invalidMode = proposal("bball-proposal-invalid-mode", [{ action: "add_drill", programId: guard.id, programVersion: 1, sessionId: guardA.id, drillId: "bball-ai-invalid-mode-v1", position: 0, drill: { id: "bball-ai-invalid-mode-v1", name: "Bad", trackingMode: "percentage", target: {} } }]);
-assert.strictEqual(c.mfBasketballValidateProposal(invalidMode).valid, false);
+assert.strictEqual(validateImport(invalidMode).valid, false);
 
 // Import is pending-only and writes neither overrides, queue state, nor history.
 clearProposalState();
@@ -217,6 +221,19 @@ const afterApply = JSON.parse(storage.getItem("mf-basketball-program-overrides")
 storage.setItem("mf-basketball-program-overrides", JSON.stringify(afterApply));
 assert.strictEqual(c.mfBasketballUndoProposal(true).conflict, true);
 
+// Every drill/session action keeps immutable import-time fingerprints after drift.
+function assertStaleAction(candidate,expectedKeys,expectedConflicts){
+  clearProposalState();storage.removeItem("mf-basketball-program-overrides");assert(c.mfBasketballImportProposal(candidate).valid);const persisted=JSON.parse(storage.getItem("mf-basketball-proposal"));expectedKeys.forEach(key=>assert(Object.prototype.hasOwnProperty.call(persisted.changes[0],key),candidate.proposalId+" missing "+key));assert.strictEqual(c.mfBasketballValidateProposal(JSON.parse(JSON.stringify(persisted))).valid,true);const missingExpected=JSON.parse(JSON.stringify(persisted));expectedKeys.forEach(key=>delete missingExpected.changes[0][key]);const missingValidation=c.mfBasketballValidateProposal(missingExpected);assert.strictEqual(missingValidation.valid,false);expectedConflicts.forEach(id=>assert(missingValidation.conflicts.includes(id)));
+  storage.setItem("mf-basketball-program-overrides",JSON.stringify(overrideStore));const driftRaw=storage.getItem("mf-basketball-program-overrides"),pendingActionRaw=storage.getItem("mf-basketball-proposal"),historyRaw=storage.getItem("mf-basketball-sessions"),programRaw=storage.getItem("mf-basketball-program-state");
+  [c.mfBasketballValidateProposal(c.mfBasketballGetProposal()),c.mfBasketballApplyProposal(false),c.mfBasketballApplyProposal(true)].forEach(result=>{assert.strictEqual(result.valid===true||result.applied===true,false);expectedConflicts.forEach(id=>assert(result.conflicts.includes(id),candidate.proposalId+" missed conflict "+id));assert((result.errors||[]).includes("Basketball program changed after this proposal was created. Review a fresh proposal."));});
+  assert.strictEqual(storage.getItem("mf-basketball-program-overrides"),driftRaw);assert.strictEqual(storage.getItem("mf-basketball-sessions"),historyRaw);assert.strictEqual(storage.getItem("mf-basketball-program-state"),programRaw);assert.strictEqual(storage.getItem("mf-basketball-proposal"),pendingActionRaw);assert.strictEqual(c.mfBasketballGetProposal().status,"pending");
+}
+const staleAddId="bball-ai-stale-fingerprint-v1",baseOrder=guardA.drills.map(drill=>drill.id);
+assertStaleAction(modify("bball-proposal-stale-modify",9),["expectedDrillFingerprint"],[behind.id]);
+assertStaleAction(proposal("bball-proposal-stale-add",[{action:"add_drill",programId:guard.id,programVersion:1,sessionId:guardA.id,drillId:staleAddId,position:1,drill:{id:staleAddId,name:"Stale Fingerprint Add",trackingMode:"confidence",confidence:true,target:{durationMinutes:5}}}]),["expectedSessionFingerprint"],[guardA.id]);
+assertStaleAction(proposal("bball-proposal-stale-remove",[{action:"remove_drill",programId:guard.id,programVersion:1,sessionId:guardA.id,drillId:behind.id}]),["expectedDrillFingerprint","expectedSessionFingerprint"],[behind.id,guardA.id]);
+assertStaleAction(proposal("bball-proposal-stale-reorder",[{action:"reorder_drills",programId:guard.id,programVersion:1,sessionId:guardA.id,order:baseOrder.slice().reverse()}]),["expectedSessionFingerprint"],[guardA.id]);
+
 // Add, disable, reorder, and program-switch actions affect future resolution only.
 clearProposalState();
 const addProposal = proposal("bball-proposal-add-1", [{ action: "add_drill", programId: guard.id, programVersion: 1, sessionId: guardA.id, drillId: addId, position: 1, drill: { id: addId, name: "Behind-the-Back Stationary Control", trackingMode: "confidence", confidence: true, target: { durationMinutes: 5 } } }]);
@@ -253,6 +270,31 @@ assert(c.mfBasketballImportProposal(switchProposal).valid);const switchPreview =
 assert.strictEqual(c.mfBasketballReadProgramState().state.activeProgramId, "shooting_focus_2_session");
 assert.strictEqual(c.mfBasketballReadProgramState().state.nextSessionIndex, 0);
 assert.strictEqual(storage.getItem("mf-basketball-sessions"), structuredHistoryBefore);
+
+// A pending program switch keeps import-time active-program evidence across reload/review.
+clearProposalState();storage.removeItem("mf-basketball-program-overrides");
+assert(c.mfBasketballSelectProgram(guard.id,"2026-08-28T13:10:00.000Z").ok);assert(c.mfBasketballAdvanceProgramState("2026-08-28T13:11:00.000Z").ok);
+const staleSwitchProposal=proposal("bball-proposal-switch-stale-1",[{action:"switch_program",targetProgramId:"shooting_focus_2_session",targetProgramVersion:1}]);
+assert(runSync({updates:[],basketballProposal:staleSwitchProposal}).includes("Basketball proposal imported."));c.mfBasketballCloseProposalReview();
+const persistedSwitch=JSON.parse(storage.getItem("mf-basketball-proposal"));assert.deepStrictEqual({...persistedSwitch.changes[0].expectedActiveProgram},{activeProgramId:guard.id,activeProgramVersion:1,nextSessionIndex:1});
+const roundTrippedSwitch=JSON.parse(JSON.stringify(persistedSwitch));assert.strictEqual(c.mfBasketballValidateProposal(roundTrippedSwitch).valid,true);
+const fundamentals=basePrograms.find(program=>program.id==="basketball_fundamentals_3_session");assert(c.mfBasketballSelectProgram(fundamentals.id,"2026-08-28T13:13:00.000Z").ok);assert(c.mfBasketballAdvanceProgramState("2026-08-28T13:14:00.000Z").ok);
+const changedProgramRaw=storage.getItem("mf-basketball-program-state"),staleOverridesRaw=storage.getItem("mf-basketball-program-overrides"),staleHistoryRaw=storage.getItem("mf-basketball-sessions"),stalePendingRaw=storage.getItem("mf-basketball-proposal");
+assert.strictEqual(c.mfBasketballOpenProposalReview(),true);assert.strictEqual(storage.getItem("mf-basketball-proposal"),stalePendingRaw);c.mfBasketballCloseProposalReview();const staleValidation=c.mfBasketballValidateProposal(c.mfBasketballGetProposal());assert.strictEqual(staleValidation.valid,false);assert(staleValidation.conflicts.includes("active_program"));assert(staleValidation.errors.includes("Basketball program changed after this proposal was created. Review a fresh proposal."));
+const stalePreview=c.mfBasketballApplyProposal(false);assert.strictEqual(stalePreview.applied,false);assert(stalePreview.conflicts.includes("active_program"));const staleApply=c.mfBasketballApplyProposal(true);assert.strictEqual(staleApply.applied,false);assert(staleApply.conflicts.includes("active_program"));
+assert.strictEqual(storage.getItem("mf-basketball-program-state"),changedProgramRaw);assert.strictEqual(storage.getItem("mf-basketball-program-overrides"),staleOverridesRaw);assert.strictEqual(storage.getItem("mf-basketball-sessions"),staleHistoryRaw);assert.strictEqual(storage.getItem("mf-basketball-proposal"),stalePendingRaw);assert.strictEqual(c.mfBasketballGetProposal().status,"pending");
+
+// Queue drift is part of switch-program context and target/current identity cannot bypass stale evidence.
+clearProposalState();assert(c.mfBasketballSelectProgram(guard.id,"2026-08-28T13:20:00.000Z").ok);assert(c.mfBasketballImportProposal(proposal("bball-proposal-switch-queue-stale",[{action:"switch_program",targetProgramId:"shooting_focus_2_session",targetProgramVersion:1}])).valid);assert(c.mfBasketballAdvanceProgramState("2026-08-28T13:21:00.000Z").ok);
+let switchConflict=c.mfBasketballApplyProposal(true);assert.strictEqual(switchConflict.applied,false);assert(switchConflict.conflicts.includes("active_program"));assert.strictEqual(c.mfBasketballReadProgramState().state.activeProgramId,guard.id);assert.strictEqual(c.mfBasketballReadProgramState().state.nextSessionIndex,1);assert.strictEqual(c.mfBasketballGetProposal().status,"pending");
+clearProposalState();assert(c.mfBasketballSelectProgram(guard.id,"2026-08-28T13:22:00.000Z").ok);assert(c.mfBasketballImportProposal(proposal("bball-proposal-switch-target-stale",[{action:"switch_program",targetProgramId:"shooting_focus_2_session",targetProgramVersion:1}])).valid);assert(c.mfBasketballSelectProgram("shooting_focus_2_session","2026-08-28T13:23:00.000Z").ok);
+switchConflict=c.mfBasketballApplyProposal(true);assert.strictEqual(switchConflict.applied,false);assert(switchConflict.conflicts.includes("active_program"));assert.strictEqual(c.mfBasketballReadProgramState().state.activeProgramId,"shooting_focus_2_session");assert.strictEqual(c.mfBasketballGetProposal().status,"pending");
+
+// Program-version drift and missing persisted evidence are conflicts, never refresh opportunities.
+clearProposalState();assert(c.mfBasketballSelectProgram(guard.id,"2026-08-28T13:24:00.000Z").ok);assert(c.mfBasketballImportProposal(proposal("bball-proposal-switch-version-stale",[{action:"switch_program",targetProgramId:"shooting_focus_2_session",targetProgramVersion:1}])).valid);const invalidVersionState=JSON.parse(storage.getItem("mf-basketball-program-state"));invalidVersionState.activeProgramVersion=2;storage.setItem("mf-basketball-program-state",JSON.stringify(invalidVersionState));const invalidVersionRaw=storage.getItem("mf-basketball-program-state");
+switchConflict=c.mfBasketballApplyProposal(true);assert.strictEqual(switchConflict.applied,false);assert(switchConflict.conflicts.includes("active_program"));assert.strictEqual(storage.getItem("mf-basketball-program-state"),invalidVersionRaw);assert.strictEqual(c.mfBasketballGetProposal().status,"pending");
+clearProposalState();assert(c.mfBasketballSelectProgram(guard.id,"2026-08-28T13:25:00.000Z").ok);assert(c.mfBasketballImportProposal(proposal("bball-proposal-switch-missing-evidence",[{action:"switch_program",targetProgramId:"shooting_focus_2_session",targetProgramVersion:1}])).valid);const missingEvidenceProposal=JSON.parse(storage.getItem("mf-basketball-proposal"));delete missingEvidenceProposal.changes[0].expectedActiveProgram;storage.setItem("mf-basketball-proposal",JSON.stringify(missingEvidenceProposal));assert(c.mfBasketballSelectProgram(fundamentals.id,"2026-08-28T13:26:00.000Z").ok);const missingEvidenceRaw=storage.getItem("mf-basketball-proposal");
+switchConflict=c.mfBasketballValidateProposal(c.mfBasketballGetProposal());assert.strictEqual(switchConflict.valid,false);assert(switchConflict.conflicts.includes("active_program"));assert.strictEqual(storage.getItem("mf-basketball-proposal"),missingEvidenceRaw);assert.strictEqual(c.mfBasketballApplyProposal(true).applied,false);assert.strictEqual(storage.getItem("mf-basketball-proposal"),missingEvidenceRaw);
 
 // Reject is auditable and makes no personalization change.
 clearProposalState();const rejectedOverrides = storage.getItem("mf-basketball-program-overrides");
