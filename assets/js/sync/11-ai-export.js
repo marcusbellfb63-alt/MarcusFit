@@ -27,6 +27,12 @@ function updateExportMeta(){
   document.getElementById("copyBtn").style.display="none";
 }
 
+function mf105HistoricalHabitDefinition(id){
+  try{if(typeof p960GetHabitDefinitions==="function"){const definitions=p960GetHabitDefinitions();if(definitions&&definitions[id])return definitions[id];}}catch(e){}
+  try{if(typeof p960GetHabitById==="function")return p960GetHabitById(id);}catch(e){}
+  return typeof HABITS!=="undefined"&&Array.isArray(HABITS)?HABITS.find(function(h){return h.id===id;})||null:null;
+}
+function mf105HistoricalHabitText(value){return String(value==null?"":value).replace(/[\r\n\t]+/g," ").trim();}
 function buildLogSection(dkeys,allDkeys){
   if(!dkeys.length)return"";
   const val=document.getElementById("exportRangeSelect").value;
@@ -45,12 +51,17 @@ function buildLogSection(dkeys,allDkeys){
     if(d.bm)logSection+="  BM:      "+d.bm+(d.bmNotes?" \u2014 "+d.bmNotes:"")+"\n";
     if(d.zep)logSection+="  Zepbound: "+d.zep+"\n";
     if(d.workout)logSection+="  Workout: "+d.workout+"\n";
-    if(d.habits){
-      const habitsDone=HABITS.filter(function(h){return d.habits[h.id]&&d.habits[h.id].completed;});
-      logSection+="  Habits:  "+habitsDone.length+"/"+HABITS.length+" completed";
-      if(habitsDone.length)logSection+=" ("+habitsDone.map(function(h){return h.name;}).join(", ")+")";
-      logSection+="\n";
-      HABITS.forEach(function(h){const hs=d.habits[h.id];if(hs&&hs.notes)logSection+="    "+h.name+" note: "+hs.notes+"\n";});
+    if(d.habits&&typeof d.habits==="object"&&!Array.isArray(d.habits)){
+      const habitIds=Object.keys(d.habits),completed=habitIds.filter(function(id){const state=d.habits[id];return !!(state&&typeof state==="object"&&state.completed);});
+      logSection+="  Habits recorded: "+completed.length+" completed of "+habitIds.length+" stored state"+(habitIds.length===1?"":"s")+"\n";
+      habitIds.forEach(function(id){
+        const state=d.habits[id],definition=mf105HistoricalHabitDefinition(id),meaningful=state&&typeof state==="object"&&(state.completed||state.value!==null&&state.value!==undefined&&state.value!==""||state.notes);
+        if(!meaningful&&definition)return;
+        const safeId=mf105HistoricalHabitText(id)||"unknown-id",name=definition&&definition.name?mf105HistoricalHabitText(definition.name):"Unknown Habit",parts=[state&&state.completed?"completed":"recorded"];
+        if(state&&state.value!==null&&state.value!==undefined&&state.value!==""){const unit=definition&&definition.target&&definition.target.unit?" "+mf105HistoricalHabitText(definition.target.unit):"";parts.push("value "+mf105HistoricalHabitText(state.value)+unit);}
+        if(state&&state.notes)parts.push("note: "+mf105HistoricalHabitText(state.notes));
+        logSection+="    "+name+" [id="+safeId+"]"+(definition&&definition.active===false?" (archived)":"")+": "+parts.join("; ")+"\n";
+      });
     }
     const woRaw=localStorage.getItem(k+"-wo");
     if(woRaw){
@@ -954,7 +965,7 @@ genExport=function(){
   mf105LegacyGenExport();
   const legacy=String(window._exp||""),val=document.getElementById("exportRangeSelect").value,allDkeys=Object.keys(localStorage).filter(function(k){return k.startsWith("day-")&&!k.endsWith("-wo");}).sort(),dkeys=getExportDkeys(),entries=mf105SafeDayEntries(dkeys),signals=mf105WorkoutSignals(dkeys),rangeDesc=val==="program"?"Program templates only":val==="full"?"Full history ("+allDkeys.length+" days)":"Program + last "+val+" days ("+dkeys.length+" of "+allDkeys.length+" total logged days)",today=new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
   const weights=entries.filter(function(d){return d.weight;}).map(function(d){return{date:d.date,w:Number(d.weight)};}),allEntries=mf105SafeDayEntries(allDkeys),allWeights=allEntries.filter(function(d){return d.weight;}).map(function(d){return{date:d.date,w:Number(d.weight)};}),first=weights[0],last=weights[weights.length-1],firstAll=allWeights[0],lastAll=allWeights[allWeights.length-1],wTrend=first&&last&&first.date!==last.date?first.w+" lbs ("+first.date+") -> "+last.w+" lbs ("+last.date+") = "+(last.w-first.w).toFixed(1)+" lbs change":"Insufficient data in selected range",wTrendAll=firstAll&&lastAll&&firstAll.date!==lastAll.date?"All-time: "+firstAll.w+" lbs ("+firstAll.date+") -> "+lastAll.w+" lbs ("+lastAll.date+") = "+(lastAll.w-firstAll.w).toFixed(1)+" lbs total change":"";
-  let habitAdherence="n/a";try{const a=p960GetHabitAnalytics(dkeys.length?dkeys[0].slice(4):null,dkeys.length?dkeys[dkeys.length-1].slice(4):null);habitAdherence=a.overallPercentage==null?"n/a":a.overallPercentage+"% across "+a.eligibleOpportunities+" eligible opportunities";}catch(e){}
+  let habitAdherence="n/a";try{const a=p960GetHabitAnalytics(dkeys.length?dkeys[0].slice(4):null,dkeys.length?dkeys[dkeys.length-1].slice(4):null);habitAdherence=a.overallPercentage==null?"n/a":a.overallPercentage+"% across "+a.eligibleOpportunities+" eligible scheduled opportunities";}catch(e){}
   window.mf105ExportContext={range:val,dkeys:dkeys.slice(),baseSummary:{rangeLabel:rangeDesc,loggedDays:entries.length,liftingSessions:signals.liftingSessions,lowerBodySessions:signals.lowerBodySessions,dedicatedCardioSessions:signals.dedicatedCardioSessions,habitAdherence:habitAdherence,activeRecommendationCount:typeof getRecs==="function"?Object.keys(getRecs()).length:0}};
   const profile=p950BuildUserProfileExport(),firstSync=p957BuildFirstSyncExport(p957GetSharedUserFirstSyncStatus()),prefs="--- PERSISTENT AI COACHING PREFERENCES ---\n"+(p9GetCoachPrefs().trim()||"No user-specific AI coaching preferences saved.")+"\n\n",proposal=p955BuildProposalExport(),lifting=mf105ExtractLegacySection(legacy,"--- CURRENT PROGRAM TEMPLATES ---",legacy.includes("--- DAILY LOG:")?"--- DAILY LOG:":"=== AI SYNC FORMAT INSTRUCTIONS ==="),history=buildLogSection(dkeys,allDkeys),swap=p957GetSharedUserFirstSyncStatus().isLikelyFirstSync?"":p9489BuildSwapCandidateExport();
   let out="=== MARCUSFIT EXPORT ===\nVersion: "+APP_VERSION+"\nGenerated: "+today+"\nExport Range: "+rangeDesc+"\nTotal logged days (all time): "+allDkeys.length+"\n\n--- PROGRAM / USER BASIS ---\n\n"+profile+firstSync+"[[MF105_PROGRAM_BASIS]]\n--- CURRENT COACHING CONTEXT ---\n\n"+prefs+proposal+"[[MF105_CROSS_DOMAIN]]\n--- LIFTING ---\n\n[[MF105_PROGRESSION_GUIDE]]\n"+lifting.replace("--- CURRENT PROGRAM TEMPLATES ---\n\n","")+swap+"[[MF105_BASKETBALL]]\n[[MF105_HABITS]]\n--- CARDIO / ACTIVITY ---\nDedicated cardio sessions in selected range: "+signals.dedicatedCardioSessions+".\nBasketball conditioning is summarized separately and must be counted when judging total cardio load.\nOther walks/activity are advisory only when explicitly recorded; MarcusFit has no general step or activity tracker.\n\n"+mf105BuildVitalsExport(entries,wTrend,wTrendAll)+"[[MF105_RECURRING]]\n--- RECENT HISTORY / PERFORMANCE EVIDENCE ---\n\n"+(history||"No daily or workout history included for this export range.\n\n")+mf105BuildRecommendationsExport()+mf105BuildResponseContract();

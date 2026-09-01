@@ -1195,7 +1195,7 @@ function mf105BuildCrossDomainExport(context,range,sessions,programStateValue){
   return "--- CROSS-DOMAIN COACHING SUMMARY ---\n"
     +"Selected evidence range: "+(base.rangeLabel||"current selection")+".\n"
     +"Training load: lifting "+(base.liftingSessions||0)+" session(s), including "+(base.lowerBodySessions||0)+" lower-body; Basketball "+stats.totalSessions+" session(s) / "+stats.totalMinutes+" min; dedicated cardio "+(base.dedicatedCardioSessions||0)+" session(s).\n"
-    +"Adherence: Habits "+(base.habitAdherence||"n/a")+"; recurring medication adherence is reported in its own read-only section.\n"
+    +"Scheduled Habit completion: "+(base.habitAdherence||"n/a")+"; recurring medication adherence is reported in its own read-only section.\n"
     +"Program basis: lifting basis and resolved templates are authoritative below; Basketball program "+(program?program.name+" [programId="+program.id+", version="+program.version+"]":"none active")+".\n"
     +"Current experiments/recommendations: "+(base.activeRecommendationCount||0)+" active lifting recommendation record(s); rotation analysis found "+rotation.candidatesTotal+" candidate(s) and "+rotation.weakPointTotal+" weak-point/order signal(s).\n"
     +"Pending ownership: Habit proposal "+(habitProposal&&habitProposal.status==="pending"?"pending - do not replace":"none")+"; Basketball proposal "+(basketballProposal&&basketballProposal.status==="pending"?"pending - do not replace":"none")+".\n"

@@ -80,6 +80,45 @@ assert(exportSource.includes("ONE TOP-LEVEL JSON CONTRACT"));
 assert(habitSource.includes("unsupported top-level field"));
 assert(basketballSource.includes("unsupported top-level field"));
 
+// Recent history is historical evidence: enumerate the states stored on that
+// day, then resolve personalized/archived definitions without rewriting data.
+const historyEnv = createContext();
+const historyContext = historyEnv.context;
+const historyStorage = historyEnv.localStorage;
+historyEnv.getElementById("exportRangeSelect").value = "14";
+const historicalDefinitions = historyContext.p960EmptyHabitStore("2026-08-01T12:00:00.000Z");
+historicalDefinitions.habits["habit-custom-history"] = {
+  id: "habit-custom-history", name: "Custom Hydration", icon: "W", description: "", target: { type: "number", value: 72, unit: "oz" },
+  schedule: { type: "daily" }, instructions: [], emphasis: "normal", active: true, archivedAt: null, source: "user",
+  createdAt: "2026-08-01T12:00:00.000Z", updatedAt: "2026-08-01T12:00:00.000Z"
+};
+historicalDefinitions.habits["habit-archived-history"] = {
+  id: "habit-archived-history", name: "Archived Mobility", icon: "M", description: "", target: { type: "duration", value: 10, unit: "min" },
+  schedule: { type: "daily" }, instructions: [], emphasis: "normal", active: false, archivedAt: "2026-08-20T12:00:00.000Z", source: "user",
+  createdAt: "2026-08-01T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z"
+};
+historicalDefinitions.order = ["habit-custom-history", "habit-archived-history"];
+historyContext.p960SaveHabitStore(historicalDefinitions);
+historyStorage.setItem("day-2026-08-29", JSON.stringify({
+  date: "2026-08-29",
+  habits: {
+    "habit-custom-history": { completed: true, value: 72, notes: "electrolyte day" },
+    "habit-archived-history": { completed: false, value: 12, notes: "kept for history" },
+    "habit-unknown-history": { completed: true, value: "legacy-value", notes: "definition no longer available" }
+  }
+}));
+const historyBefore = historyStorage.snapshot();
+const historicalExport = historyContext.genExport();
+const recentHistory = historicalExport.slice(historicalExport.indexOf("--- RECENT HISTORY / PERFORMANCE EVIDENCE ---"), historicalExport.indexOf("--- CURRENT RECOMMENDATIONS / EXPERIMENTS ---"));
+assert(recentHistory.includes("Habits recorded: 2 completed of 3 stored states"));
+assert(recentHistory.includes("Custom Hydration [id=habit-custom-history]: completed; value 72 oz; note: electrolyte day"));
+assert(recentHistory.includes("Archived Mobility [id=habit-archived-history] (archived): recorded; value 12 min; note: kept for history"));
+assert(recentHistory.includes("Unknown Habit [id=habit-unknown-history]: completed; value legacy-value; note: definition no longer available"));
+assert(!recentHistory.includes("Habits:  2/7 completed"));
+assert(historicalExport.includes("Scheduled Habit completion:"));
+assert(historicalExport.includes("eligible scheduled opportunities"));
+assert.deepStrictEqual(historyStorage.snapshot(), historyBefore, "Export generation wrote to storage or historical records");
+
 const sparse = createContext();
 sparse.getElementById("exportRangeSelect").value = "program";
 const sparseExport = sparse.context.genExport();
