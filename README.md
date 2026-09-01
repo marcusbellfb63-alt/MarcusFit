@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.4.0 — implementation candidate; automated validation complete, manual browser/iPhone QA required before acceptance
+MarcusFit 10.5.0 — implementation candidate pending review and manual browser/iPhone QA
 
 ## Architecture
 
@@ -50,9 +50,10 @@ MarcusFit 10.4.0 — implementation candidate; automated validation complete, ma
 - Rendered safely via DOM textContent (no innerHTML for AI-provided strings)
 
 ### AI Sync (MARCUSFIT_UPDATE blocks)
-- Export current state → paste into Claude → receive `MARCUSFIT_UPDATE` JSON block → paste back to apply
-- Supported actions: `_action: "update"` (exercise field changes), `_action: "recommendations"`, `_action: "reorder"`
-- All sync changes are idempotent-safe — applying twice should not corrupt state
+- One ordered AI Export presents program/user basis, coaching context, a derived cross-domain summary, domain evidence, current experiments, and one response contract
+- Core lifting uses the accepted update array/actions; Habit and Basketball changes use review-first `habitProposal` / `basketballProposal` objects
+- Cardio/activity, vitals, recurring adherence, and history are explicitly advisory/read-only
+- Mixed payload envelopes reject unsupported top-level fields before core or proposal processing
 
 ### Daily Logs
 - Daily metrics (weight, sleep, mood, habits): key `day-YYYY-MM-DD`
@@ -129,7 +130,7 @@ MarcusFit 10.4.0 — implementation candidate; automated validation complete, ma
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.4.0";
+const APP_VERSION      = "10.5.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
@@ -137,8 +138,11 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 
 ## Acceptance Record
 
-- 10.4.0 starts from accepted 10.3.0 merge commit `adb0d081707d85c4e0e8f61c2453be16ec387cf7`
-- 10.4.0 is not accepted; manual browser/iPhone QA is required before merge
+- 10.5.0 starts from accepted 10.4.0 merge commit `7e0059780f47e545b91ee02ad27291e836ace3af`
+- 10.5.0 is an implementation candidate only; manual browser/iPhone QA is required before acceptance or merge
+- The representative 14-day export fixture changed from 32,711 characters / 602 lines to 21,494 characters / 336 lines while adding cross-domain load, adherence, pending-proposal, and conditioning-interaction signals
+- Core `assets/js/sync/12-ai-sync.js` remains unchanged with SHA-256 `25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e`
+- 10.4.0 accepted starting baseline: `7e0059780f47e545b91ee02ad27291e836ace3af`
 - 10.3.0 exact accepted starting baseline: `28053354b0ffc1654a398456d5fc7447059340e5`
 - 10.3.0 QA-approved implementation head: `74402eeb3f3c2c76cb54fd6a3b0d5bde828e878d`
 - Manual QA accepted: 2026-08-30
@@ -154,5 +158,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.1.4** — Mobile accessibility, Sync/settings organization, and Habits UI (accepted)
 - **v10.2.0** — Basketball programs and progression (accepted)
 - **v10.3.0** — Basketball-specific AI Sync (accepted)
-- **v10.4.0** — Habits-specific AI Sync
-- **v10.5.0** — Full cross-domain coaching review
+- **v10.4.0** — Habits-specific AI Sync (accepted)
+- **v10.5.0** — Cross-domain coaching and AI Export/Sync IA (implementation candidate)

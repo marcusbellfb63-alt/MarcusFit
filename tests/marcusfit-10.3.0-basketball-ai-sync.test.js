@@ -313,6 +313,8 @@ resetMixed();assert(runSync({ updates: [{ id: coreId, blurb: "core habit" }], ha
 resetMixed();assert(runSync({ updates: [{ id: coreId, blurb: "core basketball" }], basketballProposal: basketballProposal() }).includes("Basketball changes are pending explicit review."));
 resetMixed();assert(runSync({ updates: [], habitProposal: habitProposal(), basketballProposal: basketballProposal() }).includes("Habit changes are pending explicit review."));
 resetMixed();let message = runSync({ updates: [{ id: coreId, blurb: "all three" }], habitProposal: habitProposal(), basketballProposal: basketballProposal() });assert(message.includes("Program sync processed."));assert(message.includes("Habit changes are pending explicit review."));assert(message.includes("Basketball changes are pending explicit review."));assert.strictEqual(c.p960GetHabitById(c.p960GetHabitProposal().changes[0].habitId), null);assert.strictEqual(storage.getItem("mf-basketball-program-overrides"), rejectedOverrides);
+resetMixed();const leakedBefore=storage.snapshot();message=runSync({updates:[{id:coreId,blurb:"must not write"}],basketballProposal:basketballProposal(),crossDomain:{readinessScore:99}});assert(message.includes("unsupported top-level field"));assert.deepStrictEqual(storage.snapshot(),leakedBefore);
+resetMixed();const leakedHabitBefore=storage.snapshot();message=runSync({updates:[{id:coreId,blurb:"must not write"}],habitProposal:habitProposal(),history:[{rewrite:true}]});assert(message.includes("unsupported top-level field"));assert.deepStrictEqual(storage.snapshot(),leakedHabitBefore);
 
 // Dispatcher validates before core execution and invokes a supplied core exactly once.
 resetMixed();env.getElementById("syncInput").value = "MARCUSFIT_UPDATE_START\n" + JSON.stringify({ updates: [{ id: coreId, blurb: "count" }], basketballProposal: basketballProposal() }) + "\nMARCUSFIT_UPDATE_END";
@@ -370,3 +372,4 @@ assert.strictEqual(c.mfBasketballOpenProposalReview(),true);assert.strictEqual(b
 c.mfBasketballCloseProposalReview();assert.strictEqual(body.classList.contains("mf-basketball-proposal-open"),false);assert.deepStrictEqual({position:body.style.position,top:body.style.top,left:body.style.left,right:body.style.right,width:body.style.width,overflow:body.style.overflow},{position:"relative",top:"3px",left:"4px",right:"5px",width:"95%",overflow:"visible"});assert.deepStrictEqual(c.lastScrollTo,[7,427]);assert.strictEqual(returnFocus.focused,true);assert.strictEqual(storage.getItem("mf-basketball-proposal"),proposalBeforeReview);
 
 console.log("MarcusFit 10.3.0 basketball AI Sync: PASS");
+module.exports = { createContext };
