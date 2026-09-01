@@ -1186,10 +1186,22 @@ function mfBasketballBuildExport(range,sessions,programStateValue){
   if(stats.shooting.attempted>0)output+="Shooting: "+stats.shooting.made+" / "+stats.shooting.attempted+" ("+stats.shooting.percentage.toFixed(1)+"%)\n";
   if(stats.freeThrows.attempted>0)output+="Free throws: "+stats.freeThrows.made+" / "+stats.freeThrows.attempted+" ("+stats.freeThrows.percentage.toFixed(1)+"%)\n";
   selected.forEach(function(session){let line="- "+session.date+" | "+(session.plannedSessionNameSnapshot||mfBasketballTypeLabel(session.type))+" | "+session.minutes+" min";if(session.programNameSnapshot)line+=" | program: "+session.programNameSnapshot+" v"+session.programVersion;if(session.dribblingMinutes!=null)line+=" | dribbling "+session.dribblingMinutes+" min";if(session.shooting)line+=" | shooting "+session.shooting.made+"/"+session.shooting.attempted;if(session.freeThrows)line+=" | FT "+session.freeThrows.made+"/"+session.freeThrows.attempted;if(session.notes)line+=" | notes: "+session.notes.replace(/\s+/g," ");output+=line+"\n";(session.drills||[]).forEach(function(drill){output+="  · "+drill.nameSnapshot+" [drillId="+drill.drillId+"]: "+mfBasketballDrillResultText(drill);if(!drill.skipped){const progression=mfBasketballProgressionForDrill(drill.drillId,allSessions);output+=(drill.confidence!=null?" | confidence "+drill.confidence+"/10":"")+" | "+progression.label+" — "+progression.guidance;}output+=(drill.notes?" | note: "+drill.notes.replace(/\s+/g," "):"")+"\n";});});
-  output+="Basketball rules: History and logged results are immutable. Skipped drills are neutral. The queue is session-driven and advances only through the user's Finish & Advance action. AI may propose, never auto-apply or auto-advance.\n";
-  output+="Basketball proposal contract: Return basketballProposal beside updates and/or habitProposal inside the existing MARCUSFIT_UPDATE markers. Use schemaVersion 1, proposalVersion 1, proposalId beginning bball-proposal-, summary, rationale, and changes. Supported actions: modify_drill (name, target, confidence only; never trackingMode), add_drill (stable bball-ai-…-vN drillId, supported mode/target, zero-based position), remove_drill (future disable), reorder_drills (complete resolved order), switch_program (existing built-in only; starts Session 1). Use the exact stable IDs above. Do not include history, results, queue advancement, workout, habit, profile, medication, or backup fields.\n";
-  output+="Example: {\"basketballProposal\":{\"schemaVersion\":1,\"proposalVersion\":1,\"proposalId\":\"bball-proposal-example-1\",\"summary\":\"Small target adjustment\",\"rationale\":\"Repeated evidence supports a modest change.\",\"changes\":[{\"action\":\"modify_drill\",\"programId\":\"guard_skills_3_session\",\"programVersion\":1,\"sessionId\":\"guard_a_handle_weak_hand\",\"drillId\":\"guard_behind_back_foundation\",\"fields\":{\"target\":{\"durationMinutes\":10}}}]}}\n";
+  output+="Coaching guidance: Treat Basketball as skill practice plus conditioning/cardio load. Skipped drills are neutral. The queue is session-driven. Future-program definitions are proposal/review mutable only through modify_drill, add_drill (new IDs follow bball-ai-…-vN), remove_drill, reorder_drills, or switch_program; never auto-apply or auto-advance. Never target history, results, queue advancement, or stored snapshots.\n";
   return output+"\n";
+}
+
+function mf105BuildCrossDomainExport(context,range,sessions,programStateValue){
+  const base=context&&context.baseSummary||{},selected=mfBasketballSessionsForRange(String(range||""),Array.isArray(sessions)?sessions:[]),stats=mfBasketballAggregate(selected),programState=programStateValue&&programStateValue.state?programStateValue:mfBasketballReadProgramState(),program=programState.parseOk&&mfBasketballGetResolvedProgram(programState.state.activeProgramId,programState.state.activeProgramVersion),habitProposal=typeof p960GetHabitProposal==="function"?p960GetHabitProposal():null,basketballProposal=mfBasketballGetProposal(),rotation=p9489AnalyzeExerciseRotation(),conditioning=stats.totalSessions>0&&Number(base.dedicatedCardioSessions||0)===0?"Basketball is the only recorded conditioning/cardio source in this range; treat it as replacing dedicated cardio in the recorded evidence.":stats.totalSessions>0?"Basketball and dedicated cardio both occurred; review redundancy and total conditioning load.":"No Basketball conditioning was recorded in this range.",interaction=stats.totalSessions>=2&&Number(base.lowerBodySessions||0)>=2?"Concurrent-load flag: multiple Basketball sessions and multiple lower-body lifting sessions occurred; review leg fatigue before progressing either domain.":"No obvious Basketball/lower-body volume conflict is established by the selected-range counts.";
+  return "--- CROSS-DOMAIN COACHING SUMMARY ---\n"
+    +"Selected evidence range: "+(base.rangeLabel||"current selection")+".\n"
+    +"Training load: lifting "+(base.liftingSessions||0)+" session(s), including "+(base.lowerBodySessions||0)+" lower-body; Basketball "+stats.totalSessions+" session(s) / "+stats.totalMinutes+" min; dedicated cardio "+(base.dedicatedCardioSessions||0)+" session(s).\n"
+    +"Scheduled Habit completion: "+(base.habitAdherence||"n/a")+"; recurring medication adherence is reported in its own read-only section.\n"
+    +"Program basis: lifting basis and resolved templates are authoritative below; Basketball program "+(program?program.name+" [programId="+program.id+", version="+program.version+"]":"none active")+".\n"
+    +"Current experiments/recommendations: "+(base.activeRecommendationCount||0)+" active lifting recommendation record(s); rotation analysis found "+rotation.candidatesTotal+" candidate(s) and "+rotation.weakPointTotal+" weak-point/order signal(s).\n"
+    +"Pending ownership: Habit proposal "+(habitProposal&&habitProposal.status==="pending"?"pending - do not replace":"none")+"; Basketball proposal "+(basketballProposal&&basketballProposal.status==="pending"?"pending - do not replace":"none")+".\n"
+    +"Conditioning interaction: "+conditioning+"\n"
+    +"Load interaction: "+interaction+"\n"
+    +"Coaching priority: simplify when adherence is weak, avoid redundant conditioning or experiments, preserve what is working, and change only the domain with the clearest evidence. Unsupported domains remain advisory only.\n\n";
 }
 
 function mfBasketballValidateBackupStore(value){
@@ -1274,11 +1286,12 @@ if(typeof showScreen==="function"){
 if(typeof genExport==="function"){
   const mfBasketballLegacyGenExport=genExport;genExport=function(){
     const result=mfBasketballLegacyGenExport(),rangeEl=document.getElementById("exportRangeSelect"),section=mfBasketballBuildExport(rangeEl?rangeEl.value:"",mfBasketballReadStore().sessions,mfBasketballReadProgramState());
-    if(section&&typeof window._exp==="string"){
-      const marker="=== AI SYNC FORMAT INSTRUCTIONS ===";window._exp=window._exp.indexOf(marker)>=0?window._exp.replace(marker,section+marker):window._exp+"\n"+section;
+    if(typeof window._exp==="string"){
+      const cross=mf105BuildCrossDomainExport(window.mf105ExportContext,rangeEl?rangeEl.value:"",mfBasketballReadStore().sessions,mfBasketballReadProgramState());
+      window._exp=window._exp.replace("[[MF105_CROSS_DOMAIN]]",cross).replace("[[MF105_BASKETBALL]]",section||"--- BASKETBALL ---\nNo active program or sessions in this export range.\n\n").replace(/\[\[MF105_[A-Z_]+\]\]\n?/g,"");
       const output=document.getElementById("exportOut");if(output)output.textContent=window._exp;
     }
-    return result;
+    return window._exp||result;
   };
 }
 
@@ -1291,6 +1304,9 @@ function mfBasketballHandleSyncExtension(runCoreSync){
     const inner=match[1].trim().replace(/^```[a-zA-Z]*\n?/,"").replace(/\n?```$/,"").trim();let payload;
     try{payload=JSON.parse(inner);}catch(e){return mfBasketballLegacySyncExtension?mfBasketballLegacySyncExtension(runCoreSync):false;}
     if(!payload||Array.isArray(payload)||!payload.basketballProposal)return mfBasketballLegacySyncExtension?mfBasketballLegacySyncExtension(runCoreSync):false;
+    const envelopeExtras=Object.keys(payload).filter(function(k){return !["updates","habitProposal","basketballProposal"].includes(k);});
+    const envelopeError=envelopeExtras.length?"Mixed Sync payload contains unsupported top-level field(s): "+envelopeExtras.join(", ")+".":(Object.prototype.hasOwnProperty.call(payload,"updates")&&!Array.isArray(payload.updates)?"Mixed Sync updates must be an array.":"");
+    if(envelopeError){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Sync proposal import rejected before any proposal or core processing:\n"+envelopeError;}return true;}
     const basketballExisting=mfBasketballGetProposal(),basketballValidation=basketballExisting&&basketballExisting.status==="pending"?{valid:false,errors:["A basketball proposal is already pending. Review or dismiss it before importing another."]}:mfBasketballValidateProposal(payload.basketballProposal,{captureExpectedState:true});
     let habitValidation=null,habitExisting=null;
     if(payload.habitProposal&&typeof p960ValidateHabitProposal==="function"){

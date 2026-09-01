@@ -1,8 +1,8 @@
 # MarcusFit runtime architecture
 
 MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
-classic scripts. The 10.3.0 implementation candidate keeps those boundaries
-and expands only the final basketball feature file. GitHub Pages still loads
+classic scripts. The 10.5.0 implementation candidate keeps those boundaries
+and composes export sections through the existing ordered classic-script wrappers. GitHub Pages still loads
 static `defer` scripts, and there is no build step or runtime dependency.
 
 ## Implemented runtime tree
@@ -33,9 +33,17 @@ assets/js/
 `-- features/22-basketball.js
 ```
 
-The 10.3.0 candidate retains 22 runtime files in the accepted numeric order.
+The 10.5.0 candidate retains 22 runtime files in the accepted numeric order.
 Reproducible physical-line and largest-file counts come from the architecture
 inventory. Numeric prefixes remain globally ordered and match `index.html`.
+
+## 10.5 export and Sync composition
+
+- `sync/11-ai-export.js` owns the deterministic high-level export skeleton and the single mixed response contract.
+- `features/17-starter-programs.js`, `18-progression-corrections.js`, `19-recurring-adherence.js`, and `20-habits.js` fill owned section slots without prepending competing prompts.
+- `features/22-basketball.js` fills Basketball evidence last and derives the cross-domain summary after every domain is available.
+- The cross-domain summary is read-only and derived from existing logs/stores; 10.5 adds no storage key or schema.
+- `sync/12-ai-sync.js` remains the sole authoritative core apply implementation and is unchanged. Habit/Basketball extension hooks preflight their exact mixed envelope before any processing.
 
 ## Guide
 

@@ -27,6 +27,12 @@ function updateExportMeta(){
   document.getElementById("copyBtn").style.display="none";
 }
 
+function mf105HistoricalHabitDefinition(id){
+  try{if(typeof p960GetHabitDefinitions==="function"){const definitions=p960GetHabitDefinitions();if(definitions&&definitions[id])return definitions[id];}}catch(e){}
+  try{if(typeof p960GetHabitById==="function")return p960GetHabitById(id);}catch(e){}
+  return typeof HABITS!=="undefined"&&Array.isArray(HABITS)?HABITS.find(function(h){return h.id===id;})||null:null;
+}
+function mf105HistoricalHabitText(value){return String(value==null?"":value).replace(/[\r\n\t]+/g," ").trim();}
 function buildLogSection(dkeys,allDkeys){
   if(!dkeys.length)return"";
   const val=document.getElementById("exportRangeSelect").value;
@@ -45,12 +51,17 @@ function buildLogSection(dkeys,allDkeys){
     if(d.bm)logSection+="  BM:      "+d.bm+(d.bmNotes?" \u2014 "+d.bmNotes:"")+"\n";
     if(d.zep)logSection+="  Zepbound: "+d.zep+"\n";
     if(d.workout)logSection+="  Workout: "+d.workout+"\n";
-    if(d.habits){
-      const habitsDone=HABITS.filter(function(h){return d.habits[h.id]&&d.habits[h.id].completed;});
-      logSection+="  Habits:  "+habitsDone.length+"/"+HABITS.length+" completed";
-      if(habitsDone.length)logSection+=" ("+habitsDone.map(function(h){return h.name;}).join(", ")+")";
-      logSection+="\n";
-      HABITS.forEach(function(h){const hs=d.habits[h.id];if(hs&&hs.notes)logSection+="    "+h.name+" note: "+hs.notes+"\n";});
+    if(d.habits&&typeof d.habits==="object"&&!Array.isArray(d.habits)){
+      const habitIds=Object.keys(d.habits),completed=habitIds.filter(function(id){const state=d.habits[id];return !!(state&&typeof state==="object"&&state.completed);});
+      logSection+="  Habits recorded: "+completed.length+" completed of "+habitIds.length+" stored state"+(habitIds.length===1?"":"s")+"\n";
+      habitIds.forEach(function(id){
+        const state=d.habits[id],definition=mf105HistoricalHabitDefinition(id),meaningful=state&&typeof state==="object"&&(state.completed||state.value!==null&&state.value!==undefined&&state.value!==""||state.notes);
+        if(!meaningful&&definition)return;
+        const safeId=mf105HistoricalHabitText(id)||"unknown-id",name=definition&&definition.name?mf105HistoricalHabitText(definition.name):"Unknown Habit",parts=[state&&state.completed?"completed":"recorded"];
+        if(state&&state.value!==null&&state.value!==undefined&&state.value!==""){const unit=definition&&definition.target&&definition.target.unit?" "+mf105HistoricalHabitText(definition.target.unit):"";parts.push("value "+mf105HistoricalHabitText(state.value)+unit);}
+        if(state&&state.notes)parts.push("note: "+mf105HistoricalHabitText(state.notes));
+        logSection+="    "+name+" [id="+safeId+"]"+(definition&&definition.active===false?" (archived)":"")+": "+parts.join("; ")+"\n";
+      });
     }
     const woRaw=localStorage.getItem(k+"-wo");
     if(woRaw){
@@ -918,6 +929,50 @@ function genExport(){
   window._exp=out;
 }
 // ── END PHASE 3 EXPORT ────────────────────────────────────────────────────────
+
+// ── 10.5.0: COHERENT CROSS-DOMAIN EXPORT INFORMATION ARCHITECTURE ───────────
+// The accepted domain wrappers fill the explicit section slots below. This
+// keeps their load order and ownership intact while producing one deterministic
+// high-level -> evidence -> mutation-contract export instead of stacked prompts.
+function mf105SafeDayEntries(keys){return (keys||[]).map(function(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch(e){return null;}}).filter(Boolean);}
+function mf105Average(entries,field){const values=entries.map(function(d){return Number(d[field]);}).filter(function(n){return Number.isFinite(n)&&n>0;});return values.length?(values.reduce(function(a,b){return a+b;},0)/values.length).toFixed(1):"n/a";}
+function mf105WorkoutSignals(dkeys){
+  const out={liftingSessions:0,lowerBodySessions:0,dedicatedCardioSessions:0};
+  (dkeys||[]).forEach(function(k){let wo=null;try{wo=JSON.parse(localStorage.getItem(k+"-wo")||"null");}catch(e){}if(!wo||!wo.exercises||!Object.keys(wo.exercises).length)return;const day=getSafeDayForLog(wo.gym||"home",wo.dayIdx),type=day?p9489ClassifyDayType(day):"other";if(type==="cardio")out.dedicatedCardioSessions++;else{out.liftingSessions++;if(type==="lower")out.lowerBodySessions++;}});
+  return out;
+}
+function mf105BuildVitalsExport(entries,wTrend,wTrendAll){
+  const count=function(field){return entries.filter(function(d){return d[field]!==null&&d[field]!==undefined&&d[field]!=="";}).length;};
+  return "--- VITALS / BODYWEIGHT / RELEVANT TRACKING ---\nWeight trend (selected range): "+wTrend+".\n"+(wTrendAll?wTrendAll+".\n":"")+"Recorded-day averages: sleep "+mf105Average(entries,"sleep")+" hr ("+count("sleep")+" days); energy "+mf105Average(entries,"mood")+"/10 ("+count("mood")+" days); hunger "+mf105Average(entries,"hunger")+"/10 ("+count("hunger")+" days); water "+mf105Average(entries,"water")+" oz ("+count("water")+" days); protein "+mf105Average(entries,"protein")+" g ("+count("protein")+" days).\nThese are recorded observations, not readiness scores. Do not infer injury, calories, or untracked recovery data.\n\n";
+}
+function mf105BuildRecommendationsExport(){
+  const recs=typeof getRecs==="function"?getRecs():{},keys=Object.keys(recs).sort();let out="--- CURRENT RECOMMENDATIONS / EXPERIMENTS ---\n";
+  if(!keys.length)return out+"No active day-scoped coaching recommendations.\n\n";
+  keys.forEach(function(key){const r=recs[key]||{},items=Array.isArray(r.items)?r.items:[];out+="- "+key+": strategy "+(r.strategy||"unspecified")+"; experimentTag "+(r.experimentTag||"none")+"; expires after "+(r.expiresAfterSessions||"unspecified")+" session(s); "+items.join(" | ")+"\n";});
+  return out+"Do not pile new experiments on top blindly; prefer resolving, simplifying, or intentionally retaining these.\n\n";
+}
+function mf105BuildResponseContract(){
+  return "=== AI RESPONSE / MUTATION CONTRACT ===\n\nFirst provide concise prose using these headings: COACHING ASSESSMENT, CHANGES, and WHAT I INTENTIONALLY LEFT ALONE. Review cross-domain conflicts, redundancies, synergies, adherence, and existing experiments. Do not manufacture changes; no change is acceptable. MarcusFit parses only the marked JSON block.\n\n"
+    +"MUTATION PERMISSIONS\n- Lifting/core program: directly mutable through the accepted updates array and supported _action entries below. Base program P and history are never mutation targets.\n- Habits: proposal/review mutable only through habitProposal. Import creates a pending proposal; explicit two-stage review/apply is required.\n- Basketball: proposal/review mutable only through basketballProposal. Import creates a pending proposal; explicit review/apply is required.\n- Cardio/activity, vitals/bodyweight, recurring medication adherence, and all historical evidence: advisory/read-only.\n- Pending proposals must not be replaced. Use stable IDs exactly. MarcusFit captures expected-state evidence at import; never send or fabricate expected fingerprints or internal audit/apply/undo fields.\n\n"
+    +"ONE TOP-LEVEL JSON CONTRACT\n- Core-only response: the content between markers is the legacy JSON array of lifting updates/actions.\n- Any response containing Habit or Basketball changes: use one object with only the needed keys: {\"updates\":[...],\"habitProposal\":{...},\"basketballProposal\":{...}}. Omit unchanged domains; updates may be omitted or empty.\n- No changes in any domain: use an empty legacy array []. Do not return an object containing only updates.\n- The JSON must contain configuration changes only. Historical records, results, completion state, profiles, medication schedules, backup data, and unsupported cross-domain fields are forbidden.\n\nMARCUSFIT_UPDATE_START\n[]\nMARCUSFIT_UPDATE_END\n\n"
+    +"CORE LIFTING\n- Plain update: {\"id\":\"exact-existing-id\",\"load\":\"...\",\"rir\":\"1-2\",\"sets\":\"4\",\"reps\":\"8-12\",\"blurb\":\"under 100 chars\"}. Minor same-exercise rename may include name.\n- Supported _action values: replace, reactivate, remove, reorder, day_override, day_override_clear, day_addition, day_addition_clear, custom_exercise, recommendations.\n- replace uses id plus _newExercise {name, sets, reps, load, rir, blurb}; reorder uses gym, dayIndex, and complete exerciseOrder; day_override uses gym/dayIdx plus supported metadata; day_addition uses gym/dayIdx/name; custom_exercise uses gym/dayIdx/name and lets MarcusFit generate the ID; recommendations uses gym/dayIndex/strategy/experimentTag/expiresAfterSessions/items.\n- Prefer recommendations for bounded cues, reorder for sequencing, replace for a different movement, and custom_exercise only for a genuine addition. Preserve IDs/history and choose the smallest effective change.\n\n"
+    +"HABIT PROPOSAL\n{\"habitProposal\":{\"schemaVersion\":1,\"proposalVersion\":\"10.5.0\",\"proposalId\":\"habit-proposal-example\",\"summary\":\"Small sustainable adjustment\",\"rationale\":\"Adherence evidence supports simplification.\",\"changes\":[{\"action\":\"modify\",\"habitId\":\"exact-habit-id\",\"fields\":{\"schedule\":{\"type\":\"daily\"}},\"rationale\":\"Reason\"}]}}\nActions: keep, add, modify, archive, reactivate, reorder. New IDs begin habit-. Modify only name, icon, description, target, schedule, instructions, emphasis. Add requires habitId plus definition with id, name, target, and schedule. Reorder uses a complete order array. Do not convert medication schedules into Habits.\n\n"
+    +"BASKETBALL PROPOSAL\n{\"basketballProposal\":{\"schemaVersion\":1,\"proposalVersion\":1,\"proposalId\":\"bball-proposal-example\",\"summary\":\"Small target adjustment\",\"rationale\":\"Session evidence supports it.\",\"changes\":[{\"action\":\"modify_drill\",\"programId\":\"exact-program-id\",\"programVersion\":1,\"sessionId\":\"exact-session-id\",\"drillId\":\"exact-drill-id\",\"fields\":{\"target\":{\"durationMinutes\":10}}}]}}\nActions: modify_drill (name, target, confidence only; never trackingMode), add_drill (new stable bball-ai-...-vN drillId, supported trackingMode/target, zero-based position), remove_drill (future disable), reorder_drills (complete resolved drill order), switch_program (existing built-in only; Session 1 becomes next). Never edit session history, results, snapshots, or queue position.\n\nFormatting: markers on their own lines; valid JSON with straight quotes and no trailing commas; prose may appear before or after the block; markdown fences are tolerated but unnecessary.\n\n=== END EXPORT ===";
+}
+function mf105ExtractLegacySection(text,start,next){const i=text.indexOf(start);if(i<0)return "";const j=next?text.indexOf(next,i+start.length):-1;return text.slice(i,j>=0?j:text.length).trim()+"\n\n";}
+const mf105LegacyGenExport=genExport;
+genExport=function(){
+  mf105LegacyGenExport();
+  const legacy=String(window._exp||""),val=document.getElementById("exportRangeSelect").value,allDkeys=Object.keys(localStorage).filter(function(k){return k.startsWith("day-")&&!k.endsWith("-wo");}).sort(),dkeys=getExportDkeys(),entries=mf105SafeDayEntries(dkeys),signals=mf105WorkoutSignals(dkeys),rangeDesc=val==="program"?"Program templates only":val==="full"?"Full history ("+allDkeys.length+" days)":"Program + last "+val+" days ("+dkeys.length+" of "+allDkeys.length+" total logged days)",today=new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  const weights=entries.filter(function(d){return d.weight;}).map(function(d){return{date:d.date,w:Number(d.weight)};}),allEntries=mf105SafeDayEntries(allDkeys),allWeights=allEntries.filter(function(d){return d.weight;}).map(function(d){return{date:d.date,w:Number(d.weight)};}),first=weights[0],last=weights[weights.length-1],firstAll=allWeights[0],lastAll=allWeights[allWeights.length-1],wTrend=first&&last&&first.date!==last.date?first.w+" lbs ("+first.date+") -> "+last.w+" lbs ("+last.date+") = "+(last.w-first.w).toFixed(1)+" lbs change":"Insufficient data in selected range",wTrendAll=firstAll&&lastAll&&firstAll.date!==lastAll.date?"All-time: "+firstAll.w+" lbs ("+firstAll.date+") -> "+lastAll.w+" lbs ("+lastAll.date+") = "+(lastAll.w-firstAll.w).toFixed(1)+" lbs total change":"";
+  let habitAdherence="n/a";try{const a=p960GetHabitAnalytics(dkeys.length?dkeys[0].slice(4):null,dkeys.length?dkeys[dkeys.length-1].slice(4):null);habitAdherence=a.overallPercentage==null?"n/a":a.overallPercentage+"% across "+a.eligibleOpportunities+" eligible scheduled opportunities";}catch(e){}
+  window.mf105ExportContext={range:val,dkeys:dkeys.slice(),baseSummary:{rangeLabel:rangeDesc,loggedDays:entries.length,liftingSessions:signals.liftingSessions,lowerBodySessions:signals.lowerBodySessions,dedicatedCardioSessions:signals.dedicatedCardioSessions,habitAdherence:habitAdherence,activeRecommendationCount:typeof getRecs==="function"?Object.keys(getRecs()).length:0}};
+  const profile=p950BuildUserProfileExport(),firstSync=p957BuildFirstSyncExport(p957GetSharedUserFirstSyncStatus()),prefs="--- PERSISTENT AI COACHING PREFERENCES ---\n"+(p9GetCoachPrefs().trim()||"No user-specific AI coaching preferences saved.")+"\n\n",proposal=p955BuildProposalExport(),lifting=mf105ExtractLegacySection(legacy,"--- CURRENT PROGRAM TEMPLATES ---",legacy.includes("--- DAILY LOG:")?"--- DAILY LOG:":"=== AI SYNC FORMAT INSTRUCTIONS ==="),history=buildLogSection(dkeys,allDkeys),swap=p957GetSharedUserFirstSyncStatus().isLikelyFirstSync?"":p9489BuildSwapCandidateExport();
+  let out="=== MARCUSFIT EXPORT ===\nVersion: "+APP_VERSION+"\nGenerated: "+today+"\nExport Range: "+rangeDesc+"\nTotal logged days (all time): "+allDkeys.length+"\n\n--- PROGRAM / USER BASIS ---\n\n"+profile+firstSync+"[[MF105_PROGRAM_BASIS]]\n--- CURRENT COACHING CONTEXT ---\n\n"+prefs+proposal+"[[MF105_CROSS_DOMAIN]]\n--- LIFTING ---\n\n[[MF105_PROGRESSION_GUIDE]]\n"+lifting.replace("--- CURRENT PROGRAM TEMPLATES ---\n\n","")+swap+"[[MF105_BASKETBALL]]\n[[MF105_HABITS]]\n--- CARDIO / ACTIVITY ---\nDedicated cardio sessions in selected range: "+signals.dedicatedCardioSessions+".\nBasketball conditioning is summarized separately and must be counted when judging total cardio load.\nOther walks/activity are advisory only when explicitly recorded; MarcusFit has no general step or activity tracker.\n\n"+mf105BuildVitalsExport(entries,wTrend,wTrendAll)+"[[MF105_RECURRING]]\n--- RECENT HISTORY / PERFORMANCE EVIDENCE ---\n\n"+(history||"No daily or workout history included for this export range.\n\n")+mf105BuildRecommendationsExport()+mf105BuildResponseContract();
+  if(p957GetSharedUserFirstSyncStatus().isLikelyFirstSync)out=out.replace("First provide concise prose using these headings:","For this new/shared user, let the selected starter basis and onboarding context control the review. First provide concise prose using these headings:");
+  window._exp=out;const target=document.getElementById("exportOut");if(target){target.style.display="block";target.textContent=out;}document.getElementById("copyBtn").style.display="block";return out;
+};
+// ── END 10.5.0 EXPORT IA ────────────────────────────────────────────────────
 
 
 function doCopy(){if(!window._exp)return;const btn=document.getElementById("copyBtn");navigator.clipboard.writeText(window._exp).then(()=>{btn.textContent="&#9989; COPIED!";setTimeout(()=>btn.textContent="&#128203; COPY TO CLIPBOARD",2000);}).catch(()=>{const ta=document.createElement("textarea");ta.value=window._exp;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);btn.textContent="&#9989; COPIED!";setTimeout(()=>btn.textContent="&#128203; COPY TO CLIPBOARD",2000);});}

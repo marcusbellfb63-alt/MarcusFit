@@ -1,6 +1,17 @@
 # MarcusFit Project Handoff
 
-## Current accepted state
+## Current implementation candidate
+
+MarcusFit 10.5.0 cross-domain coaching and AI Export/Sync information architecture starts from the exact accepted 10.4.0 merge commit:
+`7e0059780f47e545b91ee02ad27291e836ace3af`.
+
+10.5.0 is not accepted. It remains pending automated review plus Marcus's real-browser/iPhone manual QA. It adds a derived cross-domain coaching summary, deterministic high-level-to-contract export ordering, one mixed response contract, explicit mutable/proposal/advisory boundaries, and strict mixed-envelope leakage refusal. It adds no storage key and does not change core `assets/js/sync/12-ai-sync.js`.
+
+The deterministic 14-day representative fixture measures 32,711 characters / 602 lines at the accepted 10.4 baseline and 21,494 characters / 336 lines for 10.5.
+
+## Previous accepted state
+
+MarcusFit 10.4.0 Habit AI Sync safety is accepted and merged. Its exact merge commit is `7e0059780f47e545b91ee02ad27291e836ace3af`; its QA-approved implementation head is `a9aa210ec5c7ffa52a93ce0109bcfa5eb541b579`.
 
 MarcusFit 10.3.0 basketball-specific AI Sync is accepted after full automated and real-device manual QA.
 
@@ -11,8 +22,6 @@ QA-approved implementation head:
 `74402eeb3f3c2c76cb54fd6a3b0d5bde828e878d`
 
 Acceptance documentation follows that implementation head only; no runtime changes are permitted after the QA-approved head before merge.
-
-MarcusFit 10.4.0 Habit AI Sync safety work is an implementation candidate only. It must remain on its draft PR until automated review and Marcus's real-browser/iPhone manual QA are complete.
 
 10.3.0 adds sparse future-program basketball overrides plus review-first basketball proposals while preserving accepted core Sync and historical basketball records. Supported proposal actions are bounded drill modification, stable-ID addition, future disable, within-session reorder, and switching among built-in basketball programs. Proposals import pending, require explicit review and two-stage apply, preserve immutable import-time expected state for stale-conflict detection, and support one-level safe undo without overwriting later user changes.
 

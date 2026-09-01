@@ -336,13 +336,13 @@ const p958LegacyGenExport=genExport;
 genExport=function(){
   const basis=getActiveProgramBasis(),t=p958GetTemplateById(basis.templateId)||P958_MARCUS_TEMPLATE;
   const days=getResolvedDays("partial");
-  const block="\nPROGRAM BASIS (9.5.8)\n======================\n"+
+  const block="--- ACTIVE PROGRAM BASIS ---\n"+
     "Active template: "+t.label+"\nTemplate ID: "+t.templateId+"\nTemplate version: "+t.templateVersion+
     "\nBasis: "+(basis.explicit?"explicit":"implicit")+"\nSelection source: "+basis.source+
     "\nTemplate summary: "+t.description+"\nResolved days: "+days.length+
     "\nAI: Personalize from this selected starter basis; do not substitute Marcus's legacy six-day program.\n\n";
   p958LegacyGenExport();
-  const out=block+(window._exp||"");
+  const source=String(window._exp||""),out=source.includes("[[MF105_PROGRAM_BASIS]]")?source.replace("[[MF105_PROGRAM_BASIS]]",block):block+source;
   const target=document.getElementById("exportOut");if(target)target.textContent=out;
   window._exp=out;
   return out;

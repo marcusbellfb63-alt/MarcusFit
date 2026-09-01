@@ -1,0 +1,23 @@
+{
+  "baselineCommit": "7e0059780f47e545b91ee02ad27291e836ace3af",
+  "range": "14",
+  "scenario": "Three daily logs, two lower-body lifting logs, two Basketball sessions (85 minutes), active Habit definitions, one active lifting experiment, and pending Habit/Basketball proposals.",
+  "before": {
+    "characters": 32711,
+    "lines": 602,
+    "duplicatedGuidance": {
+      "habitContractBlocks": 1,
+      "basketballContractBlocks": 1,
+      "legacyFormattingBlocks": 1
+    }
+  },
+  "after": {
+    "characters": 21638,
+    "lines": 336,
+    "duplicatedGuidance": {
+      "habitContractBlocks": 0,
+      "basketballContractBlocks": 0,
+      "legacyFormattingBlocks": 0
+    }
+  }
+}

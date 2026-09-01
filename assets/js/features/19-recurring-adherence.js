@@ -241,5 +241,5 @@ const p9510LegacyApplyStateToForm=applyStateToForm;
 applyStateToForm=function(d){const z=d&&d.zep;if(d&&Object.prototype.hasOwnProperty.call(d,"zep"))d=Object.assign({},d,{zep:null});p9510LegacyApplyStateToForm(d);toggleStates.zep=z||null;p9510RenderZepbound();};
 const p9510LegacyLoadDay=loadDay;loadDay=function(){const r=p9510LegacyLoadDay();p9510RenderZepbound();return r;};
 const p9510LegacyAnalytics=p7RenderAnalytics;p7RenderAnalytics=function(){const r=p9510LegacyAnalytics();p9510RenderStats();return r;};
-const p9510LegacyExport=genExport;genExport=function(){const out=p9510LegacyExport(),section=p9510BuildAdherenceExport(),updated=String(out||window._exp||"").replace(/(=== MARCUSFIT EXPORT ===\n)/,"$1"+section);window._exp=updated;const el=document.getElementById("exportOut");if(el)el.textContent=updated;return updated;};
+const p9510LegacyExport=genExport;genExport=function(){const out=p9510LegacyExport(),section=p9510BuildAdherenceExport(),source=String(out||window._exp||""),updated=source.includes("[[MF105_RECURRING]]")?source.replace("[[MF105_RECURRING]]",section):source.replace(/(=== MARCUSFIT EXPORT ===\n)/,"$1"+section);window._exp=updated;const el=document.getElementById("exportOut");if(el)el.textContent=updated;return updated;};
 // ── END PHASE 9.5.10 ──────────────────────────────────────────────────────
