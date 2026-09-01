@@ -508,7 +508,7 @@ genExport=function(){
     "- Cardio minutes and static-hold seconds are duration, never reps.\n"+
     "- capped_hold means one more qualifying ceiling confirmation is pending.\n"+
     "- ceiling_update means the programmed ceiling is complete; update the target or method before replacing a productive exercise.\n\n";
-  const updated=String(out||window._exp||"").replace(/(=== MARCUSFIT EXPORT ===\n)/,"$1"+guide);
+  const source=String(out||window._exp||""),updated=source.includes("[[MF105_PROGRESSION_GUIDE]]")?source.replace("[[MF105_PROGRESSION_GUIDE]]",guide):source.replace(/(=== MARCUSFIT EXPORT ===\n)/,"$1"+guide);
   window._exp=updated;const target=document.getElementById("exportOut");if(target)target.textContent=updated;
   return updated;
 };
