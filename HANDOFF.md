@@ -14,8 +14,6 @@ MarcusFit 10.5.0 cross-domain coaching and AI Export/Sync information architectu
 
 The deterministic 14-day representative fixture measures 32,711 characters / 602 lines at the accepted 10.4 baseline and 21,494 characters / 336 lines for accepted 10.5.
 
-## Previous accepted state
-
 MarcusFit 10.4.0 Habit AI Sync safety is accepted and merged. Its exact merge commit is `7e0059780f47e545b91ee02ad27291e836ace3af`; its QA-approved implementation head is `a9aa210ec5c7ffa52a93ce0109bcfa5eb541b579`.
 
 MarcusFit 10.3.0 basketball-specific AI Sync is accepted after full automated and real-device manual QA.

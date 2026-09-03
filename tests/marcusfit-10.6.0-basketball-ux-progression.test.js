@@ -85,6 +85,22 @@ const savedHistory = storage.getItem("mf-basketball-sessions"), skipped = drill(
 assert.strictEqual(c.mfBasketballProgressionForDrill("neutral_skip", [session("bball-s01", "2026-08-21", skipped)], { trackingMode: "duration" }, { ...identity, trackingMode: "duration" }).exposures.length, 0);
 assert.strictEqual(storage.getItem("mf-basketball-sessions"), savedHistory, "derived progression rewrote history");
 
+// Historical export progression is bounded to evidence knowable at each row.
+const exportHistory = [5, 6, 8].map((value, index) => session(`bball-e0${index + 1}`, `2026-08-0${index + 1}`, drill("fundamentals_crossover_control", "confidence", { durationMinutes: 6 }, { durationMinutes: 6 }, value)));
+const storageBeforeExport = storage.snapshot();
+const boundedExport = c.mfBasketballBuildExport("full", exportHistory, c.mfBasketballReadProgramState());
+assert.deepStrictEqual(storage.snapshot(), storageBeforeExport, "Basketball export wrote storage/history");
+function historicalRow(text, date, nextDate) { const start = text.indexOf(`- ${date} |`), end = nextDate ? text.indexOf(`- ${nextDate} |`, start) : text.indexOf("Coaching guidance:", start); assert(start >= 0 && end > start); return text.slice(start, end); }
+const oldestRow = historicalRow(boundedExport, "2026-08-01", "2026-08-02"), middleRow = historicalRow(boundedExport, "2026-08-02", "2026-08-03"), newestRow = historicalRow(boundedExport, "2026-08-03");
+assert(oldestRow.includes("FIRST RESULT"), "oldest row did not remain first-result evidence");
+assert(!oldestRow.includes("CONFIDENCE IMPROVED"), "future results changed the oldest historical label");
+assert(middleRow.includes("BUILDING CONSISTENCY"), "middle row did not use its earlier evidence");
+assert(newestRow.includes("CONFIDENCE IMPROVED"), "later row could not use prior evidence");
+const oldestOnlyExport = c.mfBasketballBuildExport("full", exportHistory.slice(0, 1), c.mfBasketballReadProgramState());
+assert(historicalRow(oldestOnlyExport, "2026-08-01").includes("FIRST RESULT"));
+assert(historicalRow(boundedExport, "2026-08-01", "2026-08-02").includes("FIRST RESULT"), "adding later evidence altered the oldest exported progression label");
+assert.deepStrictEqual(storage.snapshot(), storageBeforeExport, "repeated Basketball export wrote storage/history");
+
 assert(html.includes('id="mfBasketballProgramView"')); assert(html.includes('id="mfBasketballCourtsideProgress"')); assert(html.includes('id="mfBasketballCompletionReview"'));
 assert(source.includes("SKIP — NEUTRAL")); assert(source.includes("COMPLETE & NEXT")); assert(source.includes("Results save only when you finish the session"));
 assert(css.includes("env(safe-area-inset-bottom)")); assert(css.includes(".mf-basketball-drill-card[hidden]"));
