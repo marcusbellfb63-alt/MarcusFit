@@ -1,0 +1,13 @@
+const assert=require("assert"),fs=require("fs"),path=require("path"),vm=require("vm");
+const root=path.resolve(__dirname,".."),source=fs.readFileSync(path.join(root,"assets/js/features/15-stats.js"),"utf8"),basketball=fs.readFileSync(path.join(root,"assets/js/features/22-basketball.js"),"utf8"),habits=fs.readFileSync(path.join(root,"assets/js/features/20-habits.js"),"utf8"),recurring=fs.readFileSync(path.join(root,"assets/js/features/19-recurring-adherence.js"),"utf8"),html=fs.readFileSync(path.join(root,"index.html"),"utf8");
+const storage=new Map(),context={console,Date,localStorage:{getItem:k=>storage.has(k)?storage.get(k):null,setItem(){throw new Error("analytics wrote storage");},removeItem(){throw new Error("analytics wrote storage");},key(){return null;},get length(){return storage.size;}},document:{getElementById(){return null;}},p7GetAllEntries(){return [];},getResolvedDays(){return [];},getSafeDayForLog(){return null;},p9489ClassifyDayType(){return "other";},mfBasketballReadStore(){return {sessions:[]};}};context.window=context;vm.createContext(context);vm.runInContext(source,context);
+context.p7SetStatsRange("7");let range=context.p7GetStatsRange(new Date(2026,7,31,12));assert.deepStrictEqual(JSON.parse(JSON.stringify(range)),{value:"7",days:7,start:"2026-08-25",end:"2026-08-31",priorStart:"2026-08-18",priorEnd:"2026-08-24",label:"Last 7 calendar days"});
+assert(context.p7DateInRange("2026-08-25",range,false));assert(!context.p7DateInRange("2026-08-24",range,false));assert(context.p7DateInRange("2026-08-24",range,true));
+context.p7SetStatsRange("30");const before=[...storage.entries()];const empty=context.p7CalcAnalytics();assert.strictEqual(empty.range.days,30);assert.strictEqual(empty.trainingLoad.liftingSessions,0);assert.deepStrictEqual([...storage.entries()],before);
+assert(html.includes('id="p7StatsRange"')&&html.includes('<option value="30" selected>30 days</option>'));
+assert(source.includes('^day-\\d{4}-\\d{2}-\\d{2}-wo$')&&source.includes('parseInt(set.reps,10)>0'),"stable-ID selected-range lifting evidence missing");
+assert(habits.includes('p960GetHabitAnalytics(range.start,range.end)')&&habits.includes('p960GetHabitAnalytics(range.priorStart,range.priorEnd)'));
+assert(recurring.includes('p9510GetAdherenceRange("zepbound",range)')&&recurring.includes('eligibleResolved=out.completedOnTime+out.completedLate+out.skipped+out.unresolvedLate'));
+assert(basketball.includes('session.programId,session.programVersion,session.plannedSessionId,drill.drillId,drill.trackingMode')&&basketball.includes('item.values.length>=2'));
+assert(!/tonnage|readiness score|fatigue score|calorie balance/i.test(source));
+console.log("MarcusFit 10.7.0 range-aware analytics: PASS");

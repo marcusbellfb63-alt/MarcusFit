@@ -24,7 +24,7 @@ assert.strictEqual(target({screen:"export",endX:60}), null, "crossed last-tab bo
 assert(source.includes("if(target)showScreen(target)"), "successful swipe bypasses showScreen");
 assert(source.includes("button,a,input,select,textarea,label") && source.includes("[role='dialog']") && source.includes(".mf-basketball-structured"), "interactive/modal/courtside exclusions missing");
 assert(!/localStorage\./.test(source.slice(start, source.indexOf("// 9.4.8.8"))), "primary navigation writes storage");
-assert.strictEqual((html.match(/role="tab"/g)||[]).length,5);assert.strictEqual((html.match(/role="tabpanel"/g)||[]).length,5);
+assert.strictEqual((html.match(/class="tab-btn[^\"]*"[^>]*role="tab"/g)||[]).length,5);assert.strictEqual((html.match(/role="tabpanel" aria-labelledby="tab-/g)||[]).length,5);
 assert(html.includes('role="tablist" aria-label="Primary navigation"'));
 
 console.log("MarcusFit 10.7.0 primary navigation/swipe: PASS");

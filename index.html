@@ -450,12 +450,20 @@
 
 <!-- ── P7: ANALYTICS SCREEN ── -->
 <div class="screen" id="screen-analytics" role="tabpanel" aria-labelledby="tab-analytics">
-  <div class="screen-title">ANALYTICS</div>
-  <div class="p9510-summary" id="p9510StatsSummary" style="display:none"></div>
-  <div id="mfBasketballStats"></div>
+  <div class="screen-title">STATS</div>
+  <label class="p7-range-control" for="p7StatsRange">Range
+    <select id="p7StatsRange">
+      <option value="7">7 days</option>
+      <option value="30" selected>30 days</option>
+      <option value="90">90 days</option>
+      <option value="all">All history</option>
+    </select>
+  </label>
   <div id="p7-analytics-content">
     <div class="empty">No data yet.<br>Start logging to see your stats!</div>
   </div>
+  <div class="p9510-summary" id="p9510StatsSummary" style="display:none"></div>
+  <div id="mfBasketballStats"></div>
 </div>
 
 <div class="screen" id="screen-export" role="tabpanel" aria-labelledby="tab-export">
