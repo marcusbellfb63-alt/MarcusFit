@@ -1,7 +1,7 @@
 # Storage and backup map
 
 The effective `p8IsMarcusFitKey()` predicate owns 18 exact keys or key patterns.
-10.3.0 adds two independent basketball personalization/proposal keys; existing schemas and
+10.6.0 keeps the four accepted Basketball keys unchanged and adds no schema. 10.3.0 added two independent basketball personalization/proposal keys; existing schemas and
 replacement restore behavior remain compatible.
 
 | Key/pattern | Owner |

@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.5.0 — implementation candidate pending review and manual browser/iPhone QA
+MarcusFit 10.6.0 — Basketball UX/progression candidate pending review and manual browser/iPhone QA
 
 ## Architecture
 
@@ -72,8 +72,9 @@ MarcusFit 10.5.0 — implementation candidate pending review and manual browser/
 - Built-in Fundamentals, Guard Skills, and Shooting Focus templates use stable versioned identities
 - Drill tracking is basketball-specific: confidence, duration, makes target, shooting benchmark, count, or completion
 - Finish & Advance moves the queue only after a successful structured save; Finish & Repeat leaves the same session next
+- Courtside mode shows one drill at a time with tracking-specific inputs, neutral skip, explicit review, and a post-save summary
 - Partial sessions preserve skipped drills without counting them as progression exposures
-- Deterministic local guidance uses recent same-drill exposures and never mutates a program automatically
+- Deterministic local guidance compares only matching program/version/session/drill/mode identity and never mutates a program automatically
 
 ### Basketball AI Sync (`mf-basketball-program-overrides`, `mf-basketball-proposal`)
 - Built-in basketball templates remain deeply frozen; sparse schema-1 overrides resolve only future planned sessions
@@ -130,16 +131,23 @@ MarcusFit 10.5.0 — implementation candidate pending review and manual browser/
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.5.0";
+const APP_VERSION      = "10.6.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
 Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, lifecycle default `lifecycleVersion`, migration targets, and export strings reference these constants.
 
+## Candidate record
+
+- 10.6.0 starts from accepted 10.5.0 merge commit `60934a151f95c34d5a659cd131c91abca43bfa91`
+- Accepted 10.5.0 QA head: `73faa06e2b5476a8ab7549c76c3cfdbe84277911`
+- 10.6 adds no storage key or schema field; courtside state remains in the live DOM until the existing final save transaction
+- Basketball audit and exact comparison rules: `docs/architecture/basketball-10.6-audit.md`
+- 10.6.0 is not accepted; ChatGPT review and Marcus manual browser/iPhone QA are required
+
 ## Acceptance Record
 
-- 10.5.0 starts from accepted 10.4.0 merge commit `7e0059780f47e545b91ee02ad27291e836ace3af`
-- 10.5.0 is an implementation candidate only; manual browser/iPhone QA is required before acceptance or merge
+- 10.5.0 is accepted and merged at `60934a151f95c34d5a659cd131c91abca43bfa91`; QA-approved implementation head `73faa06e2b5476a8ab7549c76c3cfdbe84277911`
 - The representative 14-day export fixture changed from 32,711 characters / 602 lines to 21,494 characters / 336 lines while adding cross-domain load, adherence, pending-proposal, and conditioning-interaction signals
 - Core `assets/js/sync/12-ai-sync.js` remains unchanged with SHA-256 `25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e`
 - 10.4.0 accepted starting baseline: `7e0059780f47e545b91ee02ad27291e836ace3af`
@@ -159,4 +167,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.2.0** — Basketball programs and progression (accepted)
 - **v10.3.0** — Basketball-specific AI Sync (accepted)
 - **v10.4.0** — Habits-specific AI Sync (accepted)
-- **v10.5.0** — Cross-domain coaching and AI Export/Sync IA (implementation candidate)
+- **v10.5.0** — Cross-domain coaching and AI Export/Sync IA (accepted)
+- **v10.6.0** — Basketball courtside UX and progression maturation (implementation candidate)

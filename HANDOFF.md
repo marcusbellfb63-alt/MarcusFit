@@ -2,12 +2,17 @@
 
 ## Current implementation candidate
 
-MarcusFit 10.5.0 cross-domain coaching and AI Export/Sync information architecture starts from the exact accepted 10.4.0 merge commit:
-`7e0059780f47e545b91ee02ad27291e836ace3af`.
+MarcusFit 10.6.0 Basketball UX and progression maturation starts from the exact accepted 10.5.0 merge commit `60934a151f95c34d5a659cd131c91abca43bfa91`. The accepted 10.5 QA head is `73faa06e2b5476a8ab7549c76c3cfdbe84277911`.
 
-10.5.0 is not accepted. It remains pending automated review plus Marcus's real-browser/iPhone manual QA. It adds a derived cross-domain coaching summary, deterministic high-level-to-contract export ordering, one mixed response contract, explicit mutable/proposal/advisory boundaries, and strict mixed-envelope leakage refusal. It adds no storage key and does not change core `assets/js/sync/12-ai-sync.js`.
+10.6.0 is not accepted. It is pending ChatGPT review plus Marcus's local-browser and real-iPhone manual QA. It adds a readable next-session surface, resolved program inspection, one-drill courtside execution, an explicit review gate, post-save metric-specific summary, historical comparison context, and a deterministic Basketball progression layer. It adds no storage key or schema field, retains the accepted 22-script order, and does not change core `assets/js/sync/12-ai-sync.js`.
 
-The deterministic 14-day representative fixture measures 32,711 characters / 602 lines at the accepted 10.4 baseline and 21,494 characters / 336 lines for 10.5.
+Progression comparisons require matching program ID/version, planned session ID, stable drill ID, and tracking mode. Skips remain neutral. Stored historical names, targets, modes, results, and snapshots remain authoritative. See `docs/architecture/basketball-10.6-audit.md` and `tests/marcusfit-10.6.0-manual-qa.md`.
+
+## Previous accepted state
+
+MarcusFit 10.5.0 cross-domain coaching and AI Export/Sync information architecture is accepted and merged at `60934a151f95c34d5a659cd131c91abca43bfa91`; its QA-approved implementation head is `73faa06e2b5476a8ab7549c76c3cfdbe84277911`. It adds a derived cross-domain coaching summary, deterministic high-level-to-contract export ordering, one mixed response contract, explicit mutable/proposal/advisory boundaries, and strict mixed-envelope leakage refusal without adding storage or changing core Sync.
+
+The deterministic 14-day representative fixture measures 32,711 characters / 602 lines at the accepted 10.4 baseline and 21,494 characters / 336 lines for accepted 10.5.
 
 ## Previous accepted state
 
@@ -104,4 +109,5 @@ Protected values at acceptance:
 10.3.0 — Basketball-specific AI Sync — Accepted
 10.4.0 — Habits-specific AI Sync
 10.5.0 — Full cross-domain coaching review
+10.6.0 — Basketball UX and progression maturation — Candidate
 ```

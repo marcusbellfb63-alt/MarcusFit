@@ -267,7 +267,11 @@
         </div>
         <div class="mf-basketball-program-summary" id="mfBasketballProgramSummary"></div>
         <div class="mf-basketball-next" id="mfBasketballNextSession"></div>
+        <div class="mf-basketball-completion-review" id="mfBasketballCompletionReview" hidden></div>
+        <div class="mf-basketball-program-view" id="mfBasketballProgramView" hidden></div>
         <div class="mf-basketball-program-actions" id="mfBasketballProgramActions" hidden>
+          <button type="button" class="mf-basketball-view-program" id="mfBasketballViewProgram">VIEW PROGRAM</button>
+          <button type="button" class="mf-basketball-review-history" id="mfBasketballReviewHistory">REVIEW HISTORY</button>
           <button type="button" class="mf-basketball-restart" id="mfBasketballRestartProgram">RESTART FROM SESSION 1</button>
         </div>
       </section>
@@ -288,6 +292,7 @@
             <input id="mfBasketballStructuredMinutes" type="number" min="0.5" max="1440" step="0.5" inputmode="decimal" placeholder="45" required>
           </label>
         </div>
+        <div class="mf-basketball-courtside-progress" id="mfBasketballCourtsideProgress" aria-live="polite"></div>
         <div class="mf-basketball-drills" id="mfBasketballDrillLogger"></div>
         <label class="mf-basketball-field" for="mfBasketballStructuredNotes">Session notes (optional)
           <textarea id="mfBasketballStructuredNotes" rows="3" maxlength="2000" placeholder="How did the session feel overall?"></textarea>

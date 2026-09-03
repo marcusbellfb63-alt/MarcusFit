@@ -1043,7 +1043,39 @@ body.mf-basketball-structured-open .p6-sticky-bar{display:none;}
 .mf-basketball-proposal-copy{font-size:var(--mf-font-sm);line-height:1.55;overflow-wrap:anywhere;}
 .mf-basketball-proposal-warning{padding:9px 10px;border-left:3px solid var(--yellow);background:color-mix(in srgb,var(--yellow) 8%,transparent);font-size:var(--mf-font-sm);line-height:1.45;overflow-wrap:anywhere;}
 .mf-basketball-proposal-error{padding:9px 10px;border-left:3px solid var(--red);color:var(--red);white-space:pre-wrap;font-size:var(--mf-font-sm);line-height:1.45;overflow-wrap:anywhere;}
+.mf-basketball-proposal-technical{margin-top:6px;font:10px/1.45 'Courier New',monospace;color:var(--muted);overflow-wrap:anywhere;}
 body.mf-basketball-proposal-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
+.mf-basketball-next-meta{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 9px;}
+.mf-basketball-next-meta span{padding:4px 8px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);font-size:var(--mf-font-xs);font-weight:800;color:var(--text);}
+.mf-basketball-next-drills small{display:block;font-size:var(--mf-font-xs);font-weight:600;color:var(--accent);margin-top:2px;}
+.mf-basketball-program-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;}
+.mf-basketball-program-actions .mf-basketball-restart{grid-column:1/-1;}
+.mf-basketball-view-program,.mf-basketball-review-history,.mf-basketball-completion-dismiss{min-height:44px;border:1px solid var(--border);border-radius:9px;background:var(--surface2);color:var(--text);font:800 var(--mf-font-xs) 'DM Sans',sans-serif;cursor:pointer;}
+.mf-basketball-program-view{margin-top:12px;border:1px solid var(--border);border-radius:11px;background:var(--bg);padding:10px;}
+.mf-basketball-program-view-title{font-size:var(--mf-font-xs);font-weight:900;letter-spacing:1px;color:var(--accent2);}
+.mf-basketball-program-view-note{font-size:var(--mf-font-xs);color:var(--muted);margin:4px 0 9px;}
+.mf-basketball-program-session{border-top:1px solid var(--border);padding:4px 0;}
+.mf-basketball-program-session summary{min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;font-size:var(--mf-font-sm);font-weight:800;}
+.mf-basketball-program-session summary span:last-child{font-size:var(--mf-font-xs);color:var(--accent);text-align:right;}
+.mf-basketball-program-session-focus{font-size:var(--mf-font-xs);line-height:1.45;color:var(--muted);padding:0 2px 8px;}
+.mf-basketball-program-drill{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:9px;border-radius:8px;background:var(--surface2);margin-bottom:6px;}
+.mf-basketball-program-drill>div{min-width:0;}.mf-basketball-program-drill strong,.mf-basketball-program-drill span{display:block;overflow-wrap:anywhere;}
+.mf-basketball-program-drill strong{font-size:var(--mf-font-sm);}.mf-basketball-program-drill>div span{font-size:var(--mf-font-xs);line-height:1.4;color:var(--muted);margin-top:2px;}
+.mf-basketball-program-drill.disabled{opacity:.65;}.mf-basketball-personalized-badge{flex:0 0 auto;padding:3px 6px;border:1px solid color-mix(in srgb,var(--accent2) 50%,var(--border));border-radius:999px;color:var(--accent2);font-size:9px!important;font-weight:900;}
+.mf-basketball-courtside-progress{position:sticky;top:0;z-index:2;margin:0 -4px 10px;padding:9px 10px;border-radius:9px;background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--border);font-size:var(--mf-font-xs);font-weight:800;color:var(--accent);text-align:center;backdrop-filter:blur(8px);}
+.mf-basketball-drill-card[hidden]{display:none!important;}
+.mf-basketball-drill-position{font-size:var(--mf-font-xs);font-weight:900;letter-spacing:1px;color:var(--accent2);margin-bottom:3px;}
+.mf-basketball-drill-plan{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1.05;letter-spacing:.5px;color:var(--text);margin-top:8px;}
+.mf-basketball-last-trend{display:flex;flex-direction:column;gap:3px;padding:9px 10px;margin-bottom:10px;border-radius:9px;background:var(--surface2);font-size:var(--mf-font-xs);color:var(--muted);}
+.mf-basketball-last-trend strong{color:var(--accent);font-size:var(--mf-font-xs);}
+.mf-basketball-drill-nav{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1fr);gap:7px;margin-top:13px;padding-top:10px;border-top:1px solid var(--border);}
+.mf-basketball-drill-nav button{min-height:48px;border:1px solid var(--border);border-radius:9px;font:800 var(--mf-font-sm) 'DM Sans',sans-serif;cursor:pointer;white-space:normal;}
+.mf-basketball-drill-previous,.mf-basketball-drill-skip{background:var(--surface2);color:var(--muted);}.mf-basketball-drill-next{grid-column:1/-1;background:var(--accent2);border-color:var(--accent2)!important;color:#000;}.mf-basketball-drill-nav button:disabled{opacity:.35;}
+.mf-basketball-completion-review{margin:12px 0;padding:13px;border:1px solid color-mix(in srgb,var(--green) 45%,var(--border));border-radius:11px;background:color-mix(in srgb,var(--green) 6%,var(--surface));}
+.mf-basketball-completion-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.7px;}.mf-basketball-completion-meta{font-size:var(--mf-font-sm);line-height:1.45;color:var(--muted);margin:3px 0 10px;}
+.mf-basketball-completion-results{display:flex;flex-direction:column;gap:5px;}.mf-basketball-completion-result{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 8px;padding:8px;background:var(--surface2);border-radius:8px;font-size:var(--mf-font-sm);}.mf-basketball-completion-result span{text-align:right;color:var(--muted);}.mf-basketball-completion-result small{grid-column:1/-1;color:var(--accent);font-weight:800;}
+.mf-basketball-completion-next{padding:9px 0;font-size:var(--mf-font-sm);font-weight:800;color:var(--green);}.mf-basketball-completion-dismiss{width:100%;}
+.mf-basketball-structured{min-height:calc(100dvh - env(safe-area-inset-top));scroll-padding-bottom:calc(90px + env(safe-area-inset-bottom));}
 .mf-habit-proposal-overlay{overflow:hidden;}
 .mf-habit-proposal-overlay .p960-panel{min-width:0;min-height:0;max-height:calc(100vh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;}
 .mf-habit-proposal-overlay .p960-footer{position:sticky;bottom:0;flex-wrap:wrap;padding-bottom:max(4px,env(safe-area-inset-bottom));background:var(--surface);}
