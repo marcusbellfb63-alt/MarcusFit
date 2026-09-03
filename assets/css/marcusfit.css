@@ -1113,3 +1113,7 @@ body.mf-habit-proposal-open{position:fixed;left:0;right:0;width:100%;overflow:hi
   }
   .wo-set-num{width:28px;}
 }
+
+/* MarcusFit 10.7.0: persistent primary-navigation scroll contract */
+html{scroll-padding-top:calc(var(--mf-header-height,96px) + 12px);}
+.screen [id]{scroll-margin-top:calc(var(--mf-header-height,96px) + 12px);}

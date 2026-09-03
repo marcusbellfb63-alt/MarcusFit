@@ -84,12 +84,12 @@
     <div class="logo"><span>MARCUS</span><span>FIT</span></div>
     <div class="date-pill" id="headerDate"></div>
   </div>
-  <div class="tab-nav">
-    <button class="tab-btn" id="tab-program" onclick="showScreen('program')"><span class="tab-icon">📋</span>Program</button>
-    <button class="tab-btn active" id="tab-log" onclick="showScreen('log')"><span class="tab-icon">🏋️</span>Daily Log</button>
-    <button class="tab-btn" id="tab-history" onclick="showScreen('history')"><span class="tab-icon">📅</span>History</button>
-    <button class="tab-btn" id="tab-analytics" onclick="showScreen('analytics')"><span class="tab-icon">📊</span>Stats</button>
-    <button class="tab-btn" id="tab-export" onclick="showScreen('export')"><span class="tab-icon">📤</span>Sync</button>
+  <div class="tab-nav" role="tablist" aria-label="Primary navigation">
+    <button class="tab-btn" id="tab-program" role="tab" aria-selected="false" aria-controls="screen-program" tabindex="-1" onclick="showScreen('program')"><span class="tab-icon">📋</span>Program</button>
+    <button class="tab-btn active" id="tab-log" role="tab" aria-selected="true" aria-controls="screen-log" tabindex="0" onclick="showScreen('log')"><span class="tab-icon">🏋️</span>Daily Log</button>
+    <button class="tab-btn" id="tab-history" role="tab" aria-selected="false" aria-controls="screen-history" tabindex="-1" onclick="showScreen('history')"><span class="tab-icon">📅</span>History</button>
+    <button class="tab-btn" id="tab-analytics" role="tab" aria-selected="false" aria-controls="screen-analytics" tabindex="-1" onclick="showScreen('analytics')"><span class="tab-icon">📊</span>Stats</button>
+    <button class="tab-btn" id="tab-export" role="tab" aria-selected="false" aria-controls="screen-export" tabindex="-1" onclick="showScreen('export')"><span class="tab-icon">📤</span>Sync</button>
   </div>
 </div>
 
@@ -98,12 +98,12 @@
   <button class="gym-btn" id="gbtn-partial" onclick="setGym('partial')">Transition<small>Partial Gym</small></button>
 </div>
 
-<div class="screen" id="screen-program">
+<div class="screen" id="screen-program" role="tabpanel" aria-labelledby="tab-program">
   <div class="screen-title" id="program-title">HOME PROGRAM</div>
   <div id="program-days"></div>
 </div>
 
-<div class="screen active" id="screen-log">
+<div class="screen active" id="screen-log" role="tabpanel" aria-labelledby="tab-log">
   <div class="screen-title">DAILY LOG</div>
 
   <!-- Future Date Warning -->
@@ -405,7 +405,7 @@
 
 <div class="draft-toast" id="draftToast">&#128190; Draft saved</div>
 
-<div class="screen" id="screen-history">
+<div class="screen" id="screen-history" role="tabpanel" aria-labelledby="tab-history">
   <div class="screen-title">LOG HISTORY</div>
 
   <!-- ── P7: HISTORY FILTERS ── -->
@@ -449,7 +449,7 @@
 </div>
 
 <!-- ── P7: ANALYTICS SCREEN ── -->
-<div class="screen" id="screen-analytics">
+<div class="screen" id="screen-analytics" role="tabpanel" aria-labelledby="tab-analytics">
   <div class="screen-title">ANALYTICS</div>
   <div class="p9510-summary" id="p9510StatsSummary" style="display:none"></div>
   <div id="mfBasketballStats"></div>
@@ -458,7 +458,7 @@
   </div>
 </div>
 
-<div class="screen" id="screen-export">
+<div class="screen" id="screen-export" role="tabpanel" aria-labelledby="tab-export">
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
