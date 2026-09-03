@@ -1,3 +1,4 @@
+// MarcusFit 10.6.0: Basketball UX + Progression Maturation
 // MarcusFit 10.3.0: Basketball-Specific AI Sync
 // MarcusFit 10.2.0: Basketball Programs & Progression (accepted foundation)
 // Basketball remains an isolated, final-load feature boundary. Core AI Sync
@@ -441,6 +442,8 @@ let mfBasketballPendingDeleteId = null;
 let mfBasketballSaving = false;
 let mfBasketballPendingProgramAction = null;
 let mfBasketballStructuredContext = null;
+let mfBasketballStructuredIndex = 0;
+let mfBasketballLastCompletion = null;
 
 function mfBasketballDateKey(value){
   if(value instanceof Date && !isNaN(value.getTime())){
@@ -763,58 +766,76 @@ function mfBasketballFindDrillDefinition(drillId){
   return null;
 }
 
-function mfBasketballDrillHistory(drillId,sessions){
-  const exposures=[];(Array.isArray(sessions)?sessions:[]).forEach(function(session){(session.drills||[]).forEach(function(drill){if(drill.drillId===drillId&&!drill.skipped)exposures.push({date:session.date,createdAt:session.createdAt,sessionId:session.id,drill:drill});});});
+function mfBasketballDrillHistory(drillId,sessions,identity){
+  identity=identity||{};const exposures=[];(Array.isArray(sessions)?sessions:[]).forEach(function(session){
+    if(identity.programId&&session.programId!==identity.programId)return;
+    if(identity.programVersion!=null&&Number(session.programVersion)!==Number(identity.programVersion))return;
+    if(identity.plannedSessionId&&session.plannedSessionId!==identity.plannedSessionId)return;
+    (session.drills||[]).forEach(function(drill){if(drill.drillId===drillId&&!drill.skipped&&(!identity.trackingMode||drill.trackingMode===identity.trackingMode))exposures.push({date:session.date,createdAt:session.createdAt,sessionId:session.id,programId:session.programId,programVersion:session.programVersion,plannedSessionId:session.plannedSessionId,drill:drill});});
+  });
   return exposures.sort(function(a,b){return b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt)||a.sessionId.localeCompare(b.sessionId);});
 }
 
+function mfBasketballProgressionResult(status,label,guidance,recent,extra){return Object.assign({status:status,label:label,guidance:guidance,ready:false,recent:recent||[]},extra||{});}
+
 function mfBasketballConfidenceGuidance(recent,definition){
-  const values=recent.map(function(item){return item.drill.confidence;}).filter(function(value){return Number.isInteger(value);}).slice(0,3);
-  if(!values.length)return {status:"no_data",label:"NO CONFIDENCE DATA",guidance:"Record confidence to build progression guidance.",ready:false,recent:[]};
-  const average=values.reduce(function(sum,value){return sum+value;},0)/values.length,last=values[0];
-  if(last<=3||average<4)return {status:"needs_work",label:"NEEDS WORK",guidance:"Repeat the foundation at the current difficulty.",ready:false,recent:values};
-  if(values.length<3)return {status:"building_baseline",label:"BUILDING BASELINE",guidance:"Repeat this drill before changing difficulty.",ready:false,recent:values};
-  if(values.every(function(value){return value>=7;})&&average>=7.5){const next=definition&&definition.progression;return {status:"ready_to_progress",label:"READY TO PROGRESS",guidance:next?"Try "+next.name+".":"Add a small difficulty increase while keeping quality high.",ready:true,recent:values};}
-  if(average>=6)return {status:"solid",label:"SOLID",guidance:"Maintain this drill; a small progression can follow repeated strong work.",ready:false,recent:values};
-  return {status:"developing",label:"DEVELOPING",guidance:"Stay at the current target and build consistency.",ready:false,recent:values};
+  const values=recent.map(function(item){return item.drill.confidence;}).filter(Number.isInteger).slice(0,3);
+  if(!values.length)return mfBasketballProgressionResult("needs_more_evidence","NEEDS MORE EVIDENCE","Record confidence to establish a comparable result.",[]);
+  if(values.length===1)return mfBasketballProgressionResult("first_result","FIRST RESULT","One confidence result is recorded; repeat before reading a trend.",values);
+  if(values.length<3)return mfBasketballProgressionResult("building_consistency","BUILDING CONSISTENCY","Two comparable confidence results are recorded; one more helps confirm direction.",values);
+  const chronological=values.slice().reverse(),range=Math.max.apply(null,values)-Math.min.apply(null,values),next=definition&&definition.progression;
+  if(values.reduce(function(sum,value){return sum+value;},0)/values.length<4)return mfBasketballProgressionResult("needs_work","NEEDS WORK","Confidence remains low; repeat the foundation at the current difficulty.",values);
+  if(chronological[0]<=chronological[1]&&chronological[1]<=chronological[2]&&chronological[2]-chronological[0]>=2)return mfBasketballProgressionResult("confidence_improved","CONFIDENCE IMPROVED","Confidence improved across three comparable results.",values);
+  if(values.every(function(value){return value>=7;})&&range<=2)return mfBasketballProgressionResult("stable","HIGH CONFIDENCE — STABLE",next?"Quality is stable; review whether "+next.name+" is appropriate.":"Quality is stable; consider a small difficulty review.",values,{ready:true});
+  if(range<=1)return mfBasketballProgressionResult("stable","STABLE","Confidence is consistent across three comparable results.",values);
+  return mfBasketballProgressionResult("building_consistency","BUILDING CONSISTENCY","Confidence varies; keep the current drill and collect another result.",values);
 }
 
 function mfBasketballMakesTargetGuidance(recent,definition){
   const usable=recent.filter(function(item){return item.drill.actualResult&&Number.isFinite(item.drill.actualResult.makes)&&item.drill.plannedTargetSnapshot&&Number.isFinite(item.drill.plannedTargetSnapshot.makes);}).slice(0,3);
-  if(!usable.length)return {status:"no_data",label:"NO TARGET DATA",guidance:"Record completed makes to build progression guidance.",ready:false,recent:[]};
-  const achieved=usable.map(function(item){return item.drill.actualResult.makes>=item.drill.plannedTargetSnapshot.makes;}),confidences=usable.map(function(item){return item.drill.confidence;}).filter(function(value){return Number.isInteger(value);});
-  const confidenceReady=!confidences.length||confidences.length>=2&&confidences.reduce(function(sum,value){return sum+value;},0)/confidences.length>=7;
-  if(usable.length>=3&&achieved.every(Boolean)&&confidenceReady){const target=usable[0].drill.plannedTargetSnapshot.makes,next=definition&&definition.progression;return {status:"ready_to_progress",label:"READY TO PROGRESS",guidance:next?"Try "+next.name+".":"Raise the makes target modestly to "+Math.ceil(target*1.1)+".",ready:true,recent:usable.map(function(item){return item.drill.actualResult.makes;})};}
-  return {status:achieved[0]?"building_consistency":"hold",label:achieved[0]?"BUILDING CONSISTENCY":"HOLD TARGET",guidance:"Keep the current makes target until it is completed consistently.",ready:false,recent:usable.map(function(item){return item.drill.actualResult.makes;})};
+  if(!usable.length)return mfBasketballProgressionResult("needs_more_evidence","NEEDS MORE EVIDENCE","Record completed makes against the saved target.",[]);
+  const values=usable.map(function(item){return item.drill.actualResult.makes;}),achieved=usable.map(function(item){return item.drill.actualResult.makes>=item.drill.plannedTargetSnapshot.makes;});
+  if(usable.length===1)return mfBasketballProgressionResult(achieved[0]?"target_met":"first_result",achieved[0]?"TARGET MET":"FIRST RESULT",achieved[0]?"Target met once; repeat before changing it.":"One comparable result is recorded; repeat before reading a trend.",values);
+  if(usable.length>=3&&achieved.every(Boolean)){const next=definition&&definition.progression;return mfBasketballProgressionResult("target_met","TARGET MET CONSISTENTLY",next?"Review whether "+next.name+" is the right next step.":"Review a modest target increase; do not change it automatically.",values,{ready:true});}
+  const chronological=values.slice().reverse();if(usable.length>=3&&chronological[0]<chronological[1]&&chronological[1]<=chronological[2])return mfBasketballProgressionResult("improving","IMPROVING","Makes improved across three comparable results.",values);
+  if(achieved[0])return mfBasketballProgressionResult("building_consistency","BUILDING CONSISTENCY","Latest target was met; repeat it before progressing.",values);
+  if(usable.length>=3&&!achieved[0]&&!achieved[1])return mfBasketballProgressionResult("review_target","REVIEW TARGET","The last two comparable results missed the saved target; review difficulty or conditions.",values);
+  return mfBasketballProgressionResult("building_consistency","BUILDING CONSISTENCY","Keep the current target while collecting another comparable result.",values);
 }
 
 function mfBasketballBenchmarkGuidance(recent){
   const usable=recent.filter(function(item){const result=item.drill.actualResult,target=item.drill.plannedTargetSnapshot||{};return result&&result.attempted>0&&result.attempted>=(target.minAttempts||10);}).slice(0,3);
-  if(!usable.length)return {status:"small_sample",label:"BUILD BENCHMARK SAMPLE",guidance:"Use at least the planned minimum attempts before reading the trend.",ready:false,recent:[]};
+  if(!usable.length)return mfBasketballProgressionResult("small_sample","NEEDS MORE EVIDENCE","Use at least the saved minimum attempts before comparing benchmarks.",[]);
   const values=usable.map(function(item){return item.drill.actualResult.percentage;});
-  if(values.length<2)return {status:"baseline",label:"BENCHMARK BASELINE",guidance:"Repeat this benchmark to establish a trend.",ready:false,recent:values};
-  const delta=Math.round((values[0]-values[values.length-1])*10)/10;
-  return {status:delta>2?"improving":delta< -2?"declining":"steady",label:delta>2?"IMPROVING TREND":delta< -2?"TREND DOWN":"STEADY TREND",guidance:"Recent valid samples: "+values.slice().reverse().join("% → ")+"%.",ready:false,recent:values,trend:delta};
+  if(values.length===1)return mfBasketballProgressionResult("first_result","FIRST BENCHMARK","One meaningful benchmark is recorded; repeat before reading a trend.",values);
+  const delta=Math.round((values[0]-values[1])*10)/10,attemptsMatch=usable[0].drill.actualResult.attempted===usable[1].drill.actualResult.attempted;
+  if(delta>=3)return mfBasketballProgressionResult("improving","BENCHMARK IMPROVED","Latest percentage improved by "+delta.toFixed(1)+" points"+(attemptsMatch?" on the same attempts":"")+".",values,{trend:delta});
+  if(delta<=-3)return mfBasketballProgressionResult("review_target","REVIEW BENCHMARK","Latest percentage was "+Math.abs(delta).toFixed(1)+" points lower; review conditions and repeat before changing the plan.",values,{trend:delta});
+  return mfBasketballProgressionResult("stable","BENCHMARK STABLE","Latest percentage is within 2 points of the prior comparable result.",values,{trend:delta});
 }
 
 function mfBasketballDurationGuidance(recent,definition){
   const usable=recent.filter(function(item){return item.drill.actualResult&&Number.isFinite(item.drill.actualResult.durationMinutes)&&item.drill.plannedTargetSnapshot&&Number.isFinite(item.drill.plannedTargetSnapshot.durationMinutes);}).slice(0,3);
-  if(!usable.length)return {status:"no_data",label:"NO DURATION DATA",guidance:"Record actual duration to build progression guidance.",ready:false,recent:[]};
-  const achieved=usable.map(function(item){return item.drill.actualResult.durationMinutes>=item.drill.plannedTargetSnapshot.durationMinutes;}),confidences=usable.map(function(item){return item.drill.confidence;}).filter(function(value){return Number.isInteger(value);});
-  const confidenceReady=!confidences.length||confidences.length>=2&&confidences.reduce(function(sum,value){return sum+value;},0)/confidences.length>=7;
-  if(usable.length>=3&&achieved.every(Boolean)&&confidenceReady){const next=definition&&definition.progression,target=usable[0].drill.plannedTargetSnapshot.durationMinutes;return {status:"ready_to_progress",label:"READY TO PROGRESS",guidance:next?"Try "+next.name+".":"Add "+Math.max(1,Math.min(3,Math.ceil(target*.15)))+" minute while preserving quality.",ready:true,recent:usable.map(function(item){return item.drill.actualResult.durationMinutes;})};}
-  return {status:"hold",label:"HOLD DURATION",guidance:"Repeat the current duration until it is comfortable and consistent.",ready:false,recent:usable.map(function(item){return item.drill.actualResult.durationMinutes;})};
+  if(!usable.length)return mfBasketballProgressionResult("needs_more_evidence","NEEDS MORE EVIDENCE","Record actual duration against the saved target.",[]);
+  const values=usable.map(function(item){return item.drill.actualResult.durationMinutes;}),achieved=usable.map(function(item){return item.drill.actualResult.durationMinutes>=item.drill.plannedTargetSnapshot.durationMinutes;});
+  if(usable.length===1)return mfBasketballProgressionResult(achieved[0]?"target_met":"first_result",achieved[0]?"DURATION MET":"FIRST RESULT",achieved[0]?"Planned duration met once; repeat before progressing.":"One comparable duration is recorded; repeat before reading a trend.",values);
+  if(usable.length>=3&&achieved.every(Boolean)){const next=definition&&definition.progression;return mfBasketballProgressionResult("target_met","DURATION MET CONSISTENTLY",next?"Review whether "+next.name+" is appropriate.":"Review a small duration increase while preserving quality.",values,{ready:true});}
+  if(values[0]>values[1]+.5)return mfBasketballProgressionResult("improving","DURATION IMPROVED","Latest comparable duration increased without changing metric type.",values);
+  if(Math.abs(values[0]-values[1])<=.5)return mfBasketballProgressionResult("stable","DURATION STABLE","Latest two comparable durations are stable.",values);
+  if(usable.length>=3&&!achieved[0]&&!achieved[1])return mfBasketballProgressionResult("review_target","REVIEW DURATION","The last two results were below the saved duration target.",values);
+  return mfBasketballProgressionResult("building_consistency","BUILDING CONSISTENCY","Keep the current duration target and collect another result.",values);
 }
 
-function mfBasketballProgressionForDrill(drillId,sessions,definition){
-  definition=definition||mfBasketballFindDrillDefinition(drillId);const recent=mfBasketballDrillHistory(drillId,sessions);
+function mfBasketballProgressionForDrill(drillId,sessions,definition,identity){
+  definition=definition||mfBasketballFindDrillDefinition(drillId);identity=Object.assign({},identity||{});if(definition&&definition.trackingMode&&!identity.trackingMode)identity.trackingMode=definition.trackingMode;const recent=mfBasketballDrillHistory(drillId,sessions,identity);
   const mode=definition&&definition.trackingMode||(recent[0]&&recent[0].drill.trackingMode);
-  if(mode==="confidence")return mfBasketballConfidenceGuidance(recent,definition);
-  if(mode==="makes_target")return mfBasketballMakesTargetGuidance(recent,definition);
-  if(mode==="benchmark_shooting")return mfBasketballBenchmarkGuidance(recent);
-  if(mode==="duration")return mfBasketballDurationGuidance(recent,definition);
-  if(mode==="count"||mode==="completion")return {status:recent.length?"logged":"no_data",label:recent.length?"CONSISTENCY":"NO DATA",guidance:recent.length?"Continue building consistent exposures.":"Complete this drill to start tracking.",ready:false,recent:recent.slice(0,3)};
-  return {status:"no_data",label:"NO DATA",guidance:"No progression guidance is available.",ready:false,recent:[]};
+  let result;if(mode==="confidence")result=mfBasketballConfidenceGuidance(recent,definition);
+  else if(mode==="makes_target")result=mfBasketballMakesTargetGuidance(recent,definition);
+  else if(mode==="benchmark_shooting")result=mfBasketballBenchmarkGuidance(recent);
+  else if(mode==="duration")result=mfBasketballDurationGuidance(recent,definition);
+  else if(mode==="count"||mode==="completion")result=recent.length===0?mfBasketballProgressionResult("needs_more_evidence","NEEDS MORE EVIDENCE","Complete this drill to establish a result.",[]):recent.length===1?mfBasketballProgressionResult("first_result","FIRST RESULT","Repeat this drill before reading consistency.",recent.slice(0,3)):mfBasketballProgressionResult("building_consistency","BUILDING CONSISTENCY","Comparable exposures are accumulating; no cross-metric score is inferred.",recent.slice(0,3));
+  else result=mfBasketballProgressionResult("needs_more_evidence","NEEDS MORE EVIDENCE","No compatible progression evidence is available.",[]);
+  result.exposures=recent;return result;
 }
 
 function mfBasketballTypeLabel(type){return MF_BASKETBALL_TYPES[type]||"Basketball";}
@@ -881,7 +902,7 @@ function mfBasketballOpenProposalReview(){
   const panel=mfBasketballElement("div","p960-panel"),head=mfBasketballElement("div","p960-head"),title=mfBasketballElement("h2","","Basketball Proposal Review"),close=mfBasketballElement("button","","Close / Review Later");title.id="mfBasketballProposalReviewTitle";close.type="button";close.addEventListener("click",mfBasketballCloseProposalReview);head.append(title,close);panel.appendChild(head);
   const summary=mfBasketballElement("p","mf-basketball-proposal-copy");summary.appendChild(mfBasketballElement("strong","",proposal.summary));panel.appendChild(summary);if(proposal.rationale)panel.appendChild(mfBasketballElement("p","mf-basketball-proposal-copy",proposal.rationale));
   let validation=null;if(proposal.status==="pending")validation=mfBasketballValidateProposal(proposal);
-  const changes=validation&&validation.supported.length?validation.supported:proposal.changes;changes.forEach(function(change){const row=mfBasketballElement("div","p960-proposal-action"),badge=mfBasketballElement("span","p960-badge",String(change.action||"").replace(/_/g," ").toUpperCase());row.append(badge,document.createTextNode("\n"+mfBasketballChangeDescription(change)));panel.appendChild(row);});
+  const changes=validation&&validation.supported.length?validation.supported:proposal.changes;changes.forEach(function(change){const row=mfBasketballElement("div","p960-proposal-action"),badge=mfBasketballElement("span","p960-badge",String(change.action||"").replace(/_/g," ").toUpperCase()),technical=[change.programId&&"programId="+change.programId,change.sessionId&&"sessionId="+change.sessionId,change.drillId&&"drillId="+change.drillId,change.targetProgramId&&"targetProgramId="+change.targetProgramId].filter(Boolean).join(" · ");row.append(badge,document.createTextNode("\n"+mfBasketballChangeDescription(change)));if(technical)row.appendChild(mfBasketballElement("div","mf-basketball-proposal-technical",technical));panel.appendChild(row);});
   const warnings=validation?validation.warnings:(proposal.applyState&&proposal.applyState.warnings)||[];warnings.forEach(function(warning){panel.appendChild(mfBasketballElement("div","mf-basketball-proposal-warning",warning));});
   const message=mfBasketballElement("div","p960-msg");message.setAttribute("role","status");message.setAttribute("aria-live","polite");panel.appendChild(message);
   const footer=mfBasketballElement("div","p960-footer");
@@ -906,6 +927,38 @@ function mfBasketballDescribeTarget(drill){
   return "Complete the block";
 }
 
+function mfBasketballTrackingLabel(mode){return {confidence:"Confidence",duration:"Duration",makes_target:"Makes target",benchmark_shooting:"Shooting benchmark",count:"Repetition count",completion:"Completion"}[mode]||"Recorded result";}
+
+function mfBasketballSessionPlannedMinutes(session){
+  const drills=session&&Array.isArray(session.drills)?session.drills:[],minutes=drills.reduce(function(sum,drill){return sum+Number(drill.target&&drill.target.durationMinutes||0);},0),unknown=drills.some(function(drill){return !(drill.target&&drill.target.durationMinutes);});
+  return minutes?{minutes:minutes,label:(unknown?minutes+"+":""+minutes)+" planned min",partial:unknown}:null;
+}
+
+function mfBasketballIdentity(program,session,drill){return {programId:program&&program.id,programVersion:program&&program.version,plannedSessionId:session&&session.id,trackingMode:drill&&drill.trackingMode};}
+
+function mfBasketballLastResultText(progression,mode){
+  if(!progression||!progression.exposures||!progression.exposures.length)return "No comparable result yet";
+  return mfBasketballDrillResultText(progression.exposures[0].drill)+(mode==="confidence"&&progression.exposures[0].drill.confidence!=null?" · Confidence "+progression.exposures[0].drill.confidence+"/10":"");
+}
+
+function mfBasketballPersonalizationLabel(programId,sessionId,drillId){
+  const parsed=mfBasketballReadOverrides(),program=parsed.store.programs[programId],session=program&&program.sessions[sessionId];if(!session)return "";
+  if(session.added&&session.added[drillId])return "Added";if(session.modified&&session.modified[drillId])return "Modified";return "";
+}
+
+function mfBasketballRenderProgramView(program,nextIndex){
+  const root=document.getElementById("mfBasketballProgramView");if(!root)return;root.replaceChildren();if(!program)return;
+  root.appendChild(mfBasketballElement("div","mf-basketball-program-view-title","PERSONALIZED CURRENT PROGRAM"));
+  const overrides=mfBasketballReadOverrides().store,programOverrides=overrides.programs[program.id];if(!programOverrides)root.appendChild(mfBasketballElement("div","mf-basketball-program-view-note","Base program · No personalization applied"));
+  program.sessions.forEach(function(session,index){
+    const details=mfBasketballElement("details","mf-basketball-program-session"),summary=mfBasketballElement("summary"),title=mfBasketballElement("span","",session.name),meta=mfBasketballElement("span","",(index===nextIndex?"Next · ":"")+session.drills.length+" drills");summary.append(title,meta);details.appendChild(summary);
+    const focus=mfBasketballElement("div","mf-basketball-program-session-focus",session.focus);details.appendChild(focus);
+    session.drills.forEach(function(drill){const row=mfBasketballElement("div","mf-basketball-program-drill"),text=mfBasketballElement("div"),name=mfBasketballElement("strong","",drill.name),target=mfBasketballElement("span","",mfBasketballDescribeTarget(drill)+" · "+mfBasketballTrackingLabel(drill.trackingMode)),badgeText=mfBasketballPersonalizationLabel(program.id,session.id,drill.id);text.append(name,target);row.appendChild(text);if(badgeText)row.appendChild(mfBasketballElement("span","mf-basketball-personalized-badge",badgeText));details.appendChild(row);});
+    const overlay=programOverrides&&programOverrides.sessions[session.id];Object.keys(overlay&&overlay.disabled||{}).forEach(function(drillId){const base=mfBasketballGetProgram(program.id,program.version),baseSession=base&&base.sessions.find(function(item){return item.id===session.id;}),drill=baseSession&&baseSession.drills.find(function(item){return item.id===drillId;});if(!drill)return;const row=mfBasketballElement("div","mf-basketball-program-drill disabled"),text=mfBasketballElement("div");text.append(mfBasketballElement("strong","",drill.name),mfBasketballElement("span","","Disabled for future sessions · historical results preserved"));row.append(text,mfBasketballElement("span","mf-basketball-personalized-badge","Disabled"));details.appendChild(row);});
+    root.appendChild(details);
+  });
+}
+
 function mfBasketballShowStructuredMessage(message,type){
   const element=document.getElementById("mfBasketballStructuredMessage");if(!element)return;element.textContent=message||"";element.className="mf-basketball-message"+(message?" "+(type||"ok"):"");
 }
@@ -920,11 +973,12 @@ function mfBasketballRenderProgramSurface(){
   select.value=program?program.id:(prior&&mfBasketballGetProgram(prior)?prior:"");summary.replaceChildren();nextRoot.replaceChildren();
   if(!stored.parseOk){status.textContent="Program state is unavailable. Restore a valid backup or choose a program to replace it.";status.className="mf-basketball-program-status error";if(actions)actions.hidden=true;return;}
   if(!program){status.textContent="No structured program selected. Free-form logging remains available.";status.className="mf-basketball-program-status";summary.textContent="Choose a flexible session queue. Training advances only when you finish and explicitly choose Advance.";if(actions)actions.hidden=true;return;}
-  const planned=program.sessions[stored.state.nextSessionIndex];status.textContent="Active: "+program.name;status.className="mf-basketball-program-status active";
-  const description=mfBasketballElement("div","mf-basketball-program-description",program.description);const position=mfBasketballElement("div","mf-basketball-program-position","Session "+(stored.state.nextSessionIndex+1)+" of "+program.sessions.length+" next");summary.append(description,position);
-  const kicker=mfBasketballElement("div","mf-basketball-next-kicker","NEXT PLANNED SESSION"),title=mfBasketballElement("div","mf-basketball-next-title",planned.name),focus=mfBasketballElement("div","mf-basketball-next-focus",planned.focus),list=mfBasketballElement("ol","mf-basketball-next-drills");
-  planned.drills.forEach(function(drill){const item=mfBasketballElement("li","",drill.name);const target=mfBasketballElement("span","",mfBasketballDescribeTarget(drill));item.appendChild(target);list.appendChild(item);});
-  const start=mfBasketballElement("button","mf-basketball-start","START PLANNED SESSION");start.type="button";start.id="mfBasketballStartPlanned";start.addEventListener("click",mfBasketballStartPlannedSession);nextRoot.append(kicker,title,focus,list,start);if(actions)actions.hidden=false;
+  const planned=program.sessions[stored.state.nextSessionIndex],duration=mfBasketballSessionPlannedMinutes(planned);status.textContent=program.name;status.className="mf-basketball-program-status active";
+  const description=mfBasketballElement("div","mf-basketball-program-description",program.description);const position=mfBasketballElement("div","mf-basketball-program-position","Active program · Session "+(stored.state.nextSessionIndex+1)+" of "+program.sessions.length+" is next because the queue advances only after Finish & Advance");summary.append(description,position);
+  const kicker=mfBasketballElement("div","mf-basketball-next-kicker","NEXT SESSION"),title=mfBasketballElement("div","mf-basketball-next-title",planned.name),meta=mfBasketballElement("div","mf-basketball-next-meta"),focus=mfBasketballElement("div","mf-basketball-next-focus",planned.focus),list=mfBasketballElement("ol","mf-basketball-next-drills");
+  meta.append(mfBasketballElement("span","","Session "+(stored.state.nextSessionIndex+1)+" of "+program.sessions.length),mfBasketballElement("span","",planned.drills.length+" drills"));if(duration)meta.appendChild(mfBasketballElement("span","",duration.label));
+  const sessions=mfBasketballReadStore().sessions;planned.drills.forEach(function(drill){const item=mfBasketballElement("li","",drill.name),target=mfBasketballElement("span","",mfBasketballDescribeTarget(drill)),progression=mfBasketballProgressionForDrill(drill.id,sessions,drill,mfBasketballIdentity(program,planned,drill));item.append(target,mfBasketballElement("small","","Last: "+mfBasketballLastResultText(progression,drill.trackingMode)));list.appendChild(item);});
+  const start=mfBasketballElement("button","mf-basketball-start","START SESSION");start.type="button";start.id="mfBasketballStartPlanned";start.setAttribute("aria-label","START PLANNED SESSION");start.addEventListener("click",mfBasketballStartPlannedSession);nextRoot.append(kicker,title,meta,focus,list,start);mfBasketballRenderProgramView(program,stored.state.nextSessionIndex);if(actions)actions.hidden=false;
 }
 
 function mfBasketballCreateNumberField(labelText,field,min,max,step,value){
@@ -943,8 +997,8 @@ function mfBasketballAddConfidenceControl(card,value){
 
 function mfBasketballRenderDrillCard(definition,index,existing){
   existing=existing||{};const card=mfBasketballElement("article","mf-basketball-drill-card");card.dataset.drillId=definition.id;card.dataset.trackingMode=definition.trackingMode;
-  const head=mfBasketballElement("div","mf-basketball-drill-head"),number=mfBasketballElement("span","mf-basketball-drill-number",index+1),text=mfBasketballElement("div"),name=mfBasketballElement("div","mf-basketball-drill-name",definition.name),plan=mfBasketballElement("div","mf-basketball-drill-plan",mfBasketballDescribeTarget(definition));text.append(name,plan);head.append(number,text);card.appendChild(head);
-  const prior=mfBasketballProgressionForDrill(definition.id,mfBasketballReadStore().sessions,definition);if(prior.status!=="no_data"&&prior.status!=="small_sample"){const guidance=mfBasketballElement("div","mf-basketball-guidance "+prior.status,prior.label+" — "+prior.guidance);card.appendChild(guidance);}
+  const total=mfBasketballStructuredContext&&mfBasketballStructuredContext.planned.drills.length||index+1,head=mfBasketballElement("div","mf-basketball-drill-head"),number=mfBasketballElement("span","mf-basketball-drill-number",index+1),text=mfBasketballElement("div"),position=mfBasketballElement("div","mf-basketball-drill-position","DRILL "+(index+1)+" OF "+total),name=mfBasketballElement("div","mf-basketball-drill-name",definition.name),plan=mfBasketballElement("div","mf-basketball-drill-plan",mfBasketballDescribeTarget(definition));text.append(position,name,plan);head.append(number,text);card.appendChild(head);
+  const context=mfBasketballStructuredContext,identity=context?{programId:context.programId,programVersion:context.programVersion,plannedSessionId:context.plannedSessionId,trackingMode:definition.trackingMode}:{trackingMode:definition.trackingMode},prior=mfBasketballProgressionForDrill(definition.id,mfBasketballReadStore().sessions,definition,identity),last=mfBasketballElement("div","mf-basketball-last-trend");last.append(mfBasketballElement("span","","Last: "+mfBasketballLastResultText(prior,definition.trackingMode)),mfBasketballElement("strong","",prior.label));card.appendChild(last);if(prior.status!=="needs_more_evidence"&&prior.status!=="small_sample"){const guidance=mfBasketballElement("div","mf-basketball-guidance "+prior.status,prior.guidance);card.appendChild(guidance);}
   const result=existing.actualResult||{},target=definition.target||{};
   if(definition.trackingMode==="confidence"){
     if(target.durationMinutes!=null)card.appendChild(mfBasketballCreateNumberField("Actual minutes (optional)","durationMinutes",0,1440,.5,result.durationMinutes));
@@ -961,7 +1015,16 @@ function mfBasketballRenderDrillCard(definition,index,existing){
     const label=mfBasketballElement("label","mf-basketball-field mf-basketball-completion-field","Result"),select=mfBasketballElement("select");select.dataset.field="completed";[["","Skipped / no result"],["true","Completed"],["false","Not completed"]].forEach(function(optionData){const option=mfBasketballElement("option","",optionData[1]);option.value=optionData[0];select.appendChild(option);});select.value=result.completed===true?"true":result.completed===false?"false":"";label.appendChild(select);card.appendChild(label);
   }
   const notesDetails=mfBasketballElement("details","mf-basketball-drill-notes"),notesSummary=mfBasketballElement("summary","","Add drill note"),notes=mfBasketballElement("textarea");notes.rows=2;notes.maxLength=2000;notes.placeholder="Optional note";notes.dataset.field="notes";notes.value=existing.notes||"";notesDetails.append(notesSummary,notes);if(existing.notes)notesDetails.open=true;card.appendChild(notesDetails);
+  const nav=mfBasketballElement("div","mf-basketball-drill-nav"),previous=mfBasketballElement("button","mf-basketball-drill-previous","PREVIOUS"),skip=mfBasketballElement("button","mf-basketball-drill-skip","SKIP — NEUTRAL"),next=mfBasketballElement("button","mf-basketball-drill-next",index===total-1?"REVIEW SESSION":"COMPLETE & NEXT");previous.type=skip.type=next.type="button";previous.disabled=index===0;previous.addEventListener("click",function(){mfBasketballShowStructuredDrill(index-1);});skip.addEventListener("click",function(){card.querySelectorAll("input, textarea, select").forEach(function(input){if(input.type!=="button")input.value="";});mfBasketballUpdateStructuredSummary();mfBasketballShowStructuredDrill(Math.min(total,index+1));});next.addEventListener("click",function(){mfBasketballShowStructuredDrill(Math.min(total,index+1));});nav.append(previous,skip,next);card.appendChild(nav);
   card.addEventListener("input",mfBasketballUpdateStructuredSummary);card.addEventListener("change",mfBasketballUpdateStructuredSummary);return card;
+}
+
+function mfBasketballDismissKeyboard(){const active=document.activeElement;if(active&&typeof active.blur==="function")active.blur();}
+
+function mfBasketballShowStructuredDrill(index){
+  if(!mfBasketballStructuredContext)return;const logger=document.getElementById("mfBasketballDrillLogger"),cards=Array.from(logger?logger.querySelectorAll(".mf-basketball-drill-card"):[]),summary=document.getElementById("mfBasketballSessionSummary"),progress=document.getElementById("mfBasketballCourtsideProgress"),finish=document.getElementById("mfBasketballFinishActions");mfBasketballDismissKeyboard();
+  if(index>=cards.length){cards.forEach(function(card){card.hidden=true;});mfBasketballStructuredIndex=cards.length;if(progress)progress.textContent="Session review · Check results before finishing";if(finish)finish.hidden=false;if(summary){summary.hidden=false;summary.scrollIntoView({behavior:"smooth",block:"start"});}return;}
+  mfBasketballStructuredIndex=Math.max(0,index);cards.forEach(function(card,cardIndex){card.hidden=cardIndex!==mfBasketballStructuredIndex;});if(summary)summary.hidden=true;if(finish)finish.hidden=true;if(progress)progress.textContent="Drill "+(mfBasketballStructuredIndex+1)+" of "+cards.length+" · Results save only when you finish the session";const current=cards[mfBasketballStructuredIndex];if(current){current.scrollIntoView({behavior:"smooth",block:"start"});const first=current.querySelector("input:not([type='hidden']), select, button.mf-basketball-confidence-button");if(first&&typeof first.focus==="function")first.focus();}
 }
 
 function mfBasketballOpenStructuredLogger(program,planned,existing){
@@ -971,7 +1034,7 @@ function mfBasketballOpenStructuredLogger(program,planned,existing){
   mfBasketballSetFormValue("mfBasketballStructuredDate",existing&&existing.date||mfBasketballSelectedAppDate());mfBasketballSetFormValue("mfBasketballStructuredMinutes",existing&&existing.minutes||"");mfBasketballSetFormValue("mfBasketballStructuredNotes",existing&&existing.notes||"");
   drillsRoot.replaceChildren();const existingById={};((existing&&existing.drills)||[]).forEach(function(drill){existingById[drill.drillId]=drill;});planned.drills.forEach(function(drill,index){drillsRoot.appendChild(mfBasketballRenderDrillCard(drill,index,existingById[drill.id]));});
   const advance=document.getElementById("mfBasketballFinishAdvance"),repeat=document.getElementById("mfBasketballFinishRepeat");if(advance)advance.hidden=!!existing;if(repeat)repeat.textContent=existing?"SAVE SESSION CHANGES":"FINISH & REPEAT SESSION";
-  root.hidden=false;if(document.body&&document.body.classList)document.body.classList.add("mf-basketball-structured-open");mfBasketballShowStructuredMessage("");mfBasketballUpdateStructuredSummary();root.scrollIntoView({behavior:"smooth",block:"start"});const first=root.querySelector("input:not([type='hidden']), button");if(first&&typeof first.focus==="function")first.focus();
+  root.hidden=false;if(document.body&&document.body.classList)document.body.classList.add("mf-basketball-structured-open");mfBasketballShowStructuredMessage("");mfBasketballUpdateStructuredSummary();mfBasketballShowStructuredDrill(0);
 }
 
 function mfBasketballStartPlannedSession(){
@@ -982,7 +1045,7 @@ function mfBasketballStartStructuredEdit(session){
   const base=mfBasketballGetProgram(session.programId,session.programVersion);if(!base){mfBasketballShowMessage("This historical program version can be viewed but is not editable in the current templates.","error");return;}const program={id:session.programId,version:session.programVersion,name:session.programNameSnapshot||base.name},planned={id:session.plannedSessionId,name:session.plannedSessionNameSnapshot||"Planned Session",drills:(session.drills||[]).map(function(drill){const definition={id:drill.drillId,name:drill.nameSnapshot,trackingMode:drill.trackingMode};if(drill.plannedTargetSnapshot)definition.target=mfBasketballClone(drill.plannedTargetSnapshot);if(drill.confidence!=null||mfBasketballFindDrillDefinition(drill.drillId)&&mfBasketballFindDrillDefinition(drill.drillId).confidence)definition.confidence=true;return definition;})};if(typeof showScreen==="function")showScreen("log");const section=document.getElementById("p6sec-basketball");if(section)section.classList.add("open");mfBasketballOpenStructuredLogger(program,planned,session);
 }
 
-function mfBasketballCloseStructured(){const root=document.getElementById("mfBasketballStructuredLogger");if(root)root.hidden=true;if(document.body&&document.body.classList)document.body.classList.remove("mf-basketball-structured-open");mfBasketballStructuredContext=null;mfBasketballShowStructuredMessage("");}
+function mfBasketballCloseStructured(){const root=document.getElementById("mfBasketballStructuredLogger");if(root)root.hidden=true;if(document.body&&document.body.classList)document.body.classList.remove("mf-basketball-structured-open");mfBasketballStructuredContext=null;mfBasketballStructuredIndex=0;mfBasketballShowStructuredMessage("");}
 
 function mfBasketballCollectStructuredDrills(){
   const root=document.getElementById("mfBasketballDrillLogger"),results=[];if(!root)return results;
@@ -996,15 +1059,24 @@ function mfBasketballCollectStructuredDrills(){
 function mfBasketballUpdateStructuredSummary(){
   if(!mfBasketballStructuredContext)return;const root=document.getElementById("mfBasketballSessionSummary");if(!root)return;root.replaceChildren();root.appendChild(mfBasketballElement("div","mf-basketball-summary-title","SESSION SUMMARY"));
   const minutes=mfBasketballFormValue("mfBasketballStructuredMinutes");root.appendChild(mfBasketballElement("div","mf-basketball-summary-row","Duration: "+(minutes?minutes+" min":"not entered")));
-  const results=mfBasketballCollectStructuredDrills(),byId={};results.forEach(function(result){byId[result.drillId]=result;});mfBasketballStructuredContext.planned.drills.forEach(function(drill){const entry=byId[drill.id]||{},actual=entry.actualResult||{},attempted=mfBasketballDrillWasAttempted(entry,drill.trackingMode),value="Skipped";if(attempted&&drill.trackingMode==="confidence")value=entry.confidence?entry.confidence+"/10":"Incomplete — confidence required";if(attempted&&drill.trackingMode==="duration")value=mfBasketballHasEnteredValue(actual.durationMinutes)?actual.durationMinutes+" min":"Incomplete result";if(attempted&&drill.trackingMode==="makes_target")value=mfBasketballHasEnteredValue(actual.makes)?actual.makes+" / "+drill.target.makes+" makes":"Incomplete result";if(attempted&&drill.trackingMode==="benchmark_shooting")value=mfBasketballHasEnteredValue(actual.made)&&mfBasketballHasEnteredValue(actual.attempted)?actual.made+" / "+actual.attempted+" ("+(Math.round(Number(actual.made)/Number(actual.attempted)*1000)/10)+"%)":"Incomplete benchmark";if(attempted&&drill.trackingMode==="count")value=mfBasketballHasEnteredValue(actual.count)?actual.count+" / "+drill.target.count:"Incomplete result";if(attempted&&drill.trackingMode==="completion")value=actual.completed===true?"Completed":"Not completed";root.appendChild(mfBasketballElement("div","mf-basketball-summary-row",drill.name+": "+value));});
+  const results=mfBasketballCollectStructuredDrills(),byId={};results.forEach(function(result){byId[result.drillId]=result;});mfBasketballStructuredContext.planned.drills.forEach(function(drill){const entry=byId[drill.id]||{},actual=entry.actualResult||{},attempted=mfBasketballDrillWasAttempted(entry,drill.trackingMode);let value="Skipped";if(attempted&&drill.trackingMode==="confidence")value=entry.confidence?entry.confidence+"/10":"Incomplete — confidence required";if(attempted&&drill.trackingMode==="duration")value=mfBasketballHasEnteredValue(actual.durationMinutes)?actual.durationMinutes+" min":"Incomplete result";if(attempted&&drill.trackingMode==="makes_target")value=mfBasketballHasEnteredValue(actual.makes)?actual.makes+" / "+drill.target.makes+" makes":"Incomplete result";if(attempted&&drill.trackingMode==="benchmark_shooting")value=mfBasketballHasEnteredValue(actual.made)&&mfBasketballHasEnteredValue(actual.attempted)?actual.made+" / "+actual.attempted+" ("+(Math.round(Number(actual.made)/Number(actual.attempted)*1000)/10)+"%)":"Incomplete benchmark";if(attempted&&drill.trackingMode==="count")value=mfBasketballHasEnteredValue(actual.count)?actual.count+" / "+drill.target.count:"Incomplete result";if(attempted&&drill.trackingMode==="completion")value=actual.completed===true?"Completed":"Not completed";root.appendChild(mfBasketballElement("div","mf-basketball-summary-row",drill.name+": "+value));});
   const logger=document.getElementById("mfBasketballDrillLogger");if(logger)logger.querySelectorAll(".mf-basketball-drill-card").forEach(function(card){if(card.dataset.trackingMode!=="benchmark_shooting")return;const made=card.querySelector("[data-field='made']"),attempted=card.querySelector("[data-field='attempted']"),out=card.querySelector("[data-role='percentage']");if(out)out.textContent=made&&attempted&&made.value!==""&&attempted.value!==""&&Number(attempted.value)>0&&Number(made.value)<=Number(attempted.value)?"Percentage: "+(Math.round(Number(made.value)/Number(attempted.value)*1000)/10)+"%":"Percentage: —";});
+}
+
+function mfBasketballRenderCompletionReview(session,advanced){
+  const root=document.getElementById("mfBasketballCompletionReview");if(!root||!session)return;root.replaceChildren();root.hidden=false;mfBasketballLastCompletion=session.id;
+  root.appendChild(mfBasketballElement("div","mf-basketball-summary-title","SESSION COMPLETED"));root.appendChild(mfBasketballElement("div","mf-basketball-completion-title",session.plannedSessionNameSnapshot||mfBasketballTypeLabel(session.type)));
+  const drills=session.drills||[],completed=drills.filter(function(drill){return !drill.skipped;}),skipped=drills.filter(function(drill){return drill.skipped;});root.appendChild(mfBasketballElement("div","mf-basketball-completion-meta",session.minutes+" min · "+completed.length+" of "+drills.length+" drills recorded · "+skipped.length+" skipped"));
+  const list=mfBasketballElement("div","mf-basketball-completion-results"),sessions=mfBasketballReadStore().sessions;drills.forEach(function(drill){const row=mfBasketballElement("div","mf-basketball-completion-result"),value=mfBasketballElement("span","",mfBasketballDrillResultText(drill));row.append(mfBasketballElement("strong","",drill.nameSnapshot),value);if(!drill.skipped){const definition={id:drill.drillId,name:drill.nameSnapshot,trackingMode:drill.trackingMode,target:drill.plannedTargetSnapshot||null},progression=mfBasketballProgressionForDrill(drill.drillId,sessions,definition,{programId:session.programId,programVersion:session.programVersion,plannedSessionId:session.plannedSessionId,trackingMode:drill.trackingMode});row.appendChild(mfBasketballElement("small","",progression.label));}list.appendChild(row);});root.appendChild(list);
+  const state=mfBasketballReadProgramState(),program=mfBasketballGetResolvedProgram(state.state.activeProgramId,state.state.activeProgramVersion),next=program&&program.sessions[state.state.nextSessionIndex];root.appendChild(mfBasketballElement("div","mf-basketball-completion-next",advanced&&next?"Next: "+next.name:"Queue unchanged: this session remains next"));
+  const dismiss=mfBasketballElement("button","mf-basketball-completion-dismiss","DONE");dismiss.type="button";dismiss.addEventListener("click",function(){root.hidden=true;root.replaceChildren();});root.appendChild(dismiss);root.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function mfBasketballFinishFromUI(action){
   if(!mfBasketballStructuredContext||mfBasketballSaving)return;mfBasketballSaving=true;const advance=document.getElementById("mfBasketballFinishAdvance"),repeat=document.getElementById("mfBasketballFinishRepeat");if(advance)advance.disabled=true;if(repeat)repeat.disabled=true;
   try{
     const context=mfBasketballStructuredContext,programSnapshot=context.existingId?{id:context.programId,version:context.programVersion,name:document.getElementById("mfBasketballStructuredProgram").textContent}:null,result=mfBasketballFinishStructuredSession({programId:context.programId,programVersion:context.programVersion,plannedSessionId:context.plannedSessionId,date:mfBasketballFormValue("mfBasketballStructuredDate"),minutes:mfBasketballFormValue("mfBasketballStructuredMinutes"),notes:mfBasketballFormValue("mfBasketballStructuredNotes"),drills:mfBasketballCollectStructuredDrills(),existingId:context.existingId,programSnapshot:programSnapshot,plannedSnapshot:context.existingId?context.planned:null},context.existingId?"edit":action);
-    if(!result.ok){mfBasketballShowStructuredMessage(result.errors.join("\n"),"error");return;}mfBasketballCloseStructured();mfBasketballRenderProgramSurface();mfBasketballRenderHistory();mfBasketballRenderStats();mfBasketballUpdateBadge();mfBasketballShowMessage(context.existingId?"Structured basketball session updated.":result.advanced?"Session saved. The program advanced to the next session.":"Session saved. This planned session remains next.","ok");
+    if(!result.ok){mfBasketballShowStructuredMessage(result.errors.join("\n"),"error");return;}mfBasketballCloseStructured();mfBasketballRenderProgramSurface();mfBasketballRenderHistory();mfBasketballRenderStats();mfBasketballUpdateBadge();if(!context.existingId)mfBasketballRenderCompletionReview(result.session,result.advanced);mfBasketballShowMessage(context.existingId?"Structured basketball session updated.":result.advanced?"Session saved. The program advanced to the next session.":"Session saved. This planned session remains next.","ok");
   }finally{mfBasketballSaving=false;if(advance)advance.disabled=false;if(repeat)repeat.disabled=false;}
 }
 
@@ -1123,6 +1195,14 @@ function mfBasketballDrillResultText(drill){
   return result.completed?"Completed":"Not completed";
 }
 
+function mfBasketballToggleProgramView(){const root=document.getElementById("mfBasketballProgramView"),button=document.getElementById("mfBasketballViewProgram");if(!root)return;root.hidden=!root.hidden;if(button)button.textContent=root.hidden?"VIEW PROGRAM":"HIDE PROGRAM";if(!root.hidden)root.scrollIntoView({behavior:"smooth",block:"nearest"});}
+
+function mfBasketballReviewHistory(){if(typeof showScreen==="function")showScreen("history");const root=document.getElementById("mfBasketballHistory");if(root)root.scrollIntoView({behavior:"smooth",block:"start"});}
+
+function mfBasketballHistoryThroughSession(sessions,current){
+  const key=String(current.date||"")+"|"+String(current.createdAt||"")+"|"+String(current.id||"");return (sessions||[]).filter(function(session){return String(session.date||"")+"|"+String(session.createdAt||"")+"|"+String(session.id||"")<=key;});
+}
+
 function mfBasketballRenderHistory(){
   const container=document.getElementById("mfBasketballHistory");if(!container)return;
   container.replaceChildren();container.className="mf-basketball-history-section";
@@ -1140,7 +1220,7 @@ function mfBasketballRenderHistory(){
     if(session.freeThrows){const pct=mfBasketballPercent(session.freeThrows);metrics.appendChild(mfBasketballMetricNode("Free throws "+session.freeThrows.made+" / "+session.freeThrows.attempted+(pct==null?"":" ("+pct+"%)")));}
     body.appendChild(metrics);
     if(Array.isArray(session.drills)){
-      const drillList=mfBasketballElement("div","mf-basketball-history-drills");session.drills.forEach(function(drill){const row=mfBasketballElement("div","mf-basketball-history-drill"),head=mfBasketballElement("div","mf-basketball-history-drill-head"),name=mfBasketballElement("strong","",drill.nameSnapshot),value=mfBasketballElement("span","",mfBasketballDrillResultText(drill));head.append(name,value);row.appendChild(head);if(drill.confidence!=null)row.appendChild(mfBasketballElement("div","mf-basketball-history-confidence","Confidence "+drill.confidence+" / 10"));if(!drill.skipped){const progression=mfBasketballProgressionForDrill(drill.drillId,state.sessions);if(progression.status!=="no_data")row.appendChild(mfBasketballElement("div","mf-basketball-history-guidance",progression.label+" — "+progression.guidance));}if(drill.notes)row.appendChild(mfBasketballElement("div","mf-basketball-notes",drill.notes));drillList.appendChild(row);});body.appendChild(drillList);
+      const drillList=mfBasketballElement("div","mf-basketball-history-drills"),evidence=mfBasketballHistoryThroughSession(state.sessions,session);session.drills.forEach(function(drill){const row=mfBasketballElement("div","mf-basketball-history-drill"),head=mfBasketballElement("div","mf-basketball-history-drill-head"),name=mfBasketballElement("strong","",drill.nameSnapshot),value=mfBasketballElement("span","",mfBasketballDrillResultText(drill));head.append(name,value);row.appendChild(head);if(drill.confidence!=null)row.appendChild(mfBasketballElement("div","mf-basketball-history-confidence","Confidence "+drill.confidence+" / 10"));if(!drill.skipped){const definition={id:drill.drillId,name:drill.nameSnapshot,trackingMode:drill.trackingMode,target:drill.plannedTargetSnapshot||null},progression=mfBasketballProgressionForDrill(drill.drillId,evidence,definition,{programId:session.programId,programVersion:session.programVersion,plannedSessionId:session.plannedSessionId,trackingMode:drill.trackingMode});row.appendChild(mfBasketballElement("div","mf-basketball-history-guidance",progression.label+" — "+progression.guidance));}if(drill.notes)row.appendChild(mfBasketballElement("div","mf-basketball-notes",drill.notes));drillList.appendChild(row);});body.appendChild(drillList);
     }
     if(session.notes){const notes=document.createElement("div");notes.className="mf-basketball-notes";notes.textContent=session.notes;body.appendChild(notes);}
     const actions=document.createElement("div");actions.className="mf-basketball-card-actions";const edit=document.createElement("button"),remove=document.createElement("button");edit.type="button";remove.type="button";edit.className="mf-basketball-edit";remove.className="mf-basketball-delete";edit.textContent="EDIT";remove.textContent="DELETE";edit.addEventListener("click",function(event){event.preventDefault();mfBasketballStartEdit(session.id);});remove.addEventListener("click",function(event){event.preventDefault();mfBasketballOpenDelete(session.id);});actions.append(edit,remove);body.appendChild(actions);details.appendChild(body);container.appendChild(details);
@@ -1179,13 +1259,13 @@ function mfBasketballSessionsForRange(range,sessions){
 function mfBasketballBuildExport(range,sessions,programStateValue){
   const allSessions=Array.isArray(sessions)?sessions:[],selected=mfBasketballSessionsForRange(String(range||""),allSessions),stateResult=programStateValue&&programStateValue.state?programStateValue:programStateValue?mfBasketballParseProgramStateValue(programStateValue):mfBasketballReadProgramState(),program=stateResult.parseOk&&mfBasketballGetResolvedProgram(stateResult.state.activeProgramId,stateResult.state.activeProgramVersion),next=program&&program.sessions[stateResult.state.nextSessionIndex];if(!selected.length&&!program)return "";
   const stats=mfBasketballAggregate(selected),overrides=mfBasketballReadOverrides(),overrideCounts=mfBasketballOverrideCounts(overrides.store),proposal=mfBasketballGetProposal();let output="--- BASKETBALL ACTIVITY ---\n";
-  if(program){output+="Active program: "+program.name+" [programId="+program.id+", version="+program.version+"]\n";output+="Next planned session: "+next.name+" [sessionId="+next.id+"] | Position "+(stateResult.state.nextSessionIndex+1)+" of "+program.sessions.length+"\n";output+="Resolved next drills:\n";next.drills.forEach(function(drill,index){const source=drill.source==="ai_proposal"||drill.personalization?"personalized":"base";output+="  "+(index+1)+". "+drill.name+" [drillId="+drill.id+", mode="+drill.trackingMode+", source="+source+"] — "+mfBasketballDescribeTarget(drill)+"\n";});}
+  if(program){output+="Active program: "+program.name+" [programId="+program.id+", version="+program.version+"]\n";output+="Next planned session: "+next.name+" [sessionId="+next.id+"] | Position "+(stateResult.state.nextSessionIndex+1)+" of "+program.sessions.length+"\n";output+="Resolved next drills:\n";const progressionLines=[];next.drills.forEach(function(drill,index){const source=drill.source==="ai_proposal"||drill.personalization?"personalized":"base",progression=mfBasketballProgressionForDrill(drill.id,allSessions,drill,mfBasketballIdentity(program,next,drill));output+="  "+(index+1)+". "+drill.name+" [drillId="+drill.id+", mode="+drill.trackingMode+", source="+source+"] — "+mfBasketballDescribeTarget(drill)+"\n";if(progression.exposures.length)progressionLines.push("  · "+drill.name+": "+progression.label+" — "+progression.guidance);});if(progressionLines.length)output+="Derived progression context (comparable identity only):\n"+progressionLines.join("\n")+"\n";}
   output+="Applied personalization: "+overrideCounts.modified+" modified, "+overrideCounts.added+" added, "+overrideCounts.disabled+" disabled, "+overrideCounts.reordered+" reordered session(s).\n";
   output+="Pending basketball proposal: "+(proposal&&proposal.status==="pending"?proposal.summary+" ("+proposal.changes.length+" actions; review required)":"none")+".\n";
   if(selected.length)output+="Sessions: "+stats.totalSessions+" | Structured: "+stats.structuredSessions+" | Total minutes: "+stats.totalMinutes+" | Average minutes: "+stats.averageMinutes.toFixed(1)+"\n";
   if(stats.shooting.attempted>0)output+="Shooting: "+stats.shooting.made+" / "+stats.shooting.attempted+" ("+stats.shooting.percentage.toFixed(1)+"%)\n";
   if(stats.freeThrows.attempted>0)output+="Free throws: "+stats.freeThrows.made+" / "+stats.freeThrows.attempted+" ("+stats.freeThrows.percentage.toFixed(1)+"%)\n";
-  selected.forEach(function(session){let line="- "+session.date+" | "+(session.plannedSessionNameSnapshot||mfBasketballTypeLabel(session.type))+" | "+session.minutes+" min";if(session.programNameSnapshot)line+=" | program: "+session.programNameSnapshot+" v"+session.programVersion;if(session.dribblingMinutes!=null)line+=" | dribbling "+session.dribblingMinutes+" min";if(session.shooting)line+=" | shooting "+session.shooting.made+"/"+session.shooting.attempted;if(session.freeThrows)line+=" | FT "+session.freeThrows.made+"/"+session.freeThrows.attempted;if(session.notes)line+=" | notes: "+session.notes.replace(/\s+/g," ");output+=line+"\n";(session.drills||[]).forEach(function(drill){output+="  · "+drill.nameSnapshot+" [drillId="+drill.drillId+"]: "+mfBasketballDrillResultText(drill);if(!drill.skipped){const progression=mfBasketballProgressionForDrill(drill.drillId,allSessions);output+=(drill.confidence!=null?" | confidence "+drill.confidence+"/10":"")+" | "+progression.label+" — "+progression.guidance;}output+=(drill.notes?" | note: "+drill.notes.replace(/\s+/g," "):"")+"\n";});});
+  selected.forEach(function(session){const evidence=mfBasketballHistoryThroughSession(allSessions,session);let line="- "+session.date+" | "+(session.plannedSessionNameSnapshot||mfBasketballTypeLabel(session.type))+" | "+session.minutes+" min";if(session.programNameSnapshot)line+=" | program: "+session.programNameSnapshot+" v"+session.programVersion;if(session.dribblingMinutes!=null)line+=" | dribbling "+session.dribblingMinutes+" min";if(session.shooting)line+=" | shooting "+session.shooting.made+"/"+session.shooting.attempted;if(session.freeThrows)line+=" | FT "+session.freeThrows.made+"/"+session.freeThrows.attempted;if(session.notes)line+=" | notes: "+session.notes.replace(/\s+/g," ");output+=line+"\n";(session.drills||[]).forEach(function(drill){output+="  · "+drill.nameSnapshot+" [drillId="+drill.drillId+"]: "+mfBasketballDrillResultText(drill);if(!drill.skipped){const definition={id:drill.drillId,name:drill.nameSnapshot,trackingMode:drill.trackingMode,target:drill.plannedTargetSnapshot||null},progression=mfBasketballProgressionForDrill(drill.drillId,evidence,definition,{programId:session.programId,programVersion:session.programVersion,plannedSessionId:session.plannedSessionId,trackingMode:drill.trackingMode});output+=(drill.confidence!=null?" | confidence "+drill.confidence+"/10":"")+" | "+progression.label+" — "+progression.guidance;}output+=(drill.notes?" | note: "+drill.notes.replace(/\s+/g," "):"")+"\n";});});
   output+="Coaching guidance: Treat Basketball as skill practice plus conditioning/cardio load. Skipped drills are neutral. The queue is session-driven. Future-program definitions are proposal/review mutable only through modify_drill, add_drill (new IDs follow bball-ai-…-vN), remove_drill, reorder_drills, or switch_program; never auto-apply or auto-advance. Never target history, results, queue advancement, or stored snapshots.\n";
   return output+"\n";
 }
@@ -1380,6 +1460,11 @@ if(typeof process!=="undefined"&&process&&process.versions&&process.versions.nod
     mfBasketballNormalizeDrillResult:mfBasketballNormalizeDrillResult,
     mfBasketballDrillHistory:mfBasketballDrillHistory,
     mfBasketballProgressionForDrill:mfBasketballProgressionForDrill,
+    mfBasketballSessionPlannedMinutes:mfBasketballSessionPlannedMinutes,
+    mfBasketballTrackingLabel:mfBasketballTrackingLabel,
+    mfBasketballHistoryThroughSession:mfBasketballHistoryThroughSession,
+    mfBasketballRenderProgramSurface:mfBasketballRenderProgramSurface,
+    mfBasketballRenderHistory:mfBasketballRenderHistory,
     mfBasketballValidateBackupProgramState:mfBasketballValidateBackupProgramState,
     mfBasketballDefaultOverrides:mfBasketballDefaultOverrides,
     mfBasketballParseOverridesValue:mfBasketballParseOverridesValue,
@@ -1404,9 +1489,9 @@ if(typeof process!=="undefined"&&process&&process.versions&&process.versions.nod
 }
 
 function mfBasketballInit(){
-  const save=document.getElementById("mfBasketballSave"),cancel=document.getElementById("mfBasketballCancel"),deleteConfirm=document.getElementById("mfBasketballDeleteConfirm"),deleteCancel=document.getElementById("mfBasketballDeleteCancel"),dialog=document.getElementById("mfBasketballDeleteDialog"),programSelect=document.getElementById("mfBasketballProgramSelectButton"),restart=document.getElementById("mfBasketballRestartProgram"),programConfirm=document.getElementById("mfBasketballProgramDialogConfirm"),programCancel=document.getElementById("mfBasketballProgramDialogCancel"),programDialog=document.getElementById("mfBasketballProgramDialog"),closeStructured=document.getElementById("mfBasketballCloseStructured"),finishAdvance=document.getElementById("mfBasketballFinishAdvance"),finishRepeat=document.getElementById("mfBasketballFinishRepeat");
+  const save=document.getElementById("mfBasketballSave"),cancel=document.getElementById("mfBasketballCancel"),deleteConfirm=document.getElementById("mfBasketballDeleteConfirm"),deleteCancel=document.getElementById("mfBasketballDeleteCancel"),dialog=document.getElementById("mfBasketballDeleteDialog"),programSelect=document.getElementById("mfBasketballProgramSelectButton"),viewProgram=document.getElementById("mfBasketballViewProgram"),reviewHistory=document.getElementById("mfBasketballReviewHistory"),restart=document.getElementById("mfBasketballRestartProgram"),programConfirm=document.getElementById("mfBasketballProgramDialogConfirm"),programCancel=document.getElementById("mfBasketballProgramDialogCancel"),programDialog=document.getElementById("mfBasketballProgramDialog"),closeStructured=document.getElementById("mfBasketballCloseStructured"),finishAdvance=document.getElementById("mfBasketballFinishAdvance"),finishRepeat=document.getElementById("mfBasketballFinishRepeat");
   if(save)save.addEventListener("click",mfBasketballSaveFromUI);if(cancel)cancel.addEventListener("click",function(){mfBasketballResetForm();});if(deleteConfirm)deleteConfirm.addEventListener("click",mfBasketballConfirmDelete);if(deleteCancel)deleteCancel.addEventListener("click",mfBasketballCloseDelete);
-  if(programSelect)programSelect.addEventListener("click",mfBasketballChooseProgramFromUI);if(restart)restart.addEventListener("click",function(){mfBasketballOpenProgramDialog({kind:"restart"});});if(programConfirm)programConfirm.addEventListener("click",mfBasketballConfirmProgramAction);if(programCancel)programCancel.addEventListener("click",mfBasketballCloseProgramDialog);if(closeStructured)closeStructured.addEventListener("click",mfBasketballCloseStructured);if(finishAdvance)finishAdvance.addEventListener("click",function(){mfBasketballFinishFromUI("advance");});if(finishRepeat)finishRepeat.addEventListener("click",function(){mfBasketballFinishFromUI("repeat");});
+  if(programSelect)programSelect.addEventListener("click",mfBasketballChooseProgramFromUI);if(viewProgram)viewProgram.addEventListener("click",mfBasketballToggleProgramView);if(reviewHistory)reviewHistory.addEventListener("click",mfBasketballReviewHistory);if(restart)restart.addEventListener("click",function(){mfBasketballOpenProgramDialog({kind:"restart"});});if(programConfirm)programConfirm.addEventListener("click",mfBasketballConfirmProgramAction);if(programCancel)programCancel.addEventListener("click",mfBasketballCloseProgramDialog);if(closeStructured)closeStructured.addEventListener("click",mfBasketballCloseStructured);if(finishAdvance)finishAdvance.addEventListener("click",function(){mfBasketballFinishFromUI("advance");});if(finishRepeat)finishRepeat.addEventListener("click",function(){mfBasketballFinishFromUI("repeat");});
   if(dialog)dialog.addEventListener("click",function(event){if(event.target===dialog)mfBasketballCloseDelete();});
   if(programDialog)programDialog.addEventListener("click",function(event){if(event.target===programDialog)mfBasketballCloseProgramDialog();});
   if(document&&typeof document.addEventListener==="function")document.addEventListener("keydown",function(event){if(event.key!=="Escape")return;const proposalReview=document.getElementById("mfBasketballProposalReview");if(proposalReview&&proposalReview.classList.contains("open"))mfBasketballCloseProposalReview();else if(mfBasketballPendingDeleteId)mfBasketballCloseDelete();else if(mfBasketballPendingProgramAction)mfBasketballCloseProgramDialog();});

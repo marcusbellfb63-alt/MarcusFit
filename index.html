@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MarcusFit 10.5.0</title>
+<title>MarcusFit 10.6.0</title>
 <link rel="stylesheet" href="assets/css/marcusfit.css">
 </head>
 <body>
@@ -267,7 +267,11 @@
         </div>
         <div class="mf-basketball-program-summary" id="mfBasketballProgramSummary"></div>
         <div class="mf-basketball-next" id="mfBasketballNextSession"></div>
+        <div class="mf-basketball-completion-review" id="mfBasketballCompletionReview" hidden></div>
+        <div class="mf-basketball-program-view" id="mfBasketballProgramView" hidden></div>
         <div class="mf-basketball-program-actions" id="mfBasketballProgramActions" hidden>
+          <button type="button" class="mf-basketball-view-program" id="mfBasketballViewProgram">VIEW PROGRAM</button>
+          <button type="button" class="mf-basketball-review-history" id="mfBasketballReviewHistory">REVIEW HISTORY</button>
           <button type="button" class="mf-basketball-restart" id="mfBasketballRestartProgram">RESTART FROM SESSION 1</button>
         </div>
       </section>
@@ -288,6 +292,7 @@
             <input id="mfBasketballStructuredMinutes" type="number" min="0.5" max="1440" step="0.5" inputmode="decimal" placeholder="45" required>
           </label>
         </div>
+        <div class="mf-basketball-courtside-progress" id="mfBasketballCourtsideProgress" aria-live="polite"></div>
         <div class="mf-basketball-drills" id="mfBasketballDrillLogger"></div>
         <label class="mf-basketball-field" for="mfBasketballStructuredNotes">Session notes (optional)
           <textarea id="mfBasketballStructuredNotes" rows="3" maxlength="2000" placeholder="How did the session feel overall?"></textarea>
@@ -457,8 +462,8 @@
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
-    <strong style="color:var(--accent);">MarcusFit 10.5.0</strong> &mdash; Cross-Domain Coaching + AI Export/Sync IA<br>
-    One coaching export now connects lifting, Basketball, Habits, cardio/activity, vitals, recurring adherence, history, and active experiments while preserving review-first mutation boundaries.
+    <strong style="color:var(--accent);">MarcusFit 10.6.0</strong> &mdash; Basketball UX + Progression Maturation<br>
+    Basketball now adds courtside session flow and identity-safe progression context while the accepted cross-domain export and review-first Sync boundaries remain unchanged.
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>

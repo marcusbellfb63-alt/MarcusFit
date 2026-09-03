@@ -1,7 +1,7 @@
 # MarcusFit runtime architecture
 
 MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
-classic scripts. The 10.5.0 implementation candidate keeps those boundaries
+classic scripts. The 10.6.0 implementation candidate keeps those boundaries
 and composes export sections through the existing ordered classic-script wrappers. GitHub Pages still loads
 static `defer` scripts, and there is no build step or runtime dependency.
 
@@ -33,7 +33,7 @@ assets/js/
 `-- features/22-basketball.js
 ```
 
-The 10.5.0 candidate retains 22 runtime files in the accepted numeric order.
+The 10.6.0 candidate retains 22 runtime files in the accepted numeric order.
 Reproducible physical-line and largest-file counts come from the architecture
 inventory. Numeric prefixes remain globally ordered and match `index.html`.
 
@@ -45,6 +45,13 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - The cross-domain summary is read-only and derived from existing logs/stores; 10.5 adds no storage key or schema.
 - `sync/12-ai-sync.js` remains the sole authoritative core apply implementation and is unchanged. Habit/Basketball extension hooks preflight their exact mixed envelope before any processing.
 
+## 10.6 Basketball boundary
+
+- `features/22-basketball.js` continues to own all four existing Basketball keys and adds no schema.
+- Landing, program inspection, one-drill courtside execution, completion review, historical comparison, and concise export context are derived from existing state.
+- Progression comparability requires program, version, planned session, stable drill, and tracking mode identity; historical views remain bound to stored snapshots.
+- See `basketball-10.6-audit.md` for the flow inventory, audit findings, exact rules, and retained risks.
+
 ## Guide
 
 - `runtime-system-map.md` records ownership and direct dependencies.
@@ -53,6 +60,7 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - `initialization-and-load-order-map.md` records the exact execution order.
 - `dependency-risk-register.md` records mitigated and remaining risks.
 - `proposed-module-plan.md` records implementation decisions and deviations.
+- `basketball-10.6-audit.md` records the Basketball storage/flow audit and progression rules.
 - `../../tests/marcusfit-10.1.2-modularization-equivalence.md` records evidence.
 
 Run `node tools/architecture/inventory-runtime.js` with the bundled Node
