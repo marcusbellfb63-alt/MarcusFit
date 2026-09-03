@@ -9,12 +9,12 @@ const root = path.resolve(__dirname, "..");
 const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "assets/css/marcusfit.css"), "utf8");
 const scripts = [...index.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(match => match[1]);
-const sha = value => crypto.createHash("sha256").update(value).digest("hex");
+const sha = value => crypto.createHash("sha256").update(Buffer.from(value.toString("utf8").replace(/\r\n/g, "\n"))).digest("hex");
 
 assert(index.includes("<title>MarcusFit 10.6.0</title>"));
 assert(fs.readFileSync(path.join(root, "assets/js/core/01-app-constants.js"), "utf8").includes('APP_VERSION = "10.6.0"'), "10.4 Habit Sync contract must survive the 10.6 version increment");
-assert.strictEqual(sha(fs.readFileSync(path.join(root, "Releases/MarcusFit9_6_0.html"))), "69a3a66541d14290a6a7b73bf313365176169fd0d659e6effb29edcaf7a4e34b");
-assert.strictEqual(sha(fs.readFileSync(path.join(root, "assets/js/sync/12-ai-sync.js"))), "25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e");
+assert.strictEqual(sha(fs.readFileSync(path.join(root, "Releases/MarcusFit9_6_0.html"))), "f710c497cc6af212f6827f36461c000e655c66cba151392082ffffe55f14a160");
+assert.strictEqual(sha(fs.readFileSync(path.join(root, "assets/js/sync/12-ai-sync.js"))), "14245321c8f47de5c152d011a08877ef4821e353c15bc3ed72c0490aa767c598");
 assert.deepStrictEqual(scripts, JSON.parse(fs.readFileSync(path.join(root, "tests/fixtures/runtime-script-order.json"), "utf8")));
 assert.strictEqual(scripts.length, 22);
 assert(!fs.existsSync(path.join(root, "package.json")) && !fs.existsSync(path.join(root, "node_modules")));

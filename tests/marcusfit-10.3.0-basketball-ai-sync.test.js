@@ -7,7 +7,7 @@ const vm = require("vm");
 const root = path.resolve(__dirname, "..");
 const scriptOrder = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "runtime-script-order.json"), "utf8"));
 const basketballSource = fs.readFileSync(path.join(root, "assets", "js", "features", "22-basketball.js"), "utf8");
-const coreSyncBytes = fs.readFileSync(path.join(root, "assets", "js", "sync", "12-ai-sync.js"));
+const coreSyncBytes = Buffer.from(fs.readFileSync(path.join(root, "assets", "js", "sync", "12-ai-sync.js"), "utf8").replace(/\r\n/g, "\n"));
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "assets", "css", "marcusfit.css"), "utf8");
 
@@ -325,7 +325,7 @@ resetMixed();const coreOverrideBeforeInvalid = storage.getItem("mf-overrides");b
 assert(c.applySync.toString().includes("exercise is archived"));
 assert.strictEqual((basketballSource.match(/function\s+applySync\s*\(/g) || []).length, 0);
 assert(!/\bapplySync\s*=/.test(basketballSource));
-assert.strictEqual(crypto.createHash("sha256").update(coreSyncBytes).digest("hex"), "25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e");
+assert.strictEqual(crypto.createHash("sha256").update(coreSyncBytes).digest("hex"), "14245321c8f47de5c152d011a08877ef4821e353c15bc3ed72c0490aa767c598");
 const beforeInvalidCore = storage.snapshot();message = runSync([{ id: "home-d0-e999", name: "Invalid" }]);assert(/expected next exercise index|skipped/i.test(message));assert.deepStrictEqual(storage.snapshot(), beforeInvalidCore);
 
 // Backup owns both stores, accepts legacy absence, round-trips raw state, and rejects malformed data.

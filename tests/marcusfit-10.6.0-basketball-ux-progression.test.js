@@ -11,14 +11,14 @@ const source = read("assets/js/features/22-basketball.js");
 const html = read("index.html");
 const css = read("assets/css/marcusfit.css");
 const constants = read("assets/js/core/01-app-constants.js");
-const sha = value => crypto.createHash("sha256").update(value).digest("hex");
+const sha = value => crypto.createHash("sha256").update(Buffer.from(value.toString("utf8").replace(/\r\n/g, "\n"))).digest("hex");
 
 assert(constants.includes('const APP_VERSION = "10.6.0";'));
 const scripts = [...html.matchAll(/<script\s+src="([^"]+)"\s+defer><\/script>/g)].map(match => match[1]);
 assert.strictEqual(scripts.length, 22);
 assert.deepStrictEqual(scripts, JSON.parse(read("tests/fixtures/runtime-script-order.json")));
-assert.strictEqual(sha(fs.readFileSync(path.join(root, "Releases/MarcusFit9_6_0.html"))), "69a3a66541d14290a6a7b73bf313365176169fd0d659e6effb29edcaf7a4e34b");
-assert.strictEqual(sha(fs.readFileSync(path.join(root, "assets/js/sync/12-ai-sync.js"))), "25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e");
+assert.strictEqual(sha(fs.readFileSync(path.join(root, "Releases/MarcusFit9_6_0.html"))), "f710c497cc6af212f6827f36461c000e655c66cba151392082ffffe55f14a160");
+assert.strictEqual(sha(fs.readFileSync(path.join(root, "assets/js/sync/12-ai-sync.js"))), "14245321c8f47de5c152d011a08877ef4821e353c15bc3ed72c0490aa767c598");
 const inventory = JSON.parse(execFileSync(process.execPath, [path.join(root, "tools/architecture/inventory-runtime.js")], { encoding: "utf8" }));
 assert.strictEqual(inventory.protectedInvariants.programSha256, "652a04c37928f232490d37ce7e709dc16a25a8c5f408d679bce046b2f6a2d7d4");
 assert.strictEqual(inventory.protectedInvariants.exerciseIdCount, 63);

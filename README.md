@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.6.0 — Basketball UX/progression candidate pending review and manual browser/iPhone QA
+MarcusFit 10.7.0 — Navigation, Sync IA, and analytics implementation candidate
 
 ## Architecture
 
@@ -139,14 +139,13 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 
 ## Candidate record
 
-- 10.6.0 starts from accepted 10.5.0 merge commit `60934a151f95c34d5a659cd131c91abca43bfa91`
-- Accepted 10.5.0 QA head: `73faa06e2b5476a8ab7549c76c3cfdbe84277911`
-- 10.6 adds no storage key or schema field; courtside state remains in the live DOM until the existing final save transaction
-- Basketball audit and exact comparison rules: `docs/architecture/basketball-10.6-audit.md`
-- 10.6.0 is not accepted; ChatGPT review and Marcus manual browser/iPhone QA are required
+- 10.7.0 starts from accepted 10.6.0 merge commit `d172ed429a2addb259a0dce622d9c2d94429816e`
+- Accepted 10.6.0 QA-approved implementation head: `cef5d39b3adf939ba7d9c59d6d6e250bcce7cbcd`
+- 10.7.0 is not accepted; automated review and Marcus manual browser/iPhone QA are required
 
 ## Acceptance Record
 
+- 10.6.0 is accepted and merged at `d172ed429a2addb259a0dce622d9c2d94429816e`; QA-approved implementation head `cef5d39b3adf939ba7d9c59d6d6e250bcce7cbcd`
 - 10.5.0 is accepted and merged at `60934a151f95c34d5a659cd131c91abca43bfa91`; QA-approved implementation head `73faa06e2b5476a8ab7549c76c3cfdbe84277911`
 - The representative 14-day export fixture changed from 32,711 characters / 602 lines to 21,494 characters / 336 lines while adding cross-domain load, adherence, pending-proposal, and conditioning-interaction signals
 - Core `assets/js/sync/12-ai-sync.js` remains unchanged with SHA-256 `25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e`
@@ -168,4 +167,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.3.0** — Basketball-specific AI Sync (accepted)
 - **v10.4.0** — Habits-specific AI Sync (accepted)
 - **v10.5.0** — Cross-domain coaching and AI Export/Sync IA (accepted)
-- **v10.6.0** — Basketball courtside UX and progression maturation (implementation candidate)
+- **v10.6.0** — Basketball courtside UX and progression maturation (accepted)
+- **v10.7.0** — Navigation, Sync IA, and analytics maturation (implementation candidate)
