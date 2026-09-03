@@ -6,6 +6,7 @@ const vm = require("vm");
 const root = path.resolve(__dirname, "..");
 const source = fs.readFileSync(path.join(root, "assets/js/boot/21-app-boot.js"), "utf8");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const css = fs.readFileSync(path.join(root, "assets/css/marcusfit.css"), "utf8");
 const start = source.indexOf("const MF_PRIMARY_SCREENS=");
 const end = source.indexOf("function mfPrimarySwipeExcluded", start);
 const context = {}; vm.createContext(context); vm.runInContext(source.slice(start, end), context);
@@ -26,5 +27,6 @@ assert(source.includes("button,a,input,select,textarea,label") && source.include
 assert(!/localStorage\./.test(source.slice(start, source.indexOf("// 9.4.8.8"))), "primary navigation writes storage");
 assert.strictEqual((html.match(/class="tab-btn[^\"]*"[^>]*role="tab"/g)||[]).length,5);assert.strictEqual((html.match(/role="tabpanel" aria-labelledby="tab-/g)||[]).length,5);
 assert(html.includes('role="tablist" aria-label="Primary navigation"'));
+assert(css.includes("html,body{overflow-x:clip;}"), "horizontal clipping must not create a sticky-breaking scroll container");
 
 console.log("MarcusFit 10.7.0 primary navigation/swipe: PASS");

@@ -20,9 +20,21 @@ assert(boot.includes('mfOnPrimarySyncOpen()'));
 assert(!/localStorage\./.test(source.slice(source.indexOf("const MF_SYNC_PAGES"),source.indexOf("function mfUpdateProgramSettingsStatus"))),"Sync page navigation writes storage");
 
 const pageNodes = Object.fromEntries(["ai","personalize","profile","data"].map(page => [page,{dataset:{mfSyncPage:page},hidden:false,classList:{toggle(name,on){this.active=name==="active"&&on;}}}]));
-const tabNodes = Object.fromEntries(["Ai","Personalize","Profile","Data"].map(name => [`mfSyncTab${name}`,{id:`mfSyncTab${name}`,classList:{toggle(){}},setAttribute(key,value){this[key]=value;},tabIndex:-1}]));
-const document = {querySelector(){return null;},querySelectorAll(selector){return selector==="[data-mf-sync-page]"?Object.values(pageNodes):Object.values(tabNodes);}};
-const start=source.indexOf("const MF_SYNC_PAGES"),end=source.indexOf("function mfUpdateProgramSettingsStatus",start),context={document};context.window=context;vm.createContext(context);vm.runInContext(source.slice(start,end),context);
+Object.values(pageNodes).forEach(node=>{node.criticalPanels=[];node.querySelectorAll=()=>node.criticalPanels;});
+const tabNodes = Object.fromEntries(["Ai","Personalize","Profile","Data"].map(name => [`mfSyncTab${name}`,{id:`mfSyncTab${name}`,classList:{toggle(key,on){this[key]=on;}},setAttribute(key,value){this[key]=value;},tabIndex:-1}]));
+const badge={hidden:true},opened=[];
+const document = {
+  querySelector(selector){return selector===".mf-sync-page.active"?Object.values(pageNodes).find(node=>node.classList.active)||null:null;},
+  querySelectorAll(selector){return selector==="[data-mf-sync-page]"?Object.values(pageNodes):Object.values(tabNodes);},
+  getElementById(id){return id==="mfSyncPersonalizePending"?badge:tabNodes[id]||null;}
+};
+const context={document,localStorage:{setItem(){throw new Error("Sync navigation wrote storage");},removeItem(){throw new Error("Sync navigation wrote storage");}},mfSetSettingsSectionOpen(key,open){opened.push([key,open]);return true;},p954GetProposal(){return {status:"draft"};},p960GetHabitProposal(){return null;},mfBasketballGetProposal(){return null;}};context.window=context;vm.createContext(context);
+const start=source.indexOf("const MF_SYNC_PAGES"),end=source.indexOf("function mfUpdateProgramSettingsStatus",start);vm.runInContext(source.slice(start,end),context);
 assert.strictEqual(context.mfSelectSyncPage("profile"),true);assert.strictEqual(pageNodes.profile.hidden,false);assert.strictEqual(pageNodes.ai.hidden,true);assert.strictEqual(tabNodes.mfSyncTabProfile["aria-selected"],"true");
+const critical={style:{display:"block"},focused:false,scrolled:false,focus(){this.focused=true;},scrollIntoView(){this.scrolled=true;}};pageNodes.profile.criticalPanels.push(critical);
+assert.strictEqual(context.mfSelectSyncPage("data"),false);assert.strictEqual(tabNodes.mfSyncTabProfile["aria-selected"],"true");assert(critical.focused&&critical.scrolled,"critical confirmation did not retain page/focus");
+critical.style.display="none";assert.strictEqual(context.mfOpenSettingsSection("backup"),true);assert.strictEqual(tabNodes.mfSyncTabData["aria-selected"],"true");assert.deepStrictEqual(opened,[['backup',true]]);
+assert.strictEqual(context.mfUpdateSyncPendingStatus(),true);assert.strictEqual(badge.hidden,false);assert.strictEqual(tabNodes.mfSyncTabPersonalize.classList['has-pending'],true);
+["genExport()","doCopy()","applySync()","p950SaveUserProfileFromUI()","p8CreateBackup()","p8RestoreBackup()"].forEach(handler=>assert(html.includes(`onclick="${handler}"`),`handler changed: ${handler}`));
 
 console.log("MarcusFit 10.7.0 Sync information architecture: PASS");

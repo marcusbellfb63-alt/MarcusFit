@@ -1351,6 +1351,9 @@ if(typeof p8ValidateBackup==="function"){
 }
 
 // Late wrappers preserve all earlier History, Stats, navigation, and export behavior.
+if(typeof p7CalcAnalytics==="function"){
+  const mfBasketballLegacyCalcAnalytics=p7CalcAnalytics;p7CalcAnalytics=function(){const result=mfBasketballLegacyCalcAnalytics();if(!result||!result.trainingLoad)return result;const range=result.range||{start:null,end:null},sessions=mfBasketballReadStore().sessions.filter(function(session){return (!range.start||session.date>=range.start)&&(!range.end||session.date<=range.end);});result.trainingLoad.basketballSessions=sessions.length;result.trainingLoad.basketballMinutes=sessions.reduce(function(sum,session){return sum+(Number(session.minutes)||0);},0);return result;};
+}
 if(typeof p7ApplyFilters==="function"){
   const mfBasketballLegacyApplyFilters=p7ApplyFilters;p7ApplyFilters=function(){const result=mfBasketballLegacyApplyFilters();mfBasketballRenderHistory();return result;};
 }

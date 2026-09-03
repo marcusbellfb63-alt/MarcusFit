@@ -4,10 +4,14 @@ const storage=new Map(),context={console,Date,localStorage:{getItem:k=>storage.h
 context.p7SetStatsRange("7");let range=context.p7GetStatsRange(new Date(2026,7,31,12));assert.deepStrictEqual(JSON.parse(JSON.stringify(range)),{value:"7",days:7,start:"2026-08-25",end:"2026-08-31",priorStart:"2026-08-18",priorEnd:"2026-08-24",label:"Last 7 calendar days"});
 assert(context.p7DateInRange("2026-08-25",range,false));assert(!context.p7DateInRange("2026-08-24",range,false));assert(context.p7DateInRange("2026-08-24",range,true));
 context.p7SetStatsRange("30");const before=[...storage.entries()];const empty=context.p7CalcAnalytics();assert.strictEqual(empty.range.days,30);assert.strictEqual(empty.trainingLoad.liftingSessions,0);assert.deepStrictEqual([...storage.entries()],before);
+assert.strictEqual(context.p7RecoveryComparison({value:7.5,count:3,prior:{value:7,count:2}}," hr"),"+0.5 hr vs prior 2-day sample.");
+assert.strictEqual(context.p7RecoveryComparison({value:7.5,count:1,prior:{value:7,count:2}}," hr"),"Insufficient prior-window evidence.");
+assert.strictEqual(context.p7HabitComparison({overall:75,eligible:8,priorOverall:50,priorEligible:6}),"Up 25 points vs the prior equivalent range (6 eligible opportunities).");
 assert(html.includes('id="p7StatsRange"')&&html.includes('<option value="30" selected>30 days</option>'));
 assert(source.includes('^day-\\d{4}-\\d{2}-\\d{2}-wo$')&&source.includes('parseInt(set.reps,10)>0'),"stable-ID selected-range lifting evidence missing");
 assert(habits.includes('p960GetHabitAnalytics(range.start,range.end)')&&habits.includes('p960GetHabitAnalytics(range.priorStart,range.priorEnd)'));
 assert(recurring.includes('p9510GetAdherenceRange("zepbound",range)')&&recurring.includes('eligibleResolved=out.completedOnTime+out.completedLate+out.skipped+out.unresolvedLate'));
 assert(basketball.includes('session.programId,session.programVersion,session.plannedSessionId,drill.drillId,drill.trackingMode')&&basketball.includes('item.values.length>=2'));
+assert(basketball.includes('const mfBasketballLegacyCalcAnalytics=p7CalcAnalytics')&&basketball.includes('result.trainingLoad.basketballSessions=sessions.length'),"Basketball-last Training Load enrichment missing");
 assert(!/tonnage|readiness score|fatigue score|calorie balance/i.test(source));
 console.log("MarcusFit 10.7.0 range-aware analytics: PASS");
