@@ -31,14 +31,20 @@ function createStorage(initial = {}) {
 
 function createContext() {
   const localStorage = createStorage(), elements = new Map();
+  const descendants = node => (node.children || []).flatMap(child => child && typeof child === "object" ? [child, ...descendants(child)] : []);
+  const selectAll = (node, selector) => descendants(node).filter(child => {
+    if (selector === ".mf-basketball-drill-card") return String(child.className || "").split(/\s+/).includes("mf-basketball-drill-card");
+    const field = selector.match(/^\[data-field='([^']+)'\]$/); return field ? child.dataset && child.dataset.field === field[1] : false;
+  });
   const element = id => {
-    if (!elements.has(id)) elements.set(id, { id, value: "", textContent: "", hidden: false, disabled: false, style: {}, dataset: {}, children: [], className: "", classList: { add() {}, remove() {}, contains() { return false; } }, addEventListener() {}, append(...items) { this.children.push(...items); }, appendChild(item) { this.children.push(item); return item; }, replaceChildren(...items) { this.children = items; }, setAttribute() {}, focus() {}, blur() {}, scrollIntoView() {}, querySelector() { return null; }, querySelectorAll() { return []; } });
+    if (!elements.has(id)) elements.set(id, { id, value: "", textContent: "", hidden: false, disabled: false, style: {}, dataset: {}, children: [], className: "", classList: { add() {}, remove() {}, contains() { return false; } }, addEventListener() {}, append(...items) { this.children.push(...items); }, appendChild(item) { this.children.push(item); return item; }, replaceChildren(...items) { this.children = items; }, setAttribute() {}, focus() {}, blur() {}, scrollIntoView() {}, querySelector(selector) { return selectAll(this, selector)[0] || null; }, querySelectorAll(selector) { return selectAll(this, selector); } });
     return elements.get(id);
   };
   const context = { console, localStorage, APP_VERSION: "10.6.0", tDate: new Date(2026, 7, 31, 12), process: { versions: { node: "test" } }, crypto: { randomUUID: () => "00000000-0000-4000-8000-000000000001" },
     document: { activeElement: null, getElementById: element, createElement() { return element(`generated-${elements.size}`); }, createTextNode(value) { return String(value); }, querySelectorAll() { return []; }, body: { classList: { add() {}, remove() {} } }, addEventListener() {} },
     p8IsMarcusFitKey(key) { return key.startsWith("day-"); }, p8492SummarizeBackup(value) { const backup = typeof value === "string" ? JSON.parse(value) : value; return { warnings: [], unknownKeyCount: Object.keys((backup && backup.data) || {}).length }; }, p8492FormatSummaryLines() { return ["Approx size: 1 KB"]; }, p8ValidateBackup(raw) { return JSON.parse(raw); }, p7ApplyFilters() {}, p7RenderAnalytics() {}, showScreen() {}, genExport() {}, updateTrackerDate() {}, getExportDkeys() { return []; }, setTimeout(fn) { fn(); }, clearTimeout() {} };
-  context.window = context; vm.createContext(context); vm.runInContext(source, context); Object.assign(context, context.__mfBasketballTest); return { c: context, storage: localStorage };
+  const instrumentedSource = source.replace("function mfBasketballInit(){", "window.__mfBasketballSummaryTest={mfBasketballOpenStructuredLogger:mfBasketballOpenStructuredLogger,mfBasketballUpdateStructuredSummary:mfBasketballUpdateStructuredSummary};\nfunction mfBasketballInit(){");
+  context.window = context; vm.createContext(context); vm.runInContext(instrumentedSource, context); Object.assign(context, context.__mfBasketballTest, context.__mfBasketballSummaryTest); return { c: context, storage: localStorage };
 }
 
 const { c, storage } = createContext();
@@ -74,6 +80,13 @@ assert.strictEqual(result.exposures.length, 1, "different planned-session identi
 
 assert.deepStrictEqual(JSON.parse(JSON.stringify(c.mfBasketballSessionPlannedMinutes({ drills: [{ target: { durationMinutes: 5 } }, { target: { makes: 10 } }] }))), { minutes: 5, label: "5+ planned min", partial: true });
 assert.strictEqual(c.mfBasketballTrackingLabel("benchmark_shooting"), "Shooting benchmark");
+
+const summaryProgram = { id: identity.programId, version: 1, name: "Summary Test" };
+const summaryPlanned = { id: identity.plannedSessionId, name: "Summary Test Session", drills: [{ id: "summary_duration", name: "Timed Handle", trackingMode: "duration", target: { durationMinutes: 5 } }] };
+c.mfBasketballOpenStructuredLogger(summaryProgram, summaryPlanned, null);
+c.document.getElementById("mfBasketballDrillLogger").querySelector("[data-field='durationMinutes']").value = "5";
+assert.doesNotThrow(() => c.mfBasketballUpdateStructuredSummary(), "attempted drill summary threw");
+assert(c.document.getElementById("mfBasketballSessionSummary").children.some(child => child.textContent === "Timed Handle: 5 min"));
 
 assert(c.mfBasketballSelectProgram(identity.programId, "2026-08-20T10:00:00.000Z").ok); const queue0 = storage.getItem("mf-basketball-program-state");
 c.mfBasketballRenderProgramSurface(); c.mfBasketballRenderHistory(); assert.strictEqual(storage.getItem("mf-basketball-program-state"), queue0, "view/history advanced queue");
