@@ -131,7 +131,7 @@ MarcusFit 10.7.0 — Navigation, Sync IA, and analytics implementation candidate
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.6.0";
+const APP_VERSION      = "10.7.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 

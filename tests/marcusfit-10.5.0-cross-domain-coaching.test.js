@@ -14,9 +14,9 @@ const scriptOrder = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/ru
 const sizeFixture = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/ai-export-10.5-size.json"), "utf8"));
 const sha = value => crypto.createHash("sha256").update(Buffer.from(value.toString("utf8").replace(/\r\n/g, "\n"))).digest("hex");
 
-assert(constants.includes('const APP_VERSION = "10.6.0";'), "10.5 cross-domain contract must survive the 10.6 version increment");
+assert(constants.includes('const APP_VERSION = "10.7.0";'), "10.5 cross-domain contract must survive the 10.7 version increment");
 assert(constants.includes("const LIFECYCLE_VERSION = APP_VERSION;"));
-assert(html.includes("<title>MarcusFit 10.6.0</title>"));
+assert(html.includes("<title>MarcusFit 10.7.0</title>"));
 assert.strictEqual([...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].length, 22);
 assert.deepStrictEqual([...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(x => x[1]), scriptOrder);
 assert.strictEqual(sha(fs.readFileSync(path.join(root, "Releases/MarcusFit9_6_0.html"))), "f710c497cc6af212f6827f36461c000e655c66cba151392082ffffe55f14a160");

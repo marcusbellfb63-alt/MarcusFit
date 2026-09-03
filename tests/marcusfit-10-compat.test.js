@@ -25,7 +25,7 @@ const expectedScriptOrder = JSON.parse(fs.readFileSync(
 const EXPECTED_ACCEPTED_SHA256 = "f710c497cc6af212f6827f36461c000e655c66cba151392082ffffe55f14a160";
 const EXPECTED_ACCEPTED_GIT_BLOB = "c10e4a488296b7ba83311d7fc7bdd1dcd4c4b7e8";
 const EXPECTED_AI_SYNC_SHA256 = "14245321c8f47de5c152d011a08877ef4821e353c15bc3ed72c0490aa767c598";
-const TARGET_APP_VERSION = "10.6.0";
+const TARGET_APP_VERSION = "10.7.0";
 
 function blocks(source, tagName) {
   return [...source.matchAll(new RegExp(`<${tagName}\\b([^>]*)>([\\s\\S]*?)<\\/${tagName}>`, "gi"))]

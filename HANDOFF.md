@@ -111,5 +111,6 @@ Protected values at acceptance:
 10.3.0 — Basketball-specific AI Sync — Accepted
 10.4.0 — Habits-specific AI Sync
 10.5.0 — Full cross-domain coaching review
-10.6.0 — Basketball UX and progression maturation — Candidate
+10.6.0 — Basketball UX and progression maturation — Accepted
+10.7.0 — Navigation, Sync IA, and analytics maturation — Candidate
 ```

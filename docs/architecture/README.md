@@ -1,7 +1,7 @@
 # MarcusFit runtime architecture
 
 MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
-classic scripts. The 10.6.0 implementation candidate keeps those boundaries
+classic scripts. The 10.7.0 implementation candidate keeps those boundaries
 and composes export sections through the existing ordered classic-script wrappers. GitHub Pages still loads
 static `defer` scripts, and there is no build step or runtime dependency.
 
@@ -33,7 +33,7 @@ assets/js/
 `-- features/22-basketball.js
 ```
 
-The 10.6.0 candidate retains 22 runtime files in the accepted numeric order.
+The 10.7.0 candidate retains 22 runtime files in the accepted numeric order.
 Reproducible physical-line and largest-file counts come from the architecture
 inventory. Numeric prefixes remain globally ordered and match `index.html`.
 
@@ -51,6 +51,14 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - Landing, program inspection, one-drill courtside execution, completion review, historical comparison, and concise export context are derived from existing state.
 - Progression comparability requires program, version, planned session, stable drill, and tracking mode identity; historical views remain bound to stored snapshots.
 - See `basketball-10.6-audit.md` for the flow inventory, audit findings, exact rules, and retained risks.
+
+## 10.7 navigation, Sync, and analytics boundary
+
+- `boot/21-app-boot.js` owns memory-only primary-tab scroll state and conservative swipe routing through the live `showScreen()` path.
+- `features/13-shared-ui.js` owns memory-only Sync internal-page selection, critical-confirmation blocking, section routing, and pending review indication.
+- `features/15-stats.js` owns the shared calendar range and read-only action/training/progression/weight/recovery derivations; Habits, recurring adherence, and Basketball retain their domain semantics through accepted wrappers.
+- No storage key/schema, script, module, backend, export contract, or core Sync change is introduced.
+- See `navigation-sync-analytics-10.7.md` for exact behavior and evidence rules.
 
 ## Guide
 
