@@ -460,6 +460,13 @@
 
 <div class="screen" id="screen-export" role="tabpanel" aria-labelledby="tab-export">
   <div class="section-label">&#128228; Export &amp; AI Sync</div>
+  <div class="mf-sync-nav" role="tablist" aria-label="Sync and settings" data-mf-swipe-exempt>
+    <button type="button" class="mf-sync-nav-btn active" id="mfSyncTabAi" data-mf-sync-page-target="ai" role="tab" aria-selected="true" aria-controls="mfSyncPageAi">AI Sync</button>
+    <button type="button" class="mf-sync-nav-btn" id="mfSyncTabPersonalize" data-mf-sync-page-target="personalize" role="tab" aria-selected="false" aria-controls="mfSyncPagePersonalize" tabindex="-1">Personalize<span class="mf-sync-pending" id="mfSyncPersonalizePending" hidden>Review</span></button>
+    <button type="button" class="mf-sync-nav-btn" id="mfSyncTabProfile" data-mf-sync-page-target="profile" role="tab" aria-selected="false" aria-controls="mfSyncPageProfile" tabindex="-1">Profile</button>
+    <button type="button" class="mf-sync-nav-btn" id="mfSyncTabData" data-mf-sync-page-target="data" role="tab" aria-selected="false" aria-controls="mfSyncPageData" tabindex="-1">Data</button>
+  </div>
+  <section class="mf-sync-page active" id="mfSyncPageAi" data-mf-sync-page="ai" role="tabpanel" aria-labelledby="mfSyncTabAi">
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box" style="font-size:11px;color:var(--muted);border-color:color-mix(in srgb,var(--accent) 20%,transparent);">
     <strong style="color:var(--accent);">MarcusFit 10.6.0</strong> &mdash; Basketball UX + Progression Maturation<br>
@@ -489,8 +496,10 @@
     <button class="big-btn btn-sync" style="margin-bottom:0;" onclick="applySync()">&#128260; APPLY UPDATE</button>
     <div class="sync-result" id="syncResult"></div>
   </div>
+  </section>
 
   <!-- ── PHASE 9.5.0: USER PROFILE & APP PREFERENCES ── -->
+  <section class="mf-sync-page" id="mfSyncPageProfile" data-mf-sync-page="profile" role="tabpanel" aria-labelledby="mfSyncTabProfile" hidden>
   <hr class="divider">
   <section class="mf-settings-section open" id="mfSettingsProfile" data-mf-settings-section="profile">
   <button class="mf-settings-toggle" type="button" data-mf-settings-toggle="profile" aria-expanded="true" aria-controls="mfSettingsProfileBody">
@@ -572,8 +581,10 @@
   </div>
   </div>
   </section>
+  </section>
 
   <!-- ── PHASE 9.4.8.8: PERSISTENT AI COACHING PREFERENCES ── -->
+  <section class="mf-sync-page" id="mfSyncPagePersonalize" data-mf-sync-page="personalize" role="tabpanel" aria-labelledby="mfSyncTabPersonalize" hidden>
   <section class="mf-settings-section" id="mfSettingsCoaching" data-mf-settings-section="coaching">
   <button class="mf-settings-toggle" type="button" data-mf-settings-toggle="coaching" aria-expanded="false" aria-controls="mfSettingsCoachingBody">
     <span class="mf-settings-toggle-title">&#129504; AI Coaching Preferences</span>
@@ -626,8 +637,10 @@
     </div>
   </div>
   </section>
+  </section>
 
   <!-- ── PHASE 8: BACKUP & RESTORE ── -->
+  <section class="mf-sync-page" id="mfSyncPageData" data-mf-sync-page="data" role="tabpanel" aria-labelledby="mfSyncTabData" hidden>
   <section class="mf-settings-section" id="mfSettingsBackup" data-mf-settings-section="backup">
   <button class="mf-settings-toggle" type="button" data-mf-settings-toggle="backup" aria-expanded="false" aria-controls="mfSettingsBackupBody">
     <span class="mf-settings-toggle-title">&#128190; Backup &amp; Restore</span>
@@ -718,6 +731,7 @@
     </div>
   </div>
   </div>
+  </section>
   </section>
 </div>
 

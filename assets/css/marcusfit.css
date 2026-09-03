@@ -1117,3 +1117,13 @@ body.mf-habit-proposal-open{position:fixed;left:0;right:0;width:100%;overflow:hi
 /* MarcusFit 10.7.0: persistent primary-navigation scroll contract */
 html{scroll-padding-top:calc(var(--mf-header-height,96px) + 12px);}
 .screen [id]{scroll-margin-top:calc(var(--mf-header-height,96px) + 12px);}
+
+/* MarcusFit 10.7.0: Sync internal information architecture */
+.mf-sync-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:14px;position:sticky;top:var(--mf-header-height,96px);z-index:4;padding:8px 0;background:var(--bg);}
+.mf-sync-nav-btn{min-width:0;min-height:46px;padding:7px 3px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--muted);font:700 var(--mf-font-xs)/1.2 'DM Sans',sans-serif;overflow-wrap:anywhere;}
+.mf-sync-nav-btn.active{color:var(--accent);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface));}
+.mf-sync-nav-btn.has-pending{border-color:var(--yellow);}
+.mf-sync-pending{display:block;margin-top:3px;color:var(--yellow);font-size:.8em;}
+.mf-sync-page[hidden]{display:none!important;}
+.mf-sync-page>.divider:first-child{display:none;}
+@media(max-width:350px){.mf-sync-nav{gap:4px}.mf-sync-nav-btn{padding-inline:2px;letter-spacing:-.1px;}}

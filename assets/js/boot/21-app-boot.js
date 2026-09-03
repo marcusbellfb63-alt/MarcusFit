@@ -21,7 +21,7 @@ function showScreen(n){
   if(n==="program"){renderProgram();}
   if(n==="history"){p7ApplyFilters();}
   if(n==="analytics"){p7RenderAnalytics();}
-  if(n==="export"){updateExportMeta();mfRenderLifecycleHealth();p9RenderCoachPrefs();p950RenderUserProfile();p954RenderProgramPersonalization();const ds=document.getElementById("p945DiagSection");if(ds&&ds.classList.contains("open"))p945RenderDiag();}
+  if(n==="export"){if(typeof mfOnPrimarySyncOpen==="function")mfOnPrimarySyncOpen();updateExportMeta();mfRenderLifecycleHealth();p9RenderCoachPrefs();p950RenderUserProfile();p954RenderProgramPersonalization();const ds=document.getElementById("p945DiagSection");if(ds&&ds.classList.contains("open"))p945RenderDiag();}
   const destination=mfPrimaryVisited[n]?mfPrimaryScrollPositions[n]:0;mfPrimaryVisited[n]=true;mfActivePrimaryScreen=n;if(typeof window.scrollTo==="function")window.scrollTo(0,destination);return true;
 }
 

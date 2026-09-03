@@ -30,17 +30,39 @@ function mfToggleSettingsSection(key){
   return section?mfSetSettingsSectionOpen(key,!section.classList.contains("open")):false;
 }
 
-function mfOpenSettingsSection(key){return mfSetSettingsSectionOpen(key,true);}
+const MF_SYNC_PAGES=["ai","personalize","profile","data"];
+const MF_SYNC_SECTION_PAGES={coaching:"personalize",program:"personalize",habits:"personalize",profile:"profile",backup:"data",diagnostics:"data"};
+let mfActiveSyncPage="ai",mfSyncOpened=false;
+
+function mfSyncVisibleCriticalPanel(){
+  const page=document.querySelector('.mf-sync-page.active');if(!page)return null;
+  return Array.from(page.querySelectorAll("[data-mf-critical-panel]")).find(function(panel){return panel.style.display!=="none";})||null;
+}
+function mfSelectSyncPage(page,options){
+  if(MF_SYNC_PAGES.indexOf(page)<0)return false;
+  const critical=mfSyncVisibleCriticalPanel();if(critical&&page!==mfActiveSyncPage&&!(options&&options.force)){critical.tabIndex=-1;if(typeof critical.focus==="function")critical.focus({preventScroll:true});critical.scrollIntoView({behavior:"smooth",block:"nearest"});return false;}
+  document.querySelectorAll("[data-mf-sync-page]").forEach(function(section){const selected=section.dataset.mfSyncPage===page;section.hidden=!selected;section.classList.toggle("active",selected);});
+  document.querySelectorAll(".mf-sync-nav-btn").forEach(function(button){const selected=button.id==="mfSyncTab"+(page==="ai"?"Ai":page.charAt(0).toUpperCase()+page.slice(1));button.classList.toggle("active",selected);button.setAttribute("aria-selected",selected?"true":"false");button.tabIndex=selected?0:-1;});
+  mfActiveSyncPage=page;return true;
+}
+function mfOnPrimarySyncOpen(){if(!mfSyncOpened){mfSyncOpened=true;mfSelectSyncPage("ai",{force:true});}mfUpdateSyncPendingStatus();}
+function mfOpenSettingsSection(key){const page=MF_SYNC_SECTION_PAGES[key];if(page&&!mfSelectSyncPage(page))return false;return mfSetSettingsSectionOpen(key,true);}
+
+function mfUpdateSyncPendingStatus(){
+  const program=typeof p954GetProposal==="function"?p954GetProposal():null,habit=typeof p960GetHabitProposal==="function"?p960GetHabitProposal():null,basketball=typeof mfBasketballGetProposal==="function"?mfBasketballGetProposal():null,pending=!!((program&&program.status==="draft")||(habit&&habit.status==="pending")||(basketball&&basketball.status==="pending")),badge=document.getElementById("mfSyncPersonalizePending"),tab=document.getElementById("mfSyncTabPersonalize");if(badge)badge.hidden=!pending;if(tab)tab.classList.toggle("has-pending",pending);return pending;
+}
 
 function mfUpdateProgramSettingsStatus(){
   const status=document.getElementById("mfSettingsProgramStatus");
   if(!status||typeof p954GetProposal!=="function")return;
   const proposal=p954GetProposal();
   status.textContent=proposal?("Proposal status: "+proposal.status):"Review lifting program proposals";
-  if(proposal&&proposal.status==="draft")mfOpenSettingsSection("program");
+  if(proposal&&proposal.status==="draft")mfSetSettingsSectionOpen("program",true);
+  mfUpdateSyncPendingStatus();
 }
 
 function mfInitSettingsDisclosures(){
+  document.querySelectorAll("[data-mf-sync-page-target]").forEach(function(button){button.addEventListener("click",function(){mfSelectSyncPage(button.dataset.mfSyncPageTarget);});});
   document.querySelectorAll("[data-mf-settings-toggle]").forEach(function(toggle){
     toggle.addEventListener("click",function(){mfToggleSettingsSection(toggle.dataset.mfSettingsToggle);});
   });
@@ -52,6 +74,8 @@ function mfInitSettingsDisclosures(){
     const observer=new MutationObserver(mfUpdateProgramSettingsStatus);
     observer.observe(proposalContainer,{childList:true,subtree:true,characterData:true});
   }
+  ["p960SettingsStatus","mfBasketballProposalStatus"].forEach(function(id){const node=document.getElementById(id);if(node&&typeof MutationObserver==="function")new MutationObserver(mfUpdateSyncPendingStatus).observe(node,{childList:true,subtree:true,characterData:true,attributes:true});});
+  mfSelectSyncPage("ai",{force:true});
 }
 
 mfInitSettingsDisclosures();
