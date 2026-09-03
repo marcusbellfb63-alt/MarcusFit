@@ -16,7 +16,7 @@ const sha = value => crypto.createHash("sha256").update(value).digest("hex");
 
 assert(constants.includes('const APP_VERSION = "10.6.0";'), "10.5 cross-domain contract must survive the 10.6 version increment");
 assert(constants.includes("const LIFECYCLE_VERSION = APP_VERSION;"));
-assert(html.includes("<title>MarcusFit 10.5.0</title>"));
+assert(html.includes("<title>MarcusFit 10.6.0</title>"));
 assert.strictEqual([...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].length, 22);
 assert.deepStrictEqual([...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(x => x[1]), scriptOrder);
 assert.strictEqual(sha(fs.readFileSync(path.join(root, "Releases/MarcusFit9_6_0.html"))), "69a3a66541d14290a6a7b73bf313365176169fd0d659e6effb29edcaf7a4e34b");
