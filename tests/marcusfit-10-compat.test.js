@@ -10,7 +10,8 @@ const acceptedPath = path.join(root, "Releases", "MarcusFit9_6_0.html");
 const accepted = fs.readFileSync(acceptedPath, "utf8");
 const currentPath = path.join(root, "index.html");
 const current = fs.readFileSync(currentPath, "utf8");
-const acceptedSha256 = crypto.createHash("sha256").update(fs.readFileSync(acceptedPath)).digest("hex");
+const canonicalLf = value => Buffer.from(value.toString("utf8").replace(/\r\n/g, "\n"));
+const acceptedSha256 = crypto.createHash("sha256").update(canonicalLf(fs.readFileSync(acceptedPath))).digest("hex");
 const acceptedGitBytes = Buffer.from(fs.readFileSync(acceptedPath, "utf8").replace(/\r\n/g, "\n"));
 const acceptedBlob = crypto.createHash("sha1")
   .update(`blob ${acceptedGitBytes.length}\0`)
@@ -21,10 +22,10 @@ const expectedScriptOrder = JSON.parse(fs.readFileSync(
   "utf8"
 ));
 
-const EXPECTED_ACCEPTED_SHA256 = "69a3a66541d14290a6a7b73bf313365176169fd0d659e6effb29edcaf7a4e34b";
+const EXPECTED_ACCEPTED_SHA256 = "f710c497cc6af212f6827f36461c000e655c66cba151392082ffffe55f14a160";
 const EXPECTED_ACCEPTED_GIT_BLOB = "c10e4a488296b7ba83311d7fc7bdd1dcd4c4b7e8";
-const EXPECTED_AI_SYNC_SHA256 = "25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e";
-const TARGET_APP_VERSION = "10.6.0";
+const EXPECTED_AI_SYNC_SHA256 = "14245321c8f47de5c152d011a08877ef4821e353c15bc3ed72c0490aa767c598";
+const TARGET_APP_VERSION = "10.7.0";
 
 function blocks(source, tagName) {
   return [...source.matchAll(new RegExp(`<${tagName}\\b([^>]*)>([\\s\\S]*?)<\\/${tagName}>`, "gi"))]
@@ -169,7 +170,7 @@ if (currentExternalScripts.length) {
   const postSyncSource = externalSources.slice(syncScriptIndex + 1).join("\n");
   assert(syncScriptIndex >= 0, "Canonical AI Sync script is missing from runtime order");
   assert.strictEqual(
-    crypto.createHash("sha256").update(syncSource).digest("hex"),
+    crypto.createHash("sha256").update(canonicalLf(syncSource)).digest("hex"),
     EXPECTED_AI_SYNC_SHA256,
     "Accepted authoritative AI Sync runtime changed"
   );

@@ -1,278 +1,71 @@
+// ── MARCUSFIT 10.7.0: RANGE-AWARE, READ-ONLY ANALYTICS ───────────────────────
 
-// ── PHASE 7: ANALYTICS ENGINE ─────────────────────────────────────────────────
+let p7StatsRange="30";
+
+function p7LocalDateKey(value){const d=value instanceof Date?new Date(value):new Date(value||new Date());return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function p7AddCalendarDays(dateKey,days){const parts=String(dateKey).split("-").map(Number),d=new Date(parts[0],parts[1]-1,parts[2],12);d.setDate(d.getDate()+days);return p7LocalDateKey(d);}
+function p7GetStatsRange(nowValue){
+  const end=p7LocalDateKey(nowValue||new Date()),days=p7StatsRange==="all"?null:Number(p7StatsRange),start=days?p7AddCalendarDays(end,1-days):null,priorEnd=start?p7AddCalendarDays(start,-1):null,priorStart=days?p7AddCalendarDays(priorEnd,1-days):null;
+  return {value:p7StatsRange,days:days,start:start,end:end,priorStart:priorStart,priorEnd:priorEnd,label:days?"Last "+days+" calendar days":"All history"};
+}
+function p7DateInRange(date,range,prior){const start=prior?range.priorStart:range.start,end=prior?range.priorEnd:range.end;return /^\d{4}-\d{2}-\d{2}$/.test(String(date||""))&&(!start||date>=start)&&(!end||date<=end);}
+function p7SetStatsRange(value){if(["7","30","90","all"].indexOf(String(value))<0)return false;p7StatsRange=String(value);p7RenderAnalytics();return true;}
+
+function p7ReadWorkout(date){try{const parsed=JSON.parse(localStorage.getItem("day-"+date+"-wo")||"null");return parsed&&typeof parsed==="object"?parsed:null;}catch(e){return null;}}
+function p7WorkoutKind(workout){
+  if(!workout)return "none";let day=null;try{day=getSafeDayForLog(workout.gym||"home",workout.dayIdx);}catch(e){}if(day&&typeof p9489ClassifyDayType==="function")return p9489ClassifyDayType(day);
+  const name=String(workout.dayName||"").toLowerCase();if(/cardio|zone\s*2/.test(name))return "cardio";if(/lower|leg/.test(name))return "lower";return "lifting";
+}
+function p7WorkoutSetCount(workout){let count=0;Object.values(workout&&workout.exercises||{}).forEach(function(ex){(ex&&ex.sets||[]).forEach(function(set){if(Number.isFinite(parseFloat(set.reps))&&parseFloat(set.reps)>0)count++;});});return count;}
+function p7Average(rows,key){const values=rows.map(function(row){return parseFloat(row[key]);}).filter(Number.isFinite);return {value:values.length?(values.reduce(function(sum,n){return sum+n;},0)/values.length):null,count:values.length};}
+
+function p7CollectTrainingLoad(entries,range,prior){
+  const selected=entries.filter(function(entry){return p7DateInRange(entry.date,range,prior);}),out={liftingSessions:0,lowerBodySessions:0,dedicatedCardioSessions:0,workSets:0,basketballSessions:0,basketballMinutes:0};
+  selected.forEach(function(entry){const workout=p7ReadWorkout(entry.date);if(!workout||!workout.exercises||!Object.keys(workout.exercises).length)return;const kind=p7WorkoutKind(workout);if(kind==="cardio")out.dedicatedCardioSessions++;else{out.liftingSessions++;if(kind==="lower")out.lowerBodySessions++;out.workSets+=p7WorkoutSetCount(workout);}});
+  return out;
+}
+
+function p7CollectLiftingProgress(range){
+  const active=new Map();["home","partial"].forEach(function(gymKey){let days=[];try{days=getResolvedDays(gymKey)||[];}catch(e){}days.forEach(function(day){(day.exercises||[]).forEach(function(ex){if(!active.has(ex.id))active.set(ex.id,ex);});});});
+  const latest={};Object.keys(localStorage).filter(function(key){return /^day-\d{4}-\d{2}-\d{2}-wo$/.test(key);}).sort().reverse().forEach(function(key){const date=key.slice(4,-3);if(!p7DateInRange(date,range,false))return;let workout=null;try{workout=JSON.parse(localStorage.getItem(key)||"null");}catch(e){}Object.keys(workout&&workout.exercises||{}).forEach(function(id){if(latest[id]||!active.has(id))return;const sets=(workout.exercises[id].sets||[]).filter(function(set){return Number.isFinite(parseInt(set.reps,10))&&parseInt(set.reps,10)>0;});if(sets.length)latest[id]={date:date,sets:sets};});});
+  const groups={ready:[],building:[],safer:[],review:[],new:[]};active.forEach(function(ex,id){const evidence=latest[id],name=typeof getF==="function"?getF(id,"name",ex.name):ex.name;if(!evidence){groups.new.push({id:id,name:name,date:null,status:"new"});return;}const reps=typeof getF==="function"?getF(id,"reps",ex.reps):ex.reps,rir=typeof getF==="function"?getF(id,"rir",ex.rir):ex.rir,status=p9GetProgressionStatus(id,evidence.sets,reps,rir),item={id:id,name:name,date:evidence.date,status:status};if(["progress_load","ceiling_update","duration_target"].indexOf(status)>=0)groups.ready.push(item);else if(["safer_hold","target_reset"].indexOf(status)>=0)groups.safer.push(item);else if(["capped_hold","top_range_hold"].indexOf(status)>=0)groups.review.push(item);else groups.building.push(item);});
+  return groups;
+}
 
 function p7CalcAnalytics(){
-  const entries=p7GetAllEntries().map(e=>e.data).reverse(); // oldest first
-  if(!entries.length)return null;
+  const allEntries=p7GetAllEntries().map(function(entry){return entry.data;}).filter(function(entry){return entry&&/^\d{4}-\d{2}-\d{2}$/.test(String(entry.date||""));}).sort(function(a,b){return a.date.localeCompare(b.date);}),range=p7GetStatsRange(),entries=allEntries.filter(function(entry){return p7DateInRange(entry.date,range,false);}),prior=range.days?allEntries.filter(function(entry){return p7DateInRange(entry.date,range,true);}):[],load=p7CollectTrainingLoad(allEntries,range,false),priorLoad=range.days?p7CollectTrainingLoad(allEntries,range,true):null;
+  const weight=p7Average(entries,"weight"),priorWeight=p7Average(prior,"weight"),allWeights=allEntries.map(function(entry){return {date:entry.date,value:parseFloat(entry.weight)};}).filter(function(item){return Number.isFinite(item.value);}),recovery={};["sleep","mood","hunger","water","protein"].forEach(function(key){recovery[key]=p7Average(entries,key);recovery[key].prior=range.days?p7Average(prior,key):{value:null,count:0};});
+  return {range:range,entries:entries,totalDaysAllTime:allEntries.length,trainingLoad:load,priorTrainingLoad:priorLoad,liftingProgress:p7CollectLiftingProgress(range),weight:{average:weight.value,count:weight.count,priorAverage:priorWeight.value,priorCount:priorWeight.count,current:allWeights.length?allWeights[allWeights.length-1].value:null,totalChange:allWeights.length>1?allWeights[allWeights.length-1].value-allWeights[0].value:null},recovery:recovery,habits:{overall:null,breakdown:[],best:null,worst:null,eligible:0,priorOverall:null,priorEligible:0}};
+}
 
-  // ─── Weight Trends ───
-  const wtEntries=entries.filter(e=>e.weight).map(e=>({date:e.date,w:parseFloat(e.weight)}));
-  const wt7=wtEntries.slice(-7);
-  const wt14=wtEntries.slice(-14);
-  const avgW=(arr)=>arr.length?(arr.reduce((a,b)=>a+b.w,0)/arr.length).toFixed(1):null;
-  const currentW=wtEntries.length?wtEntries[wtEntries.length-1].w:null;
-  const oldestW=wtEntries.length?wtEntries[0].w:null;
-  const totalChange=currentW&&oldestW?(currentW-oldestW).toFixed(1):null;
-  // weekly trend: compare last 7 avg to prior 7
-  const last7Avg=parseFloat(avgW(wt7));
-  const prior7=wtEntries.slice(-14,-7);
-  const prior7Avg=parseFloat(avgW(prior7));
-  let weeklyTrend="—";
-  if(last7Avg&&prior7Avg){
-    const diff=(last7Avg-prior7Avg).toFixed(1);
-    weeklyTrend=diff>0?`↑ +${diff} lbs`:(diff<0?`↓ ${diff} lbs`:"→ Stable");
-  }
-
-  // ─── Workout Consistency ───
-  const now=new Date();
-  const dow=now.getDay();
-  const weekStart=new Date(now);weekStart.setDate(now.getDate()-dow);weekStart.setHours(0,0,0,0);
-  const weekStartStr=weekStart.toISOString().slice(0,10);
-  const cutoff7=new Date(now);cutoff7.setDate(now.getDate()-7);
-  const cutoff30=new Date(now);cutoff30.setDate(now.getDate()-30);
-  const c7=cutoff7.toISOString().slice(0,10);
-  const c30=cutoff30.toISOString().slice(0,10);
-
-  const wosThisWeek=entries.filter(e=>e.workout==="yes"&&e.date>=weekStartStr).length;
-  const wosLast7=entries.filter(e=>e.workout==="yes"&&e.date>=c7).length;
-  const wosLast30=entries.filter(e=>e.workout==="yes"&&e.date>=c30).length;
-
-  // most common workout day name
-  const dayNameCount={};
-  entries.filter(e=>e.workout==="yes"&&e.woDayIdx!==undefined&&e.woDayIdx!=="").forEach(e=>{
-    // 9.4.8.3: use getSafeDayDisplayName — handles base + virtual days safely
-    const gymKey = e.logGym||"home";
-    const name = getSafeDayDisplayName(gymKey, e.woDayIdx);
-    if(name){dayNameCount[name]=(dayNameCount[name]||0)+1;}
-  });
-  const topWoDay=Object.keys(dayNameCount).sort((a,b)=>dayNameCount[b]-dayNameCount[a])[0]||"—";
-
-  // ─── Streak ───
-  const sortedDates=[...new Set(entries.map(e=>e.date))].sort().reverse();
-  let streak=0;let longest=0;let cur=0;
-  const today=new Date().toISOString().slice(0,10);
-  const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
-  const woDates=new Set(entries.filter(e=>e.workout==="yes").map(e=>e.date));
-  // current streak
-  let d=new Date();
-  while(true){
-    const ds=d.toISOString().slice(0,10);
-    if(woDates.has(ds)){streak++;d.setDate(d.getDate()-1);}
-    else if(ds===today){d.setDate(d.getDate()-1);continue;} // skip today if no wo yet
-    else break;
-  }
-  // longest streak
-  let run=0;
-  const allWoDates=[...woDates].sort();
-  for(let i=0;i<allWoDates.length;i++){
-    if(i===0){run=1;}
-    else{
-      const prev=new Date(allWoDates[i-1]+"T12:00:00");
-      const curr=new Date(allWoDates[i]+"T12:00:00");
-      const diff=Math.round((curr-prev)/86400000);
-      if(diff===1)run++;else run=1;
-    }
-    if(run>longest)longest=run;
-  }
-
-  // ─── Habit Consistency ───
-  const habitCounts={};
-  HABITS.forEach(h=>{habitCounts[h.id]={name:h.name,icon:h.icon,done:0,total:0};});
-  entries.forEach(e=>{
-    if(!e.habits)return;
-    HABITS.forEach(h=>{
-      habitCounts[h.id].total++;
-      if(e.habits[h.id]&&e.habits[h.id].completed)habitCounts[h.id].done++;
-    });
-  });
-  const overallHabitPct=entries.length?Math.round(
-    entries.reduce((a,e)=>{
-      if(!e.habits)return a;
-      const done=HABITS.filter(h=>e.habits[h.id]&&e.habits[h.id].completed).length;
-      return a+(done/HABITS.length);
-    },0)/entries.length*100
-  ):0;
-  const sortedHabits=Object.values(habitCounts).filter(h=>h.total>0).sort((a,b)=>(b.done/b.total)-(a.done/a.total));
-  const bestHabit=sortedHabits[0]||null;
-  const worstHabit=sortedHabits[sortedHabits.length-1]||null;
-
-  // ─── Recovery Averages ───
-  const avg=(arr)=>arr.length?(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):null;
-  const sleeps=entries.filter(e=>e.sleep).map(e=>parseFloat(e.sleep));
-  const hungers=entries.filter(e=>e.hunger).map(e=>parseFloat(e.hunger));
-  const moods=entries.filter(e=>e.mood).map(e=>parseFloat(e.mood));
-
-  // ─── Last 30 days activity heatmap data ───
-  const heatmap=[];
-  for(let i=29;i>=0;i--){
-    const dd=new Date();dd.setDate(dd.getDate()-i);
-    const ds=dd.toISOString().slice(0,10);
-    heatmap.push({date:ds,hasWo:woDates.has(ds)});
-  }
-
-  return {
-    weight:{current:currentW,avg7:avgW(wt7),avg14:avgW(wt14),totalChange,weeklyTrend,count:wtEntries.length},
-    workout:{thisWeek:wosThisWeek,last7:wosLast7,last30:wosLast30,topDay:topWoDay},
-    streak:{current:streak,longest},
-    habits:{overall:overallHabitPct,breakdown:sortedHabits,best:bestHabit,worst:worstHabit},
-    recovery:{sleep:avg(sleeps),hunger:avg(hungers),energy:avg(moods)},
-    heatmap,
-    totalDays:entries.length
-  };
+function p7FormatAverage(metric,suffix){return metric.value==null?"—":metric.value.toFixed(1)+(suffix||"");}
+function p7Escape(value){return String(value==null?"":value).replace(/[&<>"']/g,function(char){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char];});}
+function p7Comparison(current,prior,noun){if(prior===null||prior===undefined)return "No prior equivalent range.";const diff=current-prior;if(!diff)return "Same as prior range.";return Math.abs(diff)+" "+noun+(Math.abs(diff)===1?"":"s")+" "+(diff>0?"more":"fewer")+" than the prior range.";}
+function p7RecoveryComparison(metric,suffix){if(!metric.prior||metric.count<2||metric.prior.count<2)return "Insufficient prior-window evidence.";const diff=metric.value-metric.prior.value;if(Math.abs(diff)<.05)return "Stable vs prior "+metric.prior.count+"-day sample.";return (diff>0?"+":"")+diff.toFixed(1)+(suffix||"")+" vs prior "+metric.prior.count+"-day sample.";}
+function p7HabitComparison(habits){if(!habits.eligible||!habits.priorEligible||habits.overall==null||habits.priorOverall==null)return "Insufficient eligible opportunities for a prior-window comparison.";const diff=habits.overall-habits.priorOverall;return (diff===0?"Stable":(diff>0?"Up "+diff+" points":"Down "+Math.abs(diff)+" points"))+" vs the prior equivalent range ("+habits.priorEligible+" eligible opportunities).";}
+function p7ProgressList(title,items,empty){return '<div class="p7-wide-card"><div class="p7-wide-card-title">'+title+'</div>'+(items.length?items.slice(0,4).map(function(item){return '<div class="p7-action-row"><strong>'+p7Escape(item.name)+'</strong><span>'+p7Escape(item.date)+'</span></div>';}).join(""):'<div class="p7-muted">'+empty+'</div>')+'</div>';}
+function p7BuildActionSummary(a){
+  const items=[];if(a.priorTrainingLoad&&(a.trainingLoad.liftingSessions||a.priorTrainingLoad.liftingSessions))items.push("Lifting frequency: "+a.trainingLoad.liftingSessions+" session"+(a.trainingLoad.liftingSessions===1?"":"s")+" vs "+a.priorTrainingLoad.liftingSessions+" in the prior equivalent range.");
+  if(a.liftingProgress.ready.length)items.push(a.liftingProgress.ready.length+" active exercise"+(a.liftingProgress.ready.length===1?" is":"s are")+" ready for progression review.");else if(a.liftingProgress.safer.length||a.liftingProgress.review.length)items.push((a.liftingProgress.safer.length+a.liftingProgress.review.length)+" active exercise"+((a.liftingProgress.safer.length+a.liftingProgress.review.length)===1?" needs":"s need")+" a safer hold or target review.");
+  if(a.trainingLoad.basketballSessions>=2&&a.trainingLoad.lowerBodySessions>=2)items.push("Basketball and lower-body lifting both occurred multiple times; review leg fatigue before progressing either domain.");
+  if(items.length<3&&a.habits.priorEligible&&a.habits.eligible&&a.habits.overall<a.habits.priorOverall)items.push("Scheduled Habit completion declined from "+a.habits.priorOverall+"% to "+a.habits.overall+"% across comparable opportunities.");
+  if(items.length<3&&a.weight.count>=2&&a.weight.priorCount>=2){const diff=a.weight.average-a.weight.priorAverage;items.push("Weight average "+(Math.abs(diff)<.05?"was stable":diff<0?"decreased":"increased")+" across "+a.weight.count+" current and "+a.weight.priorCount+" prior recorded days.");}
+  if(!items.length)items.push("Insufficient comparable data for a trend; keep recording sessions and recovery metrics.");return items.slice(0,3);
 }
 
 function p7RenderAnalytics(){
-  const container=document.getElementById("p7-analytics-content");
-  if(!container)return;
-  const a=p7CalcAnalytics();
-  if(!a){container.innerHTML='<div class="empty">No data yet.<br>Start logging to see your stats!</div>';return;}
-
-  const trendClass=a.weight.weeklyTrend.startsWith("↓")?"down":a.weight.weeklyTrend.startsWith("↑")?"up":"neutral";
-  const trendColor=a.weight.weeklyTrend.startsWith("↓")?"var(--green)":a.weight.weeklyTrend.startsWith("↑")?"var(--red)":"var(--muted)";
-
-  // Habit bars
-  const habitBars=a.habits.breakdown.slice(0,7).map(h=>{
-    const pct=h.total?Math.round(h.done/h.total*100):0;
-    const fillClass=pct>=80?"green":pct>=50?"orange":"red";
-    return `<div class="p7-bar-row">
-      <div class="p7-bar-label">${h.icon} ${h.name.split(" ")[0]}</div>
-      <div class="p7-bar-track"><div class="p7-bar-fill ${fillClass}" style="width:${pct}%"></div></div>
-      <div class="p7-bar-num">${pct}%</div>
-    </div>`;
-  }).join("");
-
-  // Heatmap dots
-  const dots=a.heatmap.map(d=>`<div class="p7-mini-dot${d.hasWo?" has-wo":""}" title="${d.date}"></div>`).join("");
-
-  // Recovery color helpers
-  const sleepColor=parseFloat(a.recovery.sleep)>=7?"var(--green)":parseFloat(a.recovery.sleep)>=6?"var(--yellow)":"var(--red)";
-  const energyColor=parseFloat(a.recovery.energy)>=7?"var(--green)":parseFloat(a.recovery.energy)>=5?"var(--yellow)":"var(--red)";
-  const hungerColor=parseFloat(a.recovery.hunger)<=5?"var(--green)":parseFloat(a.recovery.hunger)<=7?"var(--yellow)":"var(--red)";
-
-  container.innerHTML=`
-    <!-- Streaks -->
-    <div class="p7-section">
-      <div class="p7-section-header">🔥 Streaks</div>
-      <div class="p7-streak-row">
-        <div class="p7-streak-card">
-          <div class="p7-streak-num">${a.streak.current}</div>
-          <div class="p7-streak-label">Current Streak</div>
-        </div>
-        <div class="p7-streak-card">
-          <div class="p7-streak-num" style="color:var(--accent2);">${a.streak.longest}</div>
-          <div class="p7-streak-label">Longest Streak</div>
-        </div>
-        <div class="p7-streak-card">
-          <div class="p7-streak-num" style="color:var(--muted);font-size:28px;">${a.totalDays}</div>
-          <div class="p7-streak-label">Days Logged</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Weight -->
-    <div class="p7-section">
-      <div class="p7-section-header">⚖️ Weight Trends</div>
-      <div class="p7-stat-grid">
-        <div class="p7-stat-card accent">
-          <div class="p7-stat-label">Current</div>
-          <div class="p7-stat-val accent">${a.weight.current||"—"}</div>
-          <div class="p7-stat-sub">lbs</div>
-        </div>
-        <div class="p7-stat-card">
-          <div class="p7-stat-label">Total Change</div>
-          <div class="p7-stat-val ${a.weight.totalChange&&parseFloat(a.weight.totalChange)<0?"green":"sm"}" style="color:${a.weight.totalChange&&parseFloat(a.weight.totalChange)<0?"var(--green)":"var(--text)"};">${a.weight.totalChange!==null?(parseFloat(a.weight.totalChange)>0?"+":"")+a.weight.totalChange+" lbs":"—"}</div>
-          <div class="p7-stat-sub">since first entry</div>
-        </div>
-        <div class="p7-stat-card">
-          <div class="p7-stat-label">7-Day Avg</div>
-          <div class="p7-stat-val sm">${a.weight.avg7||"—"}</div>
-          <div class="p7-stat-sub">lbs</div>
-        </div>
-        <div class="p7-stat-card">
-          <div class="p7-stat-label">14-Day Avg</div>
-          <div class="p7-stat-val sm">${a.weight.avg14||"—"}</div>
-          <div class="p7-stat-sub">lbs</div>
-        </div>
-      </div>
-      <div class="p7-wide-card" style="margin-top:0;">
-        <div class="p7-wide-card-title">Weekly Trend</div>
-        <span class="p7-stat-badge ${trendClass}" style="font-size:13px;padding:4px 12px;">${a.weight.weeklyTrend}</span>
-        <div style="font-size:10px;color:var(--muted);margin-top:6px;">vs prior 7-day average</div>
-      </div>
-    </div>
-
-    <!-- Workout -->
-    <div class="p7-section">
-      <div class="p7-section-header">💪 Workout Consistency</div>
-      <div class="p7-stat-grid cols3">
-        <div class="p7-stat-card green">
-          <div class="p7-stat-label">This Week</div>
-          <div class="p7-stat-val green">${a.workout.thisWeek}</div>
-          <div class="p7-stat-sub">workouts</div>
-        </div>
-        <div class="p7-stat-card">
-          <div class="p7-stat-label">Last 7 Days</div>
-          <div class="p7-stat-val sm">${a.workout.last7}</div>
-          <div class="p7-stat-sub">workouts</div>
-        </div>
-        <div class="p7-stat-card">
-          <div class="p7-stat-label">Last 30 Days</div>
-          <div class="p7-stat-val sm">${a.workout.last30}</div>
-          <div class="p7-stat-sub">workouts</div>
-        </div>
-      </div>
-      <div class="p7-wide-card" style="margin-top:0;">
-        <div class="p7-wide-card-title">Most Trained Day</div>
-        <div style="font-size:15px;font-weight:700;color:var(--text);">${a.workout.topDay}</div>
-        <div class="p7-wide-card-title" style="margin-top:10px;">Last 30 Days Activity</div>
-        <div class="p7-mini-dots">${dots}</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:4px;">🟩 = workout logged · ⬛ = no workout</div>
-      </div>
-    </div>
-
-    <!-- Habits -->
-    <div class="p7-section">
-      <div class="p7-section-header">🧠 Habit Consistency</div>
-      <div class="p7-stat-grid">
-        <div class="p7-stat-card${a.habits.overall>=80?" green":""}">
-          <div class="p7-stat-label">Overall %</div>
-          <div class="p7-stat-val${a.habits.overall>=80?" green":""}">${a.habits.overall}%</div>
-          <div class="p7-stat-sub">avg completion</div>
-        </div>
-        <div class="p7-stat-card">
-          <div class="p7-stat-label">Best Habit</div>
-          <div class="p7-stat-val sm" style="font-size:15px;line-height:1.3;padding-top:2px;">${a.habits.best?a.habits.best.icon+" "+a.habits.best.name.split(" ")[0]:"—"}</div>
-          <div class="p7-stat-sub">${a.habits.best?Math.round(a.habits.best.done/a.habits.best.total*100)+"% done":""}</div>
-        </div>
-      </div>
-      <div class="p7-wide-card" style="margin-top:0;">
-        <div class="p7-wide-card-title">Habit Breakdown</div>
-        <div class="p7-bar-wrap">${habitBars}</div>
-      </div>
-    </div>
-
-    <!-- Recovery -->
-    <div class="p7-section">
-      <div class="p7-section-header">😴 Recovery Averages</div>
-      <div class="p7-stat-grid cols3">
-        <div class="p7-stat-card">
-          <div class="p7-stat-label">Sleep</div>
-          <div class="p7-stat-val sm" style="color:${sleepColor};">${a.recovery.sleep||"—"}</div>
-          <div class="p7-stat-sub">avg hrs</div>
-        </div>
-        <div class="p7-stat-card">
-          <div class="p7-stat-label">Energy</div>
-          <div class="p7-stat-val sm" style="color:${energyColor};">${a.recovery.energy||"—"}</div>
-          <div class="p7-stat-sub">avg /10</div>
-        </div>
-        <div class="p7-stat-card">
-          <div class="p7-stat-label">Hunger</div>
-          <div class="p7-stat-val sm" style="color:${hungerColor};">${a.recovery.hunger||"—"}</div>
-          <div class="p7-stat-sub">avg /10</div>
-        </div>
-      </div>
-    </div>
-  `;
+  const container=document.getElementById("p7-analytics-content");if(!container)return;const a=p7CalcAnalytics(),rangeSelect=document.getElementById("p7StatsRange");if(rangeSelect)rangeSelect.value=p7StatsRange;const actions=p7BuildActionSummary(a),progress=a.liftingProgress,recovery=a.recovery,habitPct=a.habits.overall==null?"—":a.habits.overall+"%",weightContext=a.weight.count&&progress.ready.length?"Weight average "+a.weight.average.toFixed(1)+" lb across "+a.weight.count+" recorded day"+(a.weight.count===1?"":"s")+" while "+progress.ready.length+" active exercise"+(progress.ready.length===1?" showed":"s showed")+" progression-ready evidence.":"Insufficient overlapping weight and lifting data for a useful comparison.";
+  container.innerHTML='<div class="p7-section p7-action-summary"><div class="p7-section-header">Action Summary</div>'+actions.map(function(item){return '<div class="p7-action-item">'+item+'</div>';}).join("")+'</div>'+
+    '<div class="p7-section"><div class="p7-section-header">Training Load · '+a.range.label+'</div><div class="p7-stat-grid cols3">'+
+    '<div class="p7-stat-card green"><div class="p7-stat-label">Lifting</div><div class="p7-stat-val green">'+a.trainingLoad.liftingSessions+'</div><div class="p7-stat-sub">sessions · '+a.trainingLoad.workSets+' work sets</div></div>'+
+    '<div class="p7-stat-card"><div class="p7-stat-label">Lower Body</div><div class="p7-stat-val">'+a.trainingLoad.lowerBodySessions+'</div><div class="p7-stat-sub">lifting sessions</div></div>'+
+    '<div class="p7-stat-card"><div class="p7-stat-label">Cardio</div><div class="p7-stat-val">'+a.trainingLoad.dedicatedCardioSessions+'</div><div class="p7-stat-sub">dedicated sessions</div></div>'+
+    '<div class="p7-stat-card accent"><div class="p7-stat-label">Basketball</div><div class="p7-stat-val accent">'+a.trainingLoad.basketballSessions+'</div><div class="p7-stat-sub">sessions · '+a.trainingLoad.basketballMinutes+' min</div></div></div><div class="p7-muted">'+p7Comparison(a.trainingLoad.liftingSessions,a.priorTrainingLoad&&a.priorTrainingLoad.liftingSessions,"session")+'</div></div>'+
+    '<div class="p7-section"><div class="p7-section-header">Lifting Progress</div>'+p7ProgressList("Ready to progress",progress.ready,"No active exercise is progression-ready in this range.")+p7ProgressList("Building",progress.building,"No building evidence in this range.")+p7ProgressList("Safer hold",progress.safer,"No safer-hold evidence in this range.")+p7ProgressList("Ceiling / target review",progress.review,"No target-review evidence in this range.")+p7ProgressList("New or insufficient evidence",progress.new,"Every active exercise has selected-range evidence.")+'</div>'+
+    '<div class="p7-section"><div class="p7-section-header">Weight & Performance Context</div><div class="p7-stat-grid"><div class="p7-stat-card accent"><div class="p7-stat-label">Selected-range average</div><div class="p7-stat-val sm">'+(a.weight.average==null?"—":a.weight.average.toFixed(1))+'</div><div class="p7-stat-sub">lb · '+a.weight.count+' sample'+(a.weight.count===1?"":"s")+'</div></div><div class="p7-stat-card"><div class="p7-stat-label">All-time change</div><div class="p7-stat-val sm">'+(a.weight.totalChange==null?"—":(a.weight.totalChange>0?"+":"")+a.weight.totalChange.toFixed(1))+'</div><div class="p7-stat-sub">lb · all recorded history</div></div></div><div class="p7-wide-card">'+weightContext+'</div></div>'+
+    '<div class="p7-section"><div class="p7-section-header">Habits & Recovery</div><div class="p7-stat-grid"><div class="p7-stat-card"><div class="p7-stat-label">Scheduled Habits</div><div class="p7-stat-val sm">'+habitPct+'</div><div class="p7-stat-sub">'+a.habits.eligible+' eligible opportunities</div></div><div class="p7-stat-card"><div class="p7-stat-label">Best supported</div><div class="p7-stat-val sm">'+(a.habits.best?p7Escape(a.habits.best.name):"—")+'</div><div class="p7-stat-sub">'+(a.habits.best?a.habits.best.done+" / "+a.habits.best.total:"insufficient evidence")+'</div></div><div class="p7-stat-card"><div class="p7-stat-label">Needs attention</div><div class="p7-stat-val sm">'+(a.habits.worst?p7Escape(a.habits.worst.name):"—")+'</div><div class="p7-stat-sub">'+(a.habits.worst?a.habits.worst.done+" / "+a.habits.worst.total:"insufficient evidence")+'</div></div></div><div class="p7-muted">'+p7HabitComparison(a.habits)+'</div><div class="p7-recovery-grid">'+["sleep","mood","hunger","water","protein"].map(function(key){const label={sleep:"Sleep",mood:"Energy",hunger:"Hunger",water:"Water",protein:"Protein"}[key],unit=key==="sleep"?" hr":key==="water"?" oz":key==="protein"?" g":" /10";return '<div class="p7-stat-card"><div class="p7-stat-label">'+label+'</div><div class="p7-stat-val sm">'+p7FormatAverage(recovery[key],unit)+'</div><div class="p7-stat-sub">'+recovery[key].count+' recorded day'+(recovery[key].count===1?"":"s")+'<br>'+p7RecoveryComparison(recovery[key],unit)+'</div></div>';}).join("")+'</div></div>';
 }
 
-// ── END PHASE 7 ───────────────────────────────────────────────────────────────
+const p7StatsRangeSelect=document.getElementById("p7StatsRange");if(p7StatsRangeSelect)p7StatsRangeSelect.addEventListener("change",function(){p7SetStatsRange(p7StatsRangeSelect.value);});
+
+// ── END MARCUSFIT 10.7.0 ANALYTICS ──────────────────────────────────────────

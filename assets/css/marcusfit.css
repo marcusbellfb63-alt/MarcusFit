@@ -1105,6 +1105,10 @@ body.mf-habit-proposal-open{position:fixed;left:0;right:0;width:100%;overflow:hi
 .wo-set-label.wt,.wo-set-label.rp,.wo-set-label.ri{width:auto;min-width:0;}
 .wo-set-wt,.wo-set-reps,.wo-set-rir{width:100%;min-width:0;}
 .wo-set-wt{flex:none;}
+.wo-set-load-entry{position:relative;min-width:0;}
+.wo-set-load-entry .wo-set-wt{padding-right:40px;}
+.wo-load-keyboard-toggle{position:absolute;top:4px;right:4px;width:32px;height:36px;min-height:0!important;padding:0;border:0;border-left:1px solid var(--border);border-radius:0 5px 5px 0;background:var(--surface2);color:var(--muted);font:700 9px/1 'DM Sans',sans-serif;letter-spacing:-.2px;}
+.wo-load-keyboard-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
 
 @media(max-width:350px){
   .wo-set-labels,.wo-set-row{
@@ -1113,3 +1117,30 @@ body.mf-habit-proposal-open{position:fixed;left:0;right:0;width:100%;overflow:hi
   }
   .wo-set-num{width:28px;}
 }
+
+/* MarcusFit 10.7.0: persistent primary-navigation scroll contract */
+html,body{overflow-x:clip;}
+html{scroll-padding-top:calc(var(--mf-header-height,96px) + 12px);}
+.screen [id]{scroll-margin-top:calc(var(--mf-header-height,96px) + 12px);}
+
+/* MarcusFit 10.7.0: Sync internal information architecture */
+.mf-sync-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:14px;position:sticky;top:var(--mf-header-height,96px);z-index:4;padding:8px 0;background:var(--bg);}
+.mf-sync-nav-btn{min-width:0;min-height:46px;padding:7px 3px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--muted);font:700 var(--mf-font-xs)/1.2 'DM Sans',sans-serif;overflow-wrap:anywhere;}
+.mf-sync-nav-btn.active{color:var(--accent);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface));}
+.mf-sync-nav-btn.has-pending{border-color:var(--yellow);}
+.mf-sync-pending{display:block;margin-top:3px;color:var(--yellow);font-size:.8em;}
+.mf-sync-page[hidden]{display:none!important;}
+.mf-sync-page>.divider:first-child{display:none;}
+@media(max-width:350px){.mf-sync-nav{gap:4px}.mf-sync-nav-btn{padding-inline:2px;letter-spacing:-.1px;}}
+
+/* MarcusFit 10.7.0: actionable analytics */
+.p7-range-control{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--muted);font-size:var(--mf-font-sm);font-weight:700;}
+.p7-range-control select{min-height:44px;min-width:150px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font:600 var(--mf-font-control)/1.2 'DM Sans',sans-serif;}
+.p7-action-summary{border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);border-radius:12px;padding:12px;background:color-mix(in srgb,var(--accent) 5%,var(--surface));}
+.p7-action-item{padding:9px 0;border-bottom:1px solid var(--border);font-size:var(--mf-font-sm);line-height:1.5;}.p7-action-item:last-child{border-bottom:0;}
+.p7-action-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:var(--mf-font-sm);}.p7-action-row:last-child{border-bottom:0}.p7-action-row span,.p7-muted{color:var(--muted);font-size:var(--mf-font-xs);line-height:1.45;}
+.p7-recovery-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}.p7-recovery-grid>*:last-child:nth-child(odd){grid-column:1/-1;}
+@media(max-width:350px){.p7-range-control{align-items:stretch;flex-direction:column}.p7-range-control select{width:100%;min-width:0}.p7-action-row{flex-direction:column;gap:2px;}}
+
+/* MarcusFit 10.7.0: Daily Log-only mobile Save Day bar */
+.p6-sticky-bar[hidden]{display:none!important;}

@@ -2,13 +2,17 @@
 
 ## Current implementation candidate
 
-MarcusFit 10.6.0 Basketball UX and progression maturation starts from the exact accepted 10.5.0 merge commit `60934a151f95c34d5a659cd131c91abca43bfa91`. The accepted 10.5 QA head is `73faa06e2b5476a8ab7549c76c3cfdbe84277911`.
+MarcusFit 10.7.0 Navigation, Sync IA, and Analytics Maturation starts from the exact accepted 10.6.0 merge commit `d172ed429a2addb259a0dce622d9c2d94429816e`. The accepted 10.6 QA-approved implementation head is `cef5d39b3adf939ba7d9c59d6d6e250bcce7cbcd`.
 
-10.6.0 is not accepted. It is pending ChatGPT review plus Marcus's local-browser and real-iPhone manual QA. It adds a readable next-session surface, resolved program inspection, one-drill courtside execution, an explicit review gate, post-save metric-specific summary, historical comparison context, and a deterministic Basketball progression layer. It adds no storage key or schema field, retains the accepted 22-script order, and does not change core `assets/js/sync/12-ai-sync.js`.
+10.7.0 is the new implementation candidate and is not accepted. Primary Tools and internal Sync tablists use standard horizontal keyboard navigation; every successful destination opens at the top while later intentional History/Basketball target scrolling remains authoritative. Daily Log disclosures start collapsed, its mobile Save Day bar appears only on that primary screen, and Habit proposal dismissal is explicit, confirmed, and status-aware. Stats All-history Habit eligibility is bounded by activation/first legacy evidence and archive dates, and every text-backed workout load row requests the decimal keypad by default with an `ABC`/`123` escape hatch. Navigation and analytics remain read-only. Automated and localhost responsive-browser validation must pass; ChatGPT review and Marcus's targeted real-iPhone recheck remain pending.
 
 Progression comparisons require matching program ID/version, planned session ID, stable drill ID, and tracking mode. Skips remain neutral. Stored historical names, targets, modes, results, and snapshots remain authoritative. See `docs/architecture/basketball-10.6-audit.md` and `tests/marcusfit-10.6.0-manual-qa.md`.
 
 ## Previous accepted state
+
+MarcusFit 10.6.0 Basketball UX and progression maturation is accepted and merged at `d172ed429a2addb259a0dce622d9c2d94429816e`; its QA-approved implementation head is `cef5d39b3adf939ba7d9c59d6d6e250bcce7cbcd`. It adds a readable next-session surface, resolved program inspection, one-drill courtside execution, an explicit review gate, post-save metric-specific summary, historical comparison context, and deterministic Basketball progression. It adds no storage key or schema field, retains the accepted 22-script order, and does not change core `assets/js/sync/12-ai-sync.js`.
+
+Progression comparisons require matching program ID/version, planned session ID, stable drill ID, and tracking mode. Skips remain neutral. Stored historical names, targets, modes, results, and snapshots remain authoritative. See `docs/architecture/basketball-10.6-audit.md` and `tests/marcusfit-10.6.0-manual-qa.md`.
 
 MarcusFit 10.5.0 cross-domain coaching and AI Export/Sync information architecture is accepted and merged at `60934a151f95c34d5a659cd131c91abca43bfa91`; its QA-approved implementation head is `73faa06e2b5476a8ab7549c76c3cfdbe84277911`. It adds a derived cross-domain coaching summary, deterministic high-level-to-contract export ordering, one mixed response contract, explicit mutable/proposal/advisory boundaries, and strict mixed-envelope leakage refusal without adding storage or changing core Sync.
 
@@ -107,5 +111,6 @@ Protected values at acceptance:
 10.3.0 — Basketball-specific AI Sync — Accepted
 10.4.0 — Habits-specific AI Sync
 10.5.0 — Full cross-domain coaching review
-10.6.0 — Basketball UX and progression maturation — Candidate
+10.6.0 — Basketball UX and progression maturation — Accepted
+10.7.0 — Navigation, Sync IA, and analytics maturation — Candidate
 ```

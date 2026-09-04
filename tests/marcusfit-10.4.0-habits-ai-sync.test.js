@@ -9,12 +9,12 @@ const root = path.resolve(__dirname, "..");
 const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "assets/css/marcusfit.css"), "utf8");
 const scripts = [...index.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(match => match[1]);
-const sha = value => crypto.createHash("sha256").update(value).digest("hex");
+const sha = value => crypto.createHash("sha256").update(Buffer.from(value.toString("utf8").replace(/\r\n/g, "\n"))).digest("hex");
 
-assert(index.includes("<title>MarcusFit 10.6.0</title>"));
-assert(fs.readFileSync(path.join(root, "assets/js/core/01-app-constants.js"), "utf8").includes('APP_VERSION = "10.6.0"'), "10.4 Habit Sync contract must survive the 10.6 version increment");
-assert.strictEqual(sha(fs.readFileSync(path.join(root, "Releases/MarcusFit9_6_0.html"))), "69a3a66541d14290a6a7b73bf313365176169fd0d659e6effb29edcaf7a4e34b");
-assert.strictEqual(sha(fs.readFileSync(path.join(root, "assets/js/sync/12-ai-sync.js"))), "25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e");
+assert(index.includes("<title>MarcusFit 10.7.0</title>"));
+assert(fs.readFileSync(path.join(root, "assets/js/core/01-app-constants.js"), "utf8").includes('APP_VERSION = "10.7.0"'), "10.4 Habit Sync contract must survive the 10.7 version increment");
+assert.strictEqual(sha(fs.readFileSync(path.join(root, "Releases/MarcusFit9_6_0.html"))), "f710c497cc6af212f6827f36461c000e655c66cba151392082ffffe55f14a160");
+assert.strictEqual(sha(fs.readFileSync(path.join(root, "assets/js/sync/12-ai-sync.js"))), "14245321c8f47de5c152d011a08877ef4821e353c15bc3ed72c0490aa767c598");
 assert.deepStrictEqual(scripts, JSON.parse(fs.readFileSync(path.join(root, "tests/fixtures/runtime-script-order.json"), "utf8")));
 assert.strictEqual(scripts.length, 22);
 assert(!fs.existsSync(path.join(root, "package.json")) && !fs.existsSync(path.join(root, "node_modules")));
@@ -62,6 +62,17 @@ const c = env.c, storage = env.localStorage;
 let n = 0;
 const proposal = changes => ({ schemaVersion: 1, proposalVersion: "10.4.0", proposalId: `habit-proposal-test-${++n}`, source: "ai_sync", summary: "Safe Habit update", rationale: "Bounded coaching evidence.", changes });
 const clear = () => storage.removeItem("mf-habit-proposal");
+const findByText = (node, text) => !node ? null : node.textContent === text ? node : (node.children || []).map(child => findByText(child, text)).find(Boolean) || null;
+
+// Personalize proposal affordance is live for every stored status, and the
+// pending review requires a clear two-stage dismissal before recording rejected.
+const reviewButton=env.getElementById("p960ProposalReviewButton"),pendingBadge=env.getElementById("mfSyncPersonalizePending");
+clear();c.p960UpdateSettingsStatus();assert(reviewButton.disabled&&reviewButton.textContent==="No Pending Habit Proposal");assert.strictEqual(pendingBadge.hidden,true);
+assert(c.p960ImportHabitProposal(proposal([{ action:"keep",habitId:"habit-a" }])).valid);assert(!reviewButton.disabled&&reviewButton.textContent==="Review Pending Habit Proposal");assert.strictEqual(pendingBadge.hidden,false);
+storage.resetWrites();assert(c.p960OpenHabitProposalReview());const dismiss=findByText(env.getElementById("p960ProposalReview"),"Dismiss Proposal");assert(dismiss,"explicit Dismiss Proposal action was not rendered");dismiss.onclick();assert.strictEqual(c.p960GetHabitProposal().status,"pending","first dismissal click changed proposal status");assert.strictEqual(storage.writes.length,0,"dismissal confirmation preview wrote storage");assert.strictEqual(dismiss.textContent,"Confirm Dismissal");dismiss.onclick();assert.strictEqual(c.p960GetHabitProposal().status,"rejected");assert(reviewButton.disabled&&reviewButton.textContent==="No Pending Habit Proposal");assert.strictEqual(pendingBadge.hidden,true,"Personalize Review badge remained after dismissal");
+let statusFixture=c.p960GetHabitProposal();statusFixture.status="applied";statusFixture.undoSnapshot={definitionRaw:null,appliedRaw:"{}",appliedFingerprint:"fixture"};storage.setItem("mf-habit-proposal",JSON.stringify(statusFixture));c.p960UpdateSettingsStatus();assert(!reviewButton.disabled&&reviewButton.textContent==="Review / Undo Habit Changes");assert.strictEqual(c.p960OpenHabitProposalReview(),true,"applied-with-Undo review action was dead");c.p960CloseHabitProposalReview();
+statusFixture.status="undone";statusFixture.undoSnapshot=null;storage.setItem("mf-habit-proposal",JSON.stringify(statusFixture));c.p960UpdateSettingsStatus();assert(reviewButton.disabled&&reviewButton.textContent==="No Pending Habit Proposal");assert.strictEqual(pendingBadge.hidden,true);
+clear();c.p960UpdateSettingsStatus();assert(reviewButton.disabled&&reviewButton.textContent==="No Pending Habit Proposal");
 
 // Valid actions and import-only immutable expectations.
 let imported = c.p960ImportHabitProposal(proposal([{ action: "modify", habitId: "habit-a", fields: { name: "Water Plus", target: { type: "number", value: 72, unit: "oz", display: "72 oz" } } }]));

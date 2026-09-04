@@ -324,6 +324,7 @@ renderWoExercises=function(){
     if(valueLabel)valueLabel.textContent=profile.valueLabel;
     block.querySelectorAll(".wo-set-reps").forEach(function(input){
       input.placeholder=profile.type==="duration"?profile.unit:"reps";
+      input.setAttribute("inputmode",profile.type==="duration"?"decimal":"numeric");
       input.setAttribute("aria-label",profile.type==="duration"?"Duration in "+profile.unit:"Reps");
     });
   });
