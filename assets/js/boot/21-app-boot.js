@@ -5,16 +5,12 @@ exInitLifecycle();
 mfRepairLegacyVirtualDays();
 
 const MF_PRIMARY_SCREENS=["program","log","history","analytics","export"];
-const mfPrimaryScrollPositions={program:0,log:0,history:0,analytics:0,export:0};
-const mfPrimaryVisited={program:false,log:true,history:false,analytics:false,export:false};
 let mfActivePrimaryScreen="log",mfPrimaryTouch=null;
 
-function mfCurrentScrollY(){return typeof window.scrollY==="number"?window.scrollY:(document.documentElement.scrollTop||0);}
 function mfSyncHeaderOffset(){const header=document.querySelector(".header");if(header)document.documentElement.style.setProperty("--mf-header-height",header.offsetHeight+"px");}
 
 function showScreen(n){
   if(MF_PRIMARY_SCREENS.indexOf(n)<0)return false;
-  const leaving=mfActivePrimaryScreen;if(leaving!==n)mfPrimaryScrollPositions[leaving]=mfCurrentScrollY();
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
   document.getElementById("screen-"+n).classList.add("active");document.getElementById("tab-"+n).classList.add("active");document.querySelectorAll(".tab-btn").forEach(function(button){const selected=button.id==="tab-"+n;button.setAttribute("aria-selected",selected?"true":"false");button.tabIndex=selected?0:-1;});
   document.getElementById("gymRow").classList.toggle("visible",n==="program");
@@ -22,7 +18,13 @@ function showScreen(n){
   if(n==="history"){p7ApplyFilters();}
   if(n==="analytics"){p7RenderAnalytics();}
   if(n==="export"){if(typeof mfOnPrimarySyncOpen==="function")mfOnPrimarySyncOpen();updateExportMeta();mfRenderLifecycleHealth();p9RenderCoachPrefs();p950RenderUserProfile();p954RenderProgramPersonalization();const ds=document.getElementById("p945DiagSection");if(ds&&ds.classList.contains("open"))p945RenderDiag();}
-  const destination=mfPrimaryVisited[n]?mfPrimaryScrollPositions[n]:0;mfPrimaryVisited[n]=true;mfActivePrimaryScreen=n;if(typeof window.scrollTo==="function")window.scrollTo(0,destination);return true;
+  mfActivePrimaryScreen=n;if(typeof window.scrollTo==="function")window.scrollTo(0,0);return true;
+}
+
+function mfHandlePrimaryTabKeydown(event){
+  const button=event&&event.currentTarget,id=button&&button.id||"",screen=id.indexOf("tab-")===0?id.slice(4):"",index=MF_PRIMARY_SCREENS.indexOf(screen);if(index<0)return false;
+  let next=-1;if(event.key==="ArrowRight")next=(index+1)%MF_PRIMARY_SCREENS.length;else if(event.key==="ArrowLeft")next=(index+MF_PRIMARY_SCREENS.length-1)%MF_PRIMARY_SCREENS.length;else if(event.key==="Home")next=0;else if(event.key==="End")next=MF_PRIMARY_SCREENS.length-1;else return false;
+  event.preventDefault();const target=MF_PRIMARY_SCREENS[next];if(!showScreen(target))return false;const selected=document.getElementById("tab-"+target);if(selected&&typeof selected.focus==="function")selected.focus();return true;
 }
 
 function mfPrimarySwipeTarget(input){
@@ -39,6 +41,7 @@ function mfPrimarySwipeExcluded(target){
 }
 function mfInitPrimaryNavigation(){
   mfSyncHeaderOffset();if(typeof ResizeObserver==="function"){const header=document.querySelector(".header");if(header)new ResizeObserver(mfSyncHeaderOffset).observe(header);}window.addEventListener("resize",mfSyncHeaderOffset);
+  document.querySelectorAll(".tab-btn").forEach(function(button){button.addEventListener("keydown",mfHandlePrimaryTabKeydown);});
   document.addEventListener("touchstart",function(event){if(event.touches.length!==1||mfPrimarySwipeExcluded(event.target)){mfPrimaryTouch=null;return;}const touch=event.touches[0];mfPrimaryTouch={startX:touch.clientX,startY:touch.clientY,startedAt:Date.now(),touchCount:1,width:window.innerWidth,screen:mfActivePrimaryScreen};},{passive:true});
   document.addEventListener("touchend",function(event){if(!mfPrimaryTouch||event.changedTouches.length!==1){mfPrimaryTouch=null;return;}const touch=event.changedTouches[0],target=mfPrimarySwipeTarget(Object.assign({},mfPrimaryTouch,{endX:touch.clientX,endY:touch.clientY,duration:Date.now()-mfPrimaryTouch.startedAt}));mfPrimaryTouch=null;if(target)showScreen(target);},{passive:true});
 }

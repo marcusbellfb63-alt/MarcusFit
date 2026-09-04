@@ -1,4 +1,8 @@
 
+function mfWorkoutSetLoadKeyboardMode(input,button,useText){
+  if(!input||!button)return false;input.setAttribute("inputmode",useText?"text":"decimal");button.textContent=useText?"123":"ABC";button.setAttribute("aria-pressed",useText?"true":"false");button.setAttribute("aria-label",useText?"Use number keypad for this load":"Use text keyboard for this load");if(typeof input.focus==="function")input.focus();return true;
+}
+
 function renderWoExercises(){
   const dayIdx=document.getElementById("woDaySelect").value;
   const noteEl=document.getElementById("woDayNoteOut"),logEl=document.getElementById("woExerciseLog");
@@ -31,7 +35,7 @@ function renderWoExercises(){
   // v9.4.4 Bug 4: only load saved data for the exact selected date; never bleed across dates
   const saved=getTodayWoData();
   day.exercises.forEach(ex=>{
-    const nm=getF(ex.id,"name",ex.name),ld=getF(ex.id,"load",ex.load||""),ri=getF(ex.id,"rir",ex.rir||""),st=parseInt(getF(ex.id,"sets",ex.sets||"3"))||3;
+    const nm=getF(ex.id,"name",ex.name),ld=getF(ex.id,"load",ex.load||""),ri=getF(ex.id,"rir",ex.rir||""),repTarget=getF(ex.id,"reps",ex.reps||""),valueInputMode=/\b(?:min(?:ute)?s?|sec(?:ond)?s?)\b/i.test(String(repTarget))?"decimal":"numeric",st=parseInt(getF(ex.id,"sets",ex.sets||"3"))||3;
     const block=document.createElement("div");block.className="wo-ex-block";
     // v9.4.4 Bug 4: only use savedEx if it actually came from today's exact key (getTodayWoData handles this)
     const savedEx=(saved.exercises&&saved.exercises[ex.id])||{sets:[]};
@@ -48,7 +52,8 @@ function renderWoExercises(){
       // v9.4.4: use aligned prefill; savedEx only has data when today's key has been saved
       const pf = p9ComputePrefill(ex.id, s, savedEx.sets, p942status, getF(ex.id,"reps",ex.reps||""), ri);
       const rirOptsS=["0","1","1\u20132","2","2\u20133","3","3+","\u2014"].map(v=>`<option value="${v}"${pf.rir===v?" selected":""}>${v==="\u2014"?"N/A":"RIR "+v}</option>`).join("");
-      setRowsHTML+=`<div class="wo-set-row"><div class="wo-set-num"><span class="wo-set-num-n">S${s+1}</span></div><input class="wo-set-wt" type="text" placeholder="${ld}" value="${pf.wt}" data-exid="${ex.id}" data-set="${s}" data-field="wt"><input class="wo-set-reps" type="text" placeholder="reps" value="${pf.reps}" data-exid="${ex.id}" data-set="${s}" data-field="reps"><select class="wo-set-rir" data-exid="${ex.id}" data-set="${s}" data-field="rir">${rirOptsS}</select></div>`;
+      const loadTextMode=String(pf.wt||"")!==""&&!/^\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*$/.test(String(pf.wt));
+      setRowsHTML+=`<div class="wo-set-row"><div class="wo-set-num"><span class="wo-set-num-n">S${s+1}</span></div><div class="wo-set-load-entry"><input class="wo-set-wt" type="text" inputmode="${loadTextMode?"text":"decimal"}" placeholder="${ld}" value="${pf.wt}" data-exid="${ex.id}" data-set="${s}" data-field="wt"><button type="button" class="wo-load-keyboard-toggle" aria-label="${loadTextMode?"Use number keypad for this load":"Use text keyboard for this load"}" aria-pressed="${loadTextMode?"true":"false"}">${loadTextMode?"123":"ABC"}</button></div><input class="wo-set-reps" type="text" inputmode="${valueInputMode}" placeholder="reps" value="${pf.reps}" data-exid="${ex.id}" data-set="${s}" data-field="reps"><select class="wo-set-rir" data-exid="${ex.id}" data-set="${s}" data-field="rir">${rirOptsS}</select></div>`;
     }
     setRowsHTML+='</div>';
     const p5Html = p5Block(ex.id, getF(ex.id,"reps",ex.reps||""), ri);
@@ -70,6 +75,7 @@ function renderWoExercises(){
       }
     }
     block.innerHTML=`<div class="wo-ex-name">${nm}</div><div class="wo-ex-target">Target: <span>${st} sets × ${getF(ex.id,"reps",ex.reps||"")} @ ${ld}</span> · RIR ${ri}</div>${blurbHtml}${p5Html}${setRowsHTML}${saferHoldNote}<input class="wo-note-input" type="text" placeholder="Notes for this exercise..." value="${(savedEx.note||"").replace(/"/g,'&quot;')}" data-exid="${ex.id}" data-field="exnote">`;
+    block.querySelectorAll(".wo-load-keyboard-toggle").forEach(function(button){button.addEventListener("click",function(){const input=button.parentElement&&button.parentElement.querySelector(".wo-set-wt");mfWorkoutSetLoadKeyboardMode(input,button,input&&input.getAttribute("inputmode")!=="text");});});
     logEl.appendChild(block);
   });
   renderWoRecs();

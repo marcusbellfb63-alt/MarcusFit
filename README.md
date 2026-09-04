@@ -141,6 +141,8 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 
 - 10.7.0 starts from accepted 10.6.0 merge commit `d172ed429a2addb259a0dce622d9c2d94429816e`
 - Accepted 10.6.0 QA-approved implementation head: `cef5d39b3adf939ba7d9c59d6d6e250bcce7cbcd`
+- Primary and Sync tablists support ArrowLeft/ArrowRight/Home/End, and every successful destination opens at the top without persisted scroll restoration
+- Stats All history uses each Habit's eligible activation-to-archive history; workout set rows retain their text-compatible save shape while requesting appropriate mobile keypads and providing a per-load `ABC`/`123` keyboard switch
 - 10.7.0 is not accepted; automated review and Marcus manual browser/iPhone QA are required
 
 ## Acceptance Record

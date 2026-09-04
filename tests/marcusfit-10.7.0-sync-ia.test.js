@@ -21,19 +21,26 @@ assert(!/localStorage\./.test(source.slice(source.indexOf("const MF_SYNC_PAGES")
 
 const pageNodes = Object.fromEntries(["ai","personalize","profile","data"].map(page => [page,{dataset:{mfSyncPage:page},hidden:false,classList:{toggle(name,on){this.active=name==="active"&&on;}}}]));
 Object.values(pageNodes).forEach(node=>{node.criticalPanels=[];node.querySelectorAll=()=>node.criticalPanels;});
-const tabNodes = Object.fromEntries(["Ai","Personalize","Profile","Data"].map(name => [`mfSyncTab${name}`,{id:`mfSyncTab${name}`,classList:{toggle(key,on){this[key]=on;}},setAttribute(key,value){this[key]=value;},tabIndex:-1}]));
-const badge={hidden:true},opened=[];
+const tabNodes = Object.fromEntries([["Ai","ai"],["Personalize","personalize"],["Profile","profile"],["Data","data"]].map(([name,page]) => [`mfSyncTab${name}`,{id:`mfSyncTab${name}`,dataset:{mfSyncPageTarget:page},focused:0,classList:{toggle(key,on){this[key]=on;}},setAttribute(key,value){this[key]=value;},focus(){this.focused++;},tabIndex:-1}]));
+const badge={hidden:true},opened=[],scrolls=[];
 const document = {
-  querySelector(selector){return selector===".mf-sync-page.active"?Object.values(pageNodes).find(node=>node.classList.active)||null:null;},
+  querySelector(selector){if(selector===".mf-sync-page.active")return Object.values(pageNodes).find(node=>node.classList.active)||null;const match=selector.match(/^\[data-mf-sync-page-target="([^"]+)"\]$/);return match?Object.values(tabNodes).find(node=>node.dataset.mfSyncPageTarget===match[1])||null:null;},
   querySelectorAll(selector){return selector==="[data-mf-sync-page]"?Object.values(pageNodes):Object.values(tabNodes);},
   getElementById(id){return id==="mfSyncPersonalizePending"?badge:tabNodes[id]||null;}
 };
-const context={document,localStorage:{setItem(){throw new Error("Sync navigation wrote storage");},removeItem(){throw new Error("Sync navigation wrote storage");}},mfSetSettingsSectionOpen(key,open){opened.push([key,open]);return true;},p954GetProposal(){return {status:"draft"};},p960GetHabitProposal(){return null;},mfBasketballGetProposal(){return null;}};context.window=context;vm.createContext(context);
+const context={document,scrollTo(x,y){scrolls.push([x,y]);},localStorage:{setItem(){throw new Error("Sync navigation wrote storage");},removeItem(){throw new Error("Sync navigation wrote storage");}},mfSetSettingsSectionOpen(key,open){opened.push([key,open]);return true;},p954GetProposal(){return {status:"draft"};},p960GetHabitProposal(){return null;},mfBasketballGetProposal(){return null;}};context.window=context;vm.createContext(context);
 const start=source.indexOf("const MF_SYNC_PAGES"),end=source.indexOf("function mfUpdateProgramSettingsStatus",start);vm.runInContext(source.slice(start,end),context);
-assert.strictEqual(context.mfSelectSyncPage("profile"),true);assert.strictEqual(pageNodes.profile.hidden,false);assert.strictEqual(pageNodes.ai.hidden,true);assert.strictEqual(tabNodes.mfSyncTabProfile["aria-selected"],"true");
+assert.strictEqual(context.mfSelectSyncPage("profile"),true);assert.strictEqual(pageNodes.profile.hidden,false);assert.strictEqual(pageNodes.ai.hidden,true);assert.strictEqual(tabNodes.mfSyncTabProfile["aria-selected"],"true");assert.deepStrictEqual(scrolls.at(-1),[0,0]);
 const critical={style:{display:"block"},focused:false,scrolled:false,focus(){this.focused=true;},scrollIntoView(){this.scrolled=true;}};pageNodes.profile.criticalPanels.push(critical);
 assert.strictEqual(context.mfSelectSyncPage("data"),false);assert.strictEqual(tabNodes.mfSyncTabProfile["aria-selected"],"true");assert(critical.focused&&critical.scrolled,"critical confirmation did not retain page/focus");
-critical.style.display="none";assert.strictEqual(context.mfOpenSettingsSection("backup"),true);assert.strictEqual(tabNodes.mfSyncTabData["aria-selected"],"true");assert.deepStrictEqual(opened,[['backup',true]]);
+function key(button,keyName){const event={key:keyName,currentTarget:button,prevented:false,preventDefault(){this.prevented=true;}},handled=context.mfHandleSyncTabKeydown(event);return {event,handled};}
+const scrollCountBeforeRefusal=scrolls.length,refused=key(tabNodes.mfSyncTabProfile,"End");assert.strictEqual(refused.handled,false);assert.strictEqual(refused.event.prevented,true);assert.strictEqual(tabNodes.mfSyncTabData.focused,0,"focus moved to a refused Sync tab");assert.strictEqual(scrolls.length,scrollCountBeforeRefusal,"refused Sync navigation scrolled away from the confirmation");assert(critical.focused&&critical.scrolled);
+critical.style.display="none";let keyboard=key(tabNodes.mfSyncTabProfile,"ArrowRight");assert(keyboard.handled&&keyboard.event.prevented);assert.strictEqual(tabNodes.mfSyncTabData.focused,1);assert.deepStrictEqual(scrolls.at(-1),[0,0]);
+keyboard=key(tabNodes.mfSyncTabData,"ArrowRight");assert(keyboard.handled&&keyboard.event.prevented);assert.strictEqual(tabNodes.mfSyncTabAi.focused,1,"ArrowRight did not wrap");
+keyboard=key(tabNodes.mfSyncTabProfile,"Home");assert(keyboard.handled&&keyboard.event.prevented);assert.strictEqual(tabNodes.mfSyncTabAi.focused,2);
+keyboard=key(tabNodes.mfSyncTabAi,"End");assert(keyboard.handled&&keyboard.event.prevented);assert.strictEqual(tabNodes.mfSyncTabData.focused,2);
+["Enter"," "].forEach(nativeKey=>{const native=key(tabNodes.mfSyncTabAi,nativeKey);assert.strictEqual(native.handled,false);assert.strictEqual(native.event.prevented,false);});
+assert.strictEqual(context.mfOpenSettingsSection("backup"),true);assert.strictEqual(tabNodes.mfSyncTabData["aria-selected"],"true");assert.deepStrictEqual(opened,[['backup',true]]);
 assert.strictEqual(context.mfUpdateSyncPendingStatus(),true);assert.strictEqual(badge.hidden,false);assert.strictEqual(tabNodes.mfSyncTabPersonalize.classList['has-pending'],true);
 ["genExport()","doCopy()","applySync()","p950SaveUserProfileFromUI()","p8CreateBackup()","p8RestoreBackup()"].forEach(handler=>assert(html.includes(`onclick="${handler}"`),`handler changed: ${handler}`));
 

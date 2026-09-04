@@ -4,9 +4,9 @@ Status: implementation candidate based on accepted 10.6 merge `d172ed429a2addb25
 
 ## Navigation and scroll contract
 
-The five existing primary IDs and inline `showScreen()` handlers remain unchanged. The sticky header measures its rendered height into `--mf-header-height`; safe-area padding, document scroll padding, and target scroll margins keep tabs visible and `scrollIntoView()` destinations below them. Each tab keeps an in-memory scroll offset. A first visit starts at zero; later visits restore the saved offset. Storage and browser history are untouched, and internal History/Basketball flows still call `showScreen()` before their target scroll.
+The five existing primary IDs and inline `showScreen()` handlers remain unchanged. Every successful primary selection opens its destination at document scroll position zero; no destination scroll offset is retained anywhere. The sticky header measures its rendered height into `--mf-header-height`; safe-area padding, document scroll padding, and target scroll margins keep tabs visible and later intentional `scrollIntoView()` destinations below them. Storage and browser history are untouched, and internal History/Basketball flows still call `showScreen()` before performing their later target scroll.
 
-Primary buttons use tablist/tab/tabpanel semantics with `aria-selected`, `aria-controls`, and roving `tabindex` state. Existing overlays retain higher z-indexes and their accepted body-scroll locks.
+Primary buttons use tablist/tab/tabpanel semantics with `aria-selected`, `aria-controls`, and roving `tabindex` state. ArrowLeft/ArrowRight wrap through adjacent tabs, Home/End select the first/last tab, and all handled keys activate only through `showScreen()` before focusing the selected tab. Native button Enter/Space behavior remains unchanged. Existing overlays retain higher z-indexes and their accepted body-scroll locks.
 
 Swipe navigation is single-touch, finishes within 700 ms, requires at least 70 px horizontal travel and 1.25× vertical dominance, ignores the outer 24 px on each browser edge, and stops at primary boundaries. It never prevents vertical scrolling. Interactive controls, editable content, labels, details, horizontally scrollable ancestors, internal Sync navigation, dialogs, onboarding, proposal/Habit overlays, Basketball courtside, and explicit `data-mf-swipe-exempt` regions are excluded. Successful gestures route only through `showScreen()`.
 
@@ -19,7 +19,7 @@ The four memory-only pages are:
 - Profile: identity, goals, units, week start, text size, gym labels, save, and profile-reset confirmation.
 - Data: backup/copy/restore/clear controls and confirmations, lifecycle health, and progression diagnostics.
 
-All accepted functional IDs and inline handlers remain unique and unchanged. Known settings sections route to their owning page. The first primary Sync visit starts on AI Sync; later internal selection remains in memory. Program, Habit, or Basketball pending review adds a Personalize badge without changing the active page. A visible restore, clear-data, or profile-reset confirmation refuses page navigation and returns focus/scroll to that panel.
+All accepted functional IDs and inline handlers remain unique and unchanged. Known settings sections route to their owning page. The first primary Sync visit starts on AI Sync; later internal selection remains in memory. Every successful internal selection returns the Sync screen to the top. ArrowLeft/ArrowRight and Home/End activate only through `mfSelectSyncPage()` and focus a destination tab only after that selection succeeds. Program, Habit, or Basketball pending review adds a Personalize badge without changing the active page. A visible restore, clear-data, or profile-reset confirmation refuses page navigation, does not focus the refused tab or reset the page to the top, and returns focus/scroll to that panel.
 
 ## Analytics derivation rules
 
@@ -28,12 +28,14 @@ Stats uses local calendar dates and one in-memory range: 7, 30 (default), 90 day
 - Training Load counts lifting sessions, lower-body lifting sessions, dedicated cardio, Basketball sessions/minutes, and valid logged work sets. It reuses resolved day classification and never combines heterogeneous loads into universal tonnage.
 - Lifting Progress keys evidence by stable exercise ID, includes today's saved workout, excludes weight-only sets from rep progression, and lists only currently active resolved exercises. Historical/archived records remain intact and readable elsewhere.
 - Weight and performance uses selected-range recorded-day averages/sample counts and descriptive overlap language only. No causal, medical, calorie, injury, or readiness claim is produced.
-- Habits call the accepted schedule-aware analyzer with the selected and prior date bounds. Only eligible opportunities count; weekly-count, activation/archive, and legacy eligibility rules remain owned by the Habit layer.
+- Habits call the accepted schedule-aware analyzer with the selected and prior finite date bounds. The All-history Stats path instead begins each Habit at its definition activation date or, for legacy-inferred definitions, its first recorded evidence; a legacy Habit with no evidence remains neutral. Archive dates and weekly-count semantics remain owned by the Habit layer. The established no-argument recent analyzer used by export and other consumers is unchanged.
 - Recovery averages sleep, energy, hunger, water, and protein only across recorded selected-range values and reports sample counts.
 - Recurring medication remains separate and retains the occurrence-based completed/skipped/unresolved denominator.
 - Basketball totals filter to the selected dates. Trend keys contain program ID, program version, planned session ID, stable drill ID, and tracking mode; skipped drills are neutral and a displayed trend requires at least two comparable exposures.
 
 Action Summary returns at most three deterministic observations. Insufficient evidence is explicit. It may describe frequency, progression-review evidence, concurrent lower-body/Basketball occurrence, scheduled Habit change, or weight-window movement; it never changes a program.
+
+Workout set rows remain text-backed and preserve the exact `{wt,reps,rir}` save contract. Empty or numeric load fields request a decimal keypad; a compact, non-persisted `ABC`/`123` control switches that field between text and decimal keyboard hints, and an existing nonnumeric value rerenders in text mode. This keeps bodyweight, assistance, band, range, and unit-bearing text practically enterable without sacrificing number-pad-first entry. Rep/count fields request an integer keypad; duration values request a decimal keypad after metric resolution. RIR remains the accepted native choice control. Rendering, focusing, or changing keyboard mode does not write storage.
 
 ## Compatibility and limitations
 

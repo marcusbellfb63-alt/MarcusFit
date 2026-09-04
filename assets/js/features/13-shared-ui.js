@@ -43,7 +43,12 @@ function mfSelectSyncPage(page,options){
   const critical=mfSyncVisibleCriticalPanel();if(critical&&page!==mfActiveSyncPage&&!(options&&options.force)){critical.tabIndex=-1;if(typeof critical.focus==="function")critical.focus({preventScroll:true});critical.scrollIntoView({behavior:"smooth",block:"nearest"});return false;}
   document.querySelectorAll("[data-mf-sync-page]").forEach(function(section){const selected=section.dataset.mfSyncPage===page;section.hidden=!selected;section.classList.toggle("active",selected);});
   document.querySelectorAll(".mf-sync-nav-btn").forEach(function(button){const selected=button.id==="mfSyncTab"+(page==="ai"?"Ai":page.charAt(0).toUpperCase()+page.slice(1));button.classList.toggle("active",selected);button.setAttribute("aria-selected",selected?"true":"false");button.tabIndex=selected?0:-1;});
-  mfActiveSyncPage=page;return true;
+  mfActiveSyncPage=page;if(!(options&&options.skipScroll)&&typeof window.scrollTo==="function")window.scrollTo(0,0);return true;
+}
+function mfHandleSyncTabKeydown(event){
+  const button=event&&event.currentTarget,page=button&&button.dataset&&button.dataset.mfSyncPageTarget,index=MF_SYNC_PAGES.indexOf(page);if(index<0)return false;
+  let next=-1;if(event.key==="ArrowRight")next=(index+1)%MF_SYNC_PAGES.length;else if(event.key==="ArrowLeft")next=(index+MF_SYNC_PAGES.length-1)%MF_SYNC_PAGES.length;else if(event.key==="Home")next=0;else if(event.key==="End")next=MF_SYNC_PAGES.length-1;else return false;
+  event.preventDefault();const target=MF_SYNC_PAGES[next];if(!mfSelectSyncPage(target))return false;const selected=document.querySelector('[data-mf-sync-page-target="'+target+'"]');if(selected&&typeof selected.focus==="function")selected.focus();return true;
 }
 function mfOnPrimarySyncOpen(){if(!mfSyncOpened){mfSyncOpened=true;mfSelectSyncPage("ai",{force:true});}mfUpdateSyncPendingStatus();}
 function mfOpenSettingsSection(key){const page=MF_SYNC_SECTION_PAGES[key];if(page&&!mfSelectSyncPage(page))return false;return mfSetSettingsSectionOpen(key,true);}
@@ -62,7 +67,7 @@ function mfUpdateProgramSettingsStatus(){
 }
 
 function mfInitSettingsDisclosures(){
-  document.querySelectorAll("[data-mf-sync-page-target]").forEach(function(button){button.addEventListener("click",function(){mfSelectSyncPage(button.dataset.mfSyncPageTarget);});});
+  document.querySelectorAll("[data-mf-sync-page-target]").forEach(function(button){button.addEventListener("click",function(){mfSelectSyncPage(button.dataset.mfSyncPageTarget);});button.addEventListener("keydown",mfHandleSyncTabKeydown);});
   document.querySelectorAll("[data-mf-settings-toggle]").forEach(function(toggle){
     toggle.addEventListener("click",function(){mfToggleSettingsSection(toggle.dataset.mfSettingsToggle);});
   });
@@ -75,7 +80,7 @@ function mfInitSettingsDisclosures(){
     observer.observe(proposalContainer,{childList:true,subtree:true,characterData:true});
   }
   ["p960SettingsStatus","mfBasketballProposalStatus"].forEach(function(id){const node=document.getElementById(id);if(node&&typeof MutationObserver==="function")new MutationObserver(mfUpdateSyncPendingStatus).observe(node,{childList:true,subtree:true,characterData:true,attributes:true});});
-  mfSelectSyncPage("ai",{force:true});
+  mfSelectSyncPage("ai",{force:true,skipScroll:true});
 }
 
 mfInitSettingsDisclosures();
