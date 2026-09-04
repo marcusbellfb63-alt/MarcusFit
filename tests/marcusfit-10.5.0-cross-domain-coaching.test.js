@@ -29,6 +29,13 @@ const { createContext } = require("./marcusfit-10.3.0-basketball-ai-sync.test.js
 const env = createContext();
 const c = env.context;
 const storage = env.localStorage;
+// Keep this accepted 14-day fixture deterministic as wall-clock time advances.
+const NativeDate = c.Date || Date;
+class FixtureDate extends NativeDate {
+  constructor(...args) { super(...(args.length ? args : ["2026-08-31T12:00:00.000Z"])); }
+  static now() { return new NativeDate("2026-08-31T12:00:00.000Z").getTime(); }
+}
+c.Date = FixtureDate;
 env.getElementById("exportRangeSelect").value = "14";
 
 const habitStore = c.p960BuildDefaultDefinitions("2026-08-01T12:00:00.000Z");
@@ -85,6 +92,7 @@ assert(basketballSource.includes("unsupported top-level field"));
 const historyEnv = createContext();
 const historyContext = historyEnv.context;
 const historyStorage = historyEnv.localStorage;
+historyContext.Date = FixtureDate;
 historyEnv.getElementById("exportRangeSelect").value = "14";
 const historicalDefinitions = historyContext.p960EmptyHabitStore("2026-08-01T12:00:00.000Z");
 historicalDefinitions.habits["habit-custom-history"] = {
@@ -128,7 +136,7 @@ assert.strictEqual((sparseExport.match(/=== AI RESPONSE \/ MUTATION CONTRACT ===
 
 const normalized = exported.replace(/^Generated: .*$/m, "Generated: <deterministic>");
 const metrics = { characters: normalized.length, lines: normalized.split("\n").length };
-assert.deepStrictEqual(metrics, { characters: sizeFixture.after.characters, lines: sizeFixture.after.lines });
+assert.deepStrictEqual(metrics, { characters: sizeFixture.after10_8.characters, lines: sizeFixture.after10_8.lines });
 assert(sizeFixture.after.characters < sizeFixture.before.characters);
 assert(sizeFixture.after.lines < sizeFixture.before.lines);
 assert.deepStrictEqual(sizeFixture.after.duplicatedGuidance, { habitContractBlocks: 0, basketballContractBlocks: 0, legacyFormattingBlocks: 0 });
