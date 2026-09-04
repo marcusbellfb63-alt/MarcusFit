@@ -62,6 +62,17 @@ const c = env.c, storage = env.localStorage;
 let n = 0;
 const proposal = changes => ({ schemaVersion: 1, proposalVersion: "10.4.0", proposalId: `habit-proposal-test-${++n}`, source: "ai_sync", summary: "Safe Habit update", rationale: "Bounded coaching evidence.", changes });
 const clear = () => storage.removeItem("mf-habit-proposal");
+const findByText = (node, text) => !node ? null : node.textContent === text ? node : (node.children || []).map(child => findByText(child, text)).find(Boolean) || null;
+
+// Personalize proposal affordance is live for every stored status, and the
+// pending review requires a clear two-stage dismissal before recording rejected.
+const reviewButton=env.getElementById("p960ProposalReviewButton"),pendingBadge=env.getElementById("mfSyncPersonalizePending");
+clear();c.p960UpdateSettingsStatus();assert(reviewButton.disabled&&reviewButton.textContent==="No Pending Habit Proposal");assert.strictEqual(pendingBadge.hidden,true);
+assert(c.p960ImportHabitProposal(proposal([{ action:"keep",habitId:"habit-a" }])).valid);assert(!reviewButton.disabled&&reviewButton.textContent==="Review Pending Habit Proposal");assert.strictEqual(pendingBadge.hidden,false);
+storage.resetWrites();assert(c.p960OpenHabitProposalReview());const dismiss=findByText(env.getElementById("p960ProposalReview"),"Dismiss Proposal");assert(dismiss,"explicit Dismiss Proposal action was not rendered");dismiss.onclick();assert.strictEqual(c.p960GetHabitProposal().status,"pending","first dismissal click changed proposal status");assert.strictEqual(storage.writes.length,0,"dismissal confirmation preview wrote storage");assert.strictEqual(dismiss.textContent,"Confirm Dismissal");dismiss.onclick();assert.strictEqual(c.p960GetHabitProposal().status,"rejected");assert(reviewButton.disabled&&reviewButton.textContent==="No Pending Habit Proposal");assert.strictEqual(pendingBadge.hidden,true,"Personalize Review badge remained after dismissal");
+let statusFixture=c.p960GetHabitProposal();statusFixture.status="applied";statusFixture.undoSnapshot={definitionRaw:null,appliedRaw:"{}",appliedFingerprint:"fixture"};storage.setItem("mf-habit-proposal",JSON.stringify(statusFixture));c.p960UpdateSettingsStatus();assert(!reviewButton.disabled&&reviewButton.textContent==="Review / Undo Habit Changes");assert.strictEqual(c.p960OpenHabitProposalReview(),true,"applied-with-Undo review action was dead");c.p960CloseHabitProposalReview();
+statusFixture.status="undone";statusFixture.undoSnapshot=null;storage.setItem("mf-habit-proposal",JSON.stringify(statusFixture));c.p960UpdateSettingsStatus();assert(reviewButton.disabled&&reviewButton.textContent==="No Pending Habit Proposal");assert.strictEqual(pendingBadge.hidden,true);
+clear();c.p960UpdateSettingsStatus();assert(reviewButton.disabled&&reviewButton.textContent==="No Pending Habit Proposal");
 
 // Valid actions and import-only immutable expectations.
 let imported = c.p960ImportHabitProposal(proposal([{ action: "modify", habitId: "habit-a", fields: { name: "Water Plus", target: { type: "number", value: 72, unit: "oz", display: "72 oz" } } }]));

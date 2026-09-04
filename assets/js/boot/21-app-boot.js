@@ -8,6 +8,7 @@ const MF_PRIMARY_SCREENS=["program","log","history","analytics","export"];
 let mfActivePrimaryScreen="log",mfPrimaryTouch=null;
 
 function mfSyncHeaderOffset(){const header=document.querySelector(".header");if(header)document.documentElement.style.setProperty("--mf-header-height",header.offsetHeight+"px");}
+function mfSetDailyLogSaveBarVisibility(screen){const bar=document.getElementById("p6StickyBar");if(bar)bar.hidden=screen!=="log";}
 
 function showScreen(n){
   if(MF_PRIMARY_SCREENS.indexOf(n)<0)return false;
@@ -18,7 +19,7 @@ function showScreen(n){
   if(n==="history"){p7ApplyFilters();}
   if(n==="analytics"){p7RenderAnalytics();}
   if(n==="export"){if(typeof mfOnPrimarySyncOpen==="function")mfOnPrimarySyncOpen();updateExportMeta();mfRenderLifecycleHealth();p9RenderCoachPrefs();p950RenderUserProfile();p954RenderProgramPersonalization();const ds=document.getElementById("p945DiagSection");if(ds&&ds.classList.contains("open"))p945RenderDiag();}
-  mfActivePrimaryScreen=n;if(typeof window.scrollTo==="function")window.scrollTo(0,0);return true;
+  mfActivePrimaryScreen=n;mfSetDailyLogSaveBarVisibility(n);if(typeof window.scrollTo==="function")window.scrollTo(0,0);return true;
 }
 
 function mfHandlePrimaryTabKeydown(event){
@@ -40,7 +41,7 @@ function mfPrimarySwipeExcluded(target){
   return false;
 }
 function mfInitPrimaryNavigation(){
-  mfSyncHeaderOffset();if(typeof ResizeObserver==="function"){const header=document.querySelector(".header");if(header)new ResizeObserver(mfSyncHeaderOffset).observe(header);}window.addEventListener("resize",mfSyncHeaderOffset);
+  mfSyncHeaderOffset();mfSetDailyLogSaveBarVisibility(mfActivePrimaryScreen);if(typeof ResizeObserver==="function"){const header=document.querySelector(".header");if(header)new ResizeObserver(mfSyncHeaderOffset).observe(header);}window.addEventListener("resize",mfSyncHeaderOffset);
   document.querySelectorAll(".tab-btn").forEach(function(button){button.addEventListener("keydown",mfHandlePrimaryTabKeydown);});
   document.addEventListener("touchstart",function(event){if(event.touches.length!==1||mfPrimarySwipeExcluded(event.target)){mfPrimaryTouch=null;return;}const touch=event.touches[0];mfPrimaryTouch={startX:touch.clientX,startY:touch.clientY,startedAt:Date.now(),touchCount:1,width:window.innerWidth,screen:mfActivePrimaryScreen};},{passive:true});
   document.addEventListener("touchend",function(event){if(!mfPrimaryTouch||event.changedTouches.length!==1){mfPrimaryTouch=null;return;}const touch=event.changedTouches[0],target=mfPrimarySwipeTarget(Object.assign({},mfPrimaryTouch,{endX:touch.clientX,endY:touch.clientY,duration:Date.now()-mfPrimaryTouch.startedAt}));mfPrimaryTouch=null;if(target)showScreen(target);},{passive:true});

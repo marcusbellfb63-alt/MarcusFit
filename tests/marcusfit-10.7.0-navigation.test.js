@@ -5,6 +5,7 @@ const vm = require("vm");
 
 const root = path.resolve(__dirname, "..");
 const source = fs.readFileSync(path.join(root, "assets/js/boot/21-app-boot.js"), "utf8");
+const sharedSource = fs.readFileSync(path.join(root, "assets/js/features/13-shared-ui.js"), "utf8");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "assets/css/marcusfit.css"), "utf8");
 const start = source.indexOf("const MF_PRIMARY_SCREENS=");
@@ -13,14 +14,23 @@ const end = source.indexOf(initCall, start)+initCall.length;
 
 function node(id){
   const classes=new Set();
-  return {id,focused:0,attributes:{},listeners:{},classList:{add:k=>classes.add(k),remove:k=>classes.delete(k),toggle(k,on){on?classes.add(k):classes.delete(k);},contains:k=>classes.has(k)},setAttribute(k,v){this.attributes[k]=v;},addEventListener(k,fn){this.listeners[k]=fn;},focus(){this.focused++;}};
+  return {id,focused:0,attributes:{},listeners:{},classList:{add:k=>classes.add(k),remove:k=>classes.delete(k),toggle(k,on){if(arguments.length===1){classes.has(k)?classes.delete(k):classes.add(k);}else on?classes.add(k):classes.delete(k);},contains:k=>classes.has(k)},setAttribute(k,v){this.attributes[k]=v;},addEventListener(k,fn){this.listeners[k]=fn;},focus(){this.focused++;}};
 }
 const screens=Object.fromEntries(["program","log","history","analytics","export"].map(id=>[id,node("screen-"+id)]));
 const tabs=Object.fromEntries(["program","log","history","analytics","export"].map(id=>[id,node("tab-"+id)]));
-const gymRow=node("gymRow"),scrolls=[],documentListeners={};
-const document={documentElement:{scrollTop:0,style:{setProperty(){}}},body:{},querySelectorAll(selector){return selector===".screen"?Object.values(screens):selector===".tab-btn"?Object.values(tabs):[];},querySelector(){return null;},getElementById(id){if(id==="gymRow")return gymRow;if(id==="p945DiagSection")return null;return Object.values(screens).concat(Object.values(tabs)).find(item=>item.id===id)||null;},addEventListener(name,handler){documentListeners[name]=handler;}};
+const gymRow=node("gymRow"),stickyBar=node("p6StickyBar"),scrolls=[],documentListeners={};
+stickyBar.hidden=false;
+const p6Sections=Object.fromEntries(["metrics","habits","workout","basketball","notes"].map(id=>[id,node("p6sec-"+id)]));
+const document={documentElement:{scrollTop:0,style:{setProperty(){}}},body:{},querySelectorAll(selector){return selector===".screen"?Object.values(screens):selector===".tab-btn"?Object.values(tabs):[];},querySelector(){return null;},getElementById(id){if(id==="gymRow")return gymRow;if(id==="p6StickyBar")return stickyBar;if(id==="p945DiagSection")return null;return Object.values(screens).concat(Object.values(tabs),Object.values(p6Sections)).find(item=>item.id===id)||null;},addEventListener(name,handler){documentListeners[name]=handler;}};
 const context={document,window:{scrollY:842,innerWidth:390,scrollTo(x,y){scrolls.push([x,y]);},addEventListener(){}},renderProgram(){},p7ApplyFilters(){},p7RenderAnalytics(){},mfOnPrimarySyncOpen(){},updateExportMeta(){},mfRenderLifecycleHealth(){},p9RenderCoachPrefs(){},p950RenderUserProfile(){},p954RenderProgramPersonalization(){}};
 vm.createContext(context);vm.runInContext(source.slice(start,end),context);
+
+// Fresh markup starts with every Daily Log disclosure collapsed. User-open state
+// remains memory-only across primary navigation, while the workout task flow can open it.
+["metrics","habits","workout","basketball","notes"].forEach(id=>assert(!new RegExp('class="p6-section open" id="p6sec-'+id+'"').test(html),id+" starts open"));
+vm.runInContext(sharedSource.slice(sharedSource.indexOf("function p6Toggle(key)"),sharedSource.indexOf("// Metrics badge")),context);
+context.p6Toggle("metrics");assert(p6Sections.metrics.classList.contains("open"));context.showScreen("program");context.showScreen("log");assert(p6Sections.metrics.classList.contains("open"),"user-open disclosure state was lost across navigation");
+let deliberateChange=null;const disclosureContext={document:{getElementById(id){return id==="p6sec-workout"?p6Sections.workout:null;},addEventListener(name,handler){if(name==="change")deliberateChange=handler;}},setTimeout(){},p6UpdateWorkoutBadge(){}};vm.createContext(disclosureContext);const changeStart=sharedSource.indexOf('document.addEventListener("change",e=>{'),changeEnd=sharedSource.indexOf("// Initial badge updates on load",changeStart);vm.runInContext(sharedSource.slice(changeStart,changeEnd),disclosureContext);deliberateChange({target:{id:"woDaySelect",value:"0",matches(){return false;}}});assert(p6Sections.workout.classList.contains("open"),"selecting a workout day did not deliberately open its section");
 
 const target = input => context.mfPrimarySwipeTarget(Object.assign({touchCount:1,duration:250,width:390,startX:150,startY:300,endY:305,screen:"log"},input));
 assert.strictEqual(target({endX:70}), "history", "left swipe did not move forward");
@@ -35,7 +45,7 @@ assert.strictEqual(target({screen:"program",endX:230}), null, "crossed first-tab
 assert.strictEqual(target({screen:"export",endX:60}), null, "crossed last-tab boundary");
 
 // Every successful primary route, including revisits, synchronously opens at the top.
-["program","log","history","analytics","export","program"].forEach(screen=>{context.window.scrollY=999;assert.strictEqual(context.showScreen(screen),true);assert.deepStrictEqual(scrolls.at(-1),[0,0]);});
+["program","log","history","analytics","export","program"].forEach(screen=>{context.window.scrollY=999;assert.strictEqual(context.showScreen(screen),true);assert.deepStrictEqual(scrolls.at(-1),[0,0]);assert.strictEqual(stickyBar.hidden,screen!=="log","Save Day bar visibility was wrong on "+screen);});
 assert(!source.includes("mfPrimaryScrollPositions")&&!source.includes("mfPrimaryVisited"),"obsolete scroll restoration state remains");
 
 function key(button,key){const event={key,currentTarget:button,prevented:false,preventDefault(){this.prevented=true;}};const handled=button.listeners.keydown(event);return {event,handled};}
@@ -54,6 +64,9 @@ assert(source.includes("button,a,input,select,textarea,label") && source.include
 assert(!/localStorage\.|sessionStorage\.|history\.(?:pushState|replaceState)/.test(source.slice(start, source.indexOf("// 9.4.8.8"))), "primary navigation persists or mutates navigation state");
 assert.strictEqual((html.match(/class="tab-btn[^\"]*"[^>]*role="tab"/g)||[]).length,5);assert.strictEqual((html.match(/role="tabpanel" aria-labelledby="tab-/g)||[]).length,5);
 assert(html.includes('role="tablist" aria-label="Primary navigation"'));
+assert(/id="tab-export"[^>]*onclick="showScreen\('export'\)"[^>]*>[\s\S]*?Tools<\/button>/.test(html),"primary export route was not presented as Tools");
+assert(!/>\s*Sync\s*<\/button>/.test((html.match(/id="tab-export"[\s\S]*?<\/button>/)||[])[0]||""),"primary tab still visibly says Sync");
+assert(css.includes(".p6-sticky-bar[hidden]{display:none!important;}"),"hidden Save Day bar could still reserve space or intercept taps");
 assert(css.includes("html,body{overflow-x:clip;}"), "horizontal clipping must not create a sticky-breaking scroll container");
 
 console.log("MarcusFit 10.7.0 primary navigation/swipe: PASS");

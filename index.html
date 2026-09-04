@@ -89,7 +89,7 @@
     <button class="tab-btn active" id="tab-log" role="tab" aria-selected="true" aria-controls="screen-log" tabindex="0" onclick="showScreen('log')"><span class="tab-icon">🏋️</span>Daily Log</button>
     <button class="tab-btn" id="tab-history" role="tab" aria-selected="false" aria-controls="screen-history" tabindex="-1" onclick="showScreen('history')"><span class="tab-icon">📅</span>History</button>
     <button class="tab-btn" id="tab-analytics" role="tab" aria-selected="false" aria-controls="screen-analytics" tabindex="-1" onclick="showScreen('analytics')"><span class="tab-icon">📊</span>Stats</button>
-    <button class="tab-btn" id="tab-export" role="tab" aria-selected="false" aria-controls="screen-export" tabindex="-1" onclick="showScreen('export')"><span class="tab-icon">📤</span>Sync</button>
+    <button class="tab-btn" id="tab-export" role="tab" aria-selected="false" aria-controls="screen-export" tabindex="-1" onclick="showScreen('export')"><span class="tab-icon">📤</span>Tools</button>
   </div>
 </div>
 
@@ -127,7 +127,7 @@
   </div>
 
   <!-- ── SECTION 1: Daily Metrics ── -->
-  <div class="p6-section open" id="p6sec-metrics">
+  <div class="p6-section" id="p6sec-metrics">
     <div class="p6-section-header" onclick="p6Toggle('metrics')">
       <div class="p6-section-header-left">
         <span class="p6-section-icon">&#9878;&#65039;</span>
@@ -184,7 +184,7 @@
   </div>
 
   <!-- ── SECTION 2: Daily Habits ── -->
-  <div class="p6-section open" id="p6sec-habits">
+  <div class="p6-section" id="p6sec-habits">
     <div class="p6-section-header" onclick="p6Toggle('habits')">
       <div class="p6-section-header-left">
         <span class="p6-section-icon">&#129504;</span>
@@ -202,7 +202,7 @@
   </div>
 
   <!-- ── SECTION 3: Workout ── -->
-  <div class="p6-section open" id="p6sec-workout">
+  <div class="p6-section" id="p6sec-workout">
     <div class="p6-section-header" onclick="p6Toggle('workout')">
       <div class="p6-section-header-left">
         <span class="p6-section-icon">&#127947;&#65039;</span>
@@ -358,7 +358,7 @@
   </div>
 
   <!-- SECTION 5: Notes -->
-  <div class="p6-section open" id="p6sec-notes">
+  <div class="p6-section" id="p6sec-notes">
     <div class="p6-section-header" onclick="p6Toggle('notes')">
       <div class="p6-section-header-left">
         <span class="p6-section-icon">&#128221;</span>
@@ -641,7 +641,7 @@
     <div class="info-box">Manage active and archived habit definitions. Manager edits remain drafts until you choose <strong>Save Changes</strong>.</div>
     <div class="mf-settings-actions">
       <button class="p9510-link p960-manage-link" type="button" onclick="p960OpenHabitManager()">Manage Habits</button>
-      <button class="p9510-link p960-manage-link" type="button" onclick="p960OpenHabitProposalReview()">Review Habit Proposal</button>
+      <button class="p9510-link p960-manage-link" id="p960ProposalReviewButton" type="button" onclick="p960OpenHabitProposalReview()">No Pending Habit Proposal</button>
     </div>
   </div>
   </section>

@@ -54,7 +54,7 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 
 ## 10.7 navigation, Sync, and analytics boundary
 
-- `boot/21-app-boot.js` owns primary-tab selection, the deterministic top reset, and conservative swipe routing through the live `showScreen()` path; it retains no per-tab scroll state.
+- `boot/21-app-boot.js` owns primary-tab selection (including the user-facing Tools label on the unchanged `export` route), Daily Log-only mobile Save Day visibility, the deterministic top reset, and conservative swipe routing through the live `showScreen()` path; it retains no per-tab scroll or disclosure state.
 - `features/13-shared-ui.js` owns memory-only Sync internal-page selection, critical-confirmation blocking, section routing, and pending review indication.
 - `features/15-stats.js` owns the shared calendar range and read-only action/training/progression/weight/recovery derivations; Habits, recurring adherence, and Basketball retain their domain semantics through accepted wrappers.
 - No storage key/schema, script, module, backend, export contract, or core Sync change is introduced.

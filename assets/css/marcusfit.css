@@ -1141,3 +1141,6 @@ html{scroll-padding-top:calc(var(--mf-header-height,96px) + 12px);}
 .p7-action-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:var(--mf-font-sm);}.p7-action-row:last-child{border-bottom:0}.p7-action-row span,.p7-muted{color:var(--muted);font-size:var(--mf-font-xs);line-height:1.45;}
 .p7-recovery-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}.p7-recovery-grid>*:last-child:nth-child(odd){grid-column:1/-1;}
 @media(max-width:350px){.p7-range-control{align-items:stretch;flex-direction:column}.p7-range-control select{width:100%;min-width:0}.p7-action-row{flex-direction:column;gap:2px;}}
+
+/* MarcusFit 10.7.0: Daily Log-only mobile Save Day bar */
+.p6-sticky-bar[hidden]{display:none!important;}
