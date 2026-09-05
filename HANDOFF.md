@@ -2,13 +2,25 @@
 
 ## Current implementation candidate
 
-MarcusFit 10.7.0 Navigation, Sync IA, and Analytics Maturation starts from the exact accepted 10.6.0 merge commit `d172ed429a2addb259a0dce622d9c2d94429816e`. The accepted 10.6 QA-approved implementation head is `cef5d39b3adf939ba7d9c59d6d6e250bcce7cbcd`.
+MarcusFit 10.8.0 Smarter Lifting starts from the exact accepted 10.7.0 production merge `1de89a40c810919d1edf831d1af4d69b2d4b46d7`. The accepted 10.7 QA-approved implementation head is `2f553b756309b42494bed34e00f054891e18e78d`.
 
-10.7.0 is the new implementation candidate and is not accepted. Primary Tools and internal Sync tablists use standard horizontal keyboard navigation; every successful destination opens at the top while later intentional History/Basketball target scrolling remains authoritative. Daily Log disclosures start collapsed, its mobile Save Day bar appears only on that primary screen, and Habit proposal dismissal is explicit, confirmed, and status-aware. Stats All-history Habit eligibility is bounded by activation/first legacy evidence and archive dates, and every text-backed workout load row requests the decimal keypad by default with an `ABC`/`123` escape hatch. Navigation and analytics remain read-only. Automated and localhost responsive-browser validation must pass; ChatGPT review and Marcus's targeted real-iPhone recheck remain pending.
+10.8.0 is the new implementation candidate and is not accepted. The final correction layer now derives context-comparable, stable-ID lifting recommendations from prescribed-set completion, rep/duration targets, RIR coverage, recent comparable performance, exact load safety, and existing program constraints. Results distinguish load progression, rep progression, repeat, maintain, conservative reset, and insufficient evidence. Every visible recommendation separates its action, evidence reason, and confidence. Numeric arithmetic is limited to exact compatible load formats; textual/ranged/bodyweight/mixed setups remain qualitative. Recommendations are read-only and blank inputs are never filled from a derived target; exact saved/manual values continue to win.
 
-Progression comparisons require matching program ID/version, planned session ID, stable drill ID, and tracking mode. Skips remain neutral. Stored historical names, targets, modes, results, and snapshots remain authoritative. See `docs/architecture/basketball-10.6-audit.md` and `tests/marcusfit-10.6.0-manual-qa.md`.
+10.8 adds no storage key, schema field, migration, runtime script, or dependency. It does not change base `P`, exercise IDs, accepted Releases, core Sync, proposal behavior, or historical workout identity. See `docs/architecture/lifting-10.8-audit.md` and `tests/marcusfit-10.8.0-manual-qa.md`.
+
+## 10.8 candidate validation
+
+- All 18 existing and focused Node test files pass, including workout-history identity, proposal, AI Sync, backup/restore, storage compatibility, navigation, analytics, habits, and Basketball regressions.
+- All 22 classic runtime scripts pass `node --check`; the architecture inventory still reports 22 runtime files in the accepted order.
+- Localhost responsive browser QA passed at 320, approximately 390, 480, and 1024 px across Compact, Standard, Large, and Extra Large text. No tested combination produced page/card overflow or hid Save Day.
+- Browser scenarios passed for exact numeric load, bodyweight/band, assisted load with lower-is-progress direction, duration, free-text load, incomplete sets, missing/N/A RIR, HOME/PARTIAL context, save, post-save recalculation, and edit-in-place history identity.
+- The accepted `P` hash remains `652a04c37928f232490d37ce7e709dc16a25a8c5f408d679bce046b2f6a2d7d4`; all 63 exercise IDs remain at hash `7c333a9b7fb4639cafd0900a96f1d4ba58b8d6b8fb5ecc23f335e7ee041d0e2b`.
+- Core Sync remains byte-identical at SHA-256 `25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e`; the accepted Releases tree remains Git object `d1c1e8512257c380aa4ef35840c86a796171390e`.
+- `git diff --check` passes. No real-iPhone result is claimed; the targeted device checklist remains required before acceptance.
 
 ## Previous accepted state
+
+MarcusFit 10.7.0 Navigation, Sync IA, and Analytics Maturation is accepted and merged at `1de89a40c810919d1edf831d1af4d69b2d4b46d7`; its QA-approved implementation head is `2f553b756309b42494bed34e00f054891e18e78d`. Primary Tools and internal Sync tablists use standard horizontal keyboard navigation; successful destinations open at the top while later intentional History/Basketball target scrolling remains authoritative. Daily Log disclosures start collapsed, its mobile Save Day bar appears only on that primary screen, Habit proposal dismissal is explicit and status-aware, analytics remain read-only, and workout load inputs retain raw text with decimal-keyboard-first `ABC`/`123` switching.
 
 MarcusFit 10.6.0 Basketball UX and progression maturation is accepted and merged at `d172ed429a2addb259a0dce622d9c2d94429816e`; its QA-approved implementation head is `cef5d39b3adf939ba7d9c59d6d6e250bcce7cbcd`. It adds a readable next-session surface, resolved program inspection, one-drill courtside execution, an explicit review gate, post-save metric-specific summary, historical comparison context, and deterministic Basketball progression. It adds no storage key or schema field, retains the accepted 22-script order, and does not change core `assets/js/sync/12-ai-sync.js`.
 
@@ -112,5 +124,6 @@ Protected values at acceptance:
 10.4.0 — Habits-specific AI Sync
 10.5.0 — Full cross-domain coaching review
 10.6.0 — Basketball UX and progression maturation — Accepted
-10.7.0 — Navigation, Sync IA, and analytics maturation — Candidate
+10.7.0 — Navigation, Sync IA, and analytics maturation — Accepted
+10.8.0 — Smarter Lifting — Candidate
 ```

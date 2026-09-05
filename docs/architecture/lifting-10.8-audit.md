@@ -46,3 +46,22 @@ The 9.5.9 correction layer classifies duration, bodyweight, assisted, and ordina
 10.8 will extend the final correction layer with a derived recommendation result containing a compatibility `status`, a small action outcome, a concise action, a separate evidence reason, confidence, and comparable-session counts. Comparable history requires the same stable exercise ID and, whenever stored identity is available, the same gym and planned day. Legacy records lacking the newer optional identity fields remain eligible by stable ID.
 
 Load arithmetic is allowed only for a single exact numeric load format with compatible units/setup across the completed working sets. Ranges, bodyweight/bands, machine labels, mixed formats, or otherwise ambiguous text receive qualitative rep/setup guidance. Required-set completion and programmed RIR evidence gate load progression. Derived recommendations do not write storage and do not prefill a blank field; exact saved/manual values remain the only field values carried into history.
+
+## Final recommendation rules
+
+| Evidence | Outcome | Conservative fallback |
+| --- | --- | --- |
+| No completed comparable set or no parseable target | Insufficient evidence | Log or repeat a conservative baseline. |
+| Fewer completed sets than prescribed | Repeat target | No load increase, even when the logged set reached the top. |
+| Programmed RIR exists but any prescribed-set RIR is missing or `N/A` | Repeat target | Require complete RIR evidence before load progression. |
+| All prescribed values are inside, but not at the top of, the rep/duration range | Progress reps/duration | Keep the current setup and build within the range. |
+| Any set is below range or RIR is tighter than target | Repeat or conservative reset | Severe underperformance or a greater-than-20% same-load rep decline yields reset/reduce guidance. |
+| Complete top-range result with exact, uniform, compatible numeric load and adequate RIR | Progress load | Use the smaller of the accepted default step and a plausible recent observed step, bounded by the programmed ceiling. |
+| Apparent comparable load jump exceeds 20% or 10 units | Repeat target | Require one confirming session instead of compounding the jump. |
+| Complete top-range result at the programmed ceiling | Confirm, then maintain/review | Two qualifying saved sessions are required before ceiling-review guidance. |
+| Complete top-range assisted result | Progress load by lowering assistance | Never invert assistance direction; respect the programmed hard end. |
+| Bodyweight, band, range, machine-label, mixed, or other ambiguous load | Progress reps/setup qualitatively | Never rewrite or perform arithmetic on the raw label. |
+| Duration movement at the top of its range | Maintain | No lifting-load progression is inferred. |
+| Comparable historical load exceeds a newly lowered current ceiling | Conservative target reset | Rebuild from the current Program target; historical strings remain unchanged. |
+
+Confidence is `low` when evidence is absent, partial, RIR-incomplete, mixed, or requires jump confirmation; `medium` for safe repeat/reset decisions and qualitative text-load guidance; and `high` for complete within-range, duration-maintain, exact numeric progression, or confirmed ceiling decisions.
