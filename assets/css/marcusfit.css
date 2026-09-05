@@ -1144,3 +1144,10 @@ html{scroll-padding-top:calc(var(--mf-header-height,96px) + 12px);}
 
 /* MarcusFit 10.7.0: Daily Log-only mobile Save Day bar */
 .p6-sticky-bar[hidden]{display:none!important;}
+
+/* MarcusFit 10.8.0: explainable, display-only lifting recommendations */
+.p1080-recommendation{margin-top:7px;padding-top:7px;border-top:1px solid var(--border);overflow-wrap:anywhere;}
+.p1080-action{color:var(--text);font-size:var(--mf-font-sm);font-weight:750;line-height:1.4;}
+.p1080-reason{margin-top:3px;color:var(--muted);font-size:var(--mf-font-xs);line-height:1.45;}
+.p1080-confidence{margin-top:5px;color:var(--accent2);font-size:var(--mf-font-xs);font-weight:700;text-transform:capitalize;}
+.p5-hist-toggle{appearance:none;width:100%;border:0;background:transparent;color:inherit;font-family:inherit;text-align:left;}
