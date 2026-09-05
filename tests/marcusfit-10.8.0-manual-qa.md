@@ -58,6 +58,8 @@ Repeat the lifting checks at 320 px, approximately 390 px, 480 px, and desktop w
 - Open an existing historical day, edit the workout in place, and save. Confirm the same date/session remains one history entry rather than creating a duplicate.
 - Confirm the post-save recommendation changes from the edited evidence and no other date changes.
 - With one qualifying ceiling session yesterday, fill but do not save today's second session. Confirm normal Next session guidance still sees one stored ceiling session. Save today and confirm the post-save review immediately changes to maintain/ceiling review with exactly two qualifying sessions.
+- Navigate away after that save, return to Workout, and open the visible Next session card. Confirm it identifies today's saved date and agrees with the post-save review: Maintain / Review with two qualifying ceiling sessions.
+- Change today's visible form values without saving, navigate away and return, and confirm the Next session card still derives from the last saved rows rather than the unsaved edits.
 - Re-save and edit today's session. Confirm the date-key record is replaced, the qualifying count is recalculated, and the current record is never counted twice.
 - Edit a backdated workout with both earlier and later comparable history. Confirm the result excludes the edited record itself and compares only with the proper preceding session.
 - Generate AI Export and `mfProgressionDebug()` after saving today. Confirm both name today's saved record as latest evidence and report the same ceiling count as the post-save review.

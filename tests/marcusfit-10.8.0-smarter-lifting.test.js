@@ -29,7 +29,7 @@ const context={
   p5ParseRepRange:parseRange,p5ParseRir:parseRir,p9IsCardio(load,rir){return /\b(min|sec|bpm|hr)\b/i.test(load||"")||rir==="—";},
   p9GetTargetLoadRangeForExercise(id){return exercises[id]?loadRange(exercises[id].load):null;},
   p9GetExerciseHistory(){return[];},p9ParseLoad(){},p9GetTopActualLoad(){},p5FormatLastSets(){},p9GetBestExercisePerformance(){},p9BuildSuggestion(){},p9GetProgressionStatus(){},p9BadgeHTML(){},p9BuildProgressionExport(){},p5GetLastEntry(){},p9ComputePrefill(){},p5Toggle(){},
-  renderWoExercises(){},p949BuildWorkoutReview(){return{insufficient:false,wins:[],watch:[],next:[]};},p9489GetRecentExerciseSignals(){return{hasData:false};},p9489AnalyzeExerciseRotation(){return{candidates:[],candidatesTotal:0};},p945RenderDiag(){},genExport(){return"";},getSafeDayForLog(){return null;}
+  renderWoExercises(){},p85ExecuteSave(){},p949BuildWorkoutReview(){return{insufficient:false,wins:[],watch:[],next:[]};},p9489GetRecentExerciseSignals(){return{hasData:false};},p9489AnalyzeExerciseRotation(){return{candidates:[],candidatesTotal:0};},p945RenderDiag(){},genExport(){return"";},getSafeDayForLog(){return null;}
 };
 context.window=context;vm.createContext(context);vm.runInContext(source,context,{filename:"18-progression-corrections.js"});
 
@@ -82,7 +82,8 @@ save("2026-09-03",ceiling,sets("30",10),"partial",9);
 const unsavedEvaluation={dateKey:"day-2026-09-04",subjectStored:false,source:"form"};
 assert.strictEqual(recommend(ceiling,sets("30",10),unsavedEvaluation).status,"capped_hold","unfinished current form was counted as saved ceiling evidence");
 assert.strictEqual(context.p9GetExerciseHistory(ceiling.id,{includeToday:true}).length,1,"unsaved current form entered saved history");
-assert.match(context.p5Block(ceiling.id,ceiling.reps,ceiling.rir),/One more qualifying ceiling session is required/);
+const beforeSaveCard=context.p5Block(ceiling.id,ceiling.reps,ceiling.rir);
+assert.match(beforeSaveCard,/Sep 3/);assert.doesNotMatch(beforeSaveCard,/Sep 4/);assert.match(beforeSaveCard,/One more qualifying ceiling session is required/);
 const unsavedReview=context.p949BuildWorkoutReview({gym:"partial",dayIdx:"9",exercises:{ceiling:{sets:sets("30",10)}}});
 assert.match(unsavedReview.next.join("\n"),/One more qualifying ceiling session is required/,"unsaved review counted current form as saved evidence");
 save("2026-09-04",ceiling,sets("30",10),"partial",9);
@@ -90,20 +91,29 @@ const savedEvaluation={dateKey:"day-2026-09-04",subjectStored:true,source:"post_
 const savedCeiling=recommend(ceiling,sets("30",10),savedEvaluation);
 assert.strictEqual(savedCeiling.status,"ceiling_update","saved current workout was omitted from ceiling evidence");
 assert.strictEqual(savedCeiling.evidence.qualifyingCeilingSessions,2,"saved current workout was not counted exactly once");
+const savedCard=context.p5Block(ceiling.id,ceiling.reps,ceiling.rir);
+assert.match(savedCard,/MAINTAIN \/ REVIEW/);assert.match(savedCard,/Sep 4/);assert.match(savedCard,/Two qualifying ceiling sessions are recorded/);
+const unsavedChangedRows=sets("20",8);assert.strictEqual(unsavedChangedRows[0].wt,"20");
+const unchangedSavedCard=context.p5Block(ceiling.id,ceiling.reps,ceiling.rir);assert.strictEqual(unchangedSavedCard,savedCard,"unsaved form changes entered the stored Next session card");
 const review=context.p949BuildWorkoutReview({gym:"partial",dayIdx:"9",exercises:{ceiling:{sets:sets("30",10)}}});
 assert.match(review.next.join("\n"),/Two qualifying ceiling sessions are recorded/);
+const ceilingKeyCount=Object.keys(localStorage).filter(key=>key.endsWith("-wo")).length;
 save("2026-09-04",ceiling,sets("30",9),"partial",9);
 assert.strictEqual(context.p9GetExerciseHistory(ceiling.id,{includeToday:true}).length,2,"same-date edit duplicated workout history");
 assert.notStrictEqual(recommend(ceiling,sets("30",9),savedEvaluation).status,"ceiling_update","same-date edit retained stale qualifying evidence");
+const editedCard=context.p5Block(ceiling.id,ceiling.reps,ceiling.rir);assert.match(editedCard,/PROGRESS REPS/);assert.match(editedCard,/Sep 4/);assert.strictEqual(Object.keys(localStorage).filter(key=>key.endsWith("-wo")).length,ceilingKeyCount);
 save("2026-09-04",ceiling,sets("30",10),"partial",9);
 assert.strictEqual(recommend(ceiling,sets("30",10),savedEvaluation).evidence.qualifyingCeilingSessions,2,"re-saving today double-counted ceiling evidence");
-assert.match(context.p9BuildProgressionExport(ceiling),/Outcome: maintain[\s\S]*Two qualifying ceiling sessions are recorded/);
+const finalCard=context.p5Block(ceiling.id,ceiling.reps,ceiling.rir);assert.match(finalCard,/Two qualifying ceiling sessions are recorded/);
+const ceilingExport=context.p9BuildProgressionExport(ceiling);assert.match(ceilingExport,/Outcome: maintain[\s\S]*Two qualifying ceiling sessions are recorded/);
 const ceilingDebug=context.mfProgressionDebug(ceiling.id);assert.strictEqual(ceilingDebug.latestSavedDate,"day-2026-09-04");assert.strictEqual(ceilingDebug.evidence.qualifyingCeilingSessions,2);
+assert.strictEqual(ceilingDebug.status,"ceiling_update");assert.match(review.next.join("\n"),/Maintain and review the programmed ceiling/);assert.match(finalCard,/Maintain and review the programmed ceiling/);assert.match(ceilingExport,/Recommendation: Maintain and review the programmed ceiling/);
 
 const backdated=install({id:"backdated",name:"Backdated Press",sets:3,reps:"8–10",load:"20–100 lb",rir:"2"},"home",9);
 save("2026-08-01",backdated,sets("60 lb",10),"home",9);save("2026-08-15",backdated,sets("20 lb",10),"home",9);save("2026-08-08",backdated,sets("70 lb",10),"home",9);
 const backdatedRec=recommend(backdated,sets("70 lb",10),{dateKey:"day-2026-08-08",subjectStored:true,source:"post_save"});
 assert.strictEqual(backdatedRec.outcome,"progress_load","backdated edit compared against itself or later history instead of the preceding session");
+context.tDate=new FixtureDate("2026-08-08T12:00:00");const backdatedCard=context.p5Block(backdated.id,backdated.reps,backdated.rir);assert.match(backdatedCard,/Aug 8/);assert.match(backdatedCard,/Try 75 lb/);context.tDate=new FixtureDate();
 
 const text=install({id:"text",name:"Band Row",sets:3,reps:"10–15",load:"Band",rir:"2"},"home",3);
 const textRec=recommend(text,sets("Bodyweight + red band",15));

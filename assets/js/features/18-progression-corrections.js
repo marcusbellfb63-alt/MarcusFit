@@ -585,7 +585,8 @@ function p1080GetExerciseHistory(exId,options){
 p9GetExerciseHistory=function(exId,options){return p1080GetExerciseHistory(exId,options);};
 p5GetLastEntry=function(exId){
   const selected=typeof tDate!=="undefined"?dKey(tDate):null;
-  const history=p1080GetExerciseHistory(exId,{includeIncomplete:true,excludeDateKey:selected});
+  const selectedEntry=selected?p1080GetExerciseHistory(exId,{includeToday:true,includeIncomplete:true}).find(function(entry){return entry.dateKey===selected;})||null:null;
+  const history=selectedEntry?[selectedEntry]:p1080GetExerciseHistory(exId,{includeIncomplete:true,excludeDateKey:selected});
   for(let i=0;i<history.length;i++){
     if(history[i].validSets.length)return {dateKey:history[i].dateKey,exLog:{sets:history[i].allSets},validSets:history[i].validSets,allSets:history[i].allSets};
     if(history[i].allSets.some(function(set){return String(set&&set.wt||"").trim();}))return {dateKey:history[i].dateKey,exLog:{sets:history[i].allSets},validSets:[],allSets:history[i].allSets,weightOnly:true};
@@ -755,6 +756,16 @@ p949BuildWorkoutReview=function(woData){
     review.next=review.next.filter(function(line){return line.indexOf(name+":")!==0;});review.next.push(name+": "+rec.action+" "+rec.reason);
   });
   return review;
+};
+
+const p1080LegacyExecuteSave=p85ExecuteSave;
+p85ExecuteSave=function(){
+  const result=p1080LegacyExecuteSave.apply(this,arguments);
+  try{
+    const daySelect=document.getElementById("woDaySelect");
+    if(daySelect&&daySelect.value!=="")renderWoExercises();
+  }catch(e){}
+  return result;
 };
 
 window.mfProgressionDebug=function(exId){
