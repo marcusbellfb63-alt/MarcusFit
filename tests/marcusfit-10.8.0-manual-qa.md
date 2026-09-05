@@ -2,7 +2,7 @@
 
 Status: implementation candidate only. Do not merge or mark the PR ready until Marcus completes real-iPhone QA and explicitly accepts the candidate.
 
-Automated and localhost browser-control pass: complete on 2026-09-04. The responsive matrix and representative recommendation scenarios below passed in the desktop browser controller. Items explicitly reserved for a physical iPhone remain unchecked and are required before acceptance.
+Automated and localhost browser-control pass: initial matrix complete on 2026-09-04; focused same-day/unit correction pass complete on 2026-09-05. The responsive matrix and representative recommendation scenarios below passed in the desktop browser controller. Items explicitly reserved for a physical iPhone remain unchecked and are required before acceptance.
 
 ## Setup and protection
 
@@ -38,6 +38,9 @@ Repeat the lifting checks at 320 px, approximately 390 px, 480 px, and desktop w
 - Record a greater-than-20% same-load rep decline. Confirm maintain/reduce conservatively guidance.
 - Reach the Program load ceiling once, then twice, with complete qualifying sets/RIR. Confirm the first result requests confirmation and the second requests maintain/ceiling review.
 - Lower the current Program target below prior comparable load. Confirm target-reset guidance without any historical rewrite.
+- On a kg-based exercise, log the exact raw value `30`. Confirm the saved field remains `30` and the recommendation is expressed in kg with no automatic 5 kg jump.
+- Compare unitless kg, explicit `30 kg`, and explicit `70 lb` evidence. Confirm the first two are kg-compatible, while pounds and mixed units fall back to qualitative guidance with no conversion.
+- Repeat the assisted-load direction check in both pounds and kilograms; both must progress by reducing assistance with conservative unit-aware steps.
 
 ## Flexible and non-load values
 
@@ -54,6 +57,10 @@ Repeat the lifting checks at 320 px, approximately 390 px, 480 px, and desktop w
 - Save a new workout, note the post-save next recommendation, then navigate away and back.
 - Open an existing historical day, edit the workout in place, and save. Confirm the same date/session remains one history entry rather than creating a duplicate.
 - Confirm the post-save recommendation changes from the edited evidence and no other date changes.
+- With one qualifying ceiling session yesterday, fill but do not save today's second session. Confirm normal Next session guidance still sees one stored ceiling session. Save today and confirm the post-save review immediately changes to maintain/ceiling review with exactly two qualifying sessions.
+- Re-save and edit today's session. Confirm the date-key record is replaced, the qualifying count is recalculated, and the current record is never counted twice.
+- Edit a backdated workout with both earlier and later comparable history. Confirm the result excludes the edited record itself and compares only with the proper preceding session.
+- Generate AI Export and `mfProgressionDebug()` after saving today. Confirm both name today's saved record as latest evidence and report the same ceiling count as the post-save review.
 - Clear or delete data only through an existing supported workflow, then confirm the affected recommendation falls back safely.
 - Change selected workout day and switch HOME/PARTIAL. Confirm history and recommendations follow the selected stable exercise/day context without cross-contamination.
 - Archive and reactivate an exercise with its same stable ID. Confirm its comparable history returns. Confirm a custom exercise addition uses only its own stable ID history.

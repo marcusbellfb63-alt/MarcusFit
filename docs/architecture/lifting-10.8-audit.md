@@ -47,6 +47,14 @@ The 9.5.9 correction layer classifies duration, bodyweight, assisted, and ordina
 
 Load arithmetic is allowed only for a single exact numeric load format with compatible units/setup across the completed working sets. Ranges, bodyweight/bands, machine labels, mixed formats, or otherwise ambiguous text receive qualitative rep/setup guidance. Required-set completion and programmed RIR evidence gate load progression. Derived recommendations do not write storage and do not prefill a blank field; exact saved/manual values remain the only field values carried into history.
 
+### Saved-subject evaluation context
+
+Normal workout rendering continues to exclude the selected date and never reads unfinished form rows as saved history. Post-save review, AI Export, and diagnostics instead pass an explicit saved-subject context containing the exact workout date. The history reader excludes that subject date from prior comparisons, keeps only chronologically preceding comparable records, and adds the completed subject once when counting ceiling evidence. This makes today's completed save eligible immediately, prevents same-date overwrite/edit double-counting, and prevents a backdated record from comparing against itself or a later workout. The context is derived only from an exact saved exercise-row match; the console review of an edited but unsaved form remains non-saved evidence.
+
+### Unit inference
+
+An exact number without a suffix retains its raw stored string and inherits the resolved exercise's explicit `kg`/`lb` unit, falling back to the existing profile weight-unit preference when the prescription is unitless. Explicit units remain authoritative. Cross-unit or mixed-unit working sets are not treated as numerically comparable. Default increases are unit-aware: kilograms use a 1 kg step below 20 kg and a maximum default 2.5 kg step thereafter, while the established conservative pound steps remain 2.5/5 lb. A smaller plausible observed compatible increment still wins. The same unit rules apply in the lower-is-better direction for assisted movements.
+
 ## Final recommendation rules
 
 | Evidence | Outcome | Conservative fallback |
@@ -57,6 +65,8 @@ Load arithmetic is allowed only for a single exact numeric load format with comp
 | All prescribed values are inside, but not at the top of, the rep/duration range | Progress reps/duration | Keep the current setup and build within the range. |
 | Any set is below range or RIR is tighter than target | Repeat or conservative reset | Severe underperformance or a greater-than-20% same-load rep decline yields reset/reduce guidance. |
 | Complete top-range result with exact, uniform, compatible numeric load and adequate RIR | Progress load | Use the smaller of the accepted default step and a plausible recent observed step, bounded by the programmed ceiling. |
+| Exact unitless numeric load | Inherit the resolved Program/profile unit | Preserve the raw value; never silently assume pounds for a kg exercise. |
+| Explicit or mixed unit conflicts | Progress reps/setup qualitatively | Never compare pounds to kilograms or invent a conversion. |
 | Apparent comparable load jump exceeds 20% or 10 units | Repeat target | Require one confirming session instead of compounding the jump. |
 | Complete top-range result at the programmed ceiling | Confirm, then maintain/review | Two qualifying saved sessions are required before ceiling-review guidance. |
 | Complete top-range assisted result | Progress load by lowering assistance | Never invert assistance direction; respect the programmed hard end. |

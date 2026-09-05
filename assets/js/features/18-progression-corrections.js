@@ -12,6 +12,9 @@ function p959FindExercise(exId){
       });
     });
   }catch(e){}
+  if(!found){
+    try{const custom=(getLifecycle().customExercises||{})[exId];if(custom)found=custom;}catch(e){}
+  }
   if(!found&&typeof window.mfFindKnownExerciseById==="function"){
     try{const known=window.mfFindKnownExerciseById(exId);found=known&&known.exercise;}catch(e){}
   }
@@ -25,6 +28,11 @@ function p959GetExerciseMetricProfile(exId,exercise){
   const load=String(getF(exId,"load",ex.load||"")||"").toLowerCase();
   const rir=String(getF(exId,"rir",ex.rir||"")||"").toLowerCase();
   const assistance=/\b(assisted|assistance|assist)\b/.test(name+" "+load);
+  let weightUnit=/\bkg\b/.test(load)?"kg":/\blb(?:s)?\b/.test(load)?"lb":null;
+  if(!weightUnit&&typeof p950GetUserProfile==="function"){
+    try{const userProfile=p950GetUserProfile();weightUnit=userProfile&&userProfile.preferences&&userProfile.preferences.weightUnit==="kg"?"kg":"lb";}catch(e){}
+  }
+  weightUnit=weightUnit||"lb";
   const minutes=/\b(min|mins|minute|minutes)\b/.test(reps);
   const seconds=/\b(sec|secs|second|seconds)\b/.test(reps);
   if(minutes||seconds){
@@ -34,7 +42,7 @@ function p959GetExerciseMetricProfile(exId,exercise){
   }
   if(assistance){
     return {type:"assistance_reps",metric:"assistance_reps",valueLabel:"REPS",
-      loadLabel:"ASSIST",unit:/\bkg\b/.test(load)?"kg":"lb",usesLoad:true,
+      loadLabel:"ASSIST",unit:weightUnit,usesLoad:true,
       usesRir:true,lowerIsBetter:true,isCardio:false};
   }
   if(/\b(bodyweight|bw)\b/.test(load)){
@@ -43,7 +51,7 @@ function p959GetExerciseMetricProfile(exId,exercise){
       lowerIsBetter:false,isCardio:false};
   }
   return {type:"load_reps",metric:"load_reps",valueLabel:"REPS",loadLabel:"WEIGHT",
-    unit:/\bkg\b/.test(load)?"kg":"lb",usesLoad:true,usesRir:!/^(\u2014|-|n\/a)$/.test(rir),
+    unit:weightUnit,usesLoad:true,usesRir:!/^(\u2014|-|n\/a)$/.test(rir),
     lowerIsBetter:false,isCardio:false};
 }
 
@@ -67,7 +75,8 @@ function p959NormalizeLoggedLoad(raw,metricProfile){
   else if(one)out.numeric=parseFloat(one[1]);
   if(out.numeric===null)return out;
   if(/\bkg\b/.test(s))out.unit="kg";
-  else if(/\blb(?:s)?\b/.test(s)||one)out.unit="lb";
+  else if(/\blb(?:s)?\b/.test(s))out.unit="lb";
+  else if(metricProfile&&(metricProfile.unit==="kg"||metricProfile.unit==="lb"))out.unit=metricProfile.unit;
   out.perSide=/\/\s*side\b|\bper\s+side\b/.test(s);
   if(/\b(db|dbs|dumbbell|dumbbells)\b/.test(s))out.equipment="dumbbell";
   else if(/\b(barbell|bb)\b/.test(s))out.equipment="barbell";
@@ -179,21 +188,25 @@ function p959SessionQualifiesAtCeiling(exId,validSets,targetRepsStr,targetRirStr
   const tlr=p9GetTargetLoadRangeForExercise(exId),required=p959GetRequiredSets(exId,ex);
   if(profile.type!=="load_reps"||!target||!tlr||!validSets||validSets.length<required)return false;
   return validSets.slice(0,required).every(function(s){
-    const reps=parseFloat(s.reps),load=p959NormalizeLoggedLoad(s.wt,profile).numeric;
+    const reps=parseFloat(s.reps),load=p1080ExactLoad(s.wt,profile);
     const rir=p5ParseRir(s.rir||"");
-    return reps>=target.hi&&load!==null&&Math.abs(load-tlr.high)<=2&&
+    return reps>=target.hi&&load.safe&&load.unit===profile.unit&&Math.abs(load.numeric-tlr.high)<=2&&
       (targetRir===null||(rir!==null&&rir>=targetRir-0.5));
   });
 }
 
-function p959CeilingEvidence(exId,targetRepsStr,targetRirStr){
-  const hist=p9GetExerciseHistory(exId);
+function p959CeilingEvidence(exId,targetRepsStr,targetRirStr,evaluation,subjectSets){
+  const hist=evaluation?p1080EvaluationHistory(exId,evaluation):p9GetExerciseHistory(exId);
   const qualifying=hist.filter(function(h){
     return p959SessionQualifiesAtCeiling(exId,h.validSets,targetRepsStr,targetRirStr);
   });
+  const subjectQualifies=!!(evaluation&&evaluation.subjectStored&&p959SessionQualifiesAtCeiling(exId,subjectSets,targetRepsStr,targetRirStr));
+  if(subjectQualifies){
+    qualifying.unshift({dateKey:evaluation.dateKey,validSets:subjectSets});
+  }
+  const latestSets=evaluation&&evaluation.subjectStored?subjectSets:hist[0]&&hist[0].validSets;
   return {qualifyingSessionCount:qualifying.length,confirmationRequirement:2,
-    latestQualifies:!!(hist[0]&&p959SessionQualifiesAtCeiling(
-      exId,hist[0].validSets,targetRepsStr,targetRirStr)),
+    latestQualifies:!!(latestSets&&p959SessionQualifiesAtCeiling(exId,latestSets,targetRepsStr,targetRirStr)),
     qualifyingDates:qualifying.map(function(h){return h.dateKey;})};
 }
 
@@ -359,10 +372,10 @@ p949BuildWorkoutReview=function(woData){
 
 const p959LegacyRecentSignals=p9489GetRecentExerciseSignals;
 p9489GetRecentExerciseSignals=function(ex){
-  const profile=p959GetExerciseMetricProfile(ex.id,ex),hist=p9GetExerciseHistory(ex.id);
+  const profile=p959GetExerciseMetricProfile(ex.id,ex),hist=p9GetExerciseHistory(ex.id,{includeToday:true});
   if(!hist.length)return {hasData:false};
   const recent=hist.slice(0,5),reps=getF(ex.id,"reps",ex.reps),rir=getF(ex.id,"rir",ex.rir);
-  const statuses=recent.map(function(h){return p9GetProgressionStatus(ex.id,h.validSets,reps,rir);});
+  const statuses=recent.map(function(h){return p9GetProgressionStatus(ex.id,h.validSets,reps,rir,{dateKey:h.dateKey,subjectStored:true,source:"diagnostic"});});
   if(profile.type==="duration")return {hasData:true,sessionCount:hist.length,recentCount:recent.length,
     statuses:statuses,progressCount:recent.length,cappedCount:0,metricExcludedFromLoadStale:true};
   let directionalProgress=0;
@@ -403,7 +416,7 @@ p9489AnalyzeExerciseRotation=function(){
 window.mfExerciseMetricDebug=function(exId,exercise){
   const ex=exercise||p959FindExercise(exId);
   const profile=p959GetExerciseMetricProfile(exId,ex);
-  const hist=p9GetExerciseHistory(exId);
+  const hist=p9GetExerciseHistory(exId,{includeToday:true});
   return {exId:exId,resolved:!!ex,profile:profile,
     targetValueRange:p959GetTargetRange(exId,ex),
     normalizedTargetLoad:p959NormalizeLoggedLoad(ex&&getF(exId,"load",ex.load),profile),
@@ -580,6 +593,23 @@ p5GetLastEntry=function(exId){
   return null;
 };
 
+function p1080EvaluationHistory(exId,evaluation){
+  const evalContext=evaluation||{};
+  if(!evalContext.dateKey)return p9GetExerciseHistory(exId);
+  return p9GetExerciseHistory(exId,{includeToday:true,excludeDateKey:evalContext.dateKey}).filter(function(entry){
+    return entry.dateKey<evalContext.dateKey;
+  });
+}
+
+function p1080WorkoutExerciseIsSaved(woData,exId,dateKey){
+  try{
+    const saved=JSON.parse(localStorage.getItem(dateKey+"-wo")||"null");
+    if(!saved||saved.gym!==woData.gym||parseInt(saved.dayIdx,10)!==parseInt(woData.dayIdx,10))return false;
+    const savedExercise=p1080WorkoutExercise(saved,exId),currentExercise=p1080WorkoutExercise(woData,exId);
+    return !!savedExercise&&!!currentExercise&&JSON.stringify(savedExercise.sets||[])===JSON.stringify(currentExercise.sets||[]);
+  }catch(e){return false;}
+}
+
 function p1080ExactLoad(raw,profile){
   const original=String(raw===undefined||raw===null?"":raw).trim();
   if(!original||/[-–]\s*\d/.test(original)||/^(bodyweight|bw)\b/i.test(original))return {raw:original,safe:false,numeric:null};
@@ -596,7 +626,7 @@ function p1080ExactLoad(raw,profile){
 function p1080FormatNumber(value){return Number.isInteger(value)?String(value):String(Math.round(value*10)/10);}
 function p1080FormatSuggestedLoad(value,load,profile){
   if(load&&load.suffix)return p1080FormatNumber(value)+load.suffix;
-  return p1080FormatNumber(value)+" "+((load&&load.unit)||(profile&&profile.unit)||"lb");
+  return p1080FormatNumber(value)+" "+((load&&load.unit)||(profile&&profile.unit)||"lb")+(profile&&profile.type==="assistance_reps"?" assistance":"");
 }
 function p1080Result(status,outcome,action,reason,confidence,evidence,extra){
   return Object.assign({status:status,outcome:outcome,action:action,text:action,reason:reason,confidence:confidence,cls:status==="progress_load"||status==="ceiling_update"||status==="duration_target"?"up":status==="safer_hold"||status==="target_reset"?"safer-hold":status==="new"?"neutral":"hold",evidence:evidence||{}},extra||{});
@@ -610,15 +640,16 @@ function p1080ConservativeStep(current,profile,history,shape){
   const observed=[];
   history.slice(0,5).forEach(function(entry){(entry.validSets||[]).forEach(function(set){const load=p1080ExactLoad(set.wt,profile);if(load.safe&&load.shape===shape&&load.numeric!==current)observed.push(Math.abs(load.numeric-current));});});
   const plausible=observed.filter(function(step){return step>=1&&step<=Math.max(5,current*.15);});
-  const defaultStep=current<30?2.5:5;
+  const defaultStep=profile&&profile.unit==="kg"?(current<20?1:2.5):(current<30?2.5:5);
   return plausible.length?Math.min(defaultStep,Math.min.apply(null,plausible)):defaultStep;
 }
 
-p9BuildSuggestion=function(exId,validSets,targetRepsStr,targetRirStr){
+p9BuildSuggestion=function(exId,validSets,targetRepsStr,targetRirStr,evaluation){
   const ex=p959FindExercise(exId),profile=p959GetExerciseMetricProfile(exId,ex),required=p959GetRequiredSets(exId,ex);
   const target=p5ParseRepRange(targetRepsStr),targetRir=p5ParseRir(targetRirStr);
   const sets=(validSets||[]).filter(function(set){const value=parseFloat(set&&set.reps);return Number.isFinite(value)&&value>0;});
-  const evidence={requiredSets:required,completedSets:sets.length,comparableSessions:p9GetExerciseHistory(exId).length,metric:profile.metric};
+  const history=evaluation?p1080EvaluationHistory(exId,evaluation):p9GetExerciseHistory(exId);
+  const evidence={requiredSets:required,completedSets:sets.length,comparableSessions:history.length+(evaluation&&evaluation.subjectStored?1:0),metric:profile.metric};
   if(!sets.length)return p1080Result("new","insufficient_evidence","Log a conservative baseline.","No comparable completed sets are available.","low",evidence);
   if(!target)return p1080Result("new","insufficient_evidence","Repeat the programmed target.","The stored prescription has no comparable rep or duration target.","low",evidence);
   if(sets.length<required)return p1080Result("build_reps","repeat_target","Repeat the current target.","Only "+sets.length+" of "+required+" prescribed sets were completed.","low",evidence);
@@ -635,15 +666,16 @@ p9BuildSuggestion=function(exId,validSets,targetRepsStr,targetRirStr){
   }
   if(needsRir&&!completeRir)return p1080Result("top_range_hold","repeat_target","Repeat the current target.","RIR is missing or N/A for "+(required-knownRirs.length)+" prescribed set"+(required-knownRirs.length===1?"":"s")+", so a load increase is not supported.","low",evidence);
 
-  const history=p9GetExerciseHistory(exId),prior=p1080ComparablePrior(exId,sets),currentLoads=sets.slice(0,required).map(function(set){return p1080ExactLoad(set.wt,profile);});
+  const prior=evaluation?(history[0]||null):p1080ComparablePrior(exId,sets),currentLoads=sets.slice(0,required).map(function(set){return p1080ExactLoad(set.wt,profile);});
   const allExact=currentLoads.every(function(load){return load.safe;}),sameShape=allExact&&currentLoads.every(function(load){return load.shape===currentLoads[0].shape&&load.numeric===currentLoads[0].numeric;});
   const current=sameShape?currentLoads[0]:null;
   const tlr=p9GetTargetLoadRangeForExercise(exId);
-  if(profile.type==="load_reps"&&current&&tlr){
+  const unitCompatible=!current||!profile.usesLoad||current.unit===profile.unit;
+  if(profile.type==="load_reps"&&current&&tlr&&unitCompatible){
     const comparableLoads=[];history.forEach(function(entry){(entry.validSets||[]).forEach(function(set){const load=p1080ExactLoad(set.wt,profile);if(load.safe&&load.shape===current.shape)comparableLoads.push(load.numeric);});});
     if(comparableLoads.length&&Math.max.apply(null,comparableLoads)>tlr.high+2)return p1080Result("target_reset","reduce_reset","Reset to the programmed load range.","Comparable history exceeds the current programmed ceiling, so rebuild from the current target without rewriting prior loads.","high",evidence);
   }
-  if(prior&&current){
+  if(prior&&current&&unitCompatible){
     const priorLoads=(prior.validSets||[]).slice(0,required).map(function(set){return p1080ExactLoad(set.wt,profile);});
     const priorComparable=priorLoads.length>=required&&priorLoads.every(function(load){return load.safe&&load.shape===current.shape&&load.numeric===priorLoads[0].numeric;});
     if(priorComparable){
@@ -663,6 +695,7 @@ p9BuildSuggestion=function(exId,validSets,targetRepsStr,targetRirStr){
   if(profile.type==="bodyweight_reps")return p1080Result("top_range_hold","progress_reps","Progress reps, control, or the bodyweight setup.",topReason+" Bodyweight does not support a numeric load increase.","high",evidence);
   if(!allExact)return p1080Result("top_range_hold","progress_reps","Keep this resistance setup and progress reps or setup.","Load is text-based; progress reps or resistance setup before changing the label.","medium",evidence);
   if(!sameShape)return p1080Result("top_range_hold","repeat_target","Repeat a consistent working load.","Completed sets used mixed numeric loads or equipment formats, so a precise increase is not supported.","low",evidence);
+  if(!unitCompatible)return p1080Result("top_range_hold","progress_reps","Keep this resistance setup and confirm the programmed unit.","Logged "+current.unit+" does not match the programmed "+profile.unit+" unit, so numeric progression is not comparable.","low",evidence);
 
   if(profile.type==="assistance_reps"){
     if(tlr&&current.numeric<=tlr.low+2)return p1080Result("ceiling_update","maintain","Maintain and review the next progression method.",topReason+" The hard end of the programmed assistance range is reached.","high",evidence);
@@ -671,7 +704,7 @@ p9BuildSuggestion=function(exId,validSets,targetRepsStr,targetRirStr){
     return p1080Result("progress_load","progress_load","Try "+p1080FormatSuggestedLoad(suggested,current,profile)+".",topReason+" Lower assistance is the progression direction.","high",evidence,{suggestedLoad:p1080FormatSuggestedLoad(suggested,current,profile)});
   }
   if(tlr&&current.numeric>=tlr.high-2){
-    const ceiling=p959CeilingEvidence(exId,targetRepsStr,targetRirStr);evidence.qualifyingCeilingSessions=ceiling.qualifyingSessionCount;
+    const ceiling=p959CeilingEvidence(exId,targetRepsStr,targetRirStr,evaluation,sets);evidence.qualifyingCeilingSessions=ceiling.qualifyingSessionCount;
     if(ceiling.qualifyingSessionCount>=ceiling.confirmationRequirement)return p1080Result("ceiling_update","maintain","Maintain and review the programmed ceiling.",topReason+" Two qualifying ceiling sessions are recorded.","high",evidence);
     return p1080Result("capped_hold","repeat_target","Repeat the programmed ceiling once more.",topReason+" One more qualifying ceiling session is required.","medium",evidence);
   }
@@ -680,7 +713,7 @@ p9BuildSuggestion=function(exId,validSets,targetRepsStr,targetRirStr){
   return p1080Result("progress_load","progress_load","Try "+p1080FormatSuggestedLoad(suggested,current,profile)+".",topReason,"high",evidence,{suggestedLoad:p1080FormatSuggestedLoad(suggested,current,profile)});
 };
 
-p9GetProgressionStatus=function(exId,validSets,targetRepsStr,targetRirStr){return p9BuildSuggestion(exId,validSets,targetRepsStr,targetRirStr).status;};
+p9GetProgressionStatus=function(exId,validSets,targetRepsStr,targetRirStr,evaluation){return p9BuildSuggestion(exId,validSets,targetRepsStr,targetRirStr,evaluation).status;};
 p9BadgeHTML=function(status){
   const map={new:["INSUFFICIENT EVIDENCE","new"],build_reps:["→ PROGRESS REPS","hold"],build_duration:["→ BUILD DURATION","hold"],duration_target:["→ MAINTAIN","up"],safer_hold:["⚠ CONSERVATIVE RESET","safer-hold"],top_range_hold:["→ REPEAT TARGET","hold"],progress_load:["↑ PROGRESS LOAD","up"],capped_hold:["→ CONFIRM CEILING","hold"],ceiling_update:["→ MAINTAIN / REVIEW","up"],target_reset:["⚠ RESET TARGET","reduce"]};
   const entry=map[status]||["→ MAINTAIN","hold"];return '<div class="p9-badge '+entry[1]+'">'+entry[0]+'</div>';
@@ -693,7 +726,7 @@ p9ComputePrefill=function(exId,setIdx,savedSets){
 
 function p1080Escape(value){return String(value===undefined||value===null?"":value).replace(/[&<>"']/g,function(char){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char];});}
 p5Block=function(exId,targetRepsStr,targetRirStr){
-  const last=p5GetLastEntry(exId),recommendation=p9BuildSuggestion(exId,last&&last.validSets,targetRepsStr,targetRirStr),bodyId="p1080-body-"+exId;
+  const last=p5GetLastEntry(exId),recommendation=p9BuildSuggestion(exId,last&&last.validSets,targetRepsStr,targetRirStr,last?{dateKey:last.dateKey,subjectStored:true,source:"saved_history"}:null),bodyId="p1080-body-"+exId;
   let historyLine="No comparable prior session.";
   if(last&&last.weightOnly)historyLine="Last entry had load but no completed rep or duration value.";
   else if(last){const date=last.dateKey.replace("day-","");const label=new Date(date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});historyLine="<strong>"+p1080Escape(label)+":</strong> "+p1080Escape(p5FormatLastSets(last.validSets,exId));}
@@ -703,8 +736,8 @@ p5Block=function(exId,targetRepsStr,targetRirStr){
 p5Toggle=function(exId){const wrap=document.getElementById("p5-"+exId);if(!wrap)return;const open=wrap.classList.toggle("open"),button=wrap.querySelector(".p5-hist-toggle");if(button)button.setAttribute("aria-expanded",open?"true":"false");};
 
 p9BuildProgressionExport=function(ex){
-  const history=p9GetExerciseHistory(ex.id);if(!history.length)return "";
-  const reps=getF(ex.id,"reps",ex.reps),rir=getF(ex.id,"rir",ex.rir),last=history[0],rec=p9BuildSuggestion(ex.id,last.validSets,reps,rir);
+  const history=p9GetExerciseHistory(ex.id,{includeToday:true});if(!history.length)return "";
+  const reps=getF(ex.id,"reps",ex.reps),rir=getF(ex.id,"rir",ex.rir),last=history[0],rec=p9BuildSuggestion(ex.id,last.validSets,reps,rir,{dateKey:last.dateKey,subjectStored:true,source:"export"});
   let out="  Progression:\n    Metric: "+p959GetExerciseMetricProfile(ex.id,ex).metric+"\n";
   if(last)out+="    Last: "+p5FormatLastSets(last.validSets,ex.id)+"\n";
   out+="    Outcome: "+rec.outcome+"\n    Recommendation: "+rec.action+"\n    Reason: "+rec.reason+"\n    Confidence: "+rec.confidence+" ("+rec.evidence.comparableSessions+" comparable session(s))\n";
@@ -717,7 +750,8 @@ p949BuildWorkoutReview=function(woData){
   const day=getResolvedDays(woData.gym).find(function(item){return item._dayIdx===parseInt(woData.dayIdx,10);});
   (day&&day.exercises||[]).forEach(function(ex){
     const logged=woData.exercises[ex.id],sets=logged&&(logged.sets||[]).filter(function(set){return parseFloat(set.reps)>0;});if(!sets||!sets.length)return;
-    const name=getF(ex.id,"name",ex.name),rec=p9BuildSuggestion(ex.id,sets,getF(ex.id,"reps",ex.reps),getF(ex.id,"rir",ex.rir));
+    const dateKey=dKey(tDate),subjectStored=p1080WorkoutExerciseIsSaved(woData,ex.id,dateKey);
+    const name=getF(ex.id,"name",ex.name),rec=p9BuildSuggestion(ex.id,sets,getF(ex.id,"reps",ex.reps),getF(ex.id,"rir",ex.rir),{dateKey:dateKey,subjectStored:subjectStored,source:subjectStored?"post_save":"current_form"});
     review.next=review.next.filter(function(line){return line.indexOf(name+":")!==0;});review.next.push(name+": "+rec.action+" "+rec.reason);
   });
   return review;
@@ -725,7 +759,7 @@ p949BuildWorkoutReview=function(woData){
 
 window.mfProgressionDebug=function(exId){
   const ex=p959FindExercise(exId);if(!ex)return {error:"Exercise ID not found in resolved or known programs: "+exId};
-  const history=p9GetExerciseHistory(exId),rec=p9BuildSuggestion(exId,history[0]&&history[0].validSets,getF(exId,"reps",ex.reps),getF(exId,"rir",ex.rir));
-  return {exId:exId,name:getF(exId,"name",ex.name),context:p1080ExerciseContext(exId),metric:p959GetExerciseMetricProfile(exId,ex).metric,status:rec.status,outcome:rec.outcome,recommendedNextAction:rec.action,exactReason:rec.reason,confidence:rec.confidence,evidence:rec.evidence,suggestedLoad:rec.suggestedLoad||null,readOnly:true};
+  const history=p9GetExerciseHistory(exId,{includeToday:true}),last=history[0]||null,rec=p9BuildSuggestion(exId,last&&last.validSets,getF(exId,"reps",ex.reps),getF(exId,"rir",ex.rir),last?{dateKey:last.dateKey,subjectStored:true,source:"debug"}:null);
+  return {exId:exId,name:getF(exId,"name",ex.name),context:p1080ExerciseContext(exId),metric:p959GetExerciseMetricProfile(exId,ex).metric,status:rec.status,outcome:rec.outcome,recommendedNextAction:rec.action,exactReason:rec.reason,confidence:rec.confidence,evidence:rec.evidence,suggestedLoad:rec.suggestedLoad||null,latestSavedDate:last&&last.dateKey,readOnly:true};
 };
 mfProgressionDebug=window.mfProgressionDebug;
