@@ -66,6 +66,21 @@ variation, and reason before entry. Courtside shows the immediate prescription,
 target/work structure, and cues above the existing result controls; a native
 disclosure contains setup, full instructions, easier/harder variations, and reason.
 
+Prescription resolution compares the immutable built-in target with the effective
+resolved target. An unchanged target uses the catalog entry directly. A sparse
+future override that changes makes, duration, count, or benchmark attempts resolves
+target-aware immediate action, work/rest, success, and supporting copy so no visible
+numeric instruction contradicts the effective target. Custom AI-added drills retain
+their safe no-prescription fallback. Proposal import and rejection do not affect
+resolution; apply affects only future definitions; undo restores the prior future
+definition. Stored `prescriptionSnapshot` values remain authoritative and are never
+re-resolved after later apply or undo actions.
+
+The 38-entry catalog uses auditable workload descriptions. Every duration or
+confidence prescription with a duration target states an exact total block matching
+that target, including the corrected 10-minute Guard Movement Handle block. Automated
+coverage walks the complete immutable catalog so later numeric drift fails visibly.
+
 The accepted deterministic progression remains advisory and unchanged. 10.9 does not
 silently select a harder/easier prescription because current progression outcomes do
 not consistently encode comparable quality for count and completion modes. The
@@ -89,6 +104,10 @@ History labels each value as an estimated active-calorie value. AI Export adds a
 read-only wearable/user-entered estimate section with the total, domain totals,
 average, and coverage for the selected export range. It does not modify targets,
 recommend food intake, infer a deficit, make medical claims, or mutate training.
+Each resolved planned drill also exports a bounded Do now, work/rest, cues, and
+success summary. New historical structured results export the same fields from their
+stored performed snapshot, never from the current catalog; old structured and
+free-form records safely omit unavailable prescription detail.
 Core AI Sync and every proposal validator/apply/undo path have no write path to
 historical workout or Basketball records, so they cannot invent, overwrite, or
 delete this evidence.

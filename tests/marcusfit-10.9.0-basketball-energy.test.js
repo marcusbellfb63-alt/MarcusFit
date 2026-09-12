@@ -11,7 +11,8 @@ const workoutSource = read("assets/js/features/10-workout-logging.js");
 const historySource = read("assets/js/features/14-history.js");
 const html = read("index.html");
 const css = read("assets/css/marcusfit.css");
-const sha = relative => crypto.createHash("sha256").update(fs.readFileSync(path.join(root, relative))).digest("hex");
+const canonicalTextSha = text => crypto.createHash("sha256").update(text.replace(/\r\n/g, "\n")).digest("hex");
+const canonicalSha = relative => canonicalTextSha(read(relative));
 
 function createStorage(initial = {}) {
   const storage = {};
@@ -59,6 +60,13 @@ assert(Object.isFrozen(c.mfBasketballPrograms) && Object.isFrozen(c.mfBasketball
 assert.strictEqual(JSON.stringify(Object.keys(c.mfBasketballPrescriptions).sort()), JSON.stringify(Array.from(ids).sort()));
 
 const prescriptionFields = ["doNow", "workRest", "success", "setup", "instructions", "easier", "harder", "why"];
+function prescribedWorkloadMinutes(text) {
+  let match = text.match(/^(\d+) rounds of (\d+) sec work with (\d+) sec rest, including the final reset; total block: (\d+) min\.$/);
+  if (match) return { calculated: Number(match[1]) * (Number(match[2]) + Number(match[3])) / 60, declared: Number(match[4]) };
+  match = text.match(/^(\d+) stations of (\d+) sec work with (\d+) sec transition, including the final reset; complete (\d+) circuits; total block: (\d+) min\.$/);
+  if (match) return { calculated: Number(match[1]) * (Number(match[2]) + Number(match[3])) * Number(match[4]) / 60, declared: Number(match[5]) };
+  return null;
+}
 c.mfBasketballPrograms.forEach(program => {
   const resolved = c.mfBasketballGetResolvedProgram(program.id, program.version);
   resolved.sessions.forEach(session => session.drills.forEach(drill => {
@@ -67,8 +75,82 @@ c.mfBasketballPrograms.forEach(program => {
     const prescription = c.mfBasketballPrescriptionFor(drill);
     prescriptionFields.forEach(field => assert(prescription[field] && prescription[field].length <= 600, `${drill.id} missing ${field}`));
     assert(prescription.cues.length >= 1 && prescription.cues.length <= 2);
+    const target = drill.target || {};
+    if (["duration", "confidence"].includes(drill.trackingMode) && target.durationMinutes) {
+      const workload = prescribedWorkloadMinutes(prescription.workRest);
+      assert(workload, `${drill.id} lacks an auditable duration workload`);
+      assert.strictEqual(workload.calculated, target.durationMinutes, `${drill.id} work/rest contradicts its duration target`);
+      assert.strictEqual(workload.declared, target.durationMinutes, `${drill.id} declared block contradicts its duration target`);
+    } else if (drill.trackingMode === "makes_target") assert(new RegExp(`\\b${target.makes}\\b`).test(prescription.doNow), `${drill.id} makes prescription contradicts its target`);
+    else if (drill.trackingMode === "count") assert(new RegExp(`\\b${target.count}\\b`).test(prescription.doNow), `${drill.id} count prescription contradicts its target`);
+    else if (drill.trackingMode === "benchmark_shooting") assert(new RegExp(`\\b${target.attempts}\\b`).test(prescription.doNow), `${drill.id} benchmark prescription contradicts its target`);
   }));
 });
+
+const reconciledOverrides = { schemaVersion: 1, updatedAt: "2026-09-11T12:00:00.000Z", programs: {
+  basketball_fundamentals_3_session: { baseVersion: 1, sessions: {
+    fundamentals_a_handle_weak_hand: { modified: {
+      fundamentals_weak_hand_finishing: { target: { makes: 20 }, source: "ai_proposal", proposalId: "test" },
+      fundamentals_crossover_control: { target: { durationMinutes: 10 }, source: "ai_proposal", proposalId: "test" },
+      fundamentals_ft_benchmark: { target: { attempts: 30, minAttempts: 15 }, source: "ai_proposal", proposalId: "test" }
+    }, added: {}, disabled: {} },
+    fundamentals_c_mixed_conditioning: { modified: {
+      fundamentals_finishing_challenge: { target: { count: 24 }, source: "ai_proposal", proposalId: "test" }
+    }, added: {}, disabled: {} }
+  } }
+} };
+const reconciledProgram = c.mfBasketballGetResolvedProgram("basketball_fundamentals_3_session", 1, reconciledOverrides);
+const reconciledDrills = reconciledProgram.sessions.flatMap(session => session.drills);
+for (const [id, value, stale] of [["fundamentals_weak_hand_finishing", 20, 15], ["fundamentals_crossover_control", 10, 6], ["fundamentals_finishing_challenge", 24, 20], ["fundamentals_ft_benchmark", 30, 20]]) {
+  const prescription = c.mfBasketballPrescriptionFor(reconciledDrills.find(drill => drill.id === id));
+  assert(Object.values(prescription).flat().some(text => new RegExp(`\\b${value}\\b`).test(String(text))), `${id} omitted its effective target`);
+  assert(!new RegExp(`displayed target of ${stale}\\b`).test(prescription.doNow), `${id} retained its stale target`);
+}
+assert.strictEqual(c.mfBasketballPrescriptionFor({ id: "bball-ai-safe-custom-v1", name: "Custom Drill", trackingMode: "count", target: { count: 12 } }), null, "custom drill invented catalog coaching");
+
+const proposalEnv = createContext(), pc = proposalEnv.c, proposalStorage = proposalEnv.storage;
+const proposalProgramId = "basketball_fundamentals_3_session", proposalSessionId = "fundamentals_a_handle_weak_hand", proposalDrillId = "fundamentals_weak_hand_finishing";
+function targetProposal(id, makes) { return { schemaVersion: 1, proposalVersion: 1, proposalId: id, summary: `Set finishing target to ${makes}`, rationale: "Target-aware prescription regression.", changes: [{ action: "modify_drill", programId: proposalProgramId, programVersion: 1, sessionId: proposalSessionId, drillId: proposalDrillId, fields: { target: { makes } } }] }; }
+function futureFinishing() { return pc.mfBasketballGetResolvedProgram(proposalProgramId, 1).sessions[0].drills.find(drill => drill.id === proposalDrillId); }
+assert(pc.mfBasketballSelectProgram(proposalProgramId, "2026-09-11T11:59:00.000Z").ok);
+assert(pc.mfBasketballImportProposal(targetProposal("bball-proposal-109-pending", 20), "2026-09-11T12:00:00.000Z").valid);
+assert(pc.mfBasketballPrescriptionFor(futureFinishing()).doNow.includes("15"), "unfinished proposal changed future prescription");
+assert(pc.mfBasketballRejectProposal("2026-09-11T12:01:00.000Z"));
+assert(pc.mfBasketballPrescriptionFor(futureFinishing()).doNow.includes("15"), "rejected proposal changed future prescription");
+assert(pc.mfBasketballImportProposal(targetProposal("bball-proposal-109-apply", 20), "2026-09-11T12:02:00.000Z").valid);
+assert(pc.mfBasketballApplyProposal(true, "2026-09-11T12:03:00.000Z").applied);
+let futurePrescription = pc.mfBasketballPrescriptionFor(futureFinishing());
+assert.strictEqual(futureFinishing().target.makes, 20);
+assert(futurePrescription.doNow.includes("20") && !futurePrescription.doNow.includes("15"));
+pc.mfBasketballRenderProgramSurface();
+function renderedText(node) { return !node || typeof node !== "object" ? String(node || "") : [node.textContent || "", ...(node.children || []).map(renderedText)].join(" "); }
+const nextSessionText = renderedText(pc.document.getElementById("mfBasketballNextSession"));
+assert(nextSessionText.includes("Weak-Hand Finishing") && nextSessionText.includes("Make 20") && nextSessionText.includes("Complete 20 made shots"), "next-session target and prescription disagree");
+assert(pc.mfBasketballUndoProposal(true, "2026-09-11T12:05:00.000Z").undone);
+assert.strictEqual(futureFinishing().target.makes, 15);
+assert(pc.mfBasketballPrescriptionFor(futureFinishing()).doNow.includes("15"), "Undo did not restore future standard prescription");
+
+assert(pc.mfBasketballImportProposal(targetProposal("bball-proposal-109-snapshot", 20), "2026-09-11T12:06:00.000Z").valid);
+assert(pc.mfBasketballApplyProposal(true, "2026-09-11T12:07:00.000Z").applied);
+let proposalProgram = pc.mfBasketballGetResolvedProgram(proposalProgramId, 1), proposalPlanned = proposalProgram.sessions[0];
+let proposalBuilt = pc.mfBasketballBuildStructuredInput({ id: "bball-target-aware-snapshot", programId: proposalProgramId, programVersion: 1, plannedSessionId: proposalSessionId, date: "2026-09-11", minutes: 30, drills: [{ drillId: proposalDrillId, actualResult: { makes: 20 }, confidence: 7 }] });
+assert(proposalBuilt.ok);
+const finishingSnapshot = proposalBuilt.input.drills.find(drill => drill.drillId === proposalDrillId).prescriptionSnapshot;
+assert(finishingSnapshot.doNow.includes("20") && !finishingSnapshot.doNow.includes("15"), "save snapshot disagrees with effective target");
+assert(pc.mfBasketballSaveSession(proposalBuilt.input, { id: "bball-target-aware-snapshot", now: "2026-09-11T12:08:00.000Z" }).ok);
+const historyBeforeLaterProposal = proposalStorage.getItem("mf-basketball-sessions");
+assert(pc.mfBasketballImportProposal(targetProposal("bball-proposal-109-later", 25), "2026-09-11T12:09:00.000Z").valid);
+assert(pc.mfBasketballApplyProposal(true, "2026-09-11T12:10:00.000Z").applied);
+assert.strictEqual(futureFinishing().target.makes, 25);
+assert(pc.mfBasketballPrescriptionFor(futureFinishing()).doNow.includes("25"));
+assert.strictEqual(proposalStorage.getItem("mf-basketball-sessions"), historyBeforeLaterProposal, "later proposal rewrote performed snapshot");
+assert(pc.mfBasketballUndoProposal(true, "2026-09-11T12:11:00.000Z").undone);
+assert.strictEqual(futureFinishing().target.makes, 20);
+assert(pc.mfBasketballPrescriptionFor(futureFinishing()).doNow.includes("20"));
+const proposalExport = pc.mfBasketballBuildExport("full", pc.mfBasketballReadStore().sessions, pc.mfBasketballReadProgramState());
+assert(proposalExport.includes("Planned/resolved prescription — Do now:"));
+assert(proposalExport.includes("Historical performed prescription — Do now:"));
+assert(proposalExport.includes("Work/rest:") && proposalExport.includes("Cues:") && proposalExport.includes("Success:"));
 
 const program = c.mfBasketballGetResolvedProgram("basketball_fundamentals_3_session", 1), planned = program.sessions[0], first = planned.drills[0], firstPrescription = c.mfBasketballPrescriptionFor(first);
 function payload(activeCalories) { return { id: "bball-109-session", programId: program.id, programVersion: program.version, plannedSessionId: planned.id, date: "2026-09-10", minutes: 40, activeCalories, drills: [{ drillId: first.id, actualResult: { durationMinutes: 5 }, confidence: 7 }] }; }
@@ -128,7 +210,8 @@ assert(historySource.includes("active kcal est."));
 assert(css.includes(".mf-basketball-do-now") && css.includes(".mf-basketball-howto summary{min-height:44px"));
 assert(basketballSource.includes('summary.setAttribute("aria-controls",body.id)') && basketballSource.includes('summary.setAttribute("aria-expanded","false")'));
 assert.strictEqual((html.match(/<script\s+src="[^"]+"\s+defer><\/script>/g) || []).length, 22);
-assert.strictEqual(sha("assets/js/sync/12-ai-sync.js"), "25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e");
+assert.strictEqual(canonicalSha("assets/js/sync/12-ai-sync.js"), "14245321c8f47de5c152d011a08877ef4821e353c15bc3ed72c0490aa767c598", "Core Sync canonical LF hash changed");
+assert.strictEqual(canonicalTextSha(read("assets/js/sync/12-ai-sync.js").replace(/\r?\n/g, "\r\n")), canonicalSha("assets/js/sync/12-ai-sync.js"), "Core Sync invariant is line-ending dependent");
 assert(!/function\s+applySync\s*\(/.test(basketballSource));
 assert.strictEqual((basketballSource.match(/const MF_BASKETBALL_\w+_KEY/g) || []).length, 4);
 

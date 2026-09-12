@@ -69,6 +69,7 @@ MarcusFit 10.9.0 — Basketball Drill Coaching and Session Energy implementation
 - Session-driven, cyclical queue with no weekly schedule or missed-session penalties
 - Built-in Fundamentals, Guard Skills, and Shooting Focus templates use stable versioned identities
 - A parallel immutable catalog gives all 38 built-in drills a standard setup, exact work structure, cues, success target, easier/harder variations, and scheduling reason without changing the accepted resolved-program shape
+- Sparse target overrides rebuild the displayed prescription around the effective makes, duration, count, or benchmark target; performed snapshots remain immutable historical evidence
 - Drill tracking is basketball-specific: confidence, duration, makes target, shooting benchmark, count, or completion
 - Finish & Advance moves the queue only after a successful structured save; Finish & Repeat leaves the same session next
 - Courtside mode shows one drill at a time with tracking-specific inputs, neutral skip, explicit review, and a post-save summary
@@ -140,8 +141,9 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 
 - 10.9.0 starts from accepted 10.8.0 production merge `3eea77df29382182ac639845946419e477cf6da8`
 - Accepted 10.8.0 QA-approved implementation head: `4f25efa6e0bc6b854d7676f75bda40dc259f9065`
-- All 38 built-in Basketball drill IDs and accepted tracking modes are unchanged; each now resolves a bounded standard prescription for next-session and courtside use
+- All 38 built-in Basketball drill IDs and accepted tracking modes are unchanged; each resolves a bounded standard prescription, and target overrides produce target-consistent next-session and courtside instructions
 - New structured Basketball history snapshots retain the performed prescription, while old structured and free-form records remain readable without migration
+- AI Export includes bounded planned/resolved and historical performed prescription summaries using stored snapshots for history
 - Optional `activeCalories` stays inside existing lifting and structured Basketball session records; Stats and AI Export treat it as incomplete wearable evidence and never as precise expenditure
 - 10.9.0 is not accepted; independent ChatGPT review and Marcus real-iPhone QA are required
 

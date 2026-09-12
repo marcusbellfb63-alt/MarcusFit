@@ -28,6 +28,21 @@ After limiting active-calorie validation to structured Basketball records so leg
 - [x] The 14-day AI Export reported the same 825 total and 275 average with 3-of-3 in-range coverage; the additional missing estimate was outside that export range. The export retained the user-entered watch/wearable and not-precise-expenditure caveat.
 - [x] The focused pass ended with no browser console errors or warnings.
 
+## Prescription/target correction recheck
+
+The focused correction pass ran through localhost on 2026-09-11 after reconciling
+effective targets with prescription copy and making the Core Sync invariant
+line-ending independent:
+
+- [x] A makes-target proposal changed Weak-Hand Finishing from 15 to 20; pending and rejected states left the base prescription unchanged, apply updated Next Session and courtside copy, and two-stage undo restored the prior future target.
+- [x] A duration proposal changed Crossover Control from 6 to 10 minutes; planned duration, immediate action, work structure, and success text all used 10 with no stale 6-minute instruction.
+- [x] A structured session saved the 20-make/10-minute performed snapshots. A later 25-make future override did not alter History; History continued showing 20 while Next Session showed 25. Undo restored future 20 and left the historical snapshots unchanged.
+- [x] Old structured history without prescription snapshots showed stored result fields without borrowing current text, and a legacy 12-minute free-form record remained readable.
+- [x] AI Export included bounded `Planned/resolved prescription` and `Historical performed prescription` summaries with Do now, work/rest, cues, and success fields.
+- [x] A structured Basketball active-calorie estimate edited from 220 to 225 in place, appeared as 225 in History, and increased the Basketball Stats total without duplicating the session identity.
+- [x] At both 390 and 320 px, Compact, Standard, Large, and Extra Large text showed the 20-make and 10-minute prescriptions with document width equal to scroll width.
+- [x] The focused pass ended with only expected MarcusFit diagnostic logs and no browser console warnings or errors.
+
 ## Real-iPhone-only checklist — pending
 
 Desktop browser control cannot validate these items. Record the iPhone model, iOS version, Safari versus installed/home-screen mode, MarcusFit text size, and pass/fail notes for each item.

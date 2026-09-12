@@ -26,8 +26,8 @@
     "note": "Adds one structured lifting outcome/reason/confidence line set for the representative comparable exercise while retaining the 10.5 information architecture."
   },
   "after10_9": {
-    "characters": 22080,
-    "lines": 343,
-    "note": "Adds the bounded active-calorie estimate and coverage section while retaining the 10.5 information architecture."
+    "characters": 23791,
+    "lines": 348,
+    "note": "Adds bounded active-calorie coverage plus concise planned/resolved and historical performed Basketball prescription summaries while retaining the 10.5 information architecture."
   }
 }
