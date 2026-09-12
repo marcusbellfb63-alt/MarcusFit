@@ -230,6 +230,10 @@
         </select>
       </div>
       <div class="wo-day-note" id="woDayNoteOut"></div>
+      <label class="mf-session-energy-field" for="mfWorkoutActiveCalories">Active calories — optional
+        <input id="mfWorkoutActiveCalories" type="number" min="0" max="5000" step="1" inputmode="numeric" placeholder="Watch estimate">
+        <span>Enter a whole-number estimate from your watch or wearable.</span>
+      </label>
       <!-- Workout-Day Recommendations (inline) -->
       <div class="wo-recs-section" id="woRecsSection" style="display:none;">
         <div class="wo-recs-card">
@@ -290,6 +294,10 @@
           </label>
           <label class="mf-basketball-field" for="mfBasketballStructuredMinutes">Total minutes
             <input id="mfBasketballStructuredMinutes" type="number" min="0.5" max="1440" step="0.5" inputmode="decimal" placeholder="45" required>
+          </label>
+          <label class="mf-basketball-field" for="mfBasketballStructuredActiveCalories">Active calories — optional
+            <input id="mfBasketballStructuredActiveCalories" type="number" min="0" max="5000" step="1" inputmode="numeric" placeholder="Watch estimate">
+            <span class="mf-basketball-field-help">Whole-number estimate from your watch or wearable.</span>
           </label>
         </div>
         <div class="mf-basketball-courtside-progress" id="mfBasketballCourtsideProgress" aria-live="polite"></div>

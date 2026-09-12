@@ -13,7 +13,7 @@ History, Stats, Export, backup validation, and Sync last. Core
 `assets/js/sync/12-ai-sync.js` remains the sole authoritative `applySync` owner.
 
 The three immutable built-in Basketball templates contain eight planned sessions and
-twenty-eight stable drills. Program ID/version, planned-session ID, drill ID, and
+thirty-eight stable drills. Program ID/version, planned-session ID, drill ID, and
 tracking mode are the comparable progression identity. Sparse schema-1 overrides
 resolve only future program definitions. Structured history owns its stored program,
 session, drill-name, target, mode, result, status, and optional new prescription

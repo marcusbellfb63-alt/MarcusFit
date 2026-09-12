@@ -3,12 +3,21 @@ function mfWorkoutSetLoadKeyboardMode(input,button,useText){
   if(!input||!button)return false;input.setAttribute("inputmode",useText?"text":"decimal");button.textContent=useText?"123":"ABC";button.setAttribute("aria-pressed",useText?"true":"false");button.setAttribute("aria-label",useText?"Use number keypad for this load":"Use text keyboard for this load");if(typeof input.focus==="function")input.focus();return true;
 }
 
+function mfWorkoutReadActiveCalories(report){
+  const input=document.getElementById("mfWorkoutActiveCalories");if(!input)return {ok:true,value:null};
+  const raw=String(input.value||"").trim();input.setCustomValidity("");
+  if(raw==="")return {ok:true,value:null};
+  const value=Number(raw),ok=/^\d+$/.test(raw)&&Number.isFinite(value)&&Number.isInteger(value)&&value>=0&&value<=5000;
+  if(!ok){input.setCustomValidity("Enter a whole-number watch estimate from 0 to 5000.");if(report&&typeof input.reportValidity==="function")input.reportValidity();return {ok:false,value:null};}
+  return {ok:true,value:value};
+}
+
 function renderWoExercises(){
   const dayIdx=document.getElementById("woDaySelect").value;
   const noteEl=document.getElementById("woDayNoteOut"),logEl=document.getElementById("woExerciseLog");
   // v9.4.4 Bug 4: always clear exercise log DOM before building new state
   logEl.innerHTML="";
-  if(dayIdx===""){noteEl.textContent="";logEl.innerHTML='<div class="no-workout-msg">Select the day you trained above to log your sets.</div>';renderWoRecs();return;}
+  if(dayIdx===""){noteEl.textContent="";logEl.innerHTML='<div class="no-workout-msg">Select the day you trained above to log your sets.</div>';const energy=document.getElementById("mfWorkoutActiveCalories");if(energy)energy.value="";renderWoRecs();return;}
   const dayIdxInt = parseInt(dayIdx);
 
   // 9.4.8.2: resolve day from getResolvedDays (handles base + virtual)
@@ -34,6 +43,7 @@ function renderWoExercises(){
 
   // v9.4.4 Bug 4: only load saved data for the exact selected date; never bleed across dates
   const saved=getTodayWoData();
+  const energy=document.getElementById("mfWorkoutActiveCalories");if(energy)energy.value=saved.activeCalories==null?"":String(saved.activeCalories);
   day.exercises.forEach(ex=>{
     const nm=getF(ex.id,"name",ex.name),ld=getF(ex.id,"load",ex.load||""),ri=getF(ex.id,"rir",ex.rir||""),repTarget=getF(ex.id,"reps",ex.reps||""),valueInputMode=/\b(?:min(?:ute)?s?|sec(?:ond)?s?)\b/i.test(String(repTarget))?"decimal":"numeric",st=parseInt(getF(ex.id,"sets",ex.sets||"3"))||3;
     const block=document.createElement("div");block.className="wo-ex-block";
@@ -102,7 +112,7 @@ function collectWoData(){
     const noteEl=document.querySelector(`input[data-exid="${ex.id}"][data-field="exnote"]`);
     if(sets.some(s=>s.wt||s.reps)||(noteEl&&noteEl.value)){exData[ex.id]={sets,note:noteEl?noteEl.value:""};}
   });
-  return{gym:logGym,dayIdx,dayName:day.name,exercises:exData};
+  const workout={gym:logGym,dayIdx,dayName:day.name,exercises:exData},energy=mfWorkoutReadActiveCalories(false);if(energy.ok&&energy.value!==null)workout.activeCalories=energy.value;return workout;
 }
 
 function updateTrackerDate(){document.getElementById("trackerDateLabel").textContent=tDate.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});p85CheckFutureDate();loadDay();p949HideReview();}
@@ -374,6 +384,7 @@ function p85CancelFutureSave(){
 
 function p85ExecuteSave(){
   // Save workout data
+  if(document.getElementById("woDaySelect").value!==""&&!mfWorkoutReadActiveCalories(true).ok)return;
   const woData=collectWoData();
   if(woData)localStorage.setItem(dKey(tDate)+"-wo",JSON.stringify(woData));
 
