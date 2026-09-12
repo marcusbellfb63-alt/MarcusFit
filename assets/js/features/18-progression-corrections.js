@@ -149,8 +149,8 @@ p5FormatLastSets=function(validSets,exId){
     " @ RIR "+Array.from(new Set(rirs)).join("/"):"");
 };
 
-p9GetBestExercisePerformance=function(exId){
-  const profile=p959GetExerciseMetricProfile(exId),hist=p9GetExerciseHistory(exId);
+p9GetBestExercisePerformance=function(exId,options){
+  const profile=p959GetExerciseMetricProfile(exId),hist=options&&Array.isArray(options.history)?options.history:p9GetExerciseHistory(exId);
   if(!hist.length)return null;
   const sets=[].concat.apply([],hist.map(function(h){return h.validSets;}));
   if(profile.type==="duration"){
@@ -586,7 +586,7 @@ p9GetExerciseHistory=function(exId,options){return p1080GetExerciseHistory(exId,
 p5GetLastEntry=function(exId){
   const selected=typeof tDate!=="undefined"?dKey(tDate):null;
   const selectedEntry=selected?p1080GetExerciseHistory(exId,{includeToday:true,includeIncomplete:true}).find(function(entry){return entry.dateKey===selected;})||null:null;
-  const history=selectedEntry?[selectedEntry]:p1080GetExerciseHistory(exId,{includeIncomplete:true,excludeDateKey:selected});
+  const history=selectedEntry?[selectedEntry]:p1080GetExerciseHistory(exId,{includeToday:true,includeIncomplete:true,excludeDateKey:selected}).filter(function(entry){return !selected||entry.dateKey<selected;});
   for(let i=0;i<history.length;i++){
     if(history[i].validSets.length)return {dateKey:history[i].dateKey,exLog:{sets:history[i].allSets},validSets:history[i].validSets,allSets:history[i].allSets};
     if(history[i].allSets.some(function(set){return String(set&&set.wt||"").trim();}))return {dateKey:history[i].dateKey,exLog:{sets:history[i].allSets},validSets:[],allSets:history[i].allSets,weightOnly:true};
@@ -727,11 +727,13 @@ p9ComputePrefill=function(exId,setIdx,savedSets){
 
 function p1080Escape(value){return String(value===undefined||value===null?"":value).replace(/[&<>"']/g,function(char){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char];});}
 p5Block=function(exId,targetRepsStr,targetRirStr){
-  const last=p5GetLastEntry(exId),recommendation=p9BuildSuggestion(exId,last&&last.validSets,targetRepsStr,targetRirStr,last?{dateKey:last.dateKey,subjectStored:true,source:"saved_history"}:null),bodyId="p1080-body-"+exId;
+  const last=p5GetLastEntry(exId),selected=typeof tDate!=="undefined"?dKey(tDate):null;
+  const evaluation=last?{dateKey:last.dateKey,subjectStored:true,source:"saved_history"}:selected?{dateKey:selected,subjectStored:false,source:"selected_history"}:null;
+  const recommendation=p9BuildSuggestion(exId,last&&last.validSets,targetRepsStr,targetRirStr,evaluation),bodyId="p1080-body-"+exId;
   let historyLine="No comparable prior session.";
   if(last&&last.weightOnly)historyLine="Last entry had load but no completed rep or duration value.";
   else if(last){const date=last.dateKey.replace("day-","");const label=new Date(date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});historyLine="<strong>"+p1080Escape(label)+":</strong> "+p1080Escape(p5FormatLastSets(last.validSets,exId));}
-  const best=last?p9GetBestExercisePerformance(exId):null;
+  const best=last?p9GetBestExercisePerformance(exId,{history:p1080GetExerciseHistory(exId,{includeToday:true}).filter(function(entry){return entry.dateKey<=last.dateKey;})}):null;
   return p9BadgeHTML(recommendation.status)+'<div class="p5-hist-wrap" id="p5-'+p1080Escape(exId)+'"><button type="button" class="p5-hist-toggle" aria-expanded="false" aria-controls="'+bodyId+'" onclick="p5Toggle(\''+p1080Escape(exId)+'\')"><span class="p5-hist-dot"></span><span class="p5-hist-label">Next session</span><span class="p5-chevron" aria-hidden="true">▼</span></button><div class="p5-hist-body" id="'+bodyId+'"><div class="p5-last-line">'+historyLine+'</div>'+(best?'<div class="p9-best-line">⭐ Best: '+p1080Escape(best)+'</div>':'')+'<div class="p1080-recommendation"><div class="p1080-action">'+p1080Escape(recommendation.action)+'</div><div class="p1080-reason">'+p1080Escape(recommendation.reason)+'</div><div class="p1080-confidence">'+p1080Escape(recommendation.confidence)+' confidence · '+recommendation.evidence.comparableSessions+' comparable session'+(recommendation.evidence.comparableSessions===1?'':'s')+'</div></div></div></div>';
 };
 p5Toggle=function(exId){const wrap=document.getElementById("p5-"+exId);if(!wrap)return;const open=wrap.classList.toggle("open"),button=wrap.querySelector(".p5-hist-toggle");if(button)button.setAttribute("aria-expanded",open?"true":"false");};

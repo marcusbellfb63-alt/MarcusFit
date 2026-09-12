@@ -115,6 +115,19 @@ const backdatedRec=recommend(backdated,sets("70 lb",10),{dateKey:"day-2026-08-08
 assert.strictEqual(backdatedRec.outcome,"progress_load","backdated edit compared against itself or later history instead of the preceding session");
 context.tDate=new FixtureDate("2026-08-08T12:00:00");const backdatedCard=context.p5Block(backdated.id,backdated.reps,backdated.rir);assert.match(backdatedCard,/Aug 8/);assert.match(backdatedCard,/Try 75 lb/);context.tDate=new FixtureDate();
 
+const chronology=install({id:"chronology",name:"Chronology Press",sets:3,reps:"8–10",load:"20–100 lb",rir:"2"},"home",12);
+save("2026-08-01",chronology,sets("50 lb",8),"home",12);save("2026-08-08",chronology,sets("60 lb",9),"home",12);save("2026-08-15",chronology,sets("80 lb",10),"home",12);
+context.tDate=new FixtureDate("2026-08-12T12:00:00");const betweenCard=context.p5Block(chronology.id,chronology.reps,chronology.rir);
+assert.match(betweenCard,/Aug 8/);assert.doesNotMatch(betweenCard,/Aug 15|80 lb/);assert.match(betweenCard,/PROGRESS REPS/);assert.match(betweenCard,/build each set toward 10 reps/);assert.match(betweenCard,/2 comparable sessions/);
+context.tDate=new FixtureDate("2026-07-25T12:00:00");const beforeAllCard=context.p5Block(chronology.id,chronology.reps,chronology.rir);
+assert.match(beforeAllCard,/INSUFFICIENT EVIDENCE/);assert.match(beforeAllCard,/No comparable prior session/);assert.doesNotMatch(beforeAllCard,/Aug 1|Aug 8|Aug 15|50 lb|60 lb|80 lb/);assert.match(beforeAllCard,/0 comparable sessions/);
+context.tDate=new FixtureDate("2026-08-20T12:00:00");const afterAllCard=context.p5Block(chronology.id,chronology.reps,chronology.rir);
+assert.match(afterAllCard,/Aug 15/);assert.match(afterAllCard,/80 lb/);assert.match(afterAllCard,/3 comparable sessions/);
+context.tDate=new FixtureDate("2026-08-08T12:00:00");const savedHistoricalCard=context.p5Block(chronology.id,chronology.reps,chronology.rir);
+assert.match(savedHistoricalCard,/Aug 8/);assert.doesNotMatch(savedHistoricalCard,/Aug 15|80 lb/);assert.match(savedHistoricalCard,/2 comparable sessions/);
+context.tDate=new FixtureDate();const currentUnsavedHistoricalCard=context.p5Block(chronology.id,chronology.reps,chronology.rir);
+assert.match(currentUnsavedHistoricalCard,/Aug 15/);assert.match(currentUnsavedHistoricalCard,/3 comparable sessions/);
+
 const text=install({id:"text",name:"Band Row",sets:3,reps:"10–15",load:"Band",rir:"2"},"home",3);
 const textRec=recommend(text,sets("Bodyweight + red band",15));
 assert.strictEqual(textRec.outcome,"progress_reps");assert.match(textRec.reason,/Load is text-based/);

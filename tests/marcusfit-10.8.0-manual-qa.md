@@ -62,6 +62,8 @@ Repeat the lifting checks at 320 px, approximately 390 px, 480 px, and desktop w
 - Change today's visible form values without saving, navigate away and return, and confirm the Next session card still derives from the last saved rows rather than the unsaved edits.
 - Re-save and edit today's session. Confirm the date-key record is replaced, the qualifying count is recalculated, and the current record is never counted twice.
 - Edit a backdated workout with both earlier and later comparable history. Confirm the result excludes the edited record itself and compares only with the proper preceding session.
+- Select an unsaved historical date between earlier and later compatible workouts. Confirm the visible Next session card names only the earlier workout and that its action, reason, confidence count, and Best line contain no later evidence.
+- Select an unsaved historical date before every compatible workout. Confirm the card reports insufficient evidence rather than falling forward to a later session.
 - Generate AI Export and `mfProgressionDebug()` after saving today. Confirm both name today's saved record as latest evidence and report the same ceiling count as the post-save review.
 - Clear or delete data only through an existing supported workflow, then confirm the affected recommendation falls back safely.
 - Change selected workout day and switch HOME/PARTIAL. Confirm history and recommendations follow the selected stable exercise/day context without cross-contamination.
