@@ -89,6 +89,7 @@ oldStructured.id = "bball-old-structured"; oldStructured.drills.forEach(drill =>
 assert(c.mfBasketballNormalizeSession(oldStructured, { stored: true }).ok, "old structured snapshot became unreadable");
 const freeForm = { id: "bball-old-freeform", schemaVersion: 1, date: "2026-09-01", type: "shooting", minutes: 30, createdAt: "2026-09-01T12:00:00.000Z", updatedAt: "2026-09-01T12:00:00.000Z" };
 assert(c.mfBasketballNormalizeSession(freeForm, { stored: true }).ok, "legacy free-form session became unreadable");
+assert(c.mfBasketballNormalizeSession({ ...freeForm, activeCalories: "legacy-unknown-value" }, { stored: true }).ok, "legacy free-form unknown fields stopped being ignored");
 
 for (const invalid of ["-1", "100.5", "1e3", "NaN", Infinity, 5001]) assert(!c.mfBasketballBuildStructuredInput(payload(invalid)).ok, `accepted invalid calories ${invalid}`);
 assert(c.mfBasketballBuildStructuredInput(payload("")).ok);
@@ -125,6 +126,7 @@ assert(workoutSource.includes("/^\\d+$/.test(raw)"));
 assert(workoutSource.includes('localStorage.setItem(dKey(tDate)+"-wo",JSON.stringify(woData))'), "lifting save no longer replaces the same date key");
 assert(historySource.includes("active kcal est."));
 assert(css.includes(".mf-basketball-do-now") && css.includes(".mf-basketball-howto summary{min-height:44px"));
+assert(basketballSource.includes('summary.setAttribute("aria-controls",body.id)') && basketballSource.includes('summary.setAttribute("aria-expanded","false")'));
 assert.strictEqual((html.match(/<script\s+src="[^"]+"\s+defer><\/script>/g) || []).length, 22);
 assert.strictEqual(sha("assets/js/sync/12-ai-sync.js"), "25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e");
 assert(!/function\s+applySync\s*\(/.test(basketballSource));

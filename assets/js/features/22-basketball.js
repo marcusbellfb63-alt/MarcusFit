@@ -27,6 +27,7 @@ const MF_BASKETBALL_TYPES = Object.freeze({
 const MF_BASKETBALL_LIMITS = Object.freeze({ minutes: 1440, count: 10000, notes: 2000, activeCalories: 5000, prescriptionText: 600 });
 let mfBasketballProposalScrollLock = null;
 let mfBasketballProposalReturnFocus = null;
+let mfBasketballHowtoCounter = 0;
 
 function mfBasketballDeepFreeze(value){
   if(!value||typeof value!=="object"||Object.isFrozen(value))return value;
@@ -675,8 +676,8 @@ function mfBasketballNormalizeSession(input,options){
   const freeThrows=mfBasketballNormalizePair(input,"freeThrowsMade","freeThrowsAttempted","Free throws",errors);
   const notes=String(input.notes||"").trim();
   if(notes.length>MF_BASKETBALL_LIMITS.notes)errors.push("Notes must be 2000 characters or fewer.");
-  const activeCalories=mfBasketballOptionalActiveCalories(input.activeCalories,errors);
   const structured=mfBasketballNormalizeStructuredFields(input,errors);
+  const activeCalories=structured?mfBasketballOptionalActiveCalories(input.activeCalories,errors):null;
 
   const stored=options.stored===true;
   const now=String(options.now||new Date().toISOString());
@@ -1007,6 +1008,7 @@ function mfBasketballPrescriptionFor(drill){return drill&&(drill.prescription||M
 function mfBasketballAppendPrescriptionDetails(parent,prescription){
   if(!parent||!prescription)return;
   const details=mfBasketballElement("details","mf-basketball-howto"),summary=mfBasketballElement("summary","","How to do it"),body=mfBasketballElement("div","mf-basketball-howto-body");
+  body.id="mfBasketballHowtoBody"+(++mfBasketballHowtoCounter);summary.setAttribute("aria-controls",body.id);summary.setAttribute("aria-expanded","false");details.addEventListener("toggle",function(){summary.setAttribute("aria-expanded",String(details.open));});summary.addEventListener("keydown",function(event){if(event.key!==" "&&event.key!=="Enter")return;event.preventDefault();details.open=!details.open;});
   [["Setup",prescription.setup],["Full instructions",prescription.instructions],["Easier",prescription.easier],["Harder",prescription.harder],["Why it is scheduled",prescription.why]].forEach(function(row){const block=mfBasketballElement("div","mf-basketball-howto-row");block.append(mfBasketballElement("strong","",row[0]),mfBasketballElement("span","",row[1]));body.appendChild(block);});details.append(summary,body);parent.appendChild(details);
 }
 

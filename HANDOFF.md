@@ -2,24 +2,26 @@
 
 ## Current implementation candidate
 
-MarcusFit 10.8.0 Smarter Lifting starts from the exact accepted 10.7.0 production merge `1de89a40c810919d1edf831d1af4d69b2d4b46d7`. The accepted 10.7 QA-approved implementation head is `2f553b756309b42494bed34e00f054891e18e78d`.
+MarcusFit 10.9.0 Basketball Drill Coaching and Session Energy starts from the exact accepted 10.8.0 production merge `3eea77df29382182ac639845946419e477cf6da8`. The accepted 10.8 QA-approved implementation head is `4f25efa6e0bc6b854d7676f75bda40dc259f9065`.
 
-10.8.0 is the new implementation candidate and is not accepted. The final correction layer now derives context-comparable, stable-ID lifting recommendations from prescribed-set completion, rep/duration targets, RIR coverage, recent comparable performance, exact load safety, and existing program constraints. Results distinguish load progression, rep progression, repeat, maintain, conservative reset, and insufficient evidence. Every visible recommendation separates its action, evidence reason, and confidence. Numeric arithmetic is limited to exact compatible load formats; textual/ranged/bodyweight/mixed setups remain qualitative. Recommendations are read-only and blank inputs are never filled from a derived target; exact saved/manual values continue to win.
+10.9.0 is the new implementation candidate and is not accepted. All 38 accepted built-in Basketball drill IDs now resolve a bounded standard prescription with immediate action, work/rest, cues, success target, setup, full instructions, easier/harder variations, and scheduling reason. Next-session and one-drill courtside views present those details without changing accepted program/session/drill identity or tracking modes. New structured results snapshot the performed prescription; old structured and free-form history remain readable without migration or current-template borrowing.
 
-10.8 adds no storage key, schema field, migration, runtime script, or dependency. It does not change base `P`, exercise IDs, accepted Releases, core Sync, proposal behavior, or historical workout identity. See `docs/architecture/lifting-10.8-audit.md` and `tests/marcusfit-10.8.0-manual-qa.md`.
+Lifting workout records and structured Basketball sessions may now store optional integer `activeCalories` values from 0–5000 inside their existing records. Blank is omitted, explicit zero is retained, same-identity edits replace in place, and invalid values are rejected. History, selected-range Stats, and AI Export label the values as user-entered wearable estimates, exclude missing values from averages, report lifting/Basketball totals and coverage, and never write derived analytics or alter training. No storage key or schema-version increment was added.
 
-## 10.8 candidate validation
+See `docs/architecture/basketball-session-energy-10.9-audit.md` and `tests/marcusfit-10.9.0-manual-qa.md`.
 
-- All 18 existing and focused Node test files pass, including workout-history identity, proposal, AI Sync, backup/restore, storage compatibility, navigation, analytics, habits, and Basketball regressions.
-- All 22 classic runtime scripts pass `node --check`; the architecture inventory still reports 22 runtime files in the accepted order.
-- Localhost responsive browser QA passed at 320, approximately 390, 480, and 1024 px across Compact, Standard, Large, and Extra Large text. No tested combination produced page/card overflow or hid Save Day.
-- Browser scenarios passed for exact numeric load, bodyweight/band, assisted load with lower-is-progress direction, duration, free-text load, incomplete sets, missing/N/A RIR, HOME/PARTIAL context, save, post-save recalculation, and edit-in-place history identity.
-- The 2026-09-05 focused correction pass confirmed explicit saved-subject evaluation: an unsaved second ceiling session remains pending, saving it immediately yields two-session ceiling review, same-date replacement remains one History identity, and post-save Export/diagnostics include the completed record. Unitless kg values preserve their raw strings, use conservative kg increments, and render kg consistently for custom exercises and evidence lines.
-- The ordinary Next session display now follows the same saved-subject rule: an exact selected-date saved exercise is shown and evaluated against only earlier evidence, while an unsaved selected date or later unsaved form edits continue using stored history only.
-- Historical Next session fallback is strictly chronological: an unsaved selected date uses only its latest preceding compatible workout, never a later record; dates before all compatible evidence remain insufficient, including the time-bounded Best line. Fresh localhost QA at 390 px confirmed Aug 12 uses Aug 8 rather than Aug 15, while Aug 1 remains at zero comparable sessions.
+## 10.9 candidate validation
+
+- The focused 10.9 suite and all accepted 10.x regressions pass after updating the intentional AI Export size fixture.
+- All 22 classic runtime scripts pass `node --check`; the architecture inventory still reports the accepted script order.
+- Localhost responsive checks pass at 320, 390, 480, and 1024 px across Compact, Standard, Large, and Extra Large text with no page/card horizontal overflow and reachable finish controls.
+- Native prescription disclosure passed click, Space, and Enter behavior with synchronized `aria-expanded`/`aria-controls` state.
+- A structured Basketball session saved a 250 estimate, retained its performed prescription, restored on edit, updated to 275 in place, and did not increase the four-record localhost session count.
+- A lifting workout estimate saved at 300, updated to 325 on the same date, reopened through the same workout selection, and rendered in History.
+- Combined Stats reported 600 total, 300 average, 325 lifting, 275 Basketball, and 2-of-3 supported-session coverage for the localhost fixture. AI Export reported the same values as estimates. No browser console errors or warnings were observed.
 - The accepted `P` hash remains `652a04c37928f232490d37ce7e709dc16a25a8c5f408d679bce046b2f6a2d7d4`; all 63 exercise IDs remain at hash `7c333a9b7fb4639cafd0900a96f1d4ba58b8d6b8fb5ecc23f335e7ee041d0e2b`.
-- Core Sync remains byte-identical at SHA-256 `25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e`; the accepted Releases tree remains Git object `d1c1e8512257c380aa4ef35840c86a796171390e`.
-- `git diff --check` passes. No real-iPhone result is claimed; the targeted device checklist remains required before acceptance.
+- Core Sync remains byte-identical at SHA-256 `25aaf52986493af7d5796b57f81746f8f279f506b2550a61ca7b011c9572c51e`; accepted `Releases/` files remain unchanged.
+- Real-iPhone QA remains pending and is required before acceptance.
 
 ## Previous accepted state
 
@@ -124,9 +126,10 @@ Protected values at acceptance:
 10.1.4 — Mobile accessibility, Sync/settings organization, Habits UI — Accepted
 10.2.0 — Basketball programs and progression — Accepted
 10.3.0 — Basketball-specific AI Sync — Accepted
-10.4.0 — Habits-specific AI Sync
-10.5.0 — Full cross-domain coaching review
+10.4.0 — Habits-specific AI Sync — Accepted
+10.5.0 — Full cross-domain coaching review — Accepted
 10.6.0 — Basketball UX and progression maturation — Accepted
 10.7.0 — Navigation, Sync IA, and analytics maturation — Accepted
-10.8.0 — Smarter Lifting — Candidate
+10.8.0 — Smarter Lifting — Accepted
+10.9.0 — Basketball Drill Coaching and Session Energy — Candidate
 ```

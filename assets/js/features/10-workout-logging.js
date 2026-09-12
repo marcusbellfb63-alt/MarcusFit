@@ -112,7 +112,7 @@ function collectWoData(){
     const noteEl=document.querySelector(`input[data-exid="${ex.id}"][data-field="exnote"]`);
     if(sets.some(s=>s.wt||s.reps)||(noteEl&&noteEl.value)){exData[ex.id]={sets,note:noteEl?noteEl.value:""};}
   });
-  const workout={gym:logGym,dayIdx,dayName:day.name,exercises:exData},energy=mfWorkoutReadActiveCalories(false);if(energy.ok&&energy.value!==null)workout.activeCalories=energy.value;return workout;
+  const workout={gym:logGym,dayIdx,dayName:day.name,exercises:exData},energy=typeof mfWorkoutReadActiveCalories==="function"?mfWorkoutReadActiveCalories(false):{ok:true,value:null};if(energy.ok&&energy.value!==null)workout.activeCalories=energy.value;return workout;
 }
 
 function updateTrackerDate(){document.getElementById("trackerDateLabel").textContent=tDate.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});p85CheckFutureDate();loadDay();p949HideReview();}
