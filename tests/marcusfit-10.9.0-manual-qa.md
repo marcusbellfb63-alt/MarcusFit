@@ -17,6 +17,17 @@ Automated and localhost browser-control pass completed on 2026-09-11. The checks
 - [x] The representative combined fixture reported 600 total, 300 average, 325 lifting, 275 Basketball, and 2-of-3 coverage.
 - [x] No page console errors or warnings were observed during the localhost pass.
 
+## Post-validator-boundary focused recheck
+
+After limiting active-calorie validation to structured Basketball records so legacy free-form records continue ignoring unknown optional fields, the affected flows were rechecked through localhost on 2026-09-11:
+
+- [x] A new 12-minute free-form Skills Practice record saved, opened in History, and restored its type and minutes for edit.
+- [x] A new structured session saved a 190 kcal wearable estimate and its performed prescription, then restored and updated to 215 kcal with exactly one matching 18-minute History identity.
+- [x] The existing lifting record restored 325 kcal from the same HOME Day 1 selection, updated to 335 kcal, rendered in History, and restored as 335 on reopening that selection.
+- [x] Last-30-days Stats reported 825 total, 275 average, 335 lifting, 490 Basketball, and 3-of-4 supported-session coverage. The missing structured session was excluded from the average.
+- [x] The 14-day AI Export reported the same 825 total and 275 average with 3-of-3 in-range coverage; the additional missing estimate was outside that export range. The export retained the user-entered watch/wearable and not-precise-expenditure caveat.
+- [x] The focused pass ended with no browser console errors or warnings.
+
 ## Real-iPhone-only checklist — pending
 
 Desktop browser control cannot validate these items. Record the iPhone model, iOS version, Safari versus installed/home-screen mode, MarcusFit text size, and pass/fail notes for each item.
