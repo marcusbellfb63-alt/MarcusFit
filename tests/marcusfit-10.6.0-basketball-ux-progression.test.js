@@ -13,7 +13,7 @@ const css = read("assets/css/marcusfit.css");
 const constants = read("assets/js/core/01-app-constants.js");
 const sha = value => crypto.createHash("sha256").update(Buffer.from(value.toString("utf8").replace(/\r\n/g, "\n"))).digest("hex");
 
-assert(constants.includes('const APP_VERSION = "10.7.0";'));
+assert(constants.includes('const APP_VERSION = "10.8.0";'));
 const scripts = [...html.matchAll(/<script\s+src="([^"]+)"\s+defer><\/script>/g)].map(match => match[1]);
 assert.strictEqual(scripts.length, 22);
 assert.deepStrictEqual(scripts, JSON.parse(read("tests/fixtures/runtime-script-order.json")));

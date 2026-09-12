@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.7.0 — Navigation, Sync IA, and analytics implementation candidate
+MarcusFit 10.8.0 — Smarter Lifting implementation candidate
 
 ## Architecture
 
@@ -31,18 +31,14 @@ MarcusFit 10.7.0 — Navigation, Sync IA, and analytics implementation candidate
 - Schema version tracked in `lc.schemaVersion`; lifecycle version in `lc.lifecycleVersion`
 - `LIFECYCLE_VERSION` constant keeps this in sync with `APP_VERSION`
 
-### Progression Engine (Phase 9A)
-- `p9BuildSuggestion()` computes suggestion text + status class (`up`, `hold`, `safer-hold`, `reduce`, `new`, `neutral`)
-- `p9GetProgressionStatus()` returns status string for badge + prefill routing
-- `p9ComputePrefill()` returns aligned prefill values per set based on status
-- `p9BadgeHTML()` renders the progression badge
-- Status definitions:
-  - `up` — at top of rep range with RIR to spare; bump load
-  - `hold` — maintain current load and work on reps
-  - `safer-hold` — RIR was tight last session; keep load, raise RIR floor to 2–3
-  - `reduce` — reserved for true weight reduction (future engine v2)
-  - `new` — no prior data; start conservative
-  - `neutral` — cardio or non-trackable sessions
+### Progression Engine (10.8 Smarter Lifting)
+- `assets/js/features/18-progression-corrections.js` is the final authoritative decision owner; the earlier Phase 9A file remains a compatibility layer
+- Comparable history uses the same stable exercise ID and matching stored HOME/PARTIAL day identity when those optional fields exist
+- Prescribed-set completion, rep or duration targets, RIR coverage, recent comparable performance, and programmed load constraints gate each result
+- Outcomes distinguish progress load, progress reps, repeat target, maintain, conservative reset, and insufficient evidence
+- Exact compatible numeric loads may receive a bounded next-load value; ranges, bodyweight, bands, machine labels, mixed formats, and ambiguous text receive qualitative guidance
+- Every visible recommendation separates the action, evidence reason, and confidence; calculations are read-only
+- `p9ComputePrefill()` carries only exact saved values. Recommendations remain visually separate and never populate a blank input
 
 ### AI Recommendations (`mf-recommendations`)
 - Key: `mf-recommendations`
@@ -131,7 +127,7 @@ MarcusFit 10.7.0 — Navigation, Sync IA, and analytics implementation candidate
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.7.0";
+const APP_VERSION      = "10.8.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
@@ -139,15 +135,15 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 
 ## Candidate record
 
-- 10.7.0 starts from accepted 10.6.0 merge commit `d172ed429a2addb259a0dce622d9c2d94429816e`
-- Accepted 10.6.0 QA-approved implementation head: `cef5d39b3adf939ba7d9c59d6d6e250bcce7cbcd`
-- Primary Tools and internal Sync tablists support ArrowLeft/ArrowRight/Home/End, and every successful destination opens at the top without persisted scroll restoration
-- Daily Log disclosures start collapsed, its mobile Save Day bar appears only on Daily Log, and Habit proposal review has explicit confirmed dismissal plus live status controls
-- Stats All history uses each Habit's eligible activation-to-archive history; workout load rows retain their text-compatible save shape while defaulting to a decimal keypad and providing a per-load `ABC`/`123` keyboard switch
-- 10.7.0 is not accepted; automated review and Marcus manual browser/iPhone QA are required
+- 10.8.0 starts from accepted 10.7.0 production merge `1de89a40c810919d1edf831d1af4d69b2d4b46d7`
+- Accepted 10.7.0 QA-approved implementation head: `2f553b756309b42494bed34e00f054891e18e78d`
+- Lifting recommendations now require complete, context-comparable evidence before suggesting numeric progression and explain conservative fallbacks
+- Raw workout loads, same-date edit identity, Program/Habit/Basketball proposal boundaries, and the 22-script runtime remain unchanged
+- 10.8.0 is not accepted; independent code review and Marcus browser/iPhone QA are required
 
 ## Acceptance Record
 
+- 10.7.0 is accepted and merged at `1de89a40c810919d1edf831d1af4d69b2d4b46d7`; QA-approved implementation head `2f553b756309b42494bed34e00f054891e18e78d`
 - 10.6.0 is accepted and merged at `d172ed429a2addb259a0dce622d9c2d94429816e`; QA-approved implementation head `cef5d39b3adf939ba7d9c59d6d6e250bcce7cbcd`
 - 10.5.0 is accepted and merged at `60934a151f95c34d5a659cd131c91abca43bfa91`; QA-approved implementation head `73faa06e2b5476a8ab7549c76c3cfdbe84277911`
 - The representative 14-day export fixture changed from 32,711 characters / 602 lines to 21,494 characters / 336 lines while adding cross-domain load, adherence, pending-proposal, and conditioning-interaction signals
@@ -171,4 +167,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.4.0** — Habits-specific AI Sync (accepted)
 - **v10.5.0** — Cross-domain coaching and AI Export/Sync IA (accepted)
 - **v10.6.0** — Basketball courtside UX and progression maturation (accepted)
-- **v10.7.0** — Navigation, Sync IA, and analytics maturation (implementation candidate)
+- **v10.7.0** — Navigation, Sync IA, and analytics maturation (accepted)
+- **v10.8.0** — Smarter Lifting (implementation candidate)

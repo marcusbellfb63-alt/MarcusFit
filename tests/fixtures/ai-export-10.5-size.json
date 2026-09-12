@@ -19,5 +19,10 @@
       "basketballContractBlocks": 0,
       "legacyFormattingBlocks": 0
     }
+  },
+  "after10_8": {
+    "characters": 21729,
+    "lines": 337,
+    "note": "Adds one structured lifting outcome/reason/confidence line set for the representative comparable exercise while retaining the 10.5 information architecture."
   }
 }

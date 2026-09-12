@@ -1,6 +1,6 @@
 # MarcusFit 10.7 navigation, Sync IA, and analytics
 
-Status: implementation candidate based on accepted 10.6 merge `d172ed429a2addb259a0dce622d9c2d94429816e` and QA-approved implementation head `cef5d39b3adf939ba7d9c59d6d6e250bcce7cbcd`. Nothing in this document marks 10.7 accepted.
+Status: accepted and merged at `1de89a40c810919d1edf831d1af4d69b2d4b46d7`; QA-approved implementation head `2f553b756309b42494bed34e00f054891e18e78d`.
 
 ## Navigation and scroll contract
 

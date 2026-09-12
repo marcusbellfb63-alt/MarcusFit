@@ -22,7 +22,7 @@ baseline `8308e7c57135e1bbb2ab8756c571805aa2819c78`.
 | `features/15-stats.js` | base analytics calculation/rendering | daily/workout; extended by habits/adherence/basketball |
 | `system/16-backup-restore-debug.js` | backup discovery/raw serialization/preview/validation/replacement restore plus compatibility diagnostics | every storage owner; basketball wraps final backup APIs |
 | `features/17-starter-programs.js` | immutable templates, program basis, chooser, export/personalization hooks | `P`, profile, proposal UI, renderProgram |
-| `features/18-progression-corrections.js` | accepted metric direction/duration/cardio/ceiling corrections and self-test | progression base and workout/review functions |
+| `features/18-progression-corrections.js` | final lifting metric/progression owner; context-comparable 10.8 outcomes, explanations, display-only targets, diagnostics, and self-test | progression base and workout/review/export functions |
 | `features/19-recurring-adherence.js` | recurring schemas/date math/events/UI/Stats/export/debug wrappers | shared daily records, Stats/export |
 | `features/20-habits.js` | definitions/manager/proposals/daily/History/Stats/export/Sync hook/debug | onboarding/profile, daily, History/Stats/export and canonical applySync |
 | `boot/21-app-boot.js` | early lifecycle/day-integrity migration, navigation, and synchronous profile/onboarding/program/adherence initialization | every preceding runtime boundary |

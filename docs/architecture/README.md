@@ -1,7 +1,7 @@
 # MarcusFit runtime architecture
 
 MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
-classic scripts. The 10.7.0 implementation candidate keeps those boundaries
+classic scripts. The 10.8.0 implementation candidate keeps those boundaries
 and composes export sections through the existing ordered classic-script wrappers. GitHub Pages still loads
 static `defer` scripts, and there is no build step or runtime dependency.
 
@@ -33,7 +33,7 @@ assets/js/
 `-- features/22-basketball.js
 ```
 
-The 10.7.0 candidate retains 22 runtime files in the accepted numeric order.
+The 10.8.0 candidate retains 22 runtime files in the accepted numeric order.
 Reproducible physical-line and largest-file counts come from the architecture
 inventory. Numeric prefixes remain globally ordered and match `index.html`.
 
@@ -60,6 +60,14 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - No storage key/schema, script, module, backend, export contract, or core Sync change is introduced.
 - See `navigation-sync-analytics-10.7.md` for exact behavior and evidence rules.
 
+## 10.8 lifting progression boundary
+
+- `features/18-progression-corrections.js` remains the final progression owner and extends the accepted Phase 9A compatibility surface; no competing engine or 23rd script is introduced.
+- Workout evidence is matched by stable exercise ID plus stored gym/day context when available. Legacy records without those optional identity fields remain readable.
+- Complete prescribed sets and required RIR evidence gate load increases. Exact compatible numeric loads may receive bounded arithmetic; textual, ranged, bodyweight, mixed, or ambiguous setups remain qualitative.
+- Recommendation action, reason, confidence, and comparable-session count are derived at render/export time. Saved/manual values are the only values carried into editable fields.
+- See `lifting-10.8-audit.md` for the lifecycle trace, audit findings, decision rules, and fallbacks.
+
 ## Guide
 
 - `runtime-system-map.md` records ownership and direct dependencies.
@@ -69,6 +77,7 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - `dependency-risk-register.md` records mitigated and remaining risks.
 - `proposed-module-plan.md` records implementation decisions and deviations.
 - `basketball-10.6-audit.md` records the Basketball storage/flow audit and progression rules.
+- `lifting-10.8-audit.md` records lifting ownership, decision evidence, and conservative fallbacks.
 - `../../tests/marcusfit-10.1.2-modularization-equivalence.md` records evidence.
 
 Run `node tools/architecture/inventory-runtime.js` with the bundled Node
