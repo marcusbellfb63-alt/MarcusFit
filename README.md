@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.9.0 — Basketball Drill Coaching and Session Energy implementation candidate
+MarcusFit 10.10.0 — Visual System Modernization implementation candidate
 
 ## Architecture
 
@@ -131,7 +131,7 @@ MarcusFit 10.9.0 — Basketball Drill Coaching and Session Energy implementation
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.9.0";
+const APP_VERSION      = "10.10.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
@@ -139,16 +139,17 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 
 ## Candidate record
 
-- 10.9.0 starts from accepted 10.8.0 production merge `3eea77df29382182ac639845946419e477cf6da8`
-- Accepted 10.8.0 QA-approved implementation head: `4f25efa6e0bc6b854d7676f75bda40dc259f9065`
-- All 38 built-in Basketball drill IDs and accepted tracking modes are unchanged; each resolves a bounded standard prescription, and target overrides produce target-consistent next-session and courtside instructions
-- New structured Basketball history snapshots retain the performed prescription, while old structured and free-form records remain readable without migration
-- AI Export includes bounded planned/resolved and historical performed prescription summaries using stored snapshots for history
-- Optional `activeCalories` stays inside existing lifting and structured Basketball session records; Stats and AI Export treat it as incomplete wearable evidence and never as precise expenditure
-- 10.9.0 is not accepted; independent ChatGPT review and Marcus real-iPhone QA are required
+- 10.10.0 starts from accepted 10.9.0 production merge `d4a8f4d85ecb66e6c30a192ab4c3ae5bc8399dd3`
+- Accepted 10.9.0 QA-approved implementation head: `3d8c04d52c9731845d4f3cd865b550d7e4287f44`
+- The effective dark-charcoal system uses lightning lime `#b7f34a`, neutral surfaces/text, dedicated semantic colors, a three-radius scale, and two intentional elevation levels
+- One local `currentColor` SVG sprite replaces platform emoji throughout normal UI; protected program-data and core-Sync files remain byte-identical and are neutralized at their presentation boundaries
+- No training, progression, Basketball, AI, storage, schema, migration, backup/restore, workflow, or script-order behavior is intentionally changed
+- See `docs/architecture/visual-system-10.10-audit.md` and `tests/marcusfit-10.10.0-manual-qa.md`
+- 10.10.0 is not accepted; independent review and Marcus real-iPhone QA are required
 
 ## Acceptance Record
 
+- 10.9.0 is accepted and merged at `d4a8f4d85ecb66e6c30a192ab4c3ae5bc8399dd3`; QA-approved implementation head `3d8c04d52c9731845d4f3cd865b550d7e4287f44`
 - 10.8.0 is accepted and merged at `3eea77df29382182ac639845946419e477cf6da8`; QA-approved implementation head `4f25efa6e0bc6b854d7676f75bda40dc259f9065`
 - 10.7.0 is accepted and merged at `1de89a40c810919d1edf831d1af4d69b2d4b46d7`; QA-approved implementation head `2f553b756309b42494bed34e00f054891e18e78d`
 - 10.6.0 is accepted and merged at `d172ed429a2addb259a0dce622d9c2d94429816e`; QA-approved implementation head `cef5d39b3adf939ba7d9c59d6d6e250bcce7cbcd`
@@ -176,4 +177,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.6.0** — Basketball courtside UX and progression maturation (accepted)
 - **v10.7.0** — Navigation, Sync IA, and analytics maturation (accepted)
 - **v10.8.0** — Smarter Lifting (accepted)
-- **v10.9.0** — Basketball Drill Coaching and Session Energy (implementation candidate)
+- **v10.9.0** — Basketball Drill Coaching and Session Energy (accepted)
+- **v10.10.0** — Visual System Modernization (implementation candidate)
