@@ -1,3 +1,38 @@
+// ── MARCUSFIT 10.10.0: LOCAL SVG ICON PRESENTATION ──────────────────────────
+const MF_ICON_NAMESPACE="http://www.w3.org/2000/svg";
+function mfIcon(name,className){
+  if(typeof document.createElementNS!=="function"){const fallback=document.createElement("span");fallback.className="mf-icon-fallback";fallback.setAttribute("aria-hidden","true");return fallback;}
+  const svg=document.createElementNS(MF_ICON_NAMESPACE,"svg"),use=document.createElementNS(MF_ICON_NAMESPACE,"use");
+  svg.setAttribute("class","mf-icon"+(className?" "+className:""));svg.setAttribute("aria-hidden","true");svg.setAttribute("focusable","false");
+  use.setAttribute("href","#mf-icon-"+name);svg.appendChild(use);return svg;
+}
+function mfIconMarkup(name,className){return '<svg class="mf-icon'+(className?' '+className:'')+'" aria-hidden="true" focusable="false"><use href="#mf-icon-'+name+'"></use></svg>';}
+function mfSetIconLabel(element,name,label,className){
+  if(!element)return;if(typeof element.replaceChildren!=="function"||typeof document.createElementNS!=="function"){element.textContent=label;return;}element.replaceChildren(mfIcon(name,className),document.createTextNode(label));element.classList.add("mf-icon-label");
+}
+function mfHabitIconName(id){
+  return {"habit-water":"water","habit-bm":"activity","habit-steps":"activity","habit-box-breathing":"activity","habit-jaw-posture":"check-circle","habit-desk-posture":"activity","habit-kegel":"dumbbell"}[id]||"check-circle";
+}
+function mfSanitizeOwnedUiText(element){
+  if(!element||typeof document.createTreeWalker!=="function")return;const walker=document.createTreeWalker(element,4);let node;
+  while((node=walker.nextNode())){
+    const sanitized=node.nodeValue.replace(/[\p{Extended_Pictographic}\uFE0F]/gu,"").replace(/[ \t]{2,}/g," ").replace(/^ /gm,"");
+    if(sanitized!==node.nodeValue)node.nodeValue=sanitized;
+  }
+}
+function mfInitProtectedUiSanitizers(){
+  const syncResult=document.getElementById("syncResult");
+  if(!syncResult||typeof MutationObserver!=="function")return;
+  new MutationObserver(function(){mfSanitizeOwnedUiText(syncResult);}).observe(syncResult,{childList:true,subtree:true,characterData:true});
+}
+const mfLegacyRenderWoRecs=renderWoRecs;
+renderWoRecs=function(){
+  const result=mfLegacyRenderWoRecs(),section=document.getElementById("woRecsSection");if(!section)return result;
+  const title=section.querySelector(".wo-recs-title"),badge=title&&title.querySelector(".recs-ai-badge");
+  if(title){title.replaceChildren(mfIcon("bolt","mf-icon-sm"),document.createTextNode("Day Recommendations"));if(badge)title.appendChild(badge);title.classList.add("mf-icon-label");}
+  section.querySelectorAll(".wo-rec-icon").forEach(function(icon){icon.replaceChildren(mfIcon("activity"));});return result;
+};
+
 // ── MARCUSFIT 10.1.4: SYNC / SETTINGS DISCLOSURES ───────────────────────────
 function mfGetSettingsSection(key){
   return document.querySelector('[data-mf-settings-section="'+key+'"]');
@@ -81,6 +116,7 @@ function mfInitSettingsDisclosures(){
   }
   ["p960SettingsStatus","mfBasketballProposalStatus"].forEach(function(id){const node=document.getElementById(id);if(node&&typeof MutationObserver==="function")new MutationObserver(mfUpdateSyncPendingStatus).observe(node,{childList:true,subtree:true,characterData:true,attributes:true});});
   mfSelectSyncPage("ai",{force:true,skipScroll:true});
+  mfInitProtectedUiSanitizers();
 }
 
 mfInitSettingsDisclosures();
@@ -156,17 +192,17 @@ function p6UpdateStickyBar(){
   const hasEntry=todayHasSavedEntry();
   const hasDraft=!!getDraft();
   if(hasEntry){
-    btn.innerHTML="&#9998;&#65039; UPDATE";
+    mfSetIconLabel(btn,"edit","UPDATE");
     btn.className="p6-save-btn update-mode";
-    status.textContent="Saved ✓";
+    status.textContent="Saved";
     status.className="p6-save-status saved";
   } else if(hasDraft){
-    btn.innerHTML="&#9989; SAVE DAY";
+    mfSetIconLabel(btn,"check","SAVE DAY");
     btn.className="p6-save-btn";
     status.textContent="Draft ●";
     status.className="p6-save-status draft";
   } else {
-    btn.innerHTML="&#9989; SAVE DAY";
+    mfSetIconLabel(btn,"check","SAVE DAY");
     btn.className="p6-save-btn";
     status.textContent="Unsaved";
     status.className="p6-save-status";
@@ -223,7 +259,7 @@ window.addEventListener("load",()=>{
       if(document.getElementById("screen-analytics").classList.contains("active"))p7RenderAnalytics();
       const btn=document.getElementById("p6SaveBtn");
       if(btn){
-        btn.innerHTML=todayHasSavedEntry()?"&#9998;&#65039; UPDATED!":"&#9989; SAVED!";
+        mfSetIconLabel(btn,todayHasSavedEntry()?"edit":"check",todayHasSavedEntry()?"UPDATED!":"SAVED!");
         setTimeout(p6UpdateStickyBar,1800);
       }
     },60);

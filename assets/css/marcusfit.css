@@ -1168,3 +1168,122 @@ html{scroll-padding-top:calc(var(--mf-header-height,96px) + 12px);}
 .p1080-reason{margin-top:3px;color:var(--muted);font-size:var(--mf-font-xs);line-height:1.45;}
 .p1080-confidence{margin-top:5px;color:var(--accent2);font-size:var(--mf-font-xs);font-weight:700;text-transform:capitalize;}
 .p5-hist-toggle{appearance:none;width:100%;border:0;background:transparent;color:inherit;font-family:inherit;text-align:left;}
+
+/* MarcusFit 10.10.0: centralized visual-system application */
+:root{
+  color-scheme:dark;
+  --app-bg:#090b09;--surface-base:#121511;--surface-raised:#181c17;--surface-interactive:#20251f;
+  --border-subtle:#2d332c;--divider-strong:#3a4238;
+  --text-primary:#f3f5ef;--text-secondary:#c7cdc2;--text-muted:#969f91;--text-disabled:#687066;
+  --brand:#b7f34a;--brand-strong:#a8ff3e;--brand-contrast:#11150c;
+  --brand-surface:color-mix(in srgb,var(--brand) 10%,var(--surface-base));--brand-border:color-mix(in srgb,var(--brand) 42%,var(--border-subtle));
+  --success:#55d37a;--warning:#f2bf55;--error:#ff6174;--info:#80b5f4;--text-on-error:#fff;
+  --radius-control:7px;--radius-card:10px;--radius-modal:12px;--radius-pill:999px;
+  --shadow-sticky:0 8px 24px rgba(0,0,0,.28);--shadow-modal:0 20px 60px rgba(0,0,0,.58);
+  --icon-sm:14px;--icon-md:18px;--icon-lg:22px;--icon-nav:20px;
+  --bg:var(--app-bg);--surface:var(--surface-base);--surface2:var(--surface-raised);--border:var(--border-subtle);
+  --accent:var(--brand);--accent2:var(--brand);--text:var(--text-primary);--muted:var(--text-muted);
+  --green:var(--success);--red:var(--error);--yellow:var(--warning);
+  --push:#e68155;--lower:#e8bc55;--cardio:#55c985;--pull:#72a7dc;--pump:#b982d5;--arms:#e26d80;
+}
+.mf-icon-sprite{display:none;}
+.mf-icon{display:inline-block;width:var(--icon-md);height:var(--icon-md);flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;}
+.mf-icon-sm{width:var(--icon-sm);height:var(--icon-sm);}.mf-icon-lg{width:var(--icon-lg);height:var(--icon-lg);}.mf-icon-nav{width:var(--icon-nav);height:var(--icon-nav);}
+.mf-icon-label{display:inline-flex;align-items:center;gap:7px;min-width:0;}.mf-icon-fallback{display:none;}
+:where(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--brand);outline-offset:2px;}
+body{background:var(--app-bg);}
+.header{background:color-mix(in srgb,var(--surface-base) 96%,transparent);box-shadow:var(--shadow-sticky);backdrop-filter:blur(12px);}
+.header-top{margin-bottom:8px;}
+.logo{font-size:27px;letter-spacing:2.6px;line-height:1;}
+.date-pill{border-radius:var(--radius-pill);background:var(--surface-interactive);color:var(--text-secondary);}
+.tab-nav{border-bottom-color:var(--border-subtle);}
+.tab-btn{min-height:54px;padding:8px 3px 7px;gap:4px;color:var(--text-muted);border-bottom-width:3px;}
+.tab-btn.active{color:var(--brand);border-bottom-color:var(--brand);}
+.tab-icon{display:flex;align-items:center;justify-content:center;min-height:var(--icon-nav);font-size:0;}
+.screen{padding-top:18px;}
+.screen-title,.section-label{color:var(--text-secondary);}
+.screen-title{font-size:22px;margin-bottom:12px;}
+
+:where(.day-card,.t-card,.habit-card,.wo-ex-block,.hist-entry,.sync-box,.info-box,.p6-section,.p949-review-card,.p9-pref-card,.p945-diag-section,.lc-health-section,.p7-filter-block,.p7-section,.p7-action-summary,.p7-range-control,.p9510-card,.mf-settings-section,.mf-basketball-program,.mf-basketball-structured,.mf-basketball-drill-card,.mf-basketball-program-view,.mf-basketball-completion-review){
+  border-color:var(--border-subtle);
+  border-radius:var(--radius-card);
+  box-shadow:none;
+}
+:where(.day-card,.t-card,.habit-card,.wo-ex-block,.hist-entry,.sync-box,.p6-section,.p949-review-card,.p9-pref-card,.p945-diag-section,.lc-health-section,.p7-filter-block,.p7-section,.p7-range-control,.p9510-card,.mf-settings-section){background:var(--surface-base);}
+:where(.info-box,.resume-banner,.wo-recs-card,.lc-state-item,.p945-count-card,.p7-stat-card,.p7-chart,.mf-basketball-next,.mf-basketball-history-drill,.mf-basketball-program-drill,.mf-basketball-last-trend){background:var(--surface-raised);}
+.p6-section.open,.day-card.open,.mf-settings-section.open{border-color:var(--divider-strong);}
+
+:where(input,select,textarea,.editor-input,.t-input,.notes-ta,.wo-day-select,.wo-set-wt,.wo-set-reps,.wo-set-rir,.wo-note-input,.sync-ta,.p7-filter-input,.p7-filter-select,.mf-basketball-field input,.mf-basketball-field select,.mf-basketball-field textarea,.p960-field input,.p960-field select,.p960-field textarea){
+  background:var(--surface-interactive);
+  border-color:var(--border-subtle);
+  border-radius:var(--radius-control);
+  color:var(--text-primary);
+}
+:where(input,textarea)::placeholder{color:var(--text-disabled);opacity:1;}
+
+:where(.gym-btn,.log-gym-btn,.tog-btn,.dnav-btn,.edit-btn,.resume-btn,.p7-ftog,.p7-clear-btn,.mf-sync-nav-btn,.mf-settings-toggle,.p945-refresh-btn,.mf-basketball-confidence-button,.mf-basketball-view-program,.mf-basketball-review-history,.mf-basketball-completion-dismiss,.mf-basketball-drill-nav button,.p960-row button,.p960-actions button){
+  border-radius:var(--radius-control);
+  background:var(--surface-interactive);
+  border-color:var(--border-subtle);
+  color:var(--text-secondary);
+  box-shadow:none;
+}
+:where(.gym-btn.active,.log-gym-btn.active,.mf-sync-nav-btn.active,.p7-ftog.active,.mf-basketball-confidence-button[aria-pressed="true"]){
+  background:var(--brand-surface);
+  border-color:var(--brand-border);
+  color:var(--brand);
+  box-shadow:none;
+}
+:where(.save-btn,.p6-save-btn,.big-btn.btn-export,.big-btn.btn-sync,.editor-save,.resume-btn.yes,.mf-basketball-save,.mf-basketball-start,.mf-basketball-program-select,.mf-basketball-finish-advance,.mf-basketball-program-confirm,.mf-basketball-drill-next,.p960-primary){
+  background:var(--brand)!important;
+  border-color:var(--brand)!important;
+  color:var(--brand-contrast)!important;
+  border-radius:var(--radius-control);
+  box-shadow:none;
+}
+:where(.big-btn,.save-btn,.p6-save-btn){min-height:46px;}
+:where(.editor-reset,.p954r-btn-keep,.p960-danger,.mf-basketball-delete-confirm){color:var(--error);border-color:color-mix(in srgb,var(--error) 48%,var(--border-subtle));}
+.btn-copy{color:var(--brand);border-color:var(--brand)!important;}
+.wo-recs-card{border-color:var(--brand-border);}
+.wo-recs-title,.resume-banner-title,.info-box strong,.mf-basketball-program-kicker,.mf-basketball-next-kicker,.mf-basketball-freeform-heading,.mf-basketball-program-view-title,.mf-basketball-drill-position{color:var(--brand);}
+.ex-tag.load,.ex-tag.rir-tag{color:var(--text-secondary);border-color:var(--divider-strong);}
+.weight-hero-num,.mood-num{color:var(--brand);}
+.p6-section-icon,.wo-rec-icon,.t-emoji{color:var(--text-muted);display:flex;align-items:center;justify-content:center;}
+.tog-btn.yes{background:color-mix(in srgb,var(--success) 14%,transparent);color:var(--success);border-color:var(--success);}
+.tog-btn.no{background:color-mix(in srgb,var(--error) 12%,transparent);color:var(--error);border-color:var(--error);}
+.tog-btn.rest{background:color-mix(in srgb,var(--info) 10%,transparent);color:var(--info);border-color:var(--info);}
+.habit-check{border-radius:50%;}
+.habit-card.completed .habit-check{background:var(--success);border-color:var(--success);color:var(--app-bg);}
+.hist-pill,.day-tag,.habits-progress,.p6-section-badge,.mf-basketball-next-meta span,.mf-basketball-personalized-badge{border-radius:var(--radius-pill);}
+.draft-toast{border-radius:var(--radius-card);box-shadow:var(--shadow-sticky);}
+.p6-sticky-bar,.mf-basketball-finish-actions{box-shadow:var(--shadow-sticky);border-color:var(--divider-strong);}
+:where(.p952-inner,.p952-skip-modal,.p954r-inner,.p954r-confirm-modal,.p954ap-modal,.p960-panel,.mf-basketball-dialog-panel){border-radius:var(--radius-modal);box-shadow:var(--shadow-modal);}
+.p954r-close-x{display:grid;place-items:center;min-width:44px;min-height:44px;}
+.mf-critical-panel{border-radius:var(--radius-card);padding:12px 14px;margin-top:10px;}
+.mf-critical-panel-warning{display:none;background:color-mix(in srgb,var(--warning) 8%,transparent);border:1px solid color-mix(in srgb,var(--warning) 48%,transparent);}
+.mf-critical-panel-error{display:none;background:color-mix(in srgb,var(--error) 8%,transparent);border:1px solid color-mix(in srgb,var(--error) 48%,transparent);}
+.mf-critical-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;margin-bottom:8px;}
+.mf-critical-title.warning{color:var(--warning);}.mf-critical-title.error{color:var(--error);}
+.mf-critical-copy{font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;}
+.mf-inline-actions{display:flex;gap:8px;}
+.mf-inline-actions .mf-confirm{flex:1;padding:9px;border:none;border-radius:var(--radius-control);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;}
+.mf-confirm.warning{background:var(--warning);color:var(--app-bg);}.mf-confirm.error{background:var(--error);color:var(--text-on-error);}
+.mf-inline-actions .mf-cancel{padding:9px 14px;background:transparent;color:var(--text-muted);border:1px solid var(--border-subtle);border-radius:var(--radius-control);font:700 12px 'DM Sans',sans-serif;cursor:pointer;}
+.mf-stack-actions{display:flex;flex-direction:column;gap:8px;}
+.mf-stack-actions .big-btn{margin-bottom:0;}
+.mf-field-label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px;}
+.mf-field-row{display:flex;gap:8px;}.mf-field-row>*{min-width:0;}
+.mf-status-with-icon{display:flex;align-items:flex-start;gap:7px;}
+.mf-toolbar-row{display:flex;align-items:center;gap:8px;}
+
+@media(max-width:350px){
+  .tab-btn{font-size:8px;letter-spacing:.2px;}
+  .p6-section-header{gap:5px;padding-inline:10px;}
+  .p6-section-header-left{min-width:0;gap:6px;}
+  .p6-section-title{white-space:nowrap;}
+  .p6-section-header>div:last-child{min-width:0;gap:4px!important;}
+  .p6-section-badge{max-width:76px;padding-inline:6px;overflow:hidden;text-overflow:ellipsis;}
+  .p6-section.open .p6-section-badge{display:none;}
+  .mf-inline-actions{flex-direction:column;}
+  .mf-inline-actions .mf-cancel{min-height:44px;}
+}
