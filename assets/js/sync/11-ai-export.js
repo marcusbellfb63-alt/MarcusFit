@@ -41,7 +41,7 @@ function buildLogSection(dkeys,allDkeys){
   dkeys.forEach(function(k){
     const d=JSON.parse(localStorage.getItem(k));
     const dt=new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"});
-    logSection+=dt+"\n";
+    logSection+="\uD83D\uDCC5 "+dt+"\n";
     if(d.weight)logSection+="  Weight:  "+d.weight+" lbs\n";
     if(d.sleep)logSection+="  Sleep:   "+d.sleep+" hrs\n";
     if(d.protein)logSection+="  Protein: "+d.protein+"g\n";

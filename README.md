@@ -142,7 +142,8 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - 10.10.0 starts from accepted 10.9.0 production merge `d4a8f4d85ecb66e6c30a192ab4c3ae5bc8399dd3`
 - Accepted 10.9.0 QA-approved implementation head: `3d8c04d52c9731845d4f3cd865b550d7e4287f44`
 - The effective dark-charcoal system uses lightning lime `#b7f34a`, neutral surfaces/text, dedicated semantic colors, a three-radius scale, and two intentional elevation levels
-- One local `currentColor` SVG sprite replaces platform emoji throughout normal UI; protected program-data and core-Sync files remain byte-identical and are neutralized at their presentation boundaries
+- One local `currentColor` SVG sprite replaces platform emoji throughout normal UI; protected program-data and core-Sync files remain byte-identical, with only exact core-owned Sync status prefixes adapted at the presentation boundary
+- Accepted 10.9 AI Export payload text remains byte-equivalent apart from the required 10.10 version string; exported Unicode and user/imported content are preserved
 - No training, progression, Basketball, AI, storage, schema, migration, backup/restore, workflow, or script-order behavior is intentionally changed
 - See `docs/architecture/visual-system-10.10-audit.md` and `tests/marcusfit-10.10.0-manual-qa.md`
 - 10.10.0 is not accepted; independent review and Marcus real-iPhone QA are required

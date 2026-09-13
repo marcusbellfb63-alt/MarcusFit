@@ -538,8 +538,8 @@ function p9BuildProgressionExport(ex){
   // Status badge label
   const statusLabel =
     status==="progress_load"||status==="up" ? "↑ PROGRESS" :
-    status==="target_reset"||status==="reduce" ? "RESET HOLD" :
-    status==="safer_hold"||status==="safer-hold" ? "SAFER HOLD" :
+    status==="target_reset"||status==="reduce" ? "⚠ RESET HOLD" :
+    status==="safer_hold"||status==="safer-hold" ? "⚠ SAFER HOLD" :
     status==="top_range_hold" ? "→ TOP RANGE HOLD" :
     status==="capped_hold" ? "→ CAPPED HOLD" :
     status==="build_reps" ? "→ BUILD REPS" :

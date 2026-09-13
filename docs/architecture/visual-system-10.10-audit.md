@@ -63,16 +63,18 @@ check/warning/X glyphs. Structural arrows are not counted or banned.
 
 | Source class | Findings | Treatment |
 | --- | ---: | --- |
-| Editable presentation sources | 223 | Replaced with local SVG icons or clear text-only semantic copy. |
+| Editable normal-UI presentation sources | 220 | Replaced with local SVG icons or clear text-only semantic copy. |
+| Intentional AI Export payload text | 3 | Accepted calendar heading and progression warning labels remain exact; the static test exempts only these named output locations. |
 | Protected `data/02-program-data.js` | 47 | File remains byte-identical. Its legacy Habit/recommendation icon values are ignored by current renderers and mapped to local SVG. |
-| Protected `sync/12-ai-sync.js` | 45 | File remains byte-identical and the sole `applySync`. A presentation-only observer removes owned pictographs from `syncResult` after rendering. |
+| Protected `sync/12-ai-sync.js` | 45 | File remains byte-identical and the sole `applySync`. A presentation observer adapts only exact known application-owned status prefixes in `syncResult`. |
 
 Three legacy check glyph defaults remain inside the Habit storage
 normalization path to preserve stored-definition compatibility. They are
 explicit static-test exceptions and are never rendered. User notes, imported
-text, and raw debug data are not rewritten. Generated AI Export date headings
-are plain text so the export textarea does not reintroduce platform emoji; its
-data content and line structure are unchanged.
+text, raw debug data, and AI Export payload Unicode are not rewritten. The
+core-Sync adapter has no general pictographic matcher, preserves the raw-input
+tail without inspection, and leaves pictographs inside user/AI reason text
+unchanged after adapting an exact application-owned line prefix.
 
 ### Selector and behavior risk
 
@@ -128,7 +130,11 @@ explicit accessible label and at least a 44 px target where applicable.
 `tests/marcusfit-10.10.0-visual-system.test.js` fails on unapproved UI glyphs,
 duplicate symbol IDs, unresolved static/dynamic icon references, missing
 decorative accessibility treatment, changed protected exception counts, or a
-return to direct stored-Habit icon rendering.
+return to direct stored-Habit icon rendering. It also locks the near-white /
+lime wordmark split, hashes the accepted 10.9 daily-log and progression-export
+formatters, and exercises the bounded core-Sync adapter against known owned
+statuses, arbitrary emoji-bearing text, owned messages with emoji-bearing
+reasons, and raw imported content.
 
 ## Browser evidence
 
@@ -141,3 +147,10 @@ visible icon, or console warning/error. A narrow Daily Log header correction
 keeps titles intact, truncates closed status badges, and removes the redundant
 badge while a section is open. Real-iPhone Safari/Home Screen QA remains an
 acceptance gate.
+
+The focused review-correction smoke repeated all five primary screens at 320
+and 390 px with Standard and Extra Large text. Computed wordmark colors were
+`rgb(243, 245, 239)` for `MARCUS` and `rgb(183, 243, 74)` for `FIT`. A known
+empty-array core-Sync status rendered without its owned glyph, while the raw
+imported text `User note 😀 stays intact` remained exact in `syncResult`.
+There were no overflow, icon-resolution, or console failures.

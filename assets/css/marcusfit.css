@@ -1195,6 +1195,8 @@ body{background:var(--app-bg);}
 .header{background:color-mix(in srgb,var(--surface-base) 96%,transparent);box-shadow:var(--shadow-sticky);backdrop-filter:blur(12px);}
 .header-top{margin-bottom:8px;}
 .logo{font-size:27px;letter-spacing:2.6px;line-height:1;}
+.logo span:first-child{color:var(--text-primary);}
+.logo span:last-child{color:var(--brand);}
 .date-pill{border-radius:var(--radius-pill);background:var(--surface-interactive);color:var(--text-secondary);}
 .tab-nav{border-bottom-color:var(--border-subtle);}
 .tab-btn{min-height:54px;padding:8px 3px 7px;gap:4px;color:var(--text-muted);border-bottom-width:3px;}

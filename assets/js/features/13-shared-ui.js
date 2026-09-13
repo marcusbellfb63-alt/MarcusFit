@@ -13,17 +13,36 @@ function mfSetIconLabel(element,name,label,className){
 function mfHabitIconName(id){
   return {"habit-water":"water","habit-bm":"activity","habit-steps":"activity","habit-box-breathing":"activity","habit-jaw-posture":"check-circle","habit-desk-posture":"activity","habit-kegel":"dumbbell"}[id]||"check-circle";
 }
-function mfSanitizeOwnedUiText(element){
+function mfAdaptCoreSyncOwnedStatusText(value){
+  const text=String(value==null?"":value),rawMarker="\nRaw content detected:\n",rawIndex=text.indexOf(rawMarker),ownedText=rawIndex<0?text:text.slice(0,rawIndex+rawMarker.length),rawTail=rawIndex<0?"":text.slice(rawIndex+rawMarker.length);
+  const rules=[
+    /^\u274c (?=(?:No MARCUSFIT_UPDATE block found\.|Found MARCUSFIT_UPDATE_(?:END|START) but missing |Could not extract content between markers\.|JSON parse error: |Expected a JSON array \[ \.\.\. \] between the markers, got ))/,
+    /^\u2139\ufe0f (?=(?:Sync block contained an empty array|All entries processed|reorder \(|day_override_clear \(|day_addition_clear \(|.+ already (?:active on |exists as replacement for )))/,
+    /^\u26a0 (?=(?:recommendations \(|reorder \(|Archived exercise not found: ))/,
+    /^\u2713 (?=(?:Recommendations set for |Reordered |Day override (?:cleared|set): |Virtual day (?:cleared|created|updated): |Archived .+ reactivated|Replacement link created$|.+ (?:added to |archived(?:$| \()|created \(ID: )))/,
+    /^\ud83d\udd00 (?=\d+ days? reordered$)/,
+    /^\ud83d\udcac (?=\d+ recommendation sets? applied$)/,
+    /^\ud83c\udff7\ufe0f (?=\d+ day overrides? applied$)/,
+    /^\ud83d\uddd1\ufe0f\ud83d\udcc5 (?=\d+ virtual days? cleared$)/,
+    /^\ud83d\uddd1\ufe0f (?=\d+ day overrides? cleared$)/,
+    /^\u2795\ud83d\udcc5 (?=\d+ virtual days? set$)/,
+    /^\u2795\ud83d\udcaa (?=\d+ custom exercises? added$)/,
+    /^\u2705 (?=\d+ exercises? updated$)/,
+    /^\u2795 (?=\d+ exercises? added$)/,
+    /^\ud83e\udde0 (?=\d+ habits? updated$)/,
+    /^\u26a0\ufe0f (?=Skipped \(\d+\):$)/
+  ];
+  const adapted=ownedText.split("\n").map(function(line){for(let i=0;i<rules.length;i++){if(rules[i].test(line))return line.replace(rules[i],"");}return line;}).join("\n");
+  return adapted+rawTail;
+}
+function mfAdaptCoreSyncResultPresentation(element){
   if(!element||typeof document.createTreeWalker!=="function")return;const walker=document.createTreeWalker(element,4);let node;
-  while((node=walker.nextNode())){
-    const sanitized=node.nodeValue.replace(/[\p{Extended_Pictographic}\uFE0F]/gu,"").replace(/[ \t]{2,}/g," ").replace(/^ /gm,"");
-    if(sanitized!==node.nodeValue)node.nodeValue=sanitized;
-  }
+  while((node=walker.nextNode())){const adapted=mfAdaptCoreSyncOwnedStatusText(node.nodeValue);if(adapted!==node.nodeValue)node.nodeValue=adapted;}
 }
 function mfInitProtectedUiSanitizers(){
   const syncResult=document.getElementById("syncResult");
   if(!syncResult||typeof MutationObserver!=="function")return;
-  new MutationObserver(function(){mfSanitizeOwnedUiText(syncResult);}).observe(syncResult,{childList:true,subtree:true,characterData:true});
+  new MutationObserver(function(){mfAdaptCoreSyncResultPresentation(syncResult);}).observe(syncResult,{childList:true,subtree:true,characterData:true});
 }
 const mfLegacyRenderWoRecs=renderWoRecs;
 renderWoRecs=function(){

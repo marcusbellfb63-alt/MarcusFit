@@ -78,7 +78,7 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 
 ## 10.10 visual-system boundary
 
-- `index.html` owns one local SVG symbol sprite; `features/13-shared-ui.js` owns the dependency-free `currentColor` icon helpers and protected-result presentation sanitizer.
+- `index.html` owns one local SVG symbol sprite; `features/13-shared-ui.js` owns the dependency-free `currentColor` icon helpers and the exact-pattern core-Sync status presentation adapter.
 - The final CSS cascade owns charcoal foundation/text surfaces, lightning-lime brand aliases, dedicated semantic colors, three reusable radii, two elevation levels, and standardized icon sizes.
 - The accepted CSS remains an unchanged prefix, while all 22 runtime scripts retain their existing order and ownership.
 - Protected program data and core Sync remain content-identical. Their legacy icon strings are not displayed as platform glyphs and no stored user content is rewritten.

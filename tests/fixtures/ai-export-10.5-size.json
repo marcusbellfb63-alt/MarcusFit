@@ -31,8 +31,8 @@
     "note": "Adds bounded active-calorie coverage plus concise planned/resolved and historical performed Basketball prescription summaries while retaining the 10.5 information architecture."
   },
   "after10_10": {
-    "characters": 23783,
+    "characters": 23792,
     "lines": 348,
-    "note": "10.10 removes the date pictograph from plain-text export headings; data content and line structure are unchanged."
+    "note": "Presentation-only 10.10 preserves accepted 10.9 export text; the one-character difference is the app-version length."
   }
 }

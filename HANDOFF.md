@@ -23,6 +23,7 @@ neutralized only at the presentation boundary. See
 ## 10.10 candidate validation
 
 - Static visual-system coverage inventories 315 accepted UI emoji/glyph tokens, validates 41 unique SVG symbols, resolves static/dynamic icon references, and constrains protected source exceptions.
+- Review corrections explicitly enforce a near-white `MARCUS` / lightning-lime `FIT` wordmark, preserve accepted 10.9 AI Export payload text, and adapt only exact core-Sync-owned status prefixes while leaving arbitrary imported/user pictographic text unchanged.
 - All existing regression suites and all 22 runtime syntax checks pass.
 - Protected program/core-Sync blobs, base `P`, 63 stable exercise IDs, accepted release hash, `Releases/` tree, and the accepted 22-script order remain unchanged.
 - Local Chromium QA passed at 320, 390, 480, and 1024 px across Compact, Standard, Large, and Extra Large text on all five primary screens. The four Tools sub-tabs also passed the narrow Extra Large check; no horizontal overflow, rendered UI emoji, unresolved/clipped icons, or console warnings/errors were found.
