@@ -1,7 +1,7 @@
 # MarcusFit runtime architecture
 
 MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
-classic scripts. The 10.8.0 implementation candidate keeps those boundaries
+classic scripts. The 10.9.0 implementation candidate keeps those boundaries
 and composes export sections through the existing ordered classic-script wrappers. GitHub Pages still loads
 static `defer` scripts, and there is no build step or runtime dependency.
 
@@ -33,7 +33,7 @@ assets/js/
 `-- features/22-basketball.js
 ```
 
-The 10.8.0 candidate retains 22 runtime files in the accepted numeric order.
+The 10.9.0 candidate retains 22 runtime files in the accepted numeric order.
 Reproducible physical-line and largest-file counts come from the architecture
 inventory. Numeric prefixes remain globally ordered and match `index.html`.
 
@@ -68,6 +68,14 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - Recommendation action, reason, confidence, and comparable-session count are derived at render/export time. Saved/manual values are the only values carried into editable fields.
 - See `lifting-10.8-audit.md` for the lifecycle trace, audit findings, decision rules, and fallbacks.
 
+## 10.9 Basketball coaching and session-energy boundary
+
+- `features/22-basketball.js` owns an immutable prescription catalog keyed by all 38 accepted built-in drill IDs. Prescriptions resolve at presentation/snapshot time so the accepted base and sparse resolved-program shapes remain compatible.
+- New structured Basketball drill results optionally snapshot the performed prescription. Historical views and edits use that snapshot and never borrow later catalog text; old structured and free-form records remain readable.
+- Existing workout and structured Basketball records may carry optional whole-number `activeCalories` values from 0–5000. No key, eager migration, or schema-version churn is introduced.
+- History labels values as estimates. Stats and AI Export derive range-aware totals, recorded-session averages, domain breakdown, and coverage without writing or counting missing values as zero.
+- Core Sync and proposal apply/undo paths remain unable to target historical prescriptions or calories. See `basketball-session-energy-10.9-audit.md` for the full contract.
+
 ## Guide
 
 - `runtime-system-map.md` records ownership and direct dependencies.
@@ -78,6 +86,7 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - `proposed-module-plan.md` records implementation decisions and deviations.
 - `basketball-10.6-audit.md` records the Basketball storage/flow audit and progression rules.
 - `lifting-10.8-audit.md` records lifting ownership, decision evidence, and conservative fallbacks.
+- `basketball-session-energy-10.9-audit.md` records Basketball prescription, snapshot, active-calorie, analytics, and Sync boundaries.
 - `../../tests/marcusfit-10.1.2-modularization-equivalence.md` records evidence.
 
 Run `node tools/architecture/inventory-runtime.js` with the bundled Node

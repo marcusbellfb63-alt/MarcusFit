@@ -131,6 +131,7 @@ function renderHistoryFromEntries(entries){
     const recurringOutcome=p9510HistoryOutcome(d.date||key.slice(4));
     const pills=[d.weight?`&#9878; ${d.weight}`:null,d.sleep?`&#128564; ${d.sleep}h`:null,d.protein?`&#129385; ${d.protein}g`:null,d.water?`&#128167; ${d.water}oz`:null,d.bm?`&#128701; ${d.bm}`:null,d.mood?`&#9889; ${d.mood}/10`:null,d.hunger?`&#127860; ${d.hunger}/10`:null,recurringOutcome||d.zep?recurringOutcome||`&#128138; ${d.zep}`:null,d.workout?`&#127947; ${d.workout}`:null].filter(Boolean);
     const woRaw=localStorage.getItem(key+"-wo");const wo=woRaw?JSON.parse(woRaw):null;
+    if(wo&&Number.isInteger(wo.activeCalories)&&wo.activeCalories>=0&&wo.activeCalories<=5000)pills.push(`&#128293; ${wo.activeCalories} active kcal est.`);
     let woDetail="";
     if(wo&&wo.exercises&&Object.keys(wo.exercises).length){
       // 9.4.8.3: use getSafeDayForLog — handles base + virtual days safely

@@ -691,6 +691,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .mf-basketball-field{display:flex;flex-direction:column;gap:5px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);}
 .mf-basketball-field input,.mf-basketball-field select,.mf-basketball-field textarea{width:100%;min-height:44px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:9px 10px;text-transform:none;letter-spacing:normal;}
 .mf-basketball-field textarea{min-height:82px;resize:vertical;line-height:1.45;}
+.mf-basketball-field-help,.mf-session-energy-field span{font-size:10px;font-weight:500;line-height:1.4;letter-spacing:0;text-transform:none;color:var(--muted);}
+.mf-session-energy-field{display:flex;flex-direction:column;gap:5px;margin:10px 0 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);}
+.mf-session-energy-field input{width:100%;min-height:44px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:9px 10px;letter-spacing:normal;}
+.mf-session-energy-field input:focus{outline:2px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:1px;border-color:var(--accent);}
 .mf-basketball-field input:focus,.mf-basketball-field select:focus,.mf-basketball-field textarea:focus{outline:2px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:1px;border-color:var(--accent);}
 .mf-basketball-optional{margin-top:12px;border-top:1px solid var(--border);padding-top:10px;}
 .mf-basketball-optional summary{min-height:40px;display:flex;align-items:center;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;list-style-position:inside;}
@@ -1062,6 +1066,19 @@ body.mf-basketball-proposal-open{position:fixed;left:0;right:0;width:100%;overfl
 .mf-basketball-program-drill>div{min-width:0;}.mf-basketball-program-drill strong,.mf-basketball-program-drill span{display:block;overflow-wrap:anywhere;}
 .mf-basketball-program-drill strong{font-size:var(--mf-font-sm);}.mf-basketball-program-drill>div span{font-size:var(--mf-font-xs);line-height:1.4;color:var(--muted);margin-top:2px;}
 .mf-basketball-program-drill.disabled{opacity:.65;}.mf-basketball-personalized-badge{flex:0 0 auto;padding:3px 6px;border:1px solid color-mix(in srgb,var(--accent2) 50%,var(--border));border-radius:999px;color:var(--accent2);font-size:9px!important;font-weight:900;}
+.mf-basketball-next-drill-name{display:block;color:var(--text);font-size:var(--mf-font-sm);}
+.mf-basketball-next-do,.mf-basketball-program-do{display:block;color:var(--text)!important;font-size:var(--mf-font-xs)!important;line-height:1.45;margin-top:4px;}
+.mf-basketball-do-now{margin:12px 0;padding:12px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--border));border-radius:10px;background:color-mix(in srgb,var(--accent) 7%,var(--surface2));}
+.mf-basketball-do-now-label{font-family:'Bebas Neue',sans-serif;font-size:var(--mf-font-base);letter-spacing:1px;color:var(--accent);}
+.mf-basketball-do-now-action{font-size:var(--mf-font-base);font-weight:700;line-height:1.4;margin:4px 0 8px;color:var(--text);}
+.mf-basketball-do-now-structure,.mf-basketball-do-now-cues,.mf-basketball-do-now-success{font-size:var(--mf-font-xs);line-height:1.45;color:var(--muted);margin-top:4px;overflow-wrap:anywhere;}
+.mf-basketball-howto{margin:8px 0 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface2);}
+.mf-basketball-howto summary{min-height:44px;display:flex;align-items:center;padding:9px 11px;cursor:pointer;font-size:var(--mf-font-sm);font-weight:700;color:var(--accent);}
+.mf-basketball-howto-body{padding:0 11px 11px;display:grid;gap:9px;}
+.mf-basketball-howto-row{display:grid;gap:2px;font-size:var(--mf-font-xs);line-height:1.45;overflow-wrap:anywhere;}
+.mf-basketball-howto-row strong{color:var(--text);}.mf-basketball-howto-row span{color:var(--muted);}
+.mf-basketball-history-prescription{font-size:var(--mf-font-xs);line-height:1.45;color:var(--text);margin-top:8px;overflow-wrap:anywhere;}
+.mf-active-calories-stats .p7-stat-grid{margin-top:8px;}
 .mf-basketball-courtside-progress{position:sticky;top:0;z-index:2;margin:0 -4px 10px;padding:9px 10px;border-radius:9px;background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--border);font-size:var(--mf-font-xs);font-weight:800;color:var(--accent);text-align:center;backdrop-filter:blur(8px);}
 .mf-basketball-drill-card[hidden]{display:none!important;}
 .mf-basketball-drill-position{font-size:var(--mf-font-xs);font-weight:900;letter-spacing:1px;color:var(--accent2);margin-bottom:3px;}

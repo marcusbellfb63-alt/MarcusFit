@@ -4,6 +4,13 @@ The effective `p8IsMarcusFitKey()` predicate owns 18 exact keys or key patterns.
 10.6.0 keeps the four accepted Basketball keys unchanged and adds no schema. 10.3.0 added two independent basketball personalization/proposal keys; existing schemas and
 replacement restore behavior remain compatible.
 
+10.9.0 adds no key and no schema-version increment. Existing
+`day-YYYY-MM-DD-wo` values may optionally contain integer `activeCalories`
+(0–5000). Existing schema-1 structured Basketball sessions may contain the same
+optional session field, and each drill result may contain a bounded
+`prescriptionSnapshot`. Blank calories are omitted, zero is retained, invalid
+values fail safely, and old values without either extension remain valid.
+
 | Key/pattern | Owner |
 |---|---|
 | `day-YYYY-MM-DD` | daily tracking, adherence bridge, habits |
