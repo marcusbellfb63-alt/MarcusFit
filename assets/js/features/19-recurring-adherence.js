@@ -216,7 +216,7 @@ function p9510BuildAdherenceExport(){
 }
 function p9510HistoryOutcome(date){
   const events=Object.values(p9510GetRecurringEvents().events).filter(function(e){return e.itemId==="zepbound"&&(e.actualDate===date||e.scheduledDate===date||e.replacementDate===date);});if(!events.length)return "";
-  const e=events[0];if(e.status==="completed"){const late=p9510DayDiff(e.replacementDate||e.scheduledDate,e.actualDate);return "💊 Zepbound "+(late>0?"completed "+late+" day"+(late===1?"":"s")+" late":"taken");}if(e.status==="skipped")return "💊 Zepbound skipped";if(e.status==="rescheduled")return "💊 Zepbound rescheduled to "+p9510FormatDate(e.replacementDate||e.actualDate);return "";
+  const e=events[0];if(e.status==="completed"){const late=p9510DayDiff(e.replacementDate||e.scheduledDate,e.actualDate);return "Zepbound "+(late>0?"completed "+late+" day"+(late===1?"":"s")+" late":"taken");}if(e.status==="skipped")return "Zepbound skipped";if(e.status==="rescheduled")return "Zepbound rescheduled to "+p9510FormatDate(e.replacementDate||e.actualDate);return "";
 }
 function mfRecurringAdherenceDebug(itemId,date){
   const id=itemId||"zepbound",item=p9510GetItem(id),when=date||p9510DateKey(new Date()),evaluated=item?p9510GetOccurrenceForDate(item,when):null,scheduled=evaluated&&evaluated.scheduledDate,resolution=item&&scheduled?p9510ResolveOccurrence(item,scheduled):{source:"none"};

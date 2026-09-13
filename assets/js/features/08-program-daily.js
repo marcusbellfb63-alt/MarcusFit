@@ -1,9 +1,12 @@
+function p810SetIconLabel(element,name,label,className){if(typeof mfSetIconLabel==="function")mfSetIconLabel(element,name,label,className);else if(element)element.textContent=label;}
+function p810IconMarkup(name,className){return typeof mfIconMarkup==="function"?mfIconMarkup(name,className):"";}
+function p810Icon(name,className){return typeof mfIcon==="function"?mfIcon(name,className):document.createTextNode("");}
 let _draftToastTimer=null;
 function showDraftToast(){
   const el=document.getElementById("draftToast");
   if(!el)return;
   const t=new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
-  el.textContent=`\u{1F4BE} Draft saved ${t}`;
+  p810SetIconLabel(el,"save",`Draft saved ${t}`,"mf-icon-sm");
   el.classList.add("show");
   clearTimeout(_draftToastTimer);
   _draftToastTimer=setTimeout(()=>el.classList.remove("show"),2200);
@@ -59,11 +62,11 @@ function updateSaveBtn(){
   const btn=document.getElementById("saveBtn");
   if(!btn)return;
   if(todayHasSavedEntry()){
-    btn.textContent="\u270F\uFE0F UPDATE DAY";
-    btn.style.background="var(--accent2)";
+    p810SetIconLabel(btn,"edit","UPDATE DAY");
+    btn.style.background="var(--brand)";
   } else {
-    btn.textContent="\u2705 SAVE DAY";
-    btn.style.background="var(--green)";
+    p810SetIconLabel(btn,"check","SAVE DAY");
+    btn.style.background="var(--brand)";
   }
 }
 
@@ -193,7 +196,7 @@ window.addEventListener("load",()=>{
     console.log("[MarcusFit] Future date reset to today");
     // Show a brief message in the future date warning div
     const warn=document.getElementById("futureDateWarning");
-    if(warn){warn.style.display="block";warn.textContent="📅 Future date reset to today.";}
+  if(warn){warn.style.display="flex";warn.innerHTML=p810IconMarkup("calendar","mf-icon-sm")+"<span>Future date reset to today.</span>";}
   }
   renderProgram();
   updateTrackerDate();
@@ -245,10 +248,10 @@ function renderProgram(){
           const nm=getF(ex.id,"name",ex.name),ld=getF(ex.id,"load",ex.load||""),ri=getF(ex.id,"rir",ex.rir||""),st=getF(ex.id,"sets",ex.sets||"3"),rp=getF(ex.id,"reps",ex.reps||""),bl=getF(ex.id,"blurb",ex.blurb||"");
           const isEd=getOvr()[ex.id];
           return `<div class="ex-item" id="exitem-${ex.id}">
-            <div class="ex-header"><div class="ex-name" id="exname-${ex.id}">${nm}</div><button class="edit-btn${isEd?" active":""}" id="editbtn-${ex.id}" onclick="toggleEditor('${ex.id}')">&#9998; Edit</button></div>
-            <div class="ex-tags"><span class="ex-tag" id="extag-sets-${ex.id}">${st}×${rp}</span>${ld?`<span class="ex-tag load" id="extag-load-${ex.id}">&#127919; ${ld}</span>`:""}${ri?`<span class="ex-tag rir-tag" id="extag-rir-${ex.id}">RIR ${ri}</span>`:""}</div>
+            <div class="ex-header"><div class="ex-name" id="exname-${ex.id}">${nm}</div><button class="edit-btn${isEd?" active":""}" id="editbtn-${ex.id}" onclick="toggleEditor('${ex.id}')">${p810IconMarkup("edit","mf-icon-sm")} Edit</button></div>
+            <div class="ex-tags"><span class="ex-tag" id="extag-sets-${ex.id}">${st}×${rp}</span>${ld?`<span class="ex-tag load" id="extag-load-${ex.id}">${p810IconMarkup("target","mf-icon-sm")} ${ld}</span>`:""}${ri?`<span class="ex-tag rir-tag" id="extag-rir-${ex.id}">RIR ${ri}</span>`:""}</div>
             ${bl?`<div class="ex-blurb" id="exblurb-${ex.id}">→ ${bl}</div>`:""}
-            <div class="ex-editor" id="editor-${ex.id}"><div class="editor-title">&#9998; Edit Exercise</div><div class="editor-row"><span class="editor-label">Name</span><input class="editor-input full" id="ed-name-${ex.id}" type="text" value="${nm}"></div><div class="editor-row"><span class="editor-label">Load</span><input class="editor-input" id="ed-load-${ex.id}" type="text" value="${ld}"></div><div class="editor-row"><span class="editor-label">Sets</span><input class="editor-input" id="ed-sets-${ex.id}" type="text" value="${st}" style="width:60px;"><span class="editor-label" style="text-align:center;">Reps</span><input class="editor-input" id="ed-reps-${ex.id}" type="text" value="${rp}"></div><div class="editor-row"><span class="editor-label">RIR</span><input class="editor-input" id="ed-rir-${ex.id}" type="text" value="${ri}" style="width:80px;"></div><div class="editor-row"><span class="editor-label">Note</span><input class="editor-input full" id="ed-blurb-${ex.id}" type="text" value="${bl}"></div><div class="editor-btn-row"><button class="editor-save" onclick="saveEdit('${ex.id}')">&#128190; SAVE</button><button class="editor-cancel" onclick="toggleEditor('${ex.id}')">Cancel</button><button class="editor-reset" onclick="resetEdit('${ex.id}')">&#8634;</button></div></div>
+            <div class="ex-editor" id="editor-${ex.id}"><div class="editor-title">${p810IconMarkup("edit","mf-icon-sm")} Edit Exercise</div><div class="editor-row"><span class="editor-label">Name</span><input class="editor-input full" id="ed-name-${ex.id}" type="text" value="${nm}"></div><div class="editor-row"><span class="editor-label">Load</span><input class="editor-input" id="ed-load-${ex.id}" type="text" value="${ld}"></div><div class="editor-row"><span class="editor-label">Sets</span><input class="editor-input" id="ed-sets-${ex.id}" type="text" value="${st}" style="width:60px;"><span class="editor-label" style="text-align:center;">Reps</span><input class="editor-input" id="ed-reps-${ex.id}" type="text" value="${rp}"></div><div class="editor-row"><span class="editor-label">RIR</span><input class="editor-input" id="ed-rir-${ex.id}" type="text" value="${ri}" style="width:80px;"></div><div class="editor-row"><span class="editor-label">Note</span><input class="editor-input full" id="ed-blurb-${ex.id}" type="text" value="${bl}"></div><div class="editor-btn-row"><button class="editor-save" onclick="saveEdit('${ex.id}')">${p810IconMarkup("save","mf-icon-sm")} SAVE</button><button class="editor-cancel" onclick="toggleEditor('${ex.id}')">Cancel</button><button class="editor-reset" onclick="resetEdit('${ex.id}')" aria-label="Reset exercise">${p810IconMarkup("refresh","mf-icon-sm")}</button></div></div>
           </div>`;
         }).join("");
       } else {
@@ -257,15 +260,15 @@ function renderProgram(){
       // 9.4.8.7: Add Exercise action for virtual/additive days — uses the existing
       // customExercises lifecycle system via exAddCustom(). Never mutates base P.
       const addFormId = `addexform-${gym}-${di}`;
-      exHTML += `<button class="add-ex-btn" id="addexbtn-${gym}-${di}" onclick="toggleAddExerciseForm('${gym}',${di})">&#10133; Add Exercise</button>
+      exHTML += `<button class="add-ex-btn" id="addexbtn-${gym}-${di}" onclick="toggleAddExerciseForm('${gym}',${di})">${p810IconMarkup("plus","mf-icon-sm")} Add Exercise</button>
         <div class="ex-editor add-ex-editor" id="${addFormId}">
-          <div class="editor-title">&#10133; Add Custom Exercise</div>
+          <div class="editor-title">${p810IconMarkup("plus","mf-icon-sm")} Add Custom Exercise</div>
           <div class="editor-row"><span class="editor-label">Name</span><input class="editor-input full" id="addex-name-${gym}-${di}" type="text" placeholder="e.g. Cable Crunch"></div>
           <div class="editor-row"><span class="editor-label">Load</span><input class="editor-input" id="addex-load-${gym}-${di}" type="text" placeholder="e.g. moderate cable load"></div>
           <div class="editor-row"><span class="editor-label">Sets</span><input class="editor-input" id="addex-sets-${gym}-${di}" type="text" value="3" style="width:60px;"><span class="editor-label" style="text-align:center;">Reps</span><input class="editor-input" id="addex-reps-${gym}-${di}" type="text" placeholder="e.g. 10-15"></div>
           <div class="editor-row"><span class="editor-label">RIR</span><input class="editor-input" id="addex-rir-${gym}-${di}" type="text" value="2" style="width:80px;"></div>
           <div class="editor-row"><span class="editor-label">Note</span><input class="editor-input full" id="addex-blurb-${gym}-${di}" type="text" placeholder="optional coaching note"></div>
-          <div class="editor-btn-row"><button class="editor-save" onclick="saveNewExercise('${gym}',${di})">&#128190; ADD</button><button class="editor-cancel" onclick="toggleAddExerciseForm('${gym}',${di})">Cancel</button></div>
+          <div class="editor-btn-row"><button class="editor-save" onclick="saveNewExercise('${gym}',${di})">${p810IconMarkup("save","mf-icon-sm")} ADD</button><button class="editor-cancel" onclick="toggleAddExerciseForm('${gym}',${di})">Cancel</button></div>
         </div>`;
       // 9.5.4C_1: day-level metadata (day label, name, focus, note, tag) is
       // proposal/override/day-addition-derived and MUST be rendered safely
@@ -301,7 +304,7 @@ function renderProgram(){
       right.appendChild(tagSpan);
       const chevron = document.createElement("span");
       chevron.className = "chevron";
-      chevron.innerHTML = "&#9662;"; // static markup entity — not user/proposal-derived
+      chevron.appendChild(p810Icon("chevron-down","mf-icon-sm"));
       right.appendChild(chevron);
       header.appendChild(right);
       card.appendChild(header);
@@ -324,17 +327,17 @@ function renderProgram(){
         const nm=getF(ex.id,"name",ex.name),ld=getF(ex.id,"load",ex.load),ri=getF(ex.id,"rir",ex.rir),st=getF(ex.id,"sets",ex.sets),rp=getF(ex.id,"reps",ex.reps),bl=getF(ex.id,"blurb",ex.blurb);
         const isEd=getOvr()[ex.id];
         return `<div class="ex-item" id="exitem-${ex.id}">
-          <div class="ex-header"><div class="ex-name" id="exname-${ex.id}">${nm}</div><button class="edit-btn${isEd?" active":""}" id="editbtn-${ex.id}" onclick="toggleEditor('${ex.id}')">&#9998; Edit</button></div>
-          <div class="ex-tags"><span class="ex-tag" id="extag-sets-${ex.id}">${st}×${rp}</span><span class="ex-tag load" id="extag-load-${ex.id}">&#127919; ${ld}</span><span class="ex-tag rir-tag" id="extag-rir-${ex.id}">RIR ${ri}</span></div>
+          <div class="ex-header"><div class="ex-name" id="exname-${ex.id}">${nm}</div><button class="edit-btn${isEd?" active":""}" id="editbtn-${ex.id}" onclick="toggleEditor('${ex.id}')">${p810IconMarkup("edit","mf-icon-sm")} Edit</button></div>
+          <div class="ex-tags"><span class="ex-tag" id="extag-sets-${ex.id}">${st}×${rp}</span><span class="ex-tag load" id="extag-load-${ex.id}">${p810IconMarkup("target","mf-icon-sm")} ${ld}</span><span class="ex-tag rir-tag" id="extag-rir-${ex.id}">RIR ${ri}</span></div>
           ${bl?`<div class="ex-blurb" id="exblurb-${ex.id}">→ ${bl}</div>`:""}
           <div class="ex-editor" id="editor-${ex.id}">
-            <div class="editor-title">&#9998; Edit Exercise</div>
+            <div class="editor-title">${p810IconMarkup("edit","mf-icon-sm")} Edit Exercise</div>
             <div class="editor-row"><span class="editor-label">Name</span><input class="editor-input full" id="ed-name-${ex.id}" type="text" value="${nm}"></div>
             <div class="editor-row"><span class="editor-label">Load</span><input class="editor-input" id="ed-load-${ex.id}" type="text" value="${ld}"></div>
             <div class="editor-row"><span class="editor-label">Sets</span><input class="editor-input" id="ed-sets-${ex.id}" type="text" value="${st}" style="width:60px;"><span class="editor-label" style="text-align:center;">Reps</span><input class="editor-input" id="ed-reps-${ex.id}" type="text" value="${rp}"></div>
             <div class="editor-row"><span class="editor-label">RIR</span><input class="editor-input" id="ed-rir-${ex.id}" type="text" value="${ri}" style="width:80px;"></div>
             <div class="editor-row"><span class="editor-label">Note</span><input class="editor-input full" id="ed-blurb-${ex.id}" type="text" value="${bl}"></div>
-            <div class="editor-btn-row"><button class="editor-save" onclick="saveEdit('${ex.id}')">&#128190; SAVE</button><button class="editor-cancel" onclick="toggleEditor('${ex.id}')">Cancel</button><button class="editor-reset" onclick="resetEdit('${ex.id}')">&#8634;</button></div>
+            <div class="editor-btn-row"><button class="editor-save" onclick="saveEdit('${ex.id}')">${p810IconMarkup("save","mf-icon-sm")} SAVE</button><button class="editor-cancel" onclick="toggleEditor('${ex.id}')">Cancel</button><button class="editor-reset" onclick="resetEdit('${ex.id}')" aria-label="Reset exercise">${p810IconMarkup("refresh","mf-icon-sm")}</button></div>
           </div>
         </div>`;
       }).join("");
@@ -366,7 +369,7 @@ function renderProgram(){
       right.appendChild(tagSpan);
       const chevron = document.createElement("span");
       chevron.className = "chevron";
-      chevron.innerHTML = "&#9662;"; // static markup entity — not user/proposal-derived
+      chevron.appendChild(p810Icon("chevron-down","mf-icon-sm"));
       right.appendChild(chevron);
       header.appendChild(right);
       card.appendChild(header);
@@ -393,7 +396,7 @@ function saveEdit(id){
   if(nm)setOvr(id,"name",nm);if(ld)setOvr(id,"load",ld);if(st)setOvr(id,"sets",st);if(rp)setOvr(id,"reps",rp);if(ri)setOvr(id,"rir",ri);setOvr(id,"blurb",bl);
   document.getElementById("exname-"+id).textContent=nm;
   document.getElementById("extag-sets-"+id).textContent=`${st}×${rp}`;
-  document.getElementById("extag-load-"+id).textContent=`&#127919; ${ld}`;
+  p810SetIconLabel(document.getElementById("extag-load-"+id),"target",ld,"mf-icon-sm");
   document.getElementById("extag-rir-"+id).textContent=`RIR ${ri}`;
   const blurb=document.getElementById("exblurb-"+id);if(blurb)blurb.textContent=bl?`→ ${bl}`:"";
   document.getElementById("editbtn-"+id).classList.add("active");

@@ -161,7 +161,7 @@ function p8492FormatSummaryLines(s){
     "Approx size: " + s.approxSizeKB + " KB"
   ];
   if(s.warnings && s.warnings.length){
-    lines.push("", "⚠ Warnings:");
+  lines.push("", "Warnings:");
     s.warnings.forEach(function(w){ lines.push("• " + w); });
   }
   return lines;
@@ -174,7 +174,7 @@ function p8CreateBackup(){
   const json = JSON.stringify(backup, null, 2);
   document.getElementById("p8BackupTa").value = json;
   const s = p8492SummarizeBackup(backup);
-  const lines = ["✅ Backup created successfully. Copy it and save somewhere safe.", ""].concat(p8492FormatSummaryLines(s));
+  const lines = ["Backup created successfully. Copy it and save somewhere safe.", ""].concat(p8492FormatSummaryLines(s));
   p8ShowResult(lines.join("\n"), "ok");
   console.log("[MarcusFit] Backup created");
 }
@@ -182,9 +182,9 @@ function p8CreateBackup(){
 // Copy backup textarea content to clipboard
 function p8CopyBackup(){
   const val = document.getElementById("p8BackupTa").value.trim();
-  if(!val){ p8ShowResult("❌ Nothing to copy. Create a backup first.", "err"); return; }
+  if(!val){ p8ShowResult("Nothing to copy. Create a backup first.", "err"); return; }
   navigator.clipboard.writeText(val).then(() => {
-    p8ShowResult("✅ Backup copied to clipboard.", "ok");
+    p8ShowResult("Backup copied to clipboard.", "ok");
   }).catch(() => {
     // Fallback
     const ta = document.createElement("textarea");
@@ -193,7 +193,7 @@ function p8CopyBackup(){
     ta.select();
     document.execCommand("copy");
     document.body.removeChild(ta);
-    p8ShowResult("✅ Backup copied (fallback).", "ok");
+    p8ShowResult("Backup copied (fallback).", "ok");
   });
 }
 
@@ -201,12 +201,12 @@ function p8CopyBackup(){
 function p8ValidateBackup(raw){
   let parsed;
   try { parsed = JSON.parse(raw); }
-  catch(e){ throw new Error("❌ Invalid backup JSON. Make sure you pasted the full backup without modification."); }
+  catch(e){ throw new Error("Invalid backup JSON. Make sure you pasted the full backup without modification."); }
   if(!parsed || parsed.app !== "MarcusFit"){
-    throw new Error("❌ Backup does not belong to MarcusFit.");
+    throw new Error("Backup does not belong to MarcusFit.");
   }
   if(!parsed.exportedAt || !parsed.data){
-    throw new Error("❌ Backup is missing required fields (exportedAt or data).");
+    throw new Error("Backup is missing required fields (exportedAt or data).");
   }
   return parsed;
 }
@@ -220,7 +220,7 @@ function p8MigrateBackup(backup){
     case 1:
       return backup; // current version — no migration needed
     default:
-      throw new Error("❌ Unsupported backup schema version (" + backup.schemaVersion + "). This backup was made by a newer version of MarcusFit.");
+    throw new Error("Unsupported backup schema version (" + backup.schemaVersion + "). This backup was made by a newer version of MarcusFit.");
   }
 }
 
@@ -238,7 +238,7 @@ let p8PendingRestoreBackup = null;
 function p8RestoreBackup(){
   p8HideRestoreConfirm();
   const raw = document.getElementById("p8BackupTa").value.trim();
-  if(!raw){ p8ShowResult("❌ Paste a backup into the text area first.", "err"); return; }
+  if(!raw){ p8ShowResult("Paste a backup into the text area first.", "err"); return; }
 
   // Step 1: Validate
   let backup;
@@ -263,7 +263,7 @@ function p8RestoreBackup(){
     panel.style.display = "block";
     panel.scrollIntoView({behavior:"smooth", block:"nearest"});
   }
-  p8ShowResult("⚠ Restore preview ready. Review the summary below, then confirm to proceed.", "warn");
+    p8ShowResult("Restore preview ready. Review the summary below, then confirm to proceed.", "warn");
 }
 
 function p8HideRestoreConfirm(){
@@ -281,7 +281,7 @@ function p8CancelRestore(){
 function p8ConfirmRestore(){
   const backup = p8PendingRestoreBackup;
   p8HideRestoreConfirm();
-  if(!backup){ p8ShowResult("❌ Nothing to restore. Paste a backup and click Restore Backup again.", "err"); return; }
+  if(!backup){ p8ShowResult("Nothing to restore. Paste a backup and click Restore Backup again.", "err"); return; }
   p8ExecuteRestore(backup);
 }
 
@@ -314,7 +314,7 @@ function p8ExecuteRestore(backup){
   } catch(e) {
     // Restore failed — show the safety backup
     document.getElementById("p8BackupTa").value = safetyBackup;
-    p8ShowResult("❌ Restore failed: " + e.message + "\n\nYour original data has been shown above. Copy it before refreshing.", "err");
+    p8ShowResult("Restore failed: " + e.message + "\n\nYour original data has been shown above. Copy it before refreshing.", "err");
   }
 }
 // ── END PHASE 9.4.9.2 RESTORE PREVIEW/CONFIRM ─────────────────────────────────
@@ -328,7 +328,7 @@ function p8ClearData(){
     panel.style.display = "block";
     panel.scrollIntoView({behavior:"smooth", block:"nearest"});
   }
-  p8ShowResult("⚠ This will permanently delete all MarcusFit data from this browser/device. Confirm below to proceed.", "warn");
+  p8ShowResult("This will permanently delete all MarcusFit data from this browser/device. Confirm below to proceed.", "warn");
 }
 
 // Step 2 (explicit second click): actually clear
@@ -336,7 +336,7 @@ function p8ConfirmClearData(){
   const panel = document.getElementById("p8ClearConfirmPanel");
   if(panel) panel.style.display = "none";
   p8GetMarcusFitKeys().forEach(k => localStorage.removeItem(k));
-  p8ShowResult("✅ All MarcusFit data cleared. Reloading...", "ok");
+  p8ShowResult("All MarcusFit data cleared. Reloading...", "ok");
   setTimeout(() => location.reload(), 1200);
 }
 

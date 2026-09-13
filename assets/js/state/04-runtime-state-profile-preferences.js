@@ -79,14 +79,14 @@ function p9SaveCoachPrefs(){
   const ta=document.getElementById("coachPrefsTa");
   if(!ta)return;
   p9SetCoachPrefs(ta.value);
-  p9ShowCoachPrefsResult("✅ Preferences saved.","ok");
+  p9ShowCoachPrefsResult("Preferences saved.","ok");
 }
 function p9ResetCoachPrefsTemplate(){
   const ta=document.getElementById("coachPrefsTa");
   if(!ta)return;
   ta.value=AI_PREFS_STARTER_TEMPLATE;
   p9SetCoachPrefs(AI_PREFS_STARTER_TEMPLATE);
-  p9ShowCoachPrefsResult("✅ Reset to starter template.","ok");
+  p9ShowCoachPrefsResult("Reset to starter template.","ok");
 }
 function p9ClearCoachPrefs(){
   if(!confirm("Clear your saved AI coaching preferences? This cannot be undone."))return;
@@ -94,7 +94,7 @@ function p9ClearCoachPrefs(){
   if(!ta)return;
   ta.value="";
   p9SetCoachPrefs("");
-  p9ShowCoachPrefsResult("✅ Cleared.","ok");
+  p9ShowCoachPrefsResult("Cleared.","ok");
 }
 // ── END PHASE 9.4.8.8 ─────────────────────────────────────────────────────────
 
@@ -319,7 +319,7 @@ function p950SaveUserProfileFromUI(){
 
   const displayName = nameEl.value.trim();
   if(!displayName){
-    p950ShowProfileResult("❌ Display name cannot be empty. Your previous profile was not changed.", "err");
+    p950ShowProfileResult("Display name cannot be empty. Your previous profile was not changed.", "err");
     return;
   }
 
@@ -330,7 +330,7 @@ function p950SaveUserProfileFromUI(){
   if(inches > 11) inches = 11;
   const totalInches = (feet * 12) + inches;
   if(totalInches < 20 || totalInches > 108){
-    p950ShowProfileResult("❌ Height looks invalid. Your previous profile was not changed.", "err");
+    p950ShowProfileResult("Height looks invalid. Your previous profile was not changed.", "err");
     return;
   }
 
@@ -367,9 +367,9 @@ function p950SaveUserProfileFromUI(){
   if(result.ok){
     p950ApplyTextSize(result.profile);
     p950RenderUserProfile();
-    p950ShowProfileResult("✅ Profile saved.", "ok");
+    p950ShowProfileResult("Profile saved.", "ok");
   } else {
-    p950ShowProfileResult("❌ Failed to save profile: " + result.error, "err");
+    p950ShowProfileResult("Failed to save profile: " + result.error, "err");
   }
 }
 
@@ -385,11 +385,11 @@ function p950SetTextSizeFromUI(){
   });
   const result = p950SaveUserProfile(updated);
   if(!result.ok){
-    p950ShowProfileResult("❌ Failed to save text size: " + result.error, "err");
+    p950ShowProfileResult("Failed to save text size: " + result.error, "err");
     return false;
   }
   p950ApplyTextSize(result.profile);
-  p950ShowProfileResult("✅ Text size set to " + select.options[select.selectedIndex].text + ".", "ok");
+  p950ShowProfileResult("Text size set to " + select.options[select.selectedIndex].text + ".", "ok");
   return true;
 }
 
@@ -403,7 +403,7 @@ function p950ResetUserProfileDefaults(){
     panel.style.display = "block";
     panel.scrollIntoView({behavior:"smooth", block:"nearest"});
   }
-  p950ShowProfileResult("⚠ This will reset your profile to Marcus defaults. Confirm below to proceed.", "warn");
+  p950ShowProfileResult("This will reset your profile to Marcus defaults. Confirm below to proceed.", "warn");
 }
 function p950ConfirmResetProfile(){
   const panel = document.getElementById("p950ResetConfirmPanel");
@@ -413,9 +413,9 @@ function p950ConfirmResetProfile(){
   if(result.ok){
     p950ApplyTextSize(result.profile);
     p950RenderUserProfile();
-    p950ShowProfileResult("✅ Profile reset to Marcus defaults.", "ok");
+    p950ShowProfileResult("Profile reset to Marcus defaults.", "ok");
   } else {
-    p950ShowProfileResult("❌ Reset failed: " + result.error, "err");
+    p950ShowProfileResult("Reset failed: " + result.error, "err");
   }
 }
 function p950CancelResetProfile(){

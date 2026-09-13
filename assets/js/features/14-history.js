@@ -122,6 +122,7 @@ function p7WireFilters(){
 }
 
 // Refactored renderHistory now delegates to renderHistoryFromEntries
+function p7HistoryIcon(name){return typeof mfIconMarkup==="function"?mfIconMarkup(name,"mf-icon-sm"):"";}
 function renderHistoryFromEntries(entries){
   const c=document.getElementById("histList");
   if(!c)return;
@@ -129,9 +130,9 @@ function renderHistoryFromEntries(entries){
   c.innerHTML=entries.slice(0,60).map(({key,data:d})=>{
     const dt=new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
     const recurringOutcome=p9510HistoryOutcome(d.date||key.slice(4));
-    const pills=[d.weight?`&#9878; ${d.weight}`:null,d.sleep?`&#128564; ${d.sleep}h`:null,d.protein?`&#129385; ${d.protein}g`:null,d.water?`&#128167; ${d.water}oz`:null,d.bm?`&#128701; ${d.bm}`:null,d.mood?`&#9889; ${d.mood}/10`:null,d.hunger?`&#127860; ${d.hunger}/10`:null,recurringOutcome||d.zep?recurringOutcome||`&#128138; ${d.zep}`:null,d.workout?`&#127947; ${d.workout}`:null].filter(Boolean);
+    const pills=[d.weight?`${p7HistoryIcon("weight")} ${d.weight}`:null,d.sleep?`${p7HistoryIcon("moon")} ${d.sleep}h`:null,d.protein?`${p7HistoryIcon("nutrition")} ${d.protein}g`:null,d.water?`${p7HistoryIcon("water")} ${d.water}oz`:null,d.bm?`${p7HistoryIcon("activity")} ${d.bm}`:null,d.mood?`${p7HistoryIcon("bolt")} ${d.mood}/10`:null,d.hunger?`${p7HistoryIcon("nutrition")} ${d.hunger}/10`:null,recurringOutcome||d.zep?`${p7HistoryIcon("pill")} ${recurringOutcome||d.zep}`:null,d.workout?`${p7HistoryIcon("dumbbell")} ${d.workout}`:null].filter(Boolean);
     const woRaw=localStorage.getItem(key+"-wo");const wo=woRaw?JSON.parse(woRaw):null;
-    if(wo&&Number.isInteger(wo.activeCalories)&&wo.activeCalories>=0&&wo.activeCalories<=5000)pills.push(`&#128293; ${wo.activeCalories} active kcal est.`);
+    if(wo&&Number.isInteger(wo.activeCalories)&&wo.activeCalories>=0&&wo.activeCalories<=5000)pills.push(`${p7HistoryIcon("fire")} ${wo.activeCalories} active kcal est.`);
     let woDetail="";
     if(wo&&wo.exercises&&Object.keys(wo.exercises).length){
       // 9.4.8.3: use getSafeDayForLog — handles base + virtual days safely
@@ -156,7 +157,7 @@ function renderHistoryFromEntries(entries){
     }
     const hasWo=woDetail!="";
     const habitsDone=d.habits?HABITS.filter(h=>d.habits[h.id]&&d.habits[h.id].completed).length:null;
-    const habitBadge=habitsDone!==null?`<span class="hist-pill">🧠 ${habitsDone}/${HABITS.length}</span>`:"";
-    return `<div class="hist-entry${hasWo?" expandable":""}" onclick="${hasWo?"this.classList.toggle('open')":""}" ><div class="hist-date"><span>${dt} \xb7 ${(d.logGym||"home").toUpperCase()}</span>${hasWo?'<span style="color:var(--muted);font-size:10px;">tap for sets &#9662;</span>':""}</div><div class="hist-pills">${pills.map(p=>`<span class="hist-pill">${p}</span>`).join("")}${habitBadge}</div>${d.notes?`<div class="hist-notes">"${d.notes}"</div>`:""} ${woDetail}</div>`;
+    const habitBadge=habitsDone!==null?`<span class="hist-pill">${p7HistoryIcon("brain")} ${habitsDone}/${HABITS.length}</span>`:"";
+    return `<div class="hist-entry${hasWo?" expandable":""}" onclick="${hasWo?"this.classList.toggle('open')":""}" ><div class="hist-date"><span>${dt} \xb7 ${(d.logGym||"home").toUpperCase()}</span>${hasWo?'<span class="mf-icon-label" style="color:var(--muted);font-size:10px;">tap for sets '+p7HistoryIcon("chevron-down")+'</span>':""}</div><div class="hist-pills">${pills.map(p=>`<span class="hist-pill mf-icon-label">${p}</span>`).join("")}${habitBadge}</div>${d.notes?`<div class="hist-notes">"${d.notes}"</div>`:""} ${woDetail}</div>`;
   }).join("");
 }

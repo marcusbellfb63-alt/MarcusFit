@@ -1523,7 +1523,7 @@ function mfRenderLifecycleHealth(){
   const list = document.getElementById("lcCheckList");
   if(list){
     list.innerHTML = checks.map(c => {
-      const badge = `<div class="lc-check-badge ${c.status}">${c.status === "pass" ? "✓ PASS" : c.status === "warn" ? "⚠ WARN" : "✕ ERROR"}</div>`;
+    const badge = `<div class="lc-check-badge ${c.status}">${c.status === "pass" ? "PASS" : c.status === "warn" ? "WARN" : "ERROR"}</div>`;
       return `<div class="lc-check-row">${badge}<div class="lc-check-text"><strong>${c.label}</strong><br>${c.detail}</div></div>`;
     }).join("");
   }
@@ -1543,7 +1543,7 @@ function mfUpdateExportWarningBanner(){
   if(!banner) return;
   const issueCount = mfGetLifecycleIssueCount();
   if(issueCount > 0){
-    banner.textContent = `⚠ Backup created with ${issueCount} lifecycle warning${issueCount>1?"s":""}. See Lifecycle Health Check below for details.`;
+    banner.textContent = `Backup created with ${issueCount} lifecycle warning${issueCount>1?"s":""}. See Lifecycle Health Check below for details.`;
     banner.classList.add("visible");
   } else {
     banner.classList.remove("visible");
@@ -1564,10 +1564,10 @@ function mfRunPostRestoreValidation(){
   }
   const issues = checks.filter(c => c.status !== "pass");
   if(!issues.length){
-    p8ShowResult("✅ Backup restored successfully. Lifecycle validation passed. Reloading app...", "ok");
+    p8ShowResult("Backup restored successfully. Lifecycle validation passed. Reloading app...", "ok");
   } else {
-    const summary = issues.map(c => `${c.status === "warn" ? "⚠" : "✕"} ${c.label}: ${c.detail}`).join("\n");
-    p8ShowResult(`✅ Backup restored. ${issues.length} lifecycle warning${issues.length>1?"s":""}:\n\n${summary}\n\nReloading app...`, "ok");
+    const summary = issues.map(c => `${c.status === "warn" ? "Warning:" : "Error:"} ${c.label}: ${c.detail}`).join("\n");
+    p8ShowResult(`Backup restored. ${issues.length} lifecycle warning${issues.length>1?"s":""}:\n\n${summary}\n\nReloading app...`, "ok");
   }
 }
 

@@ -16,12 +16,12 @@ function updateExportMeta(){
   const meta=document.getElementById("exportMeta");
   const allKeys=Object.keys(localStorage).filter(k=>k.startsWith("day-")&&!k.endsWith("-wo")).sort();
   if(val==="program"){
-    meta.innerHTML="\uD83D\uDCCB <span>Program templates only</span> \u2014 no daily logs included";
+    meta.innerHTML=(typeof mfIconMarkup==="function"?mfIconMarkup("program","mf-icon-sm")+" ":"")+"<span>Program templates only</span> \u2014 no daily logs included";
   } else {
     const dkeys=getExportDkeys();
     const label=val==="full"?"all <span>"+allKeys.length+"</span>":"<span>"+dkeys.length+"</span>";
     const rangeLabel=val==="full"?"full history":"last "+val+" days";
-    meta.innerHTML="\uD83D\uDCC5 Including "+label+" log day"+(dkeys.length!==1?"s":"")+" ("+rangeLabel+") out of <span>"+allKeys.length+"</span> total";
+    meta.innerHTML=(typeof mfIconMarkup==="function"?mfIconMarkup("calendar","mf-icon-sm")+" ":"")+"Including "+label+" log day"+(dkeys.length!==1?"s":"")+" ("+rangeLabel+") out of <span>"+allKeys.length+"</span> total";
   }
   document.getElementById("exportOut").style.display="none";
   document.getElementById("copyBtn").style.display="none";
@@ -41,7 +41,7 @@ function buildLogSection(dkeys,allDkeys){
   dkeys.forEach(function(k){
     const d=JSON.parse(localStorage.getItem(k));
     const dt=new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"});
-    logSection+="\uD83D\uDCC5 "+dt+"\n";
+    logSection+=dt+"\n";
     if(d.weight)logSection+="  Weight:  "+d.weight+" lbs\n";
     if(d.sleep)logSection+="  Sleep:   "+d.sleep+" hrs\n";
     if(d.protein)logSection+="  Protein: "+d.protein+"g\n";
@@ -975,4 +975,4 @@ genExport=function(){
 // ── END 10.5.0 EXPORT IA ────────────────────────────────────────────────────
 
 
-function doCopy(){if(!window._exp)return;const btn=document.getElementById("copyBtn");navigator.clipboard.writeText(window._exp).then(()=>{btn.textContent="&#9989; COPIED!";setTimeout(()=>btn.textContent="&#128203; COPY TO CLIPBOARD",2000);}).catch(()=>{const ta=document.createElement("textarea");ta.value=window._exp;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);btn.textContent="&#9989; COPIED!";setTimeout(()=>btn.textContent="&#128203; COPY TO CLIPBOARD",2000);});}
+function doCopy(){if(!window._exp)return;const btn=document.getElementById("copyBtn"),setLabel=function(name,label){if(typeof mfSetIconLabel==="function")mfSetIconLabel(btn,name,label);else btn.textContent=label;},reset=function(){setLabel("copy","COPY TO CLIPBOARD");};navigator.clipboard.writeText(window._exp).then(()=>{setLabel("check","COPIED!");setTimeout(reset,2000);}).catch(()=>{const ta=document.createElement("textarea");ta.value=window._exp;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);setLabel("check","COPIED!");setTimeout(reset,2000);});}

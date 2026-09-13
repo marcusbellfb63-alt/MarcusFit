@@ -292,10 +292,10 @@ p9GetProgressionStatus=function(exId,validSets,targetRepsStr,targetRirStr){
 p9BadgeHTML=function(status){
   const map={
     new:["NEW","new"],build_reps:["\u2192 BUILD REPS","hold"],build_duration:["\u2192 BUILD DURATION","hold"],
-    duration_target:["\u2713 DURATION TARGET","up"],safer_hold:["\u26a0 SAFER HOLD","safer-hold"],
+    duration_target:["DURATION TARGET","up"],safer_hold:["SAFER HOLD","safer-hold"],
     top_range_hold:["\u2192 TOP RANGE","hold"],progress_load:["\u2191 PROGRESS","up"],
-    capped_hold:["\u2192 CONFIRM CAP","hold"],ceiling_update:["\u2713 UPDATE CEILING","up"],
-    target_reset:["\u26a0 RESET HOLD","reduce"]
+    capped_hold:["\u2192 CONFIRM CAP","hold"],ceiling_update:["UPDATE CEILING","up"],
+    target_reset:["RESET HOLD","reduce"]
   };
   const x=map[status]||["\u2192 HOLD","hold"];
   return '<div class="p9-badge '+x[1]+'">'+x[0]+'</div>';
@@ -468,9 +468,9 @@ p945RenderDiag=function(){
   const colors={progress_load:"green",ceiling_update:"green",duration_target:"green",
     target_reset:"red",safer_hold:"yellow",top_range_hold:"yellow",capped_hold:"yellow",
     build_reps:"accent",build_duration:"accent",unknown:"red"};
-  const labels={progress_load:"\u2191 Progress",ceiling_update:"\u2713 Update Ceiling",
-    duration_target:"\u2713 Duration Target",target_reset:"\u26a0 Reset Hold",
-    safer_hold:"\u26a0 Safer Hold",top_range_hold:"\u2192 Top Range",
+  const labels={progress_load:"\u2191 Progress",ceiling_update:"Update Ceiling",
+    duration_target:"Duration Target",target_reset:"Reset Hold",
+    safer_hold:"Safer Hold",top_range_hold:"\u2192 Top Range",
     capped_hold:"\u2192 Confirm Cap",build_reps:"\u2192 Build Reps",
     build_duration:"\u2192 Build Duration",new:"New",unknown:"Unknown"};
   const order=["progress_load","ceiling_update","duration_target","build_reps","build_duration",
@@ -479,9 +479,9 @@ p945RenderDiag=function(){
     .map(function(k){const c=colors[k]||"";return '<div class="p945-count-card"><div class="p945-count-label">'+
       labels[k]+'</div><div class="p945-count-val'+(c?" "+c:"")+'">'+(audit.statusCounts[k]||0)+"</div></div>";}).join("");
   warnEl.innerHTML=audit.warnings.length?
-    '<div class="p945-warn-title">\u26a0 '+audit.warnings.length+' Warning(s)</div>'+
+    '<div class="p945-warn-title">'+audit.warnings.length+' Warning(s)</div>'+
       audit.warnings.map(function(w){return '<div class="p945-warn-item">'+w+"</div>";}).join(""):
-    '<div class="p945-no-warn">\u2705 No warnings \u2014 all '+audit.totalExercises+" exercises processed cleanly.</div>";
+    '<div class="p945-no-warn">No warnings \u2014 all '+audit.totalExercises+" exercises processed cleanly.</div>";
 };
 
 // Safe browser fixture: every affected key is restored byte-for-byte in finally.
@@ -716,7 +716,7 @@ p9BuildSuggestion=function(exId,validSets,targetRepsStr,targetRirStr,evaluation)
 
 p9GetProgressionStatus=function(exId,validSets,targetRepsStr,targetRirStr,evaluation){return p9BuildSuggestion(exId,validSets,targetRepsStr,targetRirStr,evaluation).status;};
 p9BadgeHTML=function(status){
-  const map={new:["INSUFFICIENT EVIDENCE","new"],build_reps:["→ PROGRESS REPS","hold"],build_duration:["→ BUILD DURATION","hold"],duration_target:["→ MAINTAIN","up"],safer_hold:["⚠ CONSERVATIVE RESET","safer-hold"],top_range_hold:["→ REPEAT TARGET","hold"],progress_load:["↑ PROGRESS LOAD","up"],capped_hold:["→ CONFIRM CEILING","hold"],ceiling_update:["→ MAINTAIN / REVIEW","up"],target_reset:["⚠ RESET TARGET","reduce"]};
+  const map={new:["INSUFFICIENT EVIDENCE","new"],build_reps:["→ PROGRESS REPS","hold"],build_duration:["→ BUILD DURATION","hold"],duration_target:["→ MAINTAIN","up"],safer_hold:["CONSERVATIVE RESET","safer-hold"],top_range_hold:["→ REPEAT TARGET","hold"],progress_load:["↑ PROGRESS LOAD","up"],capped_hold:["→ CONFIRM CEILING","hold"],ceiling_update:["→ MAINTAIN / REVIEW","up"],target_reset:["RESET TARGET","reduce"]};
   const entry=map[status]||["→ MAINTAIN","hold"];return '<div class="p9-badge '+entry[1]+'">'+entry[0]+'</div>';
 };
 
@@ -726,6 +726,7 @@ p9ComputePrefill=function(exId,setIdx,savedSets){
 };
 
 function p1080Escape(value){return String(value===undefined||value===null?"":value).replace(/[&<>"']/g,function(char){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char];});}
+function p1080IconMarkup(name){return typeof mfIconMarkup==="function"?mfIconMarkup(name,"mf-icon-sm"):"";}
 p5Block=function(exId,targetRepsStr,targetRirStr){
   const last=p5GetLastEntry(exId),selected=typeof tDate!=="undefined"?dKey(tDate):null;
   const evaluation=last?{dateKey:last.dateKey,subjectStored:true,source:"saved_history"}:selected?{dateKey:selected,subjectStored:false,source:"selected_history"}:null;
@@ -734,7 +735,7 @@ p5Block=function(exId,targetRepsStr,targetRirStr){
   if(last&&last.weightOnly)historyLine="Last entry had load but no completed rep or duration value.";
   else if(last){const date=last.dateKey.replace("day-","");const label=new Date(date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});historyLine="<strong>"+p1080Escape(label)+":</strong> "+p1080Escape(p5FormatLastSets(last.validSets,exId));}
   const best=last?p9GetBestExercisePerformance(exId,{history:p1080GetExerciseHistory(exId,{includeToday:true}).filter(function(entry){return entry.dateKey<=last.dateKey;})}):null;
-  return p9BadgeHTML(recommendation.status)+'<div class="p5-hist-wrap" id="p5-'+p1080Escape(exId)+'"><button type="button" class="p5-hist-toggle" aria-expanded="false" aria-controls="'+bodyId+'" onclick="p5Toggle(\''+p1080Escape(exId)+'\')"><span class="p5-hist-dot"></span><span class="p5-hist-label">Next session</span><span class="p5-chevron" aria-hidden="true">▼</span></button><div class="p5-hist-body" id="'+bodyId+'"><div class="p5-last-line">'+historyLine+'</div>'+(best?'<div class="p9-best-line">⭐ Best: '+p1080Escape(best)+'</div>':'')+'<div class="p1080-recommendation"><div class="p1080-action">'+p1080Escape(recommendation.action)+'</div><div class="p1080-reason">'+p1080Escape(recommendation.reason)+'</div><div class="p1080-confidence">'+p1080Escape(recommendation.confidence)+' confidence · '+recommendation.evidence.comparableSessions+' comparable session'+(recommendation.evidence.comparableSessions===1?'':'s')+'</div></div></div></div>';
+  return p9BadgeHTML(recommendation.status)+'<div class="p5-hist-wrap" id="p5-'+p1080Escape(exId)+'"><button type="button" class="p5-hist-toggle" aria-expanded="false" aria-controls="'+bodyId+'" onclick="p5Toggle(\''+p1080Escape(exId)+'\')"><span class="p5-hist-dot"></span><span class="p5-hist-label">Next session</span><span class="p5-chevron" aria-hidden="true">'+p1080IconMarkup("chevron-down")+'</span></button><div class="p5-hist-body" id="'+bodyId+'"><div class="p5-last-line">'+historyLine+'</div>'+(best?'<div class="p9-best-line">'+p1080IconMarkup("trophy")+' Best: '+p1080Escape(best)+'</div>':'')+'<div class="p1080-recommendation"><div class="p1080-action">'+p1080Escape(recommendation.action)+'</div><div class="p1080-reason">'+p1080Escape(recommendation.reason)+'</div><div class="p1080-confidence">'+p1080Escape(recommendation.confidence)+' confidence · '+recommendation.evidence.comparableSessions+' comparable session'+(recommendation.evidence.comparableSessions===1?'':'s')+'</div></div></div></div>';
 };
 p5Toggle=function(exId){const wrap=document.getElementById("p5-"+exId);if(!wrap)return;const open=wrap.classList.toggle("open"),button=wrap.querySelector(".p5-hist-toggle");if(button)button.setAttribute("aria-expanded",open?"true":"false");};
 

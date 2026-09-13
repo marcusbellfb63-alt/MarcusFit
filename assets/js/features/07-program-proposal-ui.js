@@ -1,6 +1,7 @@
 
 // ── FUTURE MODULE: src/proposal-ui.js ────────────────────────────────────────
 // ── Sync-tab UI ──────────────────────────────────────────────────────────────
+function p954SetIconLabel(element,name,label){if(typeof mfSetIconLabel==="function")mfSetIconLabel(element,name,label);else if(element)element.textContent=label;}
 // All rendering uses textContent / safe DOM creation only — never innerHTML
 // with onboarding-, profile-, or program-derived strings (day names, goal
 // text, equipment notes, etc. are all user-entered).
@@ -179,7 +180,7 @@ function p954BuildSummaryCard(proposal){
     proposal.warnings.forEach(function(w){
       const p = document.createElement("div");
       p.style.cssText = "margin-bottom:3px;color:var(--red);";
-      p.textContent = "⚠ " + w;
+    p.textContent = w;
       wl.appendChild(p);
     });
     card.appendChild(wl);
@@ -204,7 +205,7 @@ function p954BuildDismissedSummary(proposal){
 
   const line1 = document.createElement("div");
   line1.style.cssText = "font-weight:700;color:var(--green);margin-bottom:6px;";
-  line1.textContent = "✓ Current program kept";
+  line1.textContent = "Current program kept";
   card.appendChild(line1);
 
   const line2 = document.createElement("div");
@@ -234,7 +235,7 @@ function p954BuildAppliedSummaryCard(proposal){
 
   const line1 = document.createElement("div");
   line1.style.cssText = "font-weight:700;color:var(--accent);margin-bottom:6px;";
-  line1.textContent = "✅ Proposal applied";
+  line1.textContent = "Proposal applied";
   card.appendChild(line1);
 
   const line2 = document.createElement("div");
@@ -259,7 +260,7 @@ function p954BuildAppliedSummaryCard(proposal){
 
 function p954BuildUndoneSummaryCard(proposal){
   const card=document.createElement("div"),summary=proposal.undoSummary||{};card.style.cssText="background:var(--surface2);border:1px solid var(--green);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:12px;line-height:1.6;";
-  const heading=document.createElement("div");heading.style.cssText="font-weight:700;color:var(--green);margin-bottom:6px;";heading.textContent="↩ Proposal changes undone";card.appendChild(heading);
+  const heading=document.createElement("div");heading.style.cssText="font-weight:700;color:var(--green);margin-bottom:6px;";heading.textContent="Proposal changes undone";card.appendChild(heading);
   const applied=document.createElement("div");applied.style.cssText="color:var(--muted);margin-bottom:6px;";applied.textContent="Applied: "+(proposal.appliedAt?new Date(proposal.appliedAt).toLocaleString():"—");card.appendChild(applied);
   const line=document.createElement("div");line.style.cssText="color:var(--muted);";
   const restored=(summary.storageResults||[]).map(function(r){return r.key+" ("+r.action+")";});
@@ -298,7 +299,7 @@ function p954RenderProgramPersonalization(){
     const btn = document.createElement("button");
     btn.className = "big-btn btn-sync";
     btn.style.marginBottom = "0";
-    btn.textContent = "🧭 GENERATE PROGRAM PROPOSAL";
+    p954SetIconLabel(btn,"wand","GENERATE PROGRAM PROPOSAL");
     btn.onclick = p954HandleGenerateClick;
     container.appendChild(btn);
     const resultEl = document.createElement("div");
@@ -325,7 +326,7 @@ function p954RenderProgramPersonalization(){
     errBox.className = "p954r-error-box";
     const title = document.createElement("div");
     title.style.cssText = "font-weight:700;margin-bottom:6px;";
-    title.textContent = "⚠ This stored proposal failed validation and can't be reviewed safely.";
+    title.textContent = "This stored proposal failed validation and can't be reviewed safely.";
     errBox.appendChild(title);
     (p954ReviewInvalidErrors || []).forEach(function(e){
       const line = document.createElement("div");
@@ -339,13 +340,13 @@ function p954RenderProgramPersonalization(){
     const regenBtn2 = document.createElement("button");
     regenBtn2.className = "big-btn";
     regenBtn2.style.cssText = "background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";
-    regenBtn2.textContent = "🔄 REGENERATE PROPOSAL";
+    p954SetIconLabel(regenBtn2,"refresh","REGENERATE PROPOSAL");
     regenBtn2.onclick = p954HandleGenerateClick;
     errBtnRow.appendChild(regenBtn2);
     const clearBtn2 = document.createElement("button");
     clearBtn2.className = "big-btn";
     clearBtn2.style.cssText = "background:transparent;color:var(--red);border:1px solid var(--red);margin-bottom:0;";
-    clearBtn2.textContent = "🗑 CLEAR PROPOSAL";
+    p954SetIconLabel(clearBtn2,"trash","CLEAR PROPOSAL");
     clearBtn2.onclick = p954HandleClearClick;
     errBtnRow.appendChild(clearBtn2);
     container.appendChild(errBtnRow);
@@ -368,29 +369,29 @@ function p954RenderProgramPersonalization(){
     const viewBtn = document.createElement("button");
     viewBtn.className = "big-btn btn-sync";
     viewBtn.style.marginBottom = "0";
-    viewBtn.textContent = "👁 VIEW DISMISSED PROPOSAL";
+    viewBtn.textContent = "VIEW DISMISSED PROPOSAL";
     viewBtn.onclick = p954ROpenReview;
     btnRow.appendChild(viewBtn);
 
     const genNewBtn = document.createElement("button");
     genNewBtn.className = "big-btn";
     genNewBtn.style.cssText = "background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";
-    genNewBtn.textContent = "🧭 GENERATE NEW PROPOSAL";
+    p954SetIconLabel(genNewBtn,"wand","GENERATE NEW PROPOSAL");
     genNewBtn.onclick = p954HandleGenerateClick;
     btnRow.appendChild(genNewBtn);
 
     const clearBtn = document.createElement("button");
     clearBtn.className = "big-btn";
     clearBtn.style.cssText = "background:transparent;color:var(--red);border:1px solid var(--red);margin-bottom:0;";
-    clearBtn.textContent = "🗑 CLEAR PROPOSAL";
+    p954SetIconLabel(clearBtn,"trash","CLEAR PROPOSAL");
     clearBtn.onclick = p954HandleClearClick;
     btnRow.appendChild(clearBtn);
 
     container.appendChild(btnRow);
     container.appendChild(p954BuildDismissedSummary(proposal));
   } else if(proposal.status === "undone"){
-    const viewBtn=document.createElement("button");viewBtn.className="big-btn btn-sync";viewBtn.style.marginBottom="0";viewBtn.textContent="👁 VIEW UNDONE PROPOSAL";viewBtn.onclick=p954ROpenReview;btnRow.appendChild(viewBtn);
-    const genNewBtn=document.createElement("button");genNewBtn.className="big-btn";genNewBtn.style.cssText="background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";genNewBtn.textContent="🧭 GENERATE NEW PROPOSAL";genNewBtn.onclick=p954HandleGenerateClick;btnRow.appendChild(genNewBtn);
+    const viewBtn=document.createElement("button");viewBtn.className="big-btn btn-sync";viewBtn.style.marginBottom="0";viewBtn.textContent="VIEW UNDONE PROPOSAL";viewBtn.onclick=p954ROpenReview;btnRow.appendChild(viewBtn);
+    const genNewBtn=document.createElement("button");genNewBtn.className="big-btn";genNewBtn.style.cssText="background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";p954SetIconLabel(genNewBtn,"wand","GENERATE NEW PROPOSAL");genNewBtn.onclick=p954HandleGenerateClick;btnRow.appendChild(genNewBtn);
     container.appendChild(btnRow);container.appendChild(p954BuildUndoneSummaryCard(proposal));p954RLastRenderedAppliedSummary=proposal.applicationSummary||null;
   } else if(proposal.status === "applied"){
     // 9.5.4C: applied state controls. No KEEP/APPLY controls here — those
@@ -399,7 +400,7 @@ function p954RenderProgramPersonalization(){
     const viewBtn = document.createElement("button");
     viewBtn.className = "big-btn btn-sync";
     viewBtn.style.marginBottom = "0";
-    viewBtn.textContent = "👁 VIEW APPLIED PROPOSAL";
+    viewBtn.textContent = "VIEW APPLIED PROPOSAL";
     viewBtn.onclick = p954ROpenReview;
     btnRow.appendChild(viewBtn);
 
@@ -407,7 +408,7 @@ function p954RenderProgramPersonalization(){
     const undoBtn=document.createElement("button");
     undoBtn.className="big-btn";
     undoBtn.style.cssText="background:transparent;color:var(--yellow);border:1px solid var(--yellow);margin-bottom:0;";
-    undoBtn.textContent="↩ UNDO APPLIED CHANGES";
+    undoBtn.textContent="UNDO APPLIED CHANGES";
     undoBtn.disabled=!undoPlan.canUndo;
     undoBtn.onclick=p954RShowUndoPreview;
     btnRow.appendChild(undoBtn);
@@ -415,14 +416,14 @@ function p954RenderProgramPersonalization(){
     const createNewBtn = document.createElement("button");
     createNewBtn.className = "big-btn";
     createNewBtn.style.cssText = "background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";
-    createNewBtn.textContent = "🧭 CREATE NEW PROPOSAL";
+    p954SetIconLabel(createNewBtn,"wand","CREATE NEW PROPOSAL");
     createNewBtn.onclick = p954HandleGenerateClick;
     btnRow.appendChild(createNewBtn);
 
     const clearBtn = document.createElement("button");
     clearBtn.className = "big-btn";
     clearBtn.style.cssText = "background:transparent;color:var(--red);border:1px solid var(--red);margin-bottom:0;";
-    clearBtn.textContent = "🗑 CLEAR PROPOSAL";
+    p954SetIconLabel(clearBtn,"trash","CLEAR PROPOSAL");
     clearBtn.onclick = p954HandleClearClick;
     btnRow.appendChild(clearBtn);
 
@@ -443,28 +444,28 @@ function p954RenderProgramPersonalization(){
     const reviewBtn = document.createElement("button");
     reviewBtn.className = "big-btn btn-sync";
     reviewBtn.style.marginBottom = "0";
-    reviewBtn.textContent = "🔍 REVIEW FULL PROPOSAL";
+    p954SetIconLabel(reviewBtn,"search","REVIEW FULL PROPOSAL");
     reviewBtn.onclick = p954ROpenReview;
     btnRow.appendChild(reviewBtn);
 
     const viewBtn = document.createElement("button");
     viewBtn.className = "big-btn";
     viewBtn.style.cssText = "background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";
-    viewBtn.textContent = p954SummaryVisible ? "🙈 HIDE PROPOSAL SUMMARY" : "👁 VIEW PROPOSAL SUMMARY";
+    viewBtn.textContent = p954SummaryVisible ? "HIDE PROPOSAL SUMMARY" : "VIEW PROPOSAL SUMMARY";
     viewBtn.onclick = p954ToggleSummary;
     btnRow.appendChild(viewBtn);
 
     const regenBtn = document.createElement("button");
     regenBtn.className = "big-btn";
     regenBtn.style.cssText = "background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:0;";
-    regenBtn.textContent = "🔄 REGENERATE PROPOSAL";
+    p954SetIconLabel(regenBtn,"refresh","REGENERATE PROPOSAL");
     regenBtn.onclick = p954HandleGenerateClick;
     btnRow.appendChild(regenBtn);
 
     const clearBtn = document.createElement("button");
     clearBtn.className = "big-btn";
     clearBtn.style.cssText = "background:transparent;color:var(--red);border:1px solid var(--red);margin-bottom:0;";
-    clearBtn.textContent = "🗑 CLEAR PROPOSAL";
+    p954SetIconLabel(clearBtn,"trash","CLEAR PROPOSAL");
     clearBtn.onclick = p954HandleClearClick;
     btnRow.appendChild(clearBtn);
 
@@ -493,8 +494,8 @@ function p954HandleGenerateClick(){
   const result = p954GenerateAndSaveProposal();
   p954SummaryVisible = true;
   p954RenderProgramPersonalization();
-  if(result.ok) p954ShowResult("✅ Proposal generated. Nothing has been applied to your program.", "ok");
-  else p954ShowResult("❌ Could not generate proposal: " + (result.error || "Unknown error"), "err");
+  if(result.ok) p954ShowResult("Proposal generated. Nothing has been applied to your program.", "ok");
+  else p954ShowResult("Could not generate proposal: " + (result.error || "Unknown error"), "err");
 }
 
 function p954HandleClearClick(){
@@ -505,7 +506,7 @@ function p954HandleClearClick(){
   p954SummaryVisible = false;
   p954RenderProgramPersonalization();
   if(result.ok) p954ShowResult("Proposal cleared.", "ok");
-  else p954ShowResult("❌ Could not clear proposal: " + (result.error || "Unknown error"), "err");
+  else p954ShowResult("Could not clear proposal: " + (result.error || "Unknown error"), "err");
 }
 
 // ── PHASE 9.5.4B: DETAILED REVIEW OVERLAY ────────────────────────────────────
@@ -669,7 +670,7 @@ function p954RBuildDayCard(dp, appliedOpType, exerciseStatuses){
     const tag = document.createElement("span");
     const wasWritten = (appliedOpType === "dayOverride" || appliedOpType === "disable" || appliedOpType === "dayAddition");
     tag.className = "p954r-applied-tag " + (wasWritten ? "yes" : "no");
-    tag.textContent = wasWritten ? "✓ APPLIED" : "NOT APPLIED — DEFERRED";
+    tag.textContent = wasWritten ? "APPLIED" : "NOT APPLIED — DEFERRED";
     head.appendChild(tag);
   }
   card.appendChild(head);
@@ -819,7 +820,7 @@ function p954RBuildReviewContent(proposal){
   addRow(sourceSection,"Resolved program",ss.currentProgramUsed?"Used":"Missing or empty");
   addRow(sourceSection,"Lifecycle / overrides",ss.lifecycleUsed?"Used"+(ss.lifecycleSignals&&ss.lifecycleSignals.length?" ("+ss.lifecycleSignals.join(", ")+")":""):"No custom state present");
   addRow(sourceSection,"Recent logs",ss.recentLogsUsed?"Used":"Not used by this rule set");
-  (ss.sourceWarnings||[]).forEach(function(w){const item=document.createElement("div");item.className="p954r-list-item warn";item.textContent="⚠ "+w;sourceSection.appendChild(item);});
+  (ss.sourceWarnings||[]).forEach(function(w){const item=document.createElement("div");item.className="p954r-list-item warn";item.textContent=w;sourceSection.appendChild(item);});
   frag.appendChild(sourceSection);
 
   if((s.rationale || []).length){
@@ -848,7 +849,7 @@ function p954RBuildReviewContent(proposal){
     proposal.warnings.forEach(function(w){
       const item = document.createElement("div");
       item.className = "p954r-list-item warn";
-      item.textContent = "⚠ " + w;
+      item.textContent = w;
       wSection.appendChild(item);
     });
     frag.appendChild(wSection);
@@ -1072,7 +1073,7 @@ function p954RBuildApplyPreviewContent(proposal,plan,live){
   section("Exercise reorder writes",plan.ops.filter(function(o){return o.type==="orderOverride";}),function(o){const day=getResolvedDays(o.gymKey).find(function(d){return d._dayIdx===o.dayIdx;}),names={};(day&&day.exercises||[]).forEach(function(e){names[e.id]=getF(e.id,"name",e.name);});return o.gymKey.toUpperCase()+" Day "+(o.dayIdx+1)+" — "+o.order.map(function(id){return (names[id]||"Unknown")+" ["+id+"]";}).join(" → ")+" — "+(o.conflict?"Conflict":o.writeNeeded?"Will apply":"Unchanged");});
   section("Exercise metadata writes",plan.ops.filter(function(o){return o.type==="exerciseOverride";}),function(o){const day=getResolvedDays(o.gymKey).find(function(d){return d._dayIdx===o.dayIdx;}),ex=day&&(day.exercises||[]).find(function(e){return e.id===o.exerciseId;}),name=ex?getF(ex.id,"name",ex.name):"Unknown";return Object.keys(o.fields).map(function(f){const st=o.fieldStates[f];return name+" ["+o.exerciseId+"] · "+f+": "+p954Value(st.current)+" → "+p954Value(st.proposed)+" · "+(st.conflict?"Conflict":st.writeNeeded?"Will apply":"Unchanged");}).join(" | ");});
   [["Deferred replacements","replace"],["Deferred additions","add"],["Deferred removals","remove"],["Deferred reactivations","reactivate"]].forEach(function(pair){section(pair[0],plan.deferred[pair[1]],function(x){return x.gymKey.toUpperCase()+" Day "+(x.dayIdx+1)+" · "+(x.exerciseAction.exerciseId||"new exercise")+" · Skipped / Deferred";});});
-  section("Conflicts and validation errors",(plan.errors||[]).concat((live&&live.errors)||[]),function(e){return "⚠ "+e;});
+  section("Conflicts and validation errors",(plan.errors||[]).concat((live&&live.errors)||[]),function(e){return e;});
   return frag;
 }
 
@@ -1178,7 +1179,7 @@ function p954RConfirmApplyPreview(){
     // and any new virtual day shows up without needing a manual refresh.
     try { if(typeof renderProgram === "function") renderProgram(); } catch(e){}
     try { if(typeof populateWoDaySelect === "function") populateWoDaySelect(); } catch(e){}
-    p954ShowResult(result.alreadyApplied ? "This proposal was already applied — nothing changed." : "✅ Supported day metadata, exercise reorder, and metadata tweaks applied. Optional add/remove and exercise replace/add/remove/reactivate remain deferred.", "ok");
+  p954ShowResult(result.alreadyApplied ? "This proposal was already applied — nothing changed." : "Supported day metadata, exercise reorder, and metadata tweaks applied. Optional add/remove and exercise replace/add/remove/reactivate remain deferred.", "ok");
   } catch(e){
     console.warn("[MarcusFit] p954RConfirmApplyPreview failed:", e && e.message);
     if(errEl){ errEl.style.display = "block"; errEl.textContent = "Unexpected error — nothing has changed."; }
@@ -1196,7 +1197,7 @@ function p954RBuildUndoPreviewContent(plan){
   const safety=document.createElement("div");safety.className="p954ap-section";const safetyTitle=document.createElement("div");safetyTitle.className="p954ap-section-title";safetyTitle.textContent="Current safety status";safety.appendChild(safetyTitle);const safetyLine=document.createElement("div");safetyLine.className="p954ap-write-item";safetyLine.textContent=plan.canUndo?"Safe to undo — both touched storage areas still match this application.":"Blocked — automatic undo would risk overwriting newer work.";safety.appendChild(safetyLine);frag.appendChild(safety);
   const ops=document.createElement("div");ops.className="p954ap-section";const opsTitle=document.createElement("div");opsTitle.className="p954ap-section-title";opsTitle.textContent="Planned storage restoration";ops.appendChild(opsTitle);(plan.operations||[]).forEach(function(op){const row=document.createElement("div");row.className="p954ap-write-item";const prefix=op.label+(typeof op.key==="string"&&op.key?" ("+op.key+")":"");row.textContent=prefix+": "+(op.kind==="orderOverride"?(op.action==="already-restored"?"already matches the saved pre-apply order":"restore original order"):(op.action==="remove"?"remove key because it was originally absent":op.action==="already-restored"?"already matches the saved pre-apply state":"restore exact original raw value"));ops.appendChild(row);});frag.appendChild(ops);
   const audit=document.createElement("div");audit.className="p954ap-section";const auditTitle=document.createElement("div");auditTitle.className="p954ap-section-title";auditTitle.textContent="Proposal audit";audit.appendChild(auditTitle);const auditRow=document.createElement("div");auditRow.className="p954ap-write-item";auditRow.textContent="The proposal remains saved with status Undone, its original application ID and applied timestamp, an undo timestamp, exact affected-path restoration verification, and unrelated-state preservation verification.";audit.appendChild(auditRow);frag.appendChild(audit);
-  const issues=(plan.errors||[]).concat(plan.conflicts||[]),issueBox=document.createElement("div");issueBox.className="p954ap-section";const issueTitle=document.createElement("div");issueTitle.className="p954ap-section-title";issueTitle.textContent="Conflicts and validation errors";issueBox.appendChild(issueTitle);if(!issues.length){const none=document.createElement("div");none.className="p954r-empty-note";none.textContent="None";issueBox.appendChild(none);}else issues.forEach(function(msg){const row=document.createElement("div");row.className="p954ap-write-item";row.textContent="⚠ "+msg;issueBox.appendChild(row);});frag.appendChild(issueBox);
+  const issues=(plan.errors||[]).concat(plan.conflicts||[]),issueBox=document.createElement("div");issueBox.className="p954ap-section";const issueTitle=document.createElement("div");issueTitle.className="p954ap-section-title";issueTitle.textContent="Conflicts and validation errors";issueBox.appendChild(issueTitle);if(!issues.length){const none=document.createElement("div");none.className="p954r-empty-note";none.textContent="None";issueBox.appendChild(none);}else issues.forEach(function(msg){const row=document.createElement("div");row.className="p954ap-write-item";row.textContent=msg;issueBox.appendChild(row);});frag.appendChild(issueBox);
   return frag;
 }
 
@@ -1219,7 +1220,7 @@ function p954RConfirmUndoPreview(){
     const preflight=p954BuildUndoPlan(inspection.normalized);p954LastUndoValidationErrors=preflight.errors.concat(preflight.conflicts);
     if(!preflight.canUndo){p954RSetUndoConfirmDisabled(true);if(errEl){errEl.style.display="block";errEl.textContent="Cannot undo safely: "+p954LastUndoValidationErrors.join(" ");}return;}
     const result=p954UndoAppliedProposal();if(!result.ok){p954RSetUndoConfirmDisabled(true);if(errEl){errEl.style.display="block";errEl.textContent=result.error||"Undo failed — storage was restored to its immediate pre-undo state.";}return;}
-    p954RCancelUndoPreview();p954RCloseReview();p954RenderProgramPersonalization();try{if(typeof renderProgram==="function")renderProgram();}catch(e){}try{if(typeof populateWoDaySelect==="function")populateWoDaySelect();}catch(e){}p954ShowResult(result.alreadyUndone?"This proposal was already undone — nothing changed.":"↩ Applied proposal changes undone. Workout logs and history were not changed.","ok");
+  p954RCancelUndoPreview();p954RCloseReview();p954RenderProgramPersonalization();try{if(typeof renderProgram==="function")renderProgram();}catch(e){}try{if(typeof populateWoDaySelect==="function")populateWoDaySelect();}catch(e){}p954ShowResult(result.alreadyUndone?"This proposal was already undone — nothing changed.":"Applied proposal changes undone. Workout logs and history were not changed.","ok");
   }catch(e){p954RSetUndoConfirmDisabled(true);if(errEl){errEl.style.display="block";errEl.textContent="Unexpected error — nothing has changed.";}}
 }
 
