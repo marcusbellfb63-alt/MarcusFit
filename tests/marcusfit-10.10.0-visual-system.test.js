@@ -131,7 +131,24 @@ assert.strictEqual(emojiLikeMatches(html).length, 0, "index.html contains runtim
 
 const shared = fs.readFileSync(path.join(jsRoot, "features/13-shared-ui.js"), "utf8");
 const habits = fs.readFileSync(path.join(jsRoot, "features/20-habits.js"), "utf8");
+const stats = fs.readFileSync(path.join(jsRoot, "features/15-stats.js"), "utf8");
 assert(shared.includes("mfLegacyRenderWoRecs") && shared.includes("mfInitProtectedUiSanitizers"), "Protected source glyphs must be neutralized at the presentation boundary");
+const habitDisplaySource = shared.match(/function mfHabitDisplayName\(rawName\)\{[\s\S]*?\n\}(?=\nfunction mfHabitIconName)/);
+assert(habitDisplaySource, "Habit display-name helper must remain independently testable");
+const habitDisplayName = Function(habitDisplaySource[0] + ";return mfHabitDisplayName;")();
+assert.strictEqual(habitDisplayName("💧 Water Intake"), "Water Intake", "Water Habit leading icon must be display-only");
+assert.strictEqual(habitDisplayName("🪑 Desk Posture Reset"), "Desk Posture Reset", "Chair Habit leading icon must be display-only");
+assert.strictEqual(habitDisplayName("Daily Mobility"), "Daily Mobility", "Ordinary Habit names must remain exact");
+assert.strictEqual(habitDisplayName("Strength 💪 Focus"), "Strength 💪 Focus", "Internal user-authored emoji must remain exact");
+assert.strictEqual(habitDisplayName("💪"), "Habit", "Icon-only Habit names need a safe display fallback");
+const rawHabit = {id:"habit-ai-custom", name:"💧 AI Custom Habit", icon:"💧"};
+const rawHabitBefore = JSON.stringify(rawHabit);
+assert.strictEqual(habitDisplayName(rawHabit.name), "AI Custom Habit");
+assert.strictEqual(JSON.stringify(rawHabit), rawHabitBefore, "Habit rendering must not mutate raw definitions");
+const habitIconSource = shared.match(/function mfHabitIconName\(id\)\{[\s\S]*?\n\}/);
+assert(habitIconSource, "Habit icon mapping must remain independently testable");
+const habitIconName = Function(habitIconSource[0] + ";return mfHabitIconName;")();
+assert.strictEqual(habitIconName(rawHabit.id), "check-circle", "Unknown/AI Habit IDs must use the generic SVG icon");
 const adapterSource = shared.match(/function mfAdaptCoreSyncOwnedStatusText\(value\)\{[\s\S]*?\n\}(?=\nfunction mfAdaptCoreSyncResultPresentation)/);
 assert(adapterSource, "Core-Sync presentation adapter must remain independently testable");
 const adaptCoreSyncText = Function(adapterSource[0] + ";return mfAdaptCoreSyncOwnedStatusText;")();
@@ -166,5 +183,11 @@ const parseResult = "❌ JSON parse error: example\n\nRaw content detected:\n" +
 assert.strictEqual(adaptCoreSyncText(parseResult), "JSON parse error: example\n\nRaw content detected:\n" + rawTail, "Raw imported content must remain byte-for-byte identical");
 assert(!/name\.textContent\s*=\s*h\.icon/.test(habits), "Stored Habit icons must not render as platform glyphs");
 assert(!/def\s*\?\s*def\.icon/.test(habits), "Habit history must not render stored platform glyphs");
+assert(habits.includes("mfSetIconLabel(name,mfHabitIconName(h.id),displayName)"), "Daily Habit names must use the presentation helper beside an SVG icon");
+assert(habits.includes("strong.textContent=mfHabitDisplayName(h.name)"), "Habit Manager names must use the presentation helper");
+assert(habits.includes("def?mfHabitDisplayName(def.name)"), "Habit History names must use the presentation helper");
+assert(habits.includes("p960-proposal-name\",mfHabitDisplayName(rawName)"), "Habit proposal names must use the presentation helper");
+assert(stats.includes("p7Escape(mfHabitDisplayName(a.habits.best.name))") && stats.includes("p7Escape(mfHabitDisplayName(a.habits.worst.name))"), "Habit Stats names must use the presentation helper");
+assert(!/mfSetIconLabel\(name,mfHabitIconName\(h\.id\),h\.name\)|strong\.textContent=h\.name|def\?def\.name/.test(habits), "Daily, Manager, and History must not render raw Habit names directly");
 
 console.log(`MarcusFit 10.10.0 visual system: PASS (${symbols.length} SVG symbols, ${dynamicNames.size} dynamic icon names)`);

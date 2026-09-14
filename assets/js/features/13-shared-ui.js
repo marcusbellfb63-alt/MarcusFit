@@ -10,6 +10,10 @@ function mfIconMarkup(name,className){return '<svg class="mf-icon'+(className?' 
 function mfSetIconLabel(element,name,label,className){
   if(!element)return;if(typeof element.replaceChildren!=="function"||typeof document.createElementNS!=="function"){element.textContent=label;return;}element.replaceChildren(mfIcon(name,className),document.createTextNode(label));element.classList.add("mf-icon-label");
 }
+function mfHabitDisplayName(rawName){
+  const raw=String(rawName==null?"":rawName),display=raw.replace(/^(?:\s*(?:\p{Extended_Pictographic}(?:[\uFE0E\uFE0F]|\p{Emoji_Modifier})*(?:\u200D\p{Extended_Pictographic}(?:[\uFE0E\uFE0F]|\p{Emoji_Modifier})*)*)\s*)+/u,"");
+  return display.trim()?display:"Habit";
+}
 function mfHabitIconName(id){
   return {"habit-water":"water","habit-bm":"activity","habit-steps":"activity","habit-box-breathing":"activity","habit-jaw-posture":"check-circle","habit-desk-posture":"activity","habit-kegel":"dumbbell"}[id]||"check-circle";
 }

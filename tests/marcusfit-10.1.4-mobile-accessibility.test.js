@@ -11,6 +11,7 @@ const profileSource = read("assets/js/state/04-runtime-state-profile-preferences
 const sharedUiSource = read("assets/js/features/13-shared-ui.js");
 const habitsSource = read("assets/js/features/20-habits.js");
 const scriptOrder = JSON.parse(read("tests/fixtures/runtime-script-order.json"));
+const habitDisplaySource = sharedUiSource.match(/function mfHabitDisplayName\(rawName\)\{[\s\S]*?\n\}(?=\nfunction mfHabitIconName)/)[0];
 
 // Viewport and structural accessibility.
 const viewport = html.match(/<meta name="viewport" content="([^"]+)">/i);
@@ -168,6 +169,7 @@ const habitContext = {
 };
 habitContext.window = habitContext;
 vm.createContext(habitContext);
+vm.runInContext(habitDisplaySource, habitContext);
 vm.runInContext(habitsSource.slice(0, habitCoreEnd), habitContext);
 vm.runInContext("p960RenderHabitManager=function(){};renderHabits=function(){};p960UpdateSettingsStatus=function(){};p960HabitManagerDraft=p960Clone(p960GetHabitStore());", habitContext);
 const storedBeforeDraft = habitStorage.api.getItem("mf-habit-definitions");
@@ -306,6 +308,7 @@ const uiHabitContext = {
 };
 uiHabitContext.window = uiHabitContext;
 vm.createContext(uiHabitContext);
+vm.runInContext(habitDisplaySource, uiHabitContext);
 vm.runInContext(habitsSource.slice(0, habitCoreEnd), uiHabitContext);
 vm.runInContext("renderHabits=function(){};p960UpdateSettingsStatus=function(){};", uiHabitContext);
 
