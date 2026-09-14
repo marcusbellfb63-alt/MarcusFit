@@ -109,6 +109,181 @@ function p9ClearCoachPrefs(){
 const USER_PROFILE_KEY = "mf-user-profile";
 const USER_PROFILE_SCHEMA = 1;
 const USER_PROFILE_TEXT_SIZES = ["compact", "standard", "large", "extra-large"];
+const P950_TRACKING_MODEL_VERSION = 1;
+const P950_TRACKING_PRESETS = ["full_coaching", "strength_tracking", "custom"];
+const P950_TRACKING_MODULE_KEYS = ["habits", "basketball", "recurringAdherence", "activeCalories", "dailyNotes", "sessionNotes", "coachingInsights"];
+const P950_TRACKING_METRIC_KEYS = ["weight", "sleep", "protein", "water", "energy", "hunger", "bowelMovement"];
+
+function p950TrackingClone(value){
+  return JSON.parse(JSON.stringify(value));
+}
+
+function p950LocalDateKey(value){
+  if(typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)){
+    const parts = value.split("-").map(Number);
+    const parsed = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0, 0);
+    if(parsed.getFullYear() === parts[0] && parsed.getMonth() === parts[1] - 1 && parsed.getDate() === parts[2]) return value;
+  }
+  const date = value instanceof Date ? value : new Date();
+  return date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");
+}
+
+function p950GetDefaultTrackingPreferences(){
+  return {
+    modelVersion: P950_TRACKING_MODEL_VERSION,
+    preset: "full_coaching",
+    liftingDetail: "full",
+    modules: {
+      habits: true,
+      basketball: true,
+      recurringAdherence: true,
+      activeCalories: true,
+      dailyNotes: true,
+      sessionNotes: true,
+      coachingInsights: true
+    },
+    dailyMetrics: {
+      weight: true,
+      sleep: true,
+      protein: true,
+      water: true,
+      energy: true,
+      hunger: true,
+      bowelMovement: true
+    },
+    changedAt: null,
+    timeline: []
+  };
+}
+
+function p950BuildTrackingPreset(presetId, currentValue){
+  const id = P950_TRACKING_PRESETS.includes(presetId) ? presetId : "full_coaching";
+  const base = currentValue && typeof currentValue === "object" ? p950NormalizeTrackingPreferences(currentValue) : p950GetDefaultTrackingPreferences();
+  if(id === "custom"){
+    base.preset = "custom";
+    return base;
+  }
+  const preset = p950GetDefaultTrackingPreferences();
+  preset.preset = id;
+  if(id === "strength_tracking"){
+    preset.modules = {
+      habits: false,
+      basketball: false,
+      recurringAdherence: false,
+      activeCalories: false,
+      dailyNotes: false,
+      sessionNotes: true,
+      coachingInsights: true
+    };
+    preset.dailyMetrics = {
+      weight: true,
+      sleep: true,
+      protein: false,
+      water: false,
+      energy: true,
+      hunger: false,
+      bowelMovement: false
+    };
+  }
+  return preset;
+}
+
+function p950TrackingSelectionMatches(a, b){
+  if(!a || !b || a.liftingDetail !== "full" || b.liftingDetail !== "full") return false;
+  return P950_TRACKING_MODULE_KEYS.every(function(key){ return a.modules[key] === b.modules[key]; }) &&
+    P950_TRACKING_METRIC_KEYS.every(function(key){ return a.dailyMetrics[key] === b.dailyMetrics[key]; });
+}
+
+function p950DetectTrackingPreset(value){
+  if(p950TrackingSelectionMatches(value, p950BuildTrackingPreset("full_coaching"))) return "full_coaching";
+  if(p950TrackingSelectionMatches(value, p950BuildTrackingPreset("strength_tracking"))) return "strength_tracking";
+  return "custom";
+}
+
+function p950NormalizeTrackingSelection(value, fallback){
+  const def = fallback && typeof fallback === "object" ? fallback : p950GetDefaultTrackingPreferences();
+  const src = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const out = Object.assign({}, src);
+  const srcModules = src.modules && typeof src.modules === "object" && !Array.isArray(src.modules) ? src.modules : {};
+  const srcMetrics = src.dailyMetrics && typeof src.dailyMetrics === "object" && !Array.isArray(src.dailyMetrics) ? src.dailyMetrics : {};
+  delete out.timeline;
+  out.preset = P950_TRACKING_PRESETS.includes(src.preset) ? src.preset : def.preset;
+  out.liftingDetail = "full";
+  out.modules = Object.assign({}, srcModules);
+  P950_TRACKING_MODULE_KEYS.forEach(function(key){ out.modules[key] = typeof srcModules[key] === "boolean" ? srcModules[key] : def.modules[key]; });
+  out.dailyMetrics = Object.assign({}, srcMetrics);
+  P950_TRACKING_METRIC_KEYS.forEach(function(key){ out.dailyMetrics[key] = typeof srcMetrics[key] === "boolean" ? srcMetrics[key] : def.dailyMetrics[key]; });
+  out.changedAt = typeof src.changedAt === "string" && !isNaN(Date.parse(src.changedAt)) ? src.changedAt : null;
+  return out;
+}
+
+function p950NormalizeTrackingPreferences(value){
+  const def = p950GetDefaultTrackingPreferences();
+  const src = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const out = p950NormalizeTrackingSelection(src, def);
+  out.modelVersion = P950_TRACKING_MODEL_VERSION;
+  const byDate = {};
+  (Array.isArray(src.timeline) ? src.timeline : []).forEach(function(entry){
+    if(!entry || typeof entry !== "object" || Array.isArray(entry) || typeof entry.effectiveDate !== "string") return;
+    const effectiveDate = p950LocalDateKey(entry.effectiveDate);
+    if(effectiveDate !== entry.effectiveDate) return;
+    const normalized = p950NormalizeTrackingSelection(entry, def);
+    normalized.effectiveDate = effectiveDate;
+    normalized.preset = P950_TRACKING_PRESETS.includes(entry.preset) ? entry.preset : p950DetectTrackingPreset(normalized);
+    byDate[effectiveDate] = normalized;
+  });
+  out.timeline = Object.keys(byDate).sort().map(function(date){ return byDate[date]; });
+  return out;
+}
+
+function p950GetTrackingPreferences(){
+  const profile = p950GetUserProfile();
+  const tracking = profile && profile.preferences && profile.preferences.tracking;
+  return tracking && typeof tracking === "object" ? p950NormalizeTrackingPreferences(tracking) : p950GetDefaultTrackingPreferences();
+}
+
+function p950GetTrackingSnapshotForDate(value){
+  const date = p950LocalDateKey(value);
+  const tracking = p950GetTrackingPreferences();
+  let selected = null;
+  tracking.timeline.forEach(function(entry){ if(entry.effectiveDate <= date) selected = entry; });
+  const snapshot = p950NormalizeTrackingSelection(selected || p950GetDefaultTrackingPreferences(), p950GetDefaultTrackingPreferences());
+  snapshot.effectiveDate = selected ? selected.effectiveDate : null;
+  snapshot.virtualDefault = !selected;
+  return snapshot;
+}
+
+function p950SaveTrackingPreferences(value, effectiveDate){
+  const profile = p950GetUserProfile();
+  const stored = profile.preferences && profile.preferences.tracking ? p950NormalizeTrackingPreferences(profile.preferences.tracking) : p950GetDefaultTrackingPreferences();
+  const incoming = p950NormalizeTrackingPreferences(value);
+  const date = p950LocalDateKey(effectiveDate);
+  const now = new Date().toISOString();
+  incoming.preset = p950DetectTrackingPreset(incoming);
+  incoming.changedAt = now;
+  incoming.timeline = stored.timeline.filter(function(entry){ return entry.effectiveDate !== date; });
+  const snapshot = p950NormalizeTrackingSelection(incoming, p950GetDefaultTrackingPreferences());
+  snapshot.effectiveDate = date;
+  snapshot.changedAt = now;
+  snapshot.preset = incoming.preset;
+  incoming.timeline.push(snapshot);
+  incoming.timeline.sort(function(a,b){ return a.effectiveDate.localeCompare(b.effectiveDate); });
+  const updated = Object.assign({}, profile, {
+    preferences: Object.assign({}, profile.preferences, { tracking: incoming })
+  });
+  return p950SaveUserProfile(updated);
+}
+
+function p950IsTrackingEnabled(path, date){
+  const snapshot = p950GetTrackingSnapshotForDate(date);
+  const parts = String(path || "").split(".");
+  if(parts.length === 1){
+    if(Object.prototype.hasOwnProperty.call(snapshot.modules, parts[0])) return snapshot.modules[parts[0]];
+    if(Object.prototype.hasOwnProperty.call(snapshot.dailyMetrics, parts[0])) return snapshot.dailyMetrics[parts[0]];
+  }
+  if(parts.length === 2 && (parts[0] === "modules" || parts[0] === "dailyMetrics")) return !!snapshot[parts[0]][parts[1]];
+  return false;
+}
 
 function p950NormalizeTextSize(value){
   return USER_PROFILE_TEXT_SIZES.includes(value) ? value : "standard";
@@ -200,6 +375,9 @@ function p950NormalizeUserProfile(profile){
     firstDayOfWeek: srcPrefs.firstDayOfWeek === "monday" ? "monday" : "sunday",
     textSize: p950NormalizeTextSize(srcPrefs.textSize)
   });
+  if(Object.prototype.hasOwnProperty.call(srcPrefs, "tracking")){
+    out.preferences.tracking = p950NormalizeTrackingPreferences(srcPrefs.tracking);
+  }
 
   const srcApp = (src.app && typeof src.app === "object") ? src.app : {};
   out.app = Object.assign({}, srcApp, {
@@ -408,7 +586,11 @@ function p950ResetUserProfileDefaults(){
 function p950ConfirmResetProfile(){
   const panel = document.getElementById("p950ResetConfirmPanel");
   if(panel) panel.style.display = "none";
+  const current = p950GetUserProfile();
   const def = p950GetDefaultUserProfile();
+  if(current.preferences && Object.prototype.hasOwnProperty.call(current.preferences, "tracking")){
+    def.preferences.tracking = p950TrackingClone(current.preferences.tracking);
+  }
   const result = p950SaveUserProfile(def);
   if(result.ok){
     p950ApplyTextSize(result.profile);
@@ -417,6 +599,34 @@ function p950ConfirmResetProfile(){
   } else {
     p950ShowProfileResult("Reset failed: " + result.error, "err");
   }
+  return result;
+}
+
+function p950ResetTrackingPreferences(){
+  const panel = document.getElementById("p950TrackingResetConfirmPanel");
+  if(panel){
+    panel.style.display = "block";
+    panel.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+  if(typeof p950ShowTrackingResult === "function") p950ShowTrackingResult("This will restore Full Coaching for new tracking while preserving prior tracking history. Confirm below to proceed.", "warn");
+}
+
+function p950ConfirmResetTrackingPreferences(){
+  const panel = document.getElementById("p950TrackingResetConfirmPanel");
+  if(panel) panel.style.display = "none";
+  const result = p950SaveTrackingPreferences(p950BuildTrackingPreset("full_coaching"), p950LocalDateKey(new Date()));
+  if(result.ok){
+    if(typeof p950RenderTrackingPreferences === "function") p950RenderTrackingPreferences();
+    if(typeof p950ApplyTrackingPreferencesToUi === "function") p950ApplyTrackingPreferencesToUi();
+    if(typeof p950ShowTrackingResult === "function") p950ShowTrackingResult("Tracking Preferences reset to Full Coaching. Historical preferences and data were kept.", "ok");
+  }else if(typeof p950ShowTrackingResult === "function") p950ShowTrackingResult("Tracking reset failed: "+result.error, "err");
+  return result;
+}
+
+function p950CancelResetTrackingPreferences(){
+  const panel = document.getElementById("p950TrackingResetConfirmPanel");
+  if(panel) panel.style.display = "none";
+  if(typeof p950ShowTrackingResult === "function") p950ShowTrackingResult("Tracking reset cancelled. No changes made.", "ok");
 }
 function p950CancelResetProfile(){
   const panel = document.getElementById("p950ResetConfirmPanel");
