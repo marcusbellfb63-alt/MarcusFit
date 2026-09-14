@@ -69,6 +69,8 @@ const symbols = [...html.matchAll(/<symbol\s+id="(mf-icon-[^"]+)"/g)].map(match 
 assert(symbols.length >= 30, "Expected a useful centralized local icon vocabulary");
 assert.strictEqual(new Set(symbols).size, symbols.length, "SVG symbol IDs must be unique");
 const symbolSet = new Set(symbols);
+assert(html.includes('<symbol id="mf-icon-brain" viewBox="0 0 24 24"><path d="M8 4H4v4M16 4h4v4M20 16v4h-4M8 20H4v-4"/><circle cx="12" cy="12" r="2.5"/></symbol>'), "Focus token must retain its clean small-size focus reticle artwork");
+assert(html.includes('<symbol id="mf-icon-fire" viewBox="0 0 24 24"><path d="M4 18l6-6 3 3 7-8M15 7h5v5"/></symbol>'), "Streak token must retain its clean rising-effort artwork");
 for (const match of html.matchAll(/href="#(mf-icon-[^"]+)"/g)) {
   assert(symbolSet.has(match[1]), `Static SVG reference does not resolve: ${match[1]}`);
 }
