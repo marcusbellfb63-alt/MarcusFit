@@ -2,26 +2,41 @@
 
 ## Current implementation candidate
 
-MarcusFit 10.9.0 Basketball Drill Coaching and Session Energy starts from the exact accepted 10.8.0 production merge `3eea77df29382182ac639845946419e477cf6da8`. The accepted 10.8 QA-approved implementation head is `4f25efa6e0bc6b854d7676f75bda40dc259f9065`.
+MarcusFit 10.10.0 Visual System Modernization starts from the exact accepted
+10.9.0 production merge `d4a8f4d85ecb66e6c30a192ab4c3ae5bc8399dd3`.
+The accepted 10.9 implementation head is
+`3d8c04d52c9731845d4f3cd865b550d7e4287f44`.
 
-10.9.0 is the new implementation candidate and is not accepted. All 38 accepted built-in Basketball drill IDs now resolve a bounded standard prescription with immediate action, work/rest, cues, success target, setup, full instructions, easier/harder variations, and scheduling reason. When a sparse future override changes a drill target, the resolved prescription is rebuilt around that effective target instead of retaining contradictory base-template numbers. Next-session and one-drill courtside views present those details without changing accepted program/session/drill identity or tracking modes. New structured results snapshot the performed prescription; old structured and free-form history remain readable without migration or current-template borrowing.
+10.10.0 is the new implementation candidate and is not accepted. It introduces
+a dark-charcoal/electric-lime design system, a centralized local `currentColor`
+SVG sprite, full-app component geometry/elevation cleanup, and removal of
+platform emoji from normal UI. The accepted stylesheet remains an unchanged
+compatibility prefix with a scoped 10.10 cascade appended after it.
 
-Lifting workout records and structured Basketball sessions may now store optional integer `activeCalories` values from 0–5000 inside their existing records. Blank is omitted, explicit zero is retained, same-identity edits replace in place, and invalid values are rejected. History, selected-range Stats, and AI Export label the values as user-entered wearable estimates, exclude missing values from averages, report lifting/Basketball totals and coverage, and never write derived analytics or alter training. No storage key or schema-version increment was added.
+The release intentionally changes no training, progression, Basketball, AI,
+storage, schema, migration, backup/restore, or workflow behavior. Protected
+program data and core Sync remain byte-identical; their legacy icon strings are
+neutralized only at the presentation boundary. See
+`docs/architecture/visual-system-10.10-audit.md` and
+`tests/marcusfit-10.10.0-manual-qa.md`.
 
-See `docs/architecture/basketball-session-energy-10.9-audit.md` and `tests/marcusfit-10.9.0-manual-qa.md`.
+## 10.10 candidate validation
 
-## 10.9 candidate validation
+- Static visual-system coverage inventories 315 accepted UI emoji/glyph tokens, validates 41 unique SVG symbols, resolves static/dynamic icon references, and constrains protected source exceptions.
+- Review corrections explicitly enforce a near-white `MARCUS` / lightning-lime `FIT` wordmark, preserve accepted 10.9 AI Export payload text, and adapt only exact core-Sync-owned status prefixes while leaving arbitrary imported/user pictographic text unchanged.
+- All existing regression suites and all 22 runtime syntax checks pass.
+- Protected program/core-Sync blobs, base `P`, 63 stable exercise IDs, accepted release hash, `Releases/` tree, and the accepted 22-script order remain unchanged.
+- Local Chromium QA passed at 320, 390, 480, and 1024 px across Compact, Standard, Large, and Extra Large text on all five primary screens. The four Tools sub-tabs also passed the narrow Extra Large check; no horizontal overflow, rendered UI emoji, unresolved/clipped icons, or console warnings/errors were found.
+- Real-iPhone Safari/Home Screen QA remains pending and is required before acceptance.
 
-- The focused 10.9 suite and all accepted 10.x regressions pass after updating the intentional AI Export size fixture.
-- All 22 classic runtime scripts pass `node --check`; the architecture inventory still reports the accepted script order.
-- Localhost responsive checks pass at 320, 390, 480, and 1024 px across Compact, Standard, Large, and Extra Large text with no page/card horizontal overflow and reachable finish controls. The focused correction recheck repeated the 390/320 matrix for all four sizes with target-aware 20-make and 10-minute prescriptions visible.
-- Native prescription disclosure passed click, Space, and Enter behavior with synchronized `aria-expanded`/`aria-controls` state.
-- A structured Basketball session saved a 250 estimate, retained its performed prescription, restored on edit, updated to 275 in place, and did not increase the four-record localhost session count.
-- A lifting workout estimate saved at 300, updated to 325 on the same date, reopened through the same workout selection, and rendered in History.
-- Combined Stats reported 600 total, 300 average, 325 lifting, 275 Basketball, and 2-of-3 supported-session coverage for the original localhost fixture. In the focused correction recheck, a structured estimate updated from 220 to 225 in place; Stats reported the revised Basketball total, and AI Export retained the same estimate evidence plus bounded planned/resolved and historical performed prescription summaries. No browser console errors or warnings were observed.
-- The accepted `P` hash remains `652a04c37928f232490d37ce7e709dc16a25a8c5f408d679bce046b2f6a2d7d4`; all 63 exercise IDs remain at hash `7c333a9b7fb4639cafd0900a96f1d4ba58b8d6b8fb5ecc23f335e7ee041d0e2b`.
-- Core Sync remains content-identical. Its canonical-LF SHA-256 is `14245321c8f47de5c152d011a08877ef4821e353c15bc3ed72c0490aa767c598` and its Git blob object ID is `893556c24c035e7b0fcc1c717fcfba4b5f6f9308`; the invariant is independent of Windows checkout line endings. Accepted `Releases/` files remain unchanged.
-- Real-iPhone QA remains pending and is required before acceptance.
+## Accepted 10.9 state
+
+MarcusFit 10.9.0 Basketball Drill Coaching and Session Energy is accepted and
+merged at `d4a8f4d85ecb66e6c30a192ab4c3ae5bc8399dd3`; its QA-approved
+implementation head is `3d8c04d52c9731845d4f3cd865b550d7e4287f44`.
+All 38 built-in Basketball drills retain bounded prescriptions and performed
+snapshots, and lifting/structured Basketball records retain optional wearable
+active-calorie estimates without storage or schema churn.
 
 ## Previous accepted state
 
@@ -131,5 +146,6 @@ Protected values at acceptance:
 10.6.0 — Basketball UX and progression maturation — Accepted
 10.7.0 — Navigation, Sync IA, and analytics maturation — Accepted
 10.8.0 — Smarter Lifting — Accepted
-10.9.0 — Basketball Drill Coaching and Session Energy — Candidate
+10.9.0 — Basketball Drill Coaching and Session Energy — Accepted
+10.10.0 — Visual System Modernization — Candidate
 ```

@@ -1,3 +1,81 @@
+// ── MARCUSFIT 10.10.0: LOCAL SVG ICON PRESENTATION ──────────────────────────
+const MF_ICON_NAMESPACE="http://www.w3.org/2000/svg";
+function mfIcon(name,className){
+  if(typeof document.createElementNS!=="function"){const fallback=document.createElement("span");fallback.className="mf-icon-fallback";fallback.setAttribute("aria-hidden","true");return fallback;}
+  const svg=document.createElementNS(MF_ICON_NAMESPACE,"svg"),use=document.createElementNS(MF_ICON_NAMESPACE,"use");
+  svg.setAttribute("class","mf-icon"+(className?" "+className:""));svg.setAttribute("aria-hidden","true");svg.setAttribute("focusable","false");
+  use.setAttribute("href","#mf-icon-"+name);svg.appendChild(use);return svg;
+}
+function mfIconMarkup(name,className){return '<svg class="mf-icon'+(className?' '+className:'')+'" aria-hidden="true" focusable="false"><use href="#mf-icon-'+name+'"></use></svg>';}
+function mfSetIconLabel(element,name,label,className){
+  if(!element)return;if(typeof element.replaceChildren!=="function"||typeof document.createElementNS!=="function"){element.textContent=label;return;}element.replaceChildren(mfIcon(name,className),document.createTextNode(label));element.classList.add("mf-icon-label");
+}
+function mfHabitDisplayName(rawName){
+  const raw=String(rawName==null?"":rawName),display=raw.replace(/^(?:\s*(?:\p{Extended_Pictographic}(?:[\uFE0E\uFE0F]|\p{Emoji_Modifier})*(?:\u200D\p{Extended_Pictographic}(?:[\uFE0E\uFE0F]|\p{Emoji_Modifier})*)*)\s*)+/u,"");
+  return display.trim()?display:"Habit";
+}
+const MF_HABIT_ICON_OPTIONS=Object.freeze([
+  {token:"check-circle",label:"General",ariaLabel:"General / Check Habit icon"},
+  {token:"bolt",label:"Energy",ariaLabel:"Performance / Energy Habit icon"},
+  {token:"water",label:"Water",ariaLabel:"Water / Hydration Habit icon"},
+  {token:"brain",label:"Focus",ariaLabel:"Mind / Focus Habit icon"},
+  {token:"dumbbell",label:"Strength",ariaLabel:"Strength / Training Habit icon"},
+  {token:"activity",label:"Activity",ariaLabel:"Activity / Movement Habit icon"},
+  {token:"moon",label:"Recovery",ariaLabel:"Recovery / Sleep Habit icon"},
+  {token:"target",label:"Target",ariaLabel:"Goal / Target Habit icon"},
+  {token:"fire",label:"Streak",ariaLabel:"Effort / Streak Habit icon"}
+]);
+const MF_HABIT_ICON_TOKENS=Object.freeze(MF_HABIT_ICON_OPTIONS.map(function(option){return option.token;}));
+const MF_HABIT_ID_ICONS=Object.freeze({"habit-water":"water","habit-bm":"activity","habit-steps":"activity","habit-box-breathing":"activity","habit-jaw-posture":"check-circle","habit-desk-posture":"activity","habit-kegel":"dumbbell"});
+const MF_HABIT_LEGACY_ICONS=Object.freeze({"\u2713":"check-circle","\u2705":"check-circle","\ud83d\udca7":"water","\ud83e\udde0":"brain","\ud83d\udcaa":"dumbbell","\ud83d\udeb6":"activity","\ud83d\udc5f":"activity","\ud83c\udf2c":"activity","\ud83e\ude91":"activity","\ud83e\uddb7":"check-circle","\ud83d\udebd":"activity","\u26a1":"bolt","\ud83c\udf19":"moon","\ud83c\udfaf":"target","\ud83d\udd25":"fire"});
+function mfHabitStoredIconToken(value){const token=String(value==null?"":value).trim();return MF_HABIT_ICON_TOKENS.includes(token)?token:null;}
+function mfHabitIconName(habitOrId){
+  const habit=habitOrId&&typeof habitOrId==="object"?habitOrId:null,id=String(habit?habit.id||"":habitOrId||""),stored=habit?mfHabitStoredIconToken(habit.icon):null;
+  return stored||MF_HABIT_ID_ICONS[id]||"check-circle";
+}
+function mfHabitEditorIconName(habit){
+  const stored=mfHabitStoredIconToken(habit&&habit.icon),legacy=String(habit&&habit.icon||"").trim().replace(/\uFE0F/g,"");
+  return stored||MF_HABIT_LEGACY_ICONS[legacy]||mfHabitIconName(habit);
+}
+function mfAdaptCoreSyncOwnedStatusText(value){
+  const text=String(value==null?"":value),rawMarker="\nRaw content detected:\n",rawIndex=text.indexOf(rawMarker),ownedText=rawIndex<0?text:text.slice(0,rawIndex+rawMarker.length),rawTail=rawIndex<0?"":text.slice(rawIndex+rawMarker.length);
+  const rules=[
+    /^\u274c (?=(?:No MARCUSFIT_UPDATE block found\.|Found MARCUSFIT_UPDATE_(?:END|START) but missing |Could not extract content between markers\.|JSON parse error: |Expected a JSON array \[ \.\.\. \] between the markers, got ))/,
+    /^\u2139\ufe0f (?=(?:Sync block contained an empty array|All entries processed|reorder \(|day_override_clear \(|day_addition_clear \(|.+ already (?:active on |exists as replacement for )))/,
+    /^\u26a0 (?=(?:recommendations \(|reorder \(|Archived exercise not found: ))/,
+    /^\u2713 (?=(?:Recommendations set for |Reordered |Day override (?:cleared|set): |Virtual day (?:cleared|created|updated): |Archived .+ reactivated|Replacement link created$|.+ (?:added to |archived(?:$| \()|created \(ID: )))/,
+    /^\ud83d\udd00 (?=\d+ days? reordered$)/,
+    /^\ud83d\udcac (?=\d+ recommendation sets? applied$)/,
+    /^\ud83c\udff7\ufe0f (?=\d+ day overrides? applied$)/,
+    /^\ud83d\uddd1\ufe0f\ud83d\udcc5 (?=\d+ virtual days? cleared$)/,
+    /^\ud83d\uddd1\ufe0f (?=\d+ day overrides? cleared$)/,
+    /^\u2795\ud83d\udcc5 (?=\d+ virtual days? set$)/,
+    /^\u2795\ud83d\udcaa (?=\d+ custom exercises? added$)/,
+    /^\u2705 (?=\d+ exercises? updated$)/,
+    /^\u2795 (?=\d+ exercises? added$)/,
+    /^\ud83e\udde0 (?=\d+ habits? updated$)/,
+    /^\u26a0\ufe0f (?=Skipped \(\d+\):$)/
+  ];
+  const adapted=ownedText.split("\n").map(function(line){for(let i=0;i<rules.length;i++){if(rules[i].test(line))return line.replace(rules[i],"");}return line;}).join("\n");
+  return adapted+rawTail;
+}
+function mfAdaptCoreSyncResultPresentation(element){
+  if(!element||typeof document.createTreeWalker!=="function")return;const walker=document.createTreeWalker(element,4);let node;
+  while((node=walker.nextNode())){const adapted=mfAdaptCoreSyncOwnedStatusText(node.nodeValue);if(adapted!==node.nodeValue)node.nodeValue=adapted;}
+}
+function mfInitProtectedUiSanitizers(){
+  const syncResult=document.getElementById("syncResult");
+  if(!syncResult||typeof MutationObserver!=="function")return;
+  new MutationObserver(function(){mfAdaptCoreSyncResultPresentation(syncResult);}).observe(syncResult,{childList:true,subtree:true,characterData:true});
+}
+const mfLegacyRenderWoRecs=renderWoRecs;
+renderWoRecs=function(){
+  const result=mfLegacyRenderWoRecs(),section=document.getElementById("woRecsSection");if(!section)return result;
+  const title=section.querySelector(".wo-recs-title"),badge=title&&title.querySelector(".recs-ai-badge");
+  if(title){title.replaceChildren(mfIcon("bolt","mf-icon-sm"),document.createTextNode("Day Recommendations"));if(badge)title.appendChild(badge);title.classList.add("mf-icon-label");}
+  section.querySelectorAll(".wo-rec-icon").forEach(function(icon){icon.replaceChildren(mfIcon("activity"));});return result;
+};
+
 // ── MARCUSFIT 10.1.4: SYNC / SETTINGS DISCLOSURES ───────────────────────────
 function mfGetSettingsSection(key){
   return document.querySelector('[data-mf-settings-section="'+key+'"]');
@@ -81,6 +159,7 @@ function mfInitSettingsDisclosures(){
   }
   ["p960SettingsStatus","mfBasketballProposalStatus"].forEach(function(id){const node=document.getElementById(id);if(node&&typeof MutationObserver==="function")new MutationObserver(mfUpdateSyncPendingStatus).observe(node,{childList:true,subtree:true,characterData:true,attributes:true});});
   mfSelectSyncPage("ai",{force:true,skipScroll:true});
+  mfInitProtectedUiSanitizers();
 }
 
 mfInitSettingsDisclosures();
@@ -156,17 +235,17 @@ function p6UpdateStickyBar(){
   const hasEntry=todayHasSavedEntry();
   const hasDraft=!!getDraft();
   if(hasEntry){
-    btn.innerHTML="&#9998;&#65039; UPDATE";
+    mfSetIconLabel(btn,"edit","UPDATE");
     btn.className="p6-save-btn update-mode";
-    status.textContent="Saved ✓";
+    status.textContent="Saved";
     status.className="p6-save-status saved";
   } else if(hasDraft){
-    btn.innerHTML="&#9989; SAVE DAY";
+    mfSetIconLabel(btn,"check","SAVE DAY");
     btn.className="p6-save-btn";
     status.textContent="Draft ●";
     status.className="p6-save-status draft";
   } else {
-    btn.innerHTML="&#9989; SAVE DAY";
+    mfSetIconLabel(btn,"check","SAVE DAY");
     btn.className="p6-save-btn";
     status.textContent="Unsaved";
     status.className="p6-save-status";
@@ -223,7 +302,7 @@ window.addEventListener("load",()=>{
       if(document.getElementById("screen-analytics").classList.contains("active"))p7RenderAnalytics();
       const btn=document.getElementById("p6SaveBtn");
       if(btn){
-        btn.innerHTML=todayHasSavedEntry()?"&#9998;&#65039; UPDATED!":"&#9989; SAVED!";
+        mfSetIconLabel(btn,todayHasSavedEntry()?"edit":"check",todayHasSavedEntry()?"UPDATED!":"SAVED!");
         setTimeout(p6UpdateStickyBar,1800);
       }
     },60);

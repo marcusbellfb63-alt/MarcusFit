@@ -414,7 +414,7 @@ function p85ExecuteSave(){
 
   const btn=document.getElementById("saveBtn");
   const wasUpdate=todayHasSavedEntry(); // check AFTER saving to confirm
-  btn.textContent=wasUpdate?"\u270F\uFE0F UPDATED!":"\u2705 SAVED!";
+  if(typeof mfSetIconLabel==="function")mfSetIconLabel(btn,wasUpdate?"edit":"check",wasUpdate?"UPDATED!":"SAVED!");else btn.textContent=wasUpdate?"UPDATED!":"SAVED!";
   setTimeout(()=>updateSaveBtn(),1800);
   renderHistory();
 

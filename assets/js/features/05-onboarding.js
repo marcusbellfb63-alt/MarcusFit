@@ -729,10 +729,10 @@ function p952Step0Template(){
     + '<div class="p952-title" style="text-align:center;">WELCOME</div>'
     + '<div class="p952-body-text" style="text-align:center;">MarcusFit gives you:</div>'
     + '<ul class="p952-feature-list">'
-    +   '<li>💪 Personalized training</li>'
-    +   '<li>📅 Daily logging</li>'
-    +   '<li>🤖 AI-assisted progression</li>'
-    +   '<li>⚙️ Program customization</li>'
+    +   '<li>Personalized training</li>'
+    +   '<li>Daily logging</li>'
+    +   '<li>AI-assisted progression</li>'
+    +   '<li>Program customization</li>'
     + '</ul>'
     + '<div class="p952-note" style="text-align:center;">Setup takes about a few minutes. You can skip it and finish later.</div>'
     + '<div class="p952-footer" style="flex-direction:column;">'
@@ -1141,7 +1141,7 @@ function p952SaveDraft(){
   const result = p952SaveActiveState(updated);
   const successEl = document.getElementById("p952SaveDraftSuccess");
   if(successEl){
-    successEl.textContent = result.ok ? "✅ Draft saved. You can come back and finish anytime." : "❌ Could not save draft — please try again.";
+    successEl.textContent = result.ok ? "Draft saved. You can come back and finish anytime." : "Could not save draft — please try again.";
     successEl.style.display = "block";
   }
 }
@@ -1568,10 +1568,10 @@ function p953ShowFinishResult(success, isPreview, errorMsg){
   el.style.display = "block";
   if(success){
     el.className = "p952-success";
-    el.textContent = isPreview ? "✅ Preview complete — no changes were saved." : "✅ Setup complete!";
+    el.textContent = isPreview ? "Preview complete — no changes were saved." : "Setup complete!";
   } else {
     el.className = "p952-error";
-    el.textContent = "❌ " + (errorMsg || "Could not complete setup — please try again.");
+    el.textContent = errorMsg || "Could not complete setup — please try again.";
   }
 }
 

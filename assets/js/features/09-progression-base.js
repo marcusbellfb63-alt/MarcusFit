@@ -92,14 +92,15 @@ function p5Suggest(validSets, targetRepsStr, targetRirStr){
   const lowRir         = targetRir  !== null && avgLastRir !== null && avgLastRir < targetRir - 1;
 
   if(atTopOfRange && aboveRirTarget){
-    return {text:`✅ You hit the top of range last time — try bumping load slightly${lastLoad?` up from ${lastLoad}`:""}. If warmups feel off, hold and beat reps.`, cls:"go"};
+    return {text:`You hit the top of range last time — try bumping load slightly${lastLoad?` up from ${lastLoad}`:""}. If warmups feel off, hold and beat reps.`, cls:"go"};
   } else if(belowRepTarget || lowRir){
-    return {text:`⏸ Last session was below target${lowRir?" or RIR was low":""} — hold load${lastLoad?` at ${lastLoad}`:""}. Focus on reps and controlled tempo.`, cls:"hold"};
+    return {text:`Last session was below target${lowRir?" or RIR was low":""} — hold load${lastLoad?` at ${lastLoad}`:""}. Focus on reps and controlled tempo.`, cls:"hold"};
   } else {
-    return {text:`🔁 Solid last session. Match or beat those reps${lastLoad?` at ${lastLoad}`:""}. Progress when top of range hits at target RIR.`, cls:"neutral"};
+  return {text:`Solid last session. Match or beat those reps${lastLoad?` at ${lastLoad}`:""}. Progress when top of range hits at target RIR.`, cls:"neutral"};
   }
 }
 
+function p9IconMarkup(name){return typeof mfIconMarkup==="function"?mfIconMarkup(name,"mf-icon-sm"):"";}
 // Build the full p5 HTML block for one exercise
 function p5Block(exId, targetRepsStr, targetRirStr){
   const last = p5GetLastEntry(exId);
@@ -107,11 +108,11 @@ function p5Block(exId, targetRepsStr, targetRirStr){
   if(last && last.weightOnly){
     return `<div class="p9-badge new">NEW</div><div class="p5-hist-wrap" id="p5-${exId}">
       <div class="p5-hist-toggle" onclick="p5Toggle('${exId}')">
-        <div class="p5-hist-dot"></div><span class="p5-hist-label">Last Time</span><span class="p5-chevron">▼</span>
+        <div class="p5-hist-dot"></div><span class="p5-hist-label">Last Time</span><span class="p5-chevron">${p9IconMarkup("chevron-down")}</span>
       </div>
       <div class="p5-hist-body">
         <div class="p5-last-line">Last entry had weight but no reps — ignored for progression.</div>
-        <div class="p9-suggest-line neutral">🆕 Start conservative and find your target RIR.</div>
+      <div class="p9-suggest-line neutral">Start conservative and find your target RIR.</div>
       </div>
     </div>`;
   }
@@ -121,29 +122,29 @@ function p5Block(exId, targetRepsStr, targetRirStr){
   if(!last){
     return `${p9badge}<div class="p5-hist-wrap" id="p5-${exId}">
       <div class="p5-hist-toggle" onclick="p5Toggle('${exId}')">
-        <div class="p5-hist-dot"></div><span class="p5-hist-label">Last Time</span><span class="p5-chevron">▼</span>
+        <div class="p5-hist-dot"></div><span class="p5-hist-label">Last Time</span><span class="p5-chevron">${p9IconMarkup("chevron-down")}</span>
       </div>
       <div class="p5-hist-body">
         <div class="p5-last-line">No previous data for this exercise.</div>
-        <div class="p9-suggest-line neutral">🆕 Start conservative and find your target RIR.</div>
+      <div class="p9-suggest-line neutral">Start conservative and find your target RIR.</div>
       </div>
     </div>`;
   }
   const formattedSets = p5FormatLastSets(last.validSets, exId);
   const suggestion    = p9BuildSuggestion(exId, last.validSets, targetRepsStr, targetRirStr);
   const best          = p9GetBestExercisePerformance(exId);
-  const bestLine      = best ? `<div class="p9-best-line">⭐ Best: ${best}</div>` : "";
+  const bestLine      = best ? `<div class="p9-best-line">${p9IconMarkup("trophy")} Best: ${best}</div>` : "";
   // Format date label
   const dateStr = last.dateKey.replace("day-","");
   const dateLabel = new Date(dateStr+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
   return `${p9badge}<div class="p5-hist-wrap" id="p5-${exId}">
     <div class="p5-hist-toggle" onclick="p5Toggle('${exId}')">
-      <div class="p5-hist-dot"></div><span class="p5-hist-label">Last Time</span><span class="p5-chevron">▼</span>
+      <div class="p5-hist-dot"></div><span class="p5-hist-label">Last Time</span><span class="p5-chevron">${p9IconMarkup("chevron-down")}</span>
     </div>
     <div class="p5-hist-body">
       <div class="p5-last-line"><strong>${dateLabel}:</strong> ${formattedSets}</div>
       ${bestLine}
-      <div class="p9-suggest-line ${suggestion.cls}">💬 ${suggestion.text}</div>
+      <div class="p9-suggest-line ${suggestion.cls}">${p9IconMarkup("message")} ${suggestion.text}</div>
     </div>
   </div>`;
 }
@@ -504,15 +505,15 @@ function p9BadgeHTML(status){
   const MAP = {
     new:          {label:"NEW",            cls:"new"},
     build_reps:   {label:"→ BUILD REPS",   cls:"hold"},
-    safer_hold:   {label:"⚠ SAFER HOLD",   cls:"safer-hold"},
+    safer_hold:   {label:"SAFER HOLD",   cls:"safer-hold"},
     top_range_hold:{label:"→ TOP RANGE",   cls:"hold"},
     progress_load:{label:"↑ PROGRESS",     cls:"up"},
     capped_hold:  {label:"→ CAPPED HOLD",  cls:"hold"},
-    target_reset: {label:"⚠ RESET HOLD",   cls:"reduce"},
+    target_reset: {label:"RESET HOLD",   cls:"reduce"},
     // legacy fallbacks
     up:           {label:"↑ Progress",     cls:"up"},
     hold:         {label:"→ Hold",         cls:"hold"},
-    "safer-hold": {label:"⚠ Safer Hold",   cls:"safer-hold"},
+    "safer-hold": {label:"Safer Hold",   cls:"safer-hold"},
     reduce:       {label:"↓ Reduce",       cls:"reduce"},
     neutral:      {label:"→ Hold",         cls:"hold"},
   };
@@ -685,9 +686,9 @@ window.mfProgressionDebug = function(exId){
 
     // Badge label
     const badgeMap = {
-      new:"NEW", build_reps:"→ BUILD REPS", safer_hold:"⚠ SAFER HOLD",
+    new:"NEW", build_reps:"→ BUILD REPS", safer_hold:"SAFER HOLD",
       top_range_hold:"→ TOP RANGE HOLD", progress_load:"↑ PROGRESS",
-      capped_hold:"→ CAPPED HOLD", target_reset:"⚠ RESET HOLD"
+    capped_hold:"→ CAPPED HOLD", target_reset:"RESET HOLD"
     };
     const badge = badgeMap[status] || "→ HOLD";
 
@@ -802,9 +803,9 @@ window.mfProgressionAudit = function(){
             }
 
             const badgeMap = {
-              new:"NEW", build_reps:"→ BUILD REPS", safer_hold:"⚠ SAFER HOLD",
+    new:"NEW", build_reps:"→ BUILD REPS", safer_hold:"SAFER HOLD",
               top_range_hold:"→ TOP RANGE HOLD", progress_load:"↑ PROGRESS",
-              capped_hold:"→ CAPPED HOLD", target_reset:"⚠ RESET HOLD"
+    capped_hold:"→ CAPPED HOLD", target_reset:"RESET HOLD"
             };
 
             exercises.push({
@@ -1389,7 +1390,7 @@ function p945RenderDiag(){
     top_range_hold:"yellow", capped_hold:"yellow", build_reps:"accent", new:"", unknown:"red"
   };
   const labelMap = {
-    progress_load:"↑ Progress", target_reset:"⚠ Reset Hold", safer_hold:"⚠ Safer Hold",
+    progress_load:"↑ Progress", target_reset:"Reset Hold", safer_hold:"Safer Hold",
     top_range_hold:"→ Top Range", capped_hold:"→ Capped", build_reps:"→ Build Reps", new:"New", unknown:"Unknown"
   };
   const order = ["progress_load","build_reps","top_range_hold","capped_hold","safer_hold","target_reset","new","unknown"];
@@ -1399,10 +1400,10 @@ function p945RenderDiag(){
   }).join("");
 
   if(audit.warnings && audit.warnings.length){
-    warnEl.innerHTML = `<div class="p945-warn-title">⚠ ${audit.warnings.length} Warning${audit.warnings.length!==1?"s":""}</div>` +
+    warnEl.innerHTML = `<div class="p945-warn-title">${audit.warnings.length} Warning${audit.warnings.length!==1?"s":""}</div>` +
       audit.warnings.map(w=>`<div class="p945-warn-item">${w}</div>`).join("");
   } else {
-    warnEl.innerHTML = `<div class="p945-no-warn">✅ No warnings — all ${audit.totalExercises} exercises processed cleanly.</div>`;
+    warnEl.innerHTML = `<div class="p945-no-warn">No warnings — all ${audit.totalExercises} exercises processed cleanly.</div>`;
   }
 }
 

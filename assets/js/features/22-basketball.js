@@ -925,6 +925,7 @@ function mfBasketballSelectedAppDate(){return typeof tDate!=="undefined"?mfBaske
 function mfBasketballElement(tag,className,textValue){
   const element=document.createElement(tag);if(className)element.className=className;if(textValue!=null)element.textContent=String(textValue);return element;
 }
+function mfBasketballSetIconLabel(element,name,label,className){if(typeof mfSetIconLabel==="function")mfSetIconLabel(element,name,label,className);else if(element)element.textContent=label;}
 
 function mfBasketballChangeDescription(change){
   if(change.action==="switch_program"){
@@ -1325,13 +1326,13 @@ function mfBasketballHistoryThroughSession(sessions,current){
 function mfBasketballRenderHistory(){
   const container=document.getElementById("mfBasketballHistory");if(!container)return;
   container.replaceChildren();container.className="mf-basketball-history-section";
-  const heading=document.createElement("div");heading.className="mf-basketball-history-heading";heading.textContent="🏀 Basketball Sessions";container.appendChild(heading);
+  const heading=document.createElement("div");heading.className="mf-basketball-history-heading";mfBasketballSetIconLabel(heading,"basketball","Basketball Sessions");container.appendChild(heading);
   const state=mfBasketballReadStore(),sessions=mfBasketballHistoryFilters(state.sessions);
   if(!sessions.length){const empty=document.createElement("div");empty.className="mf-basketball-history-empty";empty.textContent=state.parseOk?"No basketball sessions match the current History filters.":"Basketball storage is unavailable; other History entries are unaffected.";container.appendChild(empty);return;}
   sessions.forEach(function(session){
     const details=document.createElement("details");details.className="mf-basketball-entry";details.dataset.sessionId=session.id;
     const summary=document.createElement("summary"),title=document.createElement("div"),meta=document.createElement("div");title.className="mf-basketball-entry-title";meta.className="mf-basketball-entry-meta";
-    title.textContent="🏀 "+(session.plannedSessionNameSnapshot||mfBasketballTypeLabel(session.type));meta.textContent=session.minutes+" min · "+mfBasketballFormatDate(session.date);summary.append(title,meta);details.appendChild(summary);
+    mfBasketballSetIconLabel(title,"basketball",session.plannedSessionNameSnapshot||mfBasketballTypeLabel(session.type),"mf-icon-sm");meta.textContent=session.minutes+" min · "+mfBasketballFormatDate(session.date);summary.append(title,meta);details.appendChild(summary);
     const body=document.createElement("div");body.className="mf-basketball-entry-detail";const metrics=document.createElement("div");metrics.className="mf-basketball-metrics";metrics.appendChild(mfBasketballMetricNode(session.minutes+" total minutes"));if(session.activeCalories!=null)metrics.appendChild(mfBasketballMetricNode(session.activeCalories+" active kcal · wearable estimate"));
     if(session.programNameSnapshot){const program=mfBasketballElement("div","mf-basketball-history-program",session.programNameSnapshot+" · "+session.plannedSessionNameSnapshot);body.appendChild(program);}
     if(session.dribblingMinutes!=null)metrics.appendChild(mfBasketballMetricNode(session.dribblingMinutes+" dribbling minutes"));
@@ -1348,7 +1349,7 @@ function mfBasketballRenderHistory(){
 
 function mfBasketballRenderStats(){
   const container=document.getElementById("mfBasketballStats");if(!container)return;
-  const state=mfBasketballReadStore(),range=typeof p7GetStatsRange==="function"?p7GetStatsRange():{start:null,end:null,label:"All history"},sessions=state.sessions.filter(function(session){return (!range.start||session.date>=range.start)&&(!range.end||session.date<=range.end);}),stats=mfBasketballAggregate(sessions);container.replaceChildren();container.className="p7-section mf-basketball-stats";container.appendChild(mfBasketballElement("div","p7-section-header","🏀 Basketball · "+range.label));
+  const state=mfBasketballReadStore(),range=typeof p7GetStatsRange==="function"?p7GetStatsRange():{start:null,end:null,label:"All history"},sessions=state.sessions.filter(function(session){return (!range.start||session.date>=range.start)&&(!range.end||session.date<=range.end);}),stats=mfBasketballAggregate(sessions);container.replaceChildren();container.className="p7-section mf-basketball-stats";const heading=mfBasketballElement("div","p7-section-header","");mfBasketballSetIconLabel(heading,"basketball","Basketball · "+range.label);container.appendChild(heading);
   function statCard(label,value,sub,className){const card=mfBasketballElement("div","p7-stat-card "+(className||"")),labelNode=mfBasketballElement("div","p7-stat-label",label),valueNode=mfBasketballElement("div","p7-stat-val "+(className||""),value),subNode=mfBasketballElement("div","p7-stat-sub",sub);card.append(labelNode,valueNode,subNode);return card;}
   const primary=mfBasketballElement("div","p7-stat-grid cols3");primary.append(statCard("Sessions",stats.totalSessions,"all basketball","accent"),statCard("Minutes",stats.totalMinutes,"basketball only","orange"),statCard("Structured",stats.structuredSessions,"program sessions",""));container.appendChild(primary);
   const secondary=mfBasketballElement("div","p7-stat-grid");secondary.append(statCard("Average",stats.totalSessions?stats.averageMinutes.toFixed(1):"—","minutes / session",""),statCard("Free Throws",stats.freeThrows.attempted?stats.freeThrows.made+" / "+stats.freeThrows.attempted:"—",stats.freeThrows.percentage==null?"free-form totals":stats.freeThrows.percentage.toFixed(1)+"%",""));container.appendChild(secondary);

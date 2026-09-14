@@ -1,7 +1,7 @@
 # MarcusFit runtime architecture
 
 MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
-classic scripts. The 10.9.0 implementation candidate keeps those boundaries
+classic scripts. The 10.10.0 implementation candidate keeps those boundaries
 and composes export sections through the existing ordered classic-script wrappers. GitHub Pages still loads
 static `defer` scripts, and there is no build step or runtime dependency.
 
@@ -33,7 +33,7 @@ assets/js/
 `-- features/22-basketball.js
 ```
 
-The 10.9.0 candidate retains 22 runtime files in the accepted numeric order.
+The 10.10.0 candidate retains 22 runtime files in the accepted numeric order.
 Reproducible physical-line and largest-file counts come from the architecture
 inventory. Numeric prefixes remain globally ordered and match `index.html`.
 
@@ -76,6 +76,14 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - History labels values as estimates. Stats and AI Export derive range-aware totals, recorded-session averages, domain breakdown, and coverage without writing or counting missing values as zero.
 - Core Sync and proposal apply/undo paths remain unable to target historical prescriptions or calories. See `basketball-session-energy-10.9-audit.md` for the full contract.
 
+## 10.10 visual-system boundary
+
+- `index.html` owns one local SVG symbol sprite; `features/13-shared-ui.js` owns the dependency-free `currentColor` icon helpers and the exact-pattern core-Sync status presentation adapter.
+- The final CSS cascade owns charcoal foundation/text surfaces, lightning-lime brand aliases, dedicated semantic colors, three reusable radii, two elevation levels, and standardized icon sizes.
+- The accepted CSS remains an unchanged prefix, while all 22 runtime scripts retain their existing order and ownership.
+- Protected program data and core Sync remain content-identical. Their legacy icon strings are not displayed as platform glyphs and no stored user content is rewritten.
+- See `visual-system-10.10-audit.md` for the color/geometry/emoji/selector inventory and `../../tests/marcusfit-10.10.0-manual-qa.md` for the device matrix.
+
 ## Guide
 
 - `runtime-system-map.md` records ownership and direct dependencies.
@@ -87,6 +95,7 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - `basketball-10.6-audit.md` records the Basketball storage/flow audit and progression rules.
 - `lifting-10.8-audit.md` records lifting ownership, decision evidence, and conservative fallbacks.
 - `basketball-session-energy-10.9-audit.md` records Basketball prescription, snapshot, active-calorie, analytics, and Sync boundaries.
+- `visual-system-10.10-audit.md` records the visual-token, geometry, icon, emoji, and selector-risk audit.
 - `../../tests/marcusfit-10.1.2-modularization-equivalence.md` records evidence.
 
 Run `node tools/architecture/inventory-runtime.js` with the bundled Node
