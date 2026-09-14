@@ -37,17 +37,18 @@ function createStorage(initial = {}) {
   };
   return new Proxy(api, { ownKeys() { return [...memory.keys()]; }, getOwnPropertyDescriptor(target, property) { return memory.has(property) ? { enumerable: true, configurable: true } : Object.getOwnPropertyDescriptor(target, property); } });
 }
-function element() {
+function element(tagName = "") {
   const classes = new Set();
-  return { value: "", textContent: "", innerHTML: "", className: "", id: "", disabled: false, hidden: false, children: [], dataset: {}, style: { position: "", top: "", left: "", right: "", width: "", overflow: "", setProperty(name, value) { this[name] = value; }, removeProperty(name) { this[name] = ""; } },
+  const attributes = {};
+  return { tagName: String(tagName).toUpperCase(), value: "", textContent: "", innerHTML: "", className: "", id: "", disabled: false, hidden: false, children: [], dataset: {}, attributes, style: { position: "", top: "", left: "", right: "", width: "", overflow: "", setProperty(name, value) { this[name] = value; }, removeProperty(name) { this[name] = ""; } },
     classList: { add(...names) { names.forEach(name => classes.add(name)); }, remove(...names) { names.forEach(name => classes.delete(name)); }, contains(name) { return classes.has(name); }, toggle(name) { classes.has(name) ? classes.delete(name) : classes.add(name); } },
-    addEventListener() {}, removeEventListener() {}, setAttribute() {}, removeAttribute() {}, append(...children) { this.children.push(...children); }, appendChild(child) { this.children.push(child); return child; }, replaceChildren(...children) { this.children = children; }, querySelector() { return null; }, querySelectorAll() { return []; }, focus() { this.focused = true; }, scrollIntoView() {}, insertAdjacentHTML(position, value) { this.innerHTML += value; }
+    addEventListener() {}, removeEventListener() {}, setAttribute(name, value) { attributes[name] = String(value); }, getAttribute(name) { return Object.prototype.hasOwnProperty.call(attributes, name) ? attributes[name] : null; }, removeAttribute(name) { delete attributes[name]; }, append(...children) { this.children.push(...children); }, appendChild(child) { this.children.push(child); return child; }, replaceChildren(...children) { this.children = children; }, querySelector() { return null; }, querySelectorAll() { return []; }, focus() { this.focused = true; }, scrollIntoView() {}, insertAdjacentHTML(position, value) { this.innerHTML += value; }
   };
 }
 function context(initial) {
   const localStorage = createStorage(initial), elements = new Map();
   const getElementById = id => { if (!elements.has(id)) { const node = element(); node.id = id; elements.set(id, node); } return elements.get(id); };
-  const c = { console: { log() {}, warn() {}, error() {} }, localStorage, process, document: { getElementById, querySelector() { return null; }, querySelectorAll() { return []; }, addEventListener() {}, removeEventListener() {}, createElement: element, createTextNode: String, body: element(), head: element(), activeElement: null }, navigator: { clipboard: { writeText() { return Promise.resolve(); } } }, location: { reload() {} }, URL: { createObjectURL() { return "blob:test"; }, revokeObjectURL() {} }, Blob: global.Blob, alert() {}, confirm() { throw new Error("native confirm called"); }, getComputedStyle() { return {}; }, scrollX: 0, scrollY: 0, pageXOffset: 0, pageYOffset: 0, scrollTo(x, y) { this.scrollX = this.pageXOffset = x; this.scrollY = this.pageYOffset = y; }, addEventListener() {}, removeEventListener() {}, setTimeout, clearTimeout, setInterval, clearInterval, window: null };
+  const c = { console: { log() {}, warn() {}, error() {} }, localStorage, process, document: { getElementById, querySelector() { return null; }, querySelectorAll() { return []; }, addEventListener() {}, removeEventListener() {}, createElement: element, createElementNS(namespace, tagName) { return element(tagName); }, createTextNode: String, body: element("body"), head: element("head"), activeElement: null }, navigator: { clipboard: { writeText() { return Promise.resolve(); } } }, location: { reload() {} }, URL: { createObjectURL() { return "blob:test"; }, revokeObjectURL() {} }, Blob: global.Blob, alert() {}, confirm() { throw new Error("native confirm called"); }, getComputedStyle() { return {}; }, scrollX: 0, scrollY: 0, pageXOffset: 0, pageYOffset: 0, scrollTo(x, y) { this.scrollX = this.pageXOffset = x; this.scrollY = this.pageYOffset = y; }, addEventListener() {}, removeEventListener() {}, setTimeout, clearTimeout, setInterval, clearInterval, window: null };
   c.window = c; vm.createContext(c); scripts.forEach(file => vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), c, { filename: file })); return { c, localStorage, getElementById };
 }
 
@@ -63,6 +64,8 @@ let n = 0;
 const proposal = changes => ({ schemaVersion: 1, proposalVersion: "10.4.0", proposalId: `habit-proposal-test-${++n}`, source: "ai_sync", summary: "Safe Habit update", rationale: "Bounded coaching evidence.", changes });
 const clear = () => storage.removeItem("mf-habit-proposal");
 const findByText = (node, text) => !node ? null : node.textContent === text ? node : (node.children || []).map(child => findByText(child, text)).find(Boolean) || null;
+const findByHref = (node, href) => !node || typeof node !== "object" ? null : node.getAttribute && node.getAttribute("href") === href ? node : (node.children || []).map(child => findByHref(child, href)).find(Boolean) || null;
+const collectText = node => !node || typeof node !== "object" ? String(node || "") : String(node.textContent || "") + (node.children || []).map(collectText).join("");
 
 // Personalize proposal affordance is live for every stored status, and the
 // pending review requires a clear two-stage dismissal before recording rejected.
@@ -73,6 +76,30 @@ storage.resetWrites();assert(c.p960OpenHabitProposalReview());const dismiss=find
 let statusFixture=c.p960GetHabitProposal();statusFixture.status="applied";statusFixture.undoSnapshot={definitionRaw:null,appliedRaw:"{}",appliedFingerprint:"fixture"};storage.setItem("mf-habit-proposal",JSON.stringify(statusFixture));c.p960UpdateSettingsStatus();assert(!reviewButton.disabled&&reviewButton.textContent==="Review / Undo Habit Changes");assert.strictEqual(c.p960OpenHabitProposalReview(),true,"applied-with-Undo review action was dead");c.p960CloseHabitProposalReview();
 statusFixture.status="undone";statusFixture.undoSnapshot=null;storage.setItem("mf-habit-proposal",JSON.stringify(statusFixture));c.p960UpdateSettingsStatus();assert(reviewButton.disabled&&reviewButton.textContent==="No Pending Habit Proposal");assert.strictEqual(pendingBadge.hidden,true);
 clear();c.p960UpdateSettingsStatus();assert(reviewButton.disabled&&reviewButton.textContent==="No Pending Habit Proposal");
+
+// Canonical Habit icon metadata remains review-first, persists exactly, and undoes exactly.
+storage.setItem("mf-habit-definitions", JSON.stringify(base)); clear();
+const iconBaseline = storage.getItem("mf-habit-definitions");
+let iconImport = c.p960ImportHabitProposal(proposal([{ action: "modify", habitId: "habit-a", fields: { icon: "water" }, rationale: "Use the hydration symbol." }]));
+assert(iconImport.valid); assert.strictEqual(iconImport.proposal.changes[0].fields.icon, "water");
+assert.deepStrictEqual(JSON.parse(JSON.stringify(c.p960ValidateHabitIcon("water"))), { valid: true, canonical: true, presentation: "water" });
+assert.strictEqual(storage.getItem("mf-habit-definitions"), iconBaseline, "Import bypassed Habit proposal review");
+assert(c.p960OpenHabitProposalReview()); const iconReview = env.getElementById("p960ProposalReview");
+assert(findByHref(iconReview, "#mf-icon-water"), "Habit proposal review did not render the water SVG");
+assert(!/\p{Extended_Pictographic}/u.test(collectText(iconReview)), "Habit proposal review rendered a platform emoji");
+c.p960CloseHabitProposalReview(); assert(c.p960ApplyHabitProposal(true).applied); assert.strictEqual(c.p960GetHabitById("habit-a").icon, "water");
+assert(c.p960UndoHabitProposal(true).undone); assert.strictEqual(storage.getItem("mf-habit-definitions"), iconBaseline, "Undo did not restore the exact pre-icon-change definitions");
+
+// A new AI-created custom Habit can carry a canonical icon and render the local SVG.
+clear(); iconImport = c.p960ImportHabitProposal(proposal([{ action: "add", habitId: "habit-ai-focus", definition: { id: "habit-ai-focus", name: "Focus Practice", icon: "brain", description: "", target: { type: "checkbox", display: "Complete" }, schedule: { type: "daily" }, instructions: [], emphasis: "normal" } }]));
+assert(iconImport.valid); assert(c.p960OpenHabitProposalReview()); assert(findByHref(env.getElementById("p960ProposalReview"), "#mf-icon-brain"), "New AI Habit review did not render the brain SVG"); c.p960CloseHabitProposalReview();
+assert(c.p960ApplyHabitProposal(true).applied); assert.strictEqual(c.p960GetHabitById("habit-ai-focus").icon, "brain"); assert.strictEqual(c.mfHabitIconName(c.p960GetHabitById("habit-ai-focus")), "brain"); assert(c.p960UndoHabitProposal(true).undone);
+
+// Legacy and unsupported strings remain accepted and preserved without becoming UI glyphs.
+clear(); iconImport = c.p960ImportHabitProposal(proposal([{ action: "modify", habitId: "habit-a", fields: { icon: "💧" } }])); assert(iconImport.valid); assert.strictEqual(iconImport.proposal.changes[0].fields.icon, "💧"); assert.strictEqual(c.p960ValidateHabitIcon("💧").valid, true); clear();
+iconImport = c.p960ImportHabitProposal(proposal([{ action: "modify", habitId: "habit-a", fields: { icon: "legacy-custom" } }])); assert(iconImport.valid); assert.strictEqual(iconImport.proposal.changes[0].fields.icon, "legacy-custom"); assert.deepStrictEqual(JSON.parse(JSON.stringify(c.p960ValidateHabitIcon("legacy-custom"))), { valid: true, canonical: false, presentation: "check-circle" }); assert.strictEqual(c.mfHabitIconName({ id: "habit-ai-custom", icon: "legacy-custom" }), "check-circle"); clear();
+assert(fs.readFileSync(path.join(root, "assets/js/sync/11-ai-export.js"), "utf8").includes("Preferred icon values: check-circle, bolt, water, brain, dumbbell, activity, moon, target, fire; do not send emoji."));
+storage.setItem("mf-habit-definitions", JSON.stringify(base));
 
 // Valid actions and import-only immutable expectations.
 let imported = c.p960ImportHabitProposal(proposal([{ action: "modify", habitId: "habit-a", fields: { name: "Water Plus", target: { type: "number", value: 72, unit: "oz", display: "72 oz" } } }]));

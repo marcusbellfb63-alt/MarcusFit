@@ -92,11 +92,7 @@ for (const file of jsFiles) {
     continue;
   }
   if (rel === "assets/js/features/20-habits.js") {
-    const storageOnly = [
-      'source.icon=String(source.icon||"✓")',
-      'icon:"✓",source:"user"',
-      '||(existing&&existing.icon)||"✓"'
-    ];
+    const storageOnly = ['source.icon=String(source.icon||"✓")'];
     for (const token of storageOnly) {
       assert.strictEqual(source.split(token).length - 1, 1, `Habit storage-only glyph exception changed: ${token}`);
       source = source.replace(token, token.replace("✓", "stored-icon"));
@@ -118,6 +114,9 @@ for (const file of jsFiles) {
     }
   }
   if (rel === "assets/js/features/13-shared-ui.js") {
+    const legacyHabitIcons = source.match(/const MF_HABIT_LEGACY_ICONS=Object\.freeze\(\{[^\n]+\}\);/);
+    assert(legacyHabitIcons, "Expected the bounded legacy Habit icon editor map");
+    source = source.replace(legacyHabitIcons[0], "const MF_HABIT_LEGACY_ICONS=Object.freeze({});");
     const adapter = source.match(/function mfAdaptCoreSyncOwnedStatusText\(value\)\{[\s\S]*?\n\}(?=\nfunction mfAdaptCoreSyncResultPresentation)/);
     assert(adapter, "Expected the bounded core-Sync presentation adapter");
     assert(!adapter[0].includes("Extended_Pictographic"), "Core-Sync adapter must not generically strip pictographs");
@@ -133,7 +132,7 @@ const shared = fs.readFileSync(path.join(jsRoot, "features/13-shared-ui.js"), "u
 const habits = fs.readFileSync(path.join(jsRoot, "features/20-habits.js"), "utf8");
 const stats = fs.readFileSync(path.join(jsRoot, "features/15-stats.js"), "utf8");
 assert(shared.includes("mfLegacyRenderWoRecs") && shared.includes("mfInitProtectedUiSanitizers"), "Protected source glyphs must be neutralized at the presentation boundary");
-const habitDisplaySource = shared.match(/function mfHabitDisplayName\(rawName\)\{[\s\S]*?\n\}(?=\nfunction mfHabitIconName)/);
+const habitDisplaySource = shared.match(/function mfHabitDisplayName\(rawName\)\{[\s\S]*?\n\}(?=\nconst MF_HABIT_ICON_OPTIONS)/);
 assert(habitDisplaySource, "Habit display-name helper must remain independently testable");
 const habitDisplayName = Function(habitDisplaySource[0] + ";return mfHabitDisplayName;")();
 assert.strictEqual(habitDisplayName("💧 Water Intake"), "Water Intake", "Water Habit leading icon must be display-only");
@@ -145,10 +144,17 @@ const rawHabit = {id:"habit-ai-custom", name:"💧 AI Custom Habit", icon:"💧"
 const rawHabitBefore = JSON.stringify(rawHabit);
 assert.strictEqual(habitDisplayName(rawHabit.name), "AI Custom Habit");
 assert.strictEqual(JSON.stringify(rawHabit), rawHabitBefore, "Habit rendering must not mutate raw definitions");
-const habitIconSource = shared.match(/function mfHabitIconName\(id\)\{[\s\S]*?\n\}/);
-assert(habitIconSource, "Habit icon mapping must remain independently testable");
-const habitIconName = Function(habitIconSource[0] + ";return mfHabitIconName;")();
-assert.strictEqual(habitIconName(rawHabit.id), "check-circle", "Unknown/AI Habit IDs must use the generic SVG icon");
+const habitIconSource = shared.match(/const MF_HABIT_ICON_OPTIONS=Object\.freeze\([\s\S]*?\n\}(?=\nfunction mfAdaptCoreSyncOwnedStatusText)/);
+assert(habitIconSource, "Habit icon presentation API must remain independently testable");
+const habitIconApi = Function(habitIconSource[0] + ";return {options:MF_HABIT_ICON_OPTIONS,tokens:MF_HABIT_ICON_TOKENS,resolve:mfHabitIconName,editor:mfHabitEditorIconName};")();
+assert.deepStrictEqual(habitIconApi.tokens, ["check-circle","bolt","water","brain","dumbbell","activity","moon","target","fire"], "Canonical Habit icon vocabulary changed");
+habitIconApi.tokens.forEach(token => assert(symbolSet.has(`mf-icon-${token}`), `Canonical Habit icon token lacks a local SVG symbol: ${token}`));
+assert.strictEqual(habitIconApi.resolve(rawHabit), "check-circle", "Unknown/AI Habit legacy icons must use the generic SVG icon");
+assert.strictEqual(habitIconApi.resolve({id:"habit-ai-water",icon:"water"}), "water", "Canonical stored Habit icon must take presentation priority");
+assert.strictEqual(habitIconApi.resolve({id:"habit-ai-brain",icon:"brain"}), "brain", "AI-created Habit canonical icon must render locally");
+assert.strictEqual(habitIconApi.resolve({id:"habit-water",icon:"💧"}), "water", "Built-in Habit IDs must retain semantic fallback for legacy data");
+assert.strictEqual(habitIconApi.editor({id:"habit-ai-water",icon:"💧"}), "water", "Known legacy icon must map to its canonical editor choice");
+assert.strictEqual(habitIconApi.editor({id:"habit-ai-unknown",icon:"legacy-custom"}), "check-circle", "Unknown legacy icon must select the general editor choice");
 const adapterSource = shared.match(/function mfAdaptCoreSyncOwnedStatusText\(value\)\{[\s\S]*?\n\}(?=\nfunction mfAdaptCoreSyncResultPresentation)/);
 assert(adapterSource, "Core-Sync presentation adapter must remain independently testable");
 const adaptCoreSyncText = Function(adapterSource[0] + ";return mfAdaptCoreSyncOwnedStatusText;")();
@@ -183,11 +189,19 @@ const parseResult = "❌ JSON parse error: example\n\nRaw content detected:\n" +
 assert.strictEqual(adaptCoreSyncText(parseResult), "JSON parse error: example\n\nRaw content detected:\n" + rawTail, "Raw imported content must remain byte-for-byte identical");
 assert(!/name\.textContent\s*=\s*h\.icon/.test(habits), "Stored Habit icons must not render as platform glyphs");
 assert(!/def\s*\?\s*def\.icon/.test(habits), "Habit history must not render stored platform glyphs");
-assert(habits.includes("mfSetIconLabel(name,mfHabitIconName(h.id),displayName)"), "Daily Habit names must use the presentation helper beside an SVG icon");
+assert(habits.includes("mfSetIconLabel(name,mfHabitIconName(h),displayName)"), "Daily Habit names must use the stored-token-aware presentation helper beside an SVG icon");
 assert(habits.includes("strong.textContent=mfHabitDisplayName(h.name)"), "Habit Manager names must use the presentation helper");
 assert(habits.includes("def?mfHabitDisplayName(def.name)"), "Habit History names must use the presentation helper");
 assert(habits.includes("p960-proposal-name\",mfHabitDisplayName(rawName)"), "Habit proposal names must use the presentation helper");
 assert(stats.includes("p7Escape(mfHabitDisplayName(a.habits.best.name))") && stats.includes("p7Escape(mfHabitDisplayName(a.habits.worst.name))"), "Habit Stats names must use the presentation helper");
 assert(!/mfSetIconLabel\(name,mfHabitIconName\(h\.id\),h\.name\)|strong\.textContent=h\.name|def\?def\.name/.test(habits), "Daily, Manager, and History must not render raw Habit names directly");
+assert(habits.includes('button.dataset.iconToken=option.token') && habits.includes('button.setAttribute("aria-pressed",selected?"true":"false")'), "Habit Manager must render accessible canonical SVG icon choices");
+assert(habits.includes('const displayName=mfHabitDisplayName(h.name),nameInput=field("Name","name","text",displayName)') && habits.includes('enteredName===nameInput.dataset.displayName?nameInput.dataset.rawName:enteredName'), "Habit editor must show the clean display label without rewriting an unchanged raw name");
+assert(!habits.includes("Legacy icon value (not displayed)"), "Obsolete free-text Habit icon editor returned");
+assert(css.includes(".p960-icon-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))"), "Habit icon picker must use a shrink-safe grid");
+assert(css.includes('.p960-icon-option[aria-pressed="true"]'), "Habit icon picker must expose a visible selected state");
+assert(stats.includes("mfHabitIconName(a.habits.best)") && stats.includes("mfHabitIconName(a.habits.worst)"), "Habit Stats must honor canonical stored icons");
+assert(exportSource.includes("Preferred icon values: check-circle, bolt, water, brain, dumbbell, activity, moon, target, fire; do not send emoji."), "AI response guidance must advertise the canonical Habit icon vocabulary");
+assert(habits.includes('Preferred icon tokens for new/changed Habits: "+MF_HABIT_ICON_TOKENS.join(", ")'), "Habit export context must advertise the canonical icon vocabulary concisely");
 
 console.log(`MarcusFit 10.10.0 visual system: PASS (${symbols.length} SVG symbols, ${dynamicNames.size} dynamic icon names)`);

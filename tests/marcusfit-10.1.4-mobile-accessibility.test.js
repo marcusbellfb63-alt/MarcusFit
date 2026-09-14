@@ -11,7 +11,9 @@ const profileSource = read("assets/js/state/04-runtime-state-profile-preferences
 const sharedUiSource = read("assets/js/features/13-shared-ui.js");
 const habitsSource = read("assets/js/features/20-habits.js");
 const scriptOrder = JSON.parse(read("tests/fixtures/runtime-script-order.json"));
-const habitDisplaySource = sharedUiSource.match(/function mfHabitDisplayName\(rawName\)\{[\s\S]*?\n\}(?=\nfunction mfHabitIconName)/)[0];
+const habitPresentationEnd = sharedUiSource.indexOf("function mfAdaptCoreSyncOwnedStatusText");
+assert(habitPresentationEnd > 0);
+const habitPresentationSource = sharedUiSource.slice(0, habitPresentationEnd);
 
 // Viewport and structural accessibility.
 const viewport = html.match(/<meta name="viewport" content="([^"]+)">/i);
@@ -169,7 +171,7 @@ const habitContext = {
 };
 habitContext.window = habitContext;
 vm.createContext(habitContext);
-vm.runInContext(habitDisplaySource, habitContext);
+vm.runInContext(habitPresentationSource, habitContext);
 vm.runInContext(habitsSource.slice(0, habitCoreEnd), habitContext);
 vm.runInContext("p960RenderHabitManager=function(){};renderHabits=function(){};p960UpdateSettingsStatus=function(){};p960HabitManagerDraft=p960Clone(p960GetHabitStore());", habitContext);
 const storedBeforeDraft = habitStorage.api.getItem("mf-habit-definitions");
@@ -266,6 +268,7 @@ class FakeDocument {
     this.head = new FakeElement("head", this);
   }
   createElement(tagName) { return new FakeElement(tagName, this); }
+  createElementNS(namespace, tagName) { return new FakeElement(tagName, this); }
   createTextNode(value) { const node = new FakeElement("#text", this); node._text = String(value); return node; }
   getElementById(id) {
     if (this.body.id === id) return this.body;
@@ -290,8 +293,8 @@ function habitRowByName(document, name) {
 const uiHabitStore = {
   schemaVersion: 1, definitionVersion: "10.1.3", createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
   habits: {
-    "habit-kegel": { id: "habit-kegel", name: "Pelvic Floor", icon: "K", description: "Original", target: { type: "checkbox", display: "Complete" }, schedule: { type: "daily" }, instructions: [], emphasis: "normal", active: true, source: "user" },
-    "habit-journal": { id: "habit-journal", name: "Journal", icon: "J", description: "Unrelated", target: { type: "checkbox", display: "Write" }, schedule: { type: "daily" }, instructions: [], emphasis: "normal", active: true, source: "user" }
+    "habit-kegel": { id: "habit-kegel", name: "💧 Pelvic Floor", icon: "💧", description: "Original", target: { type: "checkbox", display: "Complete" }, schedule: { type: "daily" }, instructions: [], emphasis: "normal", active: true, source: "user" },
+    "habit-journal": { id: "habit-journal", name: "Journal", icon: "legacy-custom", description: "Unrelated", target: { type: "checkbox", display: "Write" }, schedule: { type: "daily" }, instructions: [], emphasis: "normal", active: true, source: "user" }
   },
   order: ["habit-kegel", "habit-journal"]
 };
@@ -308,9 +311,10 @@ const uiHabitContext = {
 };
 uiHabitContext.window = uiHabitContext;
 vm.createContext(uiHabitContext);
-vm.runInContext(habitDisplaySource, uiHabitContext);
+vm.runInContext(habitPresentationSource, uiHabitContext);
 vm.runInContext(habitsSource.slice(0, habitCoreEnd), uiHabitContext);
 vm.runInContext("renderHabits=function(){};p960UpdateSettingsStatus=function(){};", uiHabitContext);
+assert.strictEqual(vm.runInContext('mfHabitEditorIconName({id:"habit-journal",icon:"legacy-custom"})', uiHabitContext), "check-circle", "Unknown legacy value did not select the general picker choice");
 
 // Closing the whole manager during an edit must discard the still-rendered form.
 uiHabitContext.p960OpenHabitManager();
@@ -321,6 +325,10 @@ buttonByText(kegelRow, "Edit").click();
 let uiForm = uiDocument.getElementById("p960HabitForm");
 assert.strictEqual(uiForm.dataset.mode, "edit");
 assert.strictEqual(uiForm.dataset.editingId, "habit-kegel", "Edit form did not retain the stable ID");
+assert.strictEqual(uiForm.querySelector('[data-key="name"]').value, "Pelvic Floor", "Legacy leading icon leaked into the editable Habit display name");
+assert.strictEqual(uiForm.querySelector('[data-key="icon"]').value, "water", "Known legacy icon did not map to the matching canonical picker choice");
+assert.strictEqual(uiForm.querySelector('[data-icon-token="water"]').getAttribute("aria-pressed"), "true");
+assert.strictEqual(uiHabitStorage.api.getItem("mf-habit-definitions"), JSON.stringify(uiHabitStore), "Opening the icon picker migrated stored data");
 uiForm.querySelector('[data-key="name"]').value = "Stale Unsaved Rename";
 buttonByText(uiDocument.getElementById("p960HabitManager"), "Cancel").click();
 assert.strictEqual(uiHabitStorage.api.getItem("mf-habit-definitions"), JSON.stringify(uiHabitStore));
@@ -335,11 +343,23 @@ buttonByText(kegelRow, "Details").click();
 kegelRow = habitRowByName(uiDocument, "Pelvic Floor");
 buttonByText(kegelRow, "Edit").click();
 uiForm = uiDocument.getElementById("p960HabitForm");
+buttonByText(uiForm, "Update Draft").click();
+buttonByText(uiDocument.getElementById("p960HabitManager"), "Save Changes").click();
+let uiPersisted = JSON.parse(uiHabitStorage.api.getItem("mf-habit-definitions"));
+assert.strictEqual(uiPersisted.habits["habit-kegel"].name, "💧 Pelvic Floor", "Icon-only edit rewrote the raw stored Habit name");
+assert.strictEqual(uiPersisted.habits["habit-kegel"].icon, "water", "Explicit edit did not persist the selected canonical icon");
+
+uiHabitContext.p960OpenHabitManager();
+kegelRow = habitRowByName(uiDocument, "Pelvic Floor");
+buttonByText(kegelRow, "Details").click();
+kegelRow = habitRowByName(uiDocument, "Pelvic Floor");
+buttonByText(kegelRow, "Edit").click();
+uiForm = uiDocument.getElementById("p960HabitForm");
 uiForm.querySelector('[data-key="name"]').value = "Kegel Routine";
 buttonByText(uiForm, "Update Draft").click();
 buttonByText(uiDocument.getElementById("p960HabitManager"), "Save Changes").click();
 
-let uiPersisted = JSON.parse(uiHabitStorage.api.getItem("mf-habit-definitions"));
+uiPersisted = JSON.parse(uiHabitStorage.api.getItem("mf-habit-definitions"));
 assert.strictEqual(uiPersisted.habits["habit-kegel"].name, "Kegel Routine");
 assert.strictEqual(uiPersisted.habits["habit-kegel"].id, "habit-kegel");
 assert(!uiPersisted.habits["habit-kegel-routine"], "Rename created a duplicate slug ID");
@@ -361,12 +381,34 @@ buttonByText(uiDocument.getElementById("p960HabitManager"), "+ Add Habit").click
 uiForm = uiDocument.getElementById("p960HabitForm");
 assert.strictEqual(uiForm.dataset.mode, "add");
 uiForm.querySelector('[data-key="name"]').value = "Read Book";
+uiForm.querySelector('[data-icon-token="water"]').click();
+assert.strictEqual(uiForm.querySelector('[data-key="icon"]').value, "water");
+assert.strictEqual(uiForm.querySelector('[data-icon-token="water"]').getAttribute("aria-pressed"), "true");
 buttonByText(uiForm, "Add to Draft").click();
 buttonByText(uiDocument.getElementById("p960HabitManager"), "Save Changes").click();
 uiPersisted = JSON.parse(uiHabitStorage.api.getItem("mf-habit-definitions"));
 assert.strictEqual(uiPersisted.habits["habit-read-book"].name, "Read Book");
+assert.strictEqual(uiPersisted.habits["habit-read-book"].icon, "water", "New Habit did not save the picker selection");
 assert.strictEqual(uiPersisted.habits["habit-kegel"].name, "Kegel Routine");
 assert.strictEqual(uiPersisted.habits["habit-journal"].description, "Unrelated");
 assert.strictEqual(uiHabitStorage.api.getItem("day-2026-01-01"), historicalDay, "Add changed historical completion data");
+
+// Reopen a saved custom Habit, change its canonical icon, and retain the same ID.
+uiHabitContext.p960OpenHabitManager();
+let customRow = habitRowByName(uiDocument, "Read Book");
+buttonByText(customRow, "Details").click();
+customRow = habitRowByName(uiDocument, "Read Book");
+buttonByText(customRow, "Edit").click();
+uiForm = uiDocument.getElementById("p960HabitForm");
+assert.strictEqual(uiForm.querySelector('[data-key="icon"]').value, "water", "Saved canonical icon was not selected on reopen");
+uiForm.querySelector('[data-icon-token="brain"]').click();
+buttonByText(uiForm, "Update Draft").click();
+buttonByText(uiDocument.getElementById("p960HabitManager"), "Save Changes").click();
+uiPersisted = JSON.parse(uiHabitStorage.api.getItem("mf-habit-definitions"));
+assert.strictEqual(uiPersisted.habits["habit-read-book"].icon, "brain", "Picker icon change was not persisted");
+assert.strictEqual(uiPersisted.order.filter(id => id === "habit-read-book").length, 1, "Icon edit changed the stable Habit identity");
+assert.strictEqual(uiHabitStorage.api.getItem("day-2026-01-01"), historicalDay, "Icon edit changed historical completion data");
+assert(!habitsSource.includes("Legacy icon value (not displayed)"), "Obsolete free-text icon editor remains");
+assert(css.includes(".p960-icon-option") && css.includes("min-height:60px"), "Habit icon choices lack iPhone-sized targets");
 
 console.log("MarcusFit 10.1.4 mobile/accessibility contract: PASS");

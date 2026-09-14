@@ -14,8 +14,28 @@ function mfHabitDisplayName(rawName){
   const raw=String(rawName==null?"":rawName),display=raw.replace(/^(?:\s*(?:\p{Extended_Pictographic}(?:[\uFE0E\uFE0F]|\p{Emoji_Modifier})*(?:\u200D\p{Extended_Pictographic}(?:[\uFE0E\uFE0F]|\p{Emoji_Modifier})*)*)\s*)+/u,"");
   return display.trim()?display:"Habit";
 }
-function mfHabitIconName(id){
-  return {"habit-water":"water","habit-bm":"activity","habit-steps":"activity","habit-box-breathing":"activity","habit-jaw-posture":"check-circle","habit-desk-posture":"activity","habit-kegel":"dumbbell"}[id]||"check-circle";
+const MF_HABIT_ICON_OPTIONS=Object.freeze([
+  {token:"check-circle",label:"General",ariaLabel:"General / Check Habit icon"},
+  {token:"bolt",label:"Energy",ariaLabel:"Performance / Energy Habit icon"},
+  {token:"water",label:"Water",ariaLabel:"Water / Hydration Habit icon"},
+  {token:"brain",label:"Focus",ariaLabel:"Mind / Focus Habit icon"},
+  {token:"dumbbell",label:"Strength",ariaLabel:"Strength / Training Habit icon"},
+  {token:"activity",label:"Activity",ariaLabel:"Activity / Movement Habit icon"},
+  {token:"moon",label:"Recovery",ariaLabel:"Recovery / Sleep Habit icon"},
+  {token:"target",label:"Target",ariaLabel:"Goal / Target Habit icon"},
+  {token:"fire",label:"Streak",ariaLabel:"Effort / Streak Habit icon"}
+]);
+const MF_HABIT_ICON_TOKENS=Object.freeze(MF_HABIT_ICON_OPTIONS.map(function(option){return option.token;}));
+const MF_HABIT_ID_ICONS=Object.freeze({"habit-water":"water","habit-bm":"activity","habit-steps":"activity","habit-box-breathing":"activity","habit-jaw-posture":"check-circle","habit-desk-posture":"activity","habit-kegel":"dumbbell"});
+const MF_HABIT_LEGACY_ICONS=Object.freeze({"\u2713":"check-circle","\u2705":"check-circle","\ud83d\udca7":"water","\ud83e\udde0":"brain","\ud83d\udcaa":"dumbbell","\ud83d\udeb6":"activity","\ud83d\udc5f":"activity","\ud83c\udf2c":"activity","\ud83e\ude91":"activity","\ud83e\uddb7":"check-circle","\ud83d\udebd":"activity","\u26a1":"bolt","\ud83c\udf19":"moon","\ud83c\udfaf":"target","\ud83d\udd25":"fire"});
+function mfHabitStoredIconToken(value){const token=String(value==null?"":value).trim();return MF_HABIT_ICON_TOKENS.includes(token)?token:null;}
+function mfHabitIconName(habitOrId){
+  const habit=habitOrId&&typeof habitOrId==="object"?habitOrId:null,id=String(habit?habit.id||"":habitOrId||""),stored=habit?mfHabitStoredIconToken(habit.icon):null;
+  return stored||MF_HABIT_ID_ICONS[id]||"check-circle";
+}
+function mfHabitEditorIconName(habit){
+  const stored=mfHabitStoredIconToken(habit&&habit.icon),legacy=String(habit&&habit.icon||"").trim().replace(/\uFE0F/g,"");
+  return stored||MF_HABIT_LEGACY_ICONS[legacy]||mfHabitIconName(habit);
 }
 function mfAdaptCoreSyncOwnedStatusText(value){
   const text=String(value==null?"":value),rawMarker="\nRaw content detected:\n",rawIndex=text.indexOf(rawMarker),ownedText=rawIndex<0?text:text.slice(0,rawIndex+rawMarker.length),rawTail=rawIndex<0?"":text.slice(rawIndex+rawMarker.length);
