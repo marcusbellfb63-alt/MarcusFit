@@ -9,6 +9,7 @@ const profileSource = fs.readFileSync(path.join(root, "assets/js/state/04-runtim
 const constantsSource = fs.readFileSync(path.join(root, "assets/js/core/01-app-constants.js"), "utf8");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "assets/css/marcusfit.css"), "utf8");
+const dailySource = fs.readFileSync(path.join(root, "assets/js/features/08-program-daily.js"), "utf8");
 const workoutSource = fs.readFileSync(path.join(root, "assets/js/features/10-workout-logging.js"), "utf8");
 const habitsSource = fs.readFileSync(path.join(root, "assets/js/features/20-habits.js"), "utf8");
 const recurringSource = fs.readFileSync(path.join(root, "assets/js/features/19-recurring-adherence.js"), "utf8");
@@ -192,40 +193,93 @@ assert(html.includes('data-mf-settings-section="tracking"') && html.includes("Fu
 assert(html.includes('id="screen-program"') && html.includes('id="screen-history"') && html.includes('id="screen-analytics"'));
 assert(css.includes(".mf-tracking-hidden{display:none!important;}") && css.includes("@media(max-width:420px)"));
 
+// Collection UI is resolved from the selected record date. Navigating between
+// dates must not reuse the wall-clock/current snapshot in either direction.
+function buildDateUi(initialPreset, laterPreset) {
+  const dated = createProfileContext();
+  dated.context.p950SaveTrackingPreferences(dated.context.p950BuildTrackingPreset(initialPreset), "2026-09-10");
+  dated.context.p950SaveTrackingPreferences(dated.context.p950BuildTrackingPreset(laterPreset), "2026-09-15");
+  const metrics = ["weight", "protein", "energy"].map(key => uiNode({ mfCollectionMetric: key }));
+  const modules = ["activeCalories", "sessionNotes"].map(key => uiNode({ mfCollectionModule: key }));
+  ["metrics", "habits", "basketball", "recurring", "notes"].forEach(id => dated.elements.set(`p6sec-${id}`, uiNode()));
+  dated.selectors.set("[data-mf-collection-metric]", metrics); dated.selectors.set("[data-mf-collection-module]", modules);
+  dated.selectors.set(".wo-note-input,.mf-basketball-drill-notes", []); dated.selectors.set(".wo-ex-coach,.p5-hist-wrap,#woRecsSection,#p949ReviewCard,.p7-action-summary,.mf-basketball-last-trend,.mf-basketball-guidance", []);
+  return { dated, metrics, modules };
+}
+let datedUi = buildDateUi("strength_tracking", "full_coaching");
+datedUi.dated.context.p950ApplyTrackingPreferencesToUi("2026-09-10");
+assert(datedUi.metrics[1].classList.contains("mf-tracking-hidden") && datedUi.modules[0].classList.contains("mf-tracking-hidden"), "historical Strength date used current Full controls");
+datedUi.dated.context.p950ApplyTrackingPreferencesToUi("2026-09-15");
+assert(!datedUi.metrics[1].classList.contains("mf-tracking-hidden") && !datedUi.modules[0].classList.contains("mf-tracking-hidden"), "current Full date stayed hidden after navigation");
+datedUi = buildDateUi("full_coaching", "strength_tracking");
+datedUi.dated.context.p950ApplyTrackingPreferencesToUi("2026-09-10");
+assert(!datedUi.metrics[1].classList.contains("mf-tracking-hidden") && !datedUi.modules[0].classList.contains("mf-tracking-hidden"), "historical Full date used current Strength controls");
+datedUi.dated.context.p950ApplyTrackingPreferencesToUi("2026-09-15");
+assert(datedUi.metrics[1].classList.contains("mf-tracking-hidden") && datedUi.modules[0].classList.contains("mf-tracking-hidden"), "current Strength date stayed visible after navigation");
+
 // Exercise the real Daily save function with disabled fields. New records omit
 // neutral slider defaults; existing records retain every disabled known field.
 const preserveWorkoutFn = extractBalanced(workoutSource, "function p85PreserveDormantWorkoutFields");
 const executeSaveFn = extractBalanced(workoutSource, "function p85ExecuteSave");
-function runDailySave(initialDaily, initialWorkout) {
+function runDailySave(initialDaily, initialWorkout, options = {}) {
+  const selectedDate = options.selectedDate || "2026-09-10", dayKey = `day-${selectedDate}`, resolvedDates = [], workoutDates = [];
   const storage = makeStorage({
-    ...(initialDaily ? { "day-2026-09-15": JSON.stringify(initialDaily) } : {}),
-    ...(initialWorkout ? { "day-2026-09-15-wo": JSON.stringify(initialWorkout) } : {})
+    ...(initialDaily ? { [dayKey]: JSON.stringify(initialDaily) } : {}),
+    ...(initialWorkout ? { [`${dayKey}-wo`]: JSON.stringify(initialWorkout) } : {})
   });
-  const values = { woDaySelect: "0", weightIn: "", sleepIn: "", proteinIn: "", waterIn: "", bmNotes: "", moodSlider: "5", hungerSlider: "5", dayNotes: "", saveBtn: "" };
+  const values = Object.assign({ woDaySelect: "0", weightIn: "", sleepIn: "", proteinIn: "", waterIn: "", bmNotes: "", moodSlider: "5", hungerSlider: "5", dayNotes: "", saveBtn: "" }, options.values || {});
   const elements = new Map(Object.entries(values).map(([id, value]) => [id, { id, value, style: { display: "none" }, textContent: "", scrollIntoView() {} }]));
   elements.set("p949ReviewCard", { style: { display: "none" }, scrollIntoView() {} });
-  const snapshot = { modules: { habits: false, recurringAdherence: false, dailyNotes: false, activeCalories: false, sessionNotes: false }, dailyMetrics: { weight: false, sleep: false, protein: false, water: false, bowelMovement: false, energy: false, hunger: false } };
-  const context = { console, localStorage: storage.api, document: { getElementById(id) { return elements.get(id) || { value: "", style: {} }; } }, tDate: new Date("2026-09-15T12:00:00"), toggleStates: { bm: "yes", wo: "yes", zep: "taken" }, habitState: { "habit-new": { completed: false } }, logGym: "home",
-    dKey() { return "day-2026-09-15"; }, p950GetTrackingSnapshotForDate() { return snapshot; }, p950IsTrackingEnabled() { return false; }, p950LocalDateKey() { return "2026-09-15"; }, mfWorkoutReadActiveCalories() { return { ok: true, value: null }; }, collectWoData() { return { gym: "home", dayIdx: "0", dayName: "Day", exercises: { lift: { sets: [{ wt: "40", reps: "8", rir: "2" }] } } }; }, isTodaySelected() { return false; }, clearDraft() {}, todayHasSavedEntry() { return true; }, mfSetIconLabel() {}, updateSaveBtn() {}, renderHistory() {}, p949BuildWorkoutReview() { return {}; }, p949RenderReview() {}, p949HideReview() {}, setTimeout(fn) { fn(); } };
+  const snapshotForDate = options.snapshotForDate || (() => ({ modules: { habits: false, recurringAdherence: false, dailyNotes: false, activeCalories: false, sessionNotes: false }, dailyMetrics: { weight: false, sleep: false, protein: false, water: false, bowelMovement: false, energy: false, hunger: false } }));
+  const parts = selectedDate.split("-").map(Number), selectedLocalDate = new Date(parts[0], parts[1] - 1, parts[2], 12);
+  const context = { console, localStorage: storage.api, document: { getElementById(id) { return elements.get(id) || { value: "", style: {} }; } }, tDate: selectedLocalDate, toggleStates: { bm: "yes", wo: "yes", zep: "taken" }, habitState: { "habit-new": { completed: false } }, logGym: "home",
+    dKey() { return dayKey; }, p950GetTrackingSnapshotForDate(date) { resolvedDates.push(date); return snapshotForDate(date); }, p950IsTrackingEnabled(path, date) { resolvedDates.push(date); const snap = snapshotForDate(date), bits = path.split("."); return !!(snap[bits[0]] && snap[bits[0]][bits[1]]); }, p950LocalDateKey(value) { if(typeof value === "string") return value; return `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,"0")}-${String(value.getDate()).padStart(2,"0")}`; }, mfWorkoutReadActiveCalories() { return { ok: true, value: null }; }, collectWoData(date) { workoutDates.push(date); return options.workoutCollected || { gym: "home", dayIdx: "0", dayName: "Day", exercises: { lift: { sets: [{ wt: "40", reps: "8", rir: "2" }] } } }; }, isTodaySelected() { return false; }, clearDraft() {}, todayHasSavedEntry() { return true; }, mfSetIconLabel() {}, updateSaveBtn() {}, renderHistory() {}, p949BuildWorkoutReview() { return {}; }, p949RenderReview() {}, p949HideReview() {}, setTimeout(fn) { fn(); } };
   vm.createContext(context); vm.runInContext(`${preserveWorkoutFn}\n${executeSaveFn}`, context); context.p85ExecuteSave();
-  return { daily: JSON.parse(storage.api.getItem("day-2026-09-15")), workout: JSON.parse(storage.api.getItem("day-2026-09-15-wo")) };
+  return { daily: JSON.parse(storage.api.getItem(dayKey)), workout: JSON.parse(storage.api.getItem(`${dayKey}-wo`)), resolvedDates, workoutDates };
 }
-let preserved = runDailySave({ date: "2026-09-15", weight: "210", mood: "8", hunger: "3", notes: "keep daily", habits: { "habit-old": { completed: true } }, zep: "taken" }, { gym: "home", dayIdx: "0", exercises: { lift: { sets: [{ wt: "35", reps: "8", rir: "2" }], note: "keep lift note" } }, activeCalories: 300 });
-assert.strictEqual(preserved.daily.mood, "8"); assert.strictEqual(preserved.daily.hunger, "3"); assert.strictEqual(preserved.daily.notes, "keep daily"); assert.strictEqual(preserved.daily.weight, "210");
+const strengthSnapshot = { modules: { habits: false, recurringAdherence: false, dailyNotes: false, activeCalories: false, sessionNotes: true }, dailyMetrics: { weight: true, sleep: true, protein: false, water: false, bowelMovement: false, energy: true, hunger: false } };
+const fullSnapshot = { modules: { habits: true, recurringAdherence: true, dailyNotes: true, activeCalories: true, sessionNotes: true }, dailyMetrics: { weight: true, sleep: true, protein: true, water: true, bowelMovement: true, energy: true, hunger: true } };
+const allOffSnapshot = { modules: { habits: false, recurringAdherence: false, dailyNotes: false, activeCalories: false, sessionNotes: false }, dailyMetrics: { weight: false, sleep: false, protein: false, water: false, bowelMovement: false, energy: false, hunger: false } };
+let preserved = runDailySave({ date: "2026-09-10", weight: "210", mood: "8", hunger: "3", notes: "keep daily", habits: { "habit-old": { completed: true } }, zep: "taken" }, { gym: "home", dayIdx: "0", exercises: { lift: { sets: [{ wt: "35", reps: "8", rir: "2" }], note: "keep lift note" } }, activeCalories: 300 }, { values: { weightIn: "211", moodSlider: "9" }, snapshotForDate: date => date === "2026-09-10" ? strengthSnapshot : fullSnapshot, workoutCollected: { gym: "home", dayIdx: "0", dayName: "Day", exercises: { lift: { sets: [], note: "edited lift note" } } } });
+assert.strictEqual(preserved.daily.mood, "9"); assert.strictEqual(preserved.daily.hunger, "3"); assert.strictEqual(preserved.daily.notes, "keep daily"); assert.strictEqual(preserved.daily.weight, "211");
 assert.deepStrictEqual(preserved.daily.habits, { "habit-old": { completed: true } });
-assert.strictEqual(preserved.workout.activeCalories, 300); assert.strictEqual(preserved.workout.exercises.lift.note, "keep lift note");
-const fresh = runDailySave(null, null);
-assert(!Object.prototype.hasOwnProperty.call(fresh.daily, "mood") && !Object.prototype.hasOwnProperty.call(fresh.daily, "hunger"), "disabled neutral 5 values were synthesized");
+assert.strictEqual(preserved.workout.activeCalories, 300); assert.strictEqual(preserved.workout.exercises.lift.note, "edited lift note");
+assert(preserved.resolvedDates.every(date => date === "2026-09-10") && preserved.workoutDates.every(date => date === "2026-09-10"), "historical Daily save consulted wall-clock preferences");
+const fresh = runDailySave(null, null, { snapshotForDate: date => date === "2026-09-10" ? strengthSnapshot : fullSnapshot });
+assert(!Object.prototype.hasOwnProperty.call(fresh.daily, "hunger"), "historical Strength save synthesized disabled Hunger");
 assert(!Object.prototype.hasOwnProperty.call(fresh.daily, "notes") && !Object.prototype.hasOwnProperty.call(fresh.daily, "habits"));
+const freshAllOff = runDailySave(null, null, { snapshotForDate: () => allOffSnapshot });
+assert(!Object.prototype.hasOwnProperty.call(freshAllOff.daily, "mood") && !Object.prototype.hasOwnProperty.call(freshAllOff.daily, "hunger"), "disabled neutral 5 values were synthesized");
+const inverseDaily = runDailySave(null, null, { values: { moodSlider: "7", hungerSlider: "4", dayNotes: "historical Full edit" }, snapshotForDate: date => date === "2026-09-10" ? fullSnapshot : strengthSnapshot, workoutCollected: { gym: "home", dayIdx: "0", dayName: "Day", exercises: { lift: { sets: [], note: "editable Full note" } }, activeCalories: 444 } });
+assert.strictEqual(inverseDaily.daily.mood, "7"); assert.strictEqual(inverseDaily.daily.hunger, "4"); assert.strictEqual(inverseDaily.daily.notes, "historical Full edit");
+assert.strictEqual(inverseDaily.workout.activeCalories, 444); assert.strictEqual(inverseDaily.workout.exercises.lift.note, "editable Full note");
+assert(inverseDaily.resolvedDates.every(date => date === "2026-09-10") && inverseDaily.workoutDates.every(date => date === "2026-09-10"), "historical Full edit used today's Strength snapshot");
+
+// The real workout collector and preservation helper receive one explicit
+// record date for note/calorie inclusion in both directions.
+const workoutFields = { woDaySelect: { value: "0" }, mfWorkoutActiveCalories: { value: "555", setCustomValidity() {} } };
+const workoutContext = { document: { getElementById(id) { return workoutFields[id] || null; }, querySelector(selector) { if(selector.includes('data-field="wt"'))return { value: "40" };if(selector.includes('data-field="reps"'))return { value: "8" };if(selector.includes('data-field="rir"'))return { value: "2" };if(selector.includes('data-field="exnote"'))return { value: "dated note" };return null; } }, logGym: "home", tDate: new Date(2026,8,15,12), getResolvedDays() { return [{ _dayIdx: 0, name: "Day", exercises: [{ id: "lift", sets: "1" }] }]; }, getF(id,key,fallback) { return fallback; }, p950LocalDateKey() { return "2026-09-15"; }, p950IsTrackingEnabled(path,date) { return date === "2026-09-10"; } };
+vm.createContext(workoutContext); vm.runInContext(`${extractBalanced(workoutSource,"function mfWorkoutReadActiveCalories")}\n${extractBalanced(workoutSource,"function collectWoData")}\n${preserveWorkoutFn}`, workoutContext);
+const workoutOff = workoutContext.collectWoData("2026-09-15");
+assert(!Object.prototype.hasOwnProperty.call(workoutOff,"activeCalories") && !Object.prototype.hasOwnProperty.call(workoutOff.exercises.lift,"note"));
+const workoutOffPreserved = workoutContext.p85PreserveDormantWorkoutFields(workoutOff,{activeCalories:333,exercises:{lift:{sets:[],note:"stored note"}}},"2026-09-15");
+assert.strictEqual(workoutOffPreserved.activeCalories,333); assert.strictEqual(workoutOffPreserved.exercises.lift.note,"stored note");
+const workoutOn = workoutContext.collectWoData("2026-09-10");
+assert.strictEqual(workoutOn.activeCalories,555); assert.strictEqual(workoutOn.exercises.lift.note,"dated note");
 
 // Basketball edits use the same preservation rule for session/drill notes and
 // structured active calories while allowing new disabled records to stay sparse.
-const basketballPreserveContext = { mfBasketballClone: value => JSON.parse(JSON.stringify(value)), p950IsTrackingEnabled: () => false };
+const basketballPreferenceDates = [];
+const basketballPreserveContext = { mfBasketballClone: value => JSON.parse(JSON.stringify(value)), mfBasketballDateKey: value => typeof value === "string" ? value : "2026-09-15", p950IsTrackingEnabled(path,date) { basketballPreferenceDates.push(date); return date === "2026-09-10"; } };
 vm.createContext(basketballPreserveContext); vm.runInContext(extractBalanced(basketballSource, "function mfBasketballPreserveDormantFields"), basketballPreserveContext);
-const oldBasketball = { activeCalories: 425, notes: "keep session", drills: [{ drillId: "d1", notes: "keep drill" }] };
-const keptBasketball = basketballPreserveContext.mfBasketballPreserveDormantFields({ drills: [{ drillId: "d1" }] }, oldBasketball);
+const oldBasketball = { date: "2026-09-15", activeCalories: 425, notes: "keep session", drills: [{ drillId: "d1", notes: "keep drill" }] };
+const keptBasketball = basketballPreserveContext.mfBasketballPreserveDormantFields({ date: "2026-09-15", activeCalories: 999, notes: "hidden edit", drills: [{ drillId: "d1", notes: "hidden drill edit" }] }, oldBasketball, "2026-09-15");
 assert.strictEqual(keptBasketball.activeCalories, 425); assert.strictEqual(keptBasketball.notes, "keep session"); assert.strictEqual(keptBasketball.drills[0].notes, "keep drill");
-assert.deepStrictEqual(basketballPreserveContext.mfBasketballPreserveDormantFields({ drills: [] }, null), { drills: [] });
+const sparseBasketball = basketballPreserveContext.mfBasketballPreserveDormantFields({ date: "2026-09-15", activeCalories: 500, notes: "omit", drills: [{ drillId: "d1", notes: "omit drill" }] }, null, "2026-09-15");
+assert(!Object.prototype.hasOwnProperty.call(sparseBasketball,"activeCalories") && !Object.prototype.hasOwnProperty.call(sparseBasketball,"notes") && !Object.prototype.hasOwnProperty.call(sparseBasketball.drills[0],"notes"));
+const editableBasketball = basketballPreserveContext.mfBasketballPreserveDormantFields({ date: "2026-09-10", activeCalories: 500, notes: "updated session", drills: [{ drillId: "d1", notes: "updated drill" }] }, oldBasketball, "2026-09-10");
+assert.strictEqual(editableBasketball.activeCalories,500); assert.strictEqual(editableBasketball.notes,"updated session"); assert.strictEqual(editableBasketball.drills[0].notes,"updated drill");
+assert(basketballPreferenceDates.includes("2026-09-15") && basketballPreferenceDates.includes("2026-09-10"), "Basketball preservation ignored the session date");
 
 // Habit denominators exclude disabled dates and conservatively exclude a full
 // weekly-count target whenever any day in that week is preference-off.
@@ -298,5 +352,8 @@ const canonicalCoreHash = crypto.createHash("sha256").update(coreSyncSource.repl
 assert.strictEqual(canonicalCoreHash, "14245321c8f47de5c152d011a08877ef4821e353c15bc3ed72c0490aa767c598");
 assert.strictEqual((html.match(/<script\s+src="[^"]+"\s+defer><\/script>/g) || []).length, 22);
 assert(!/trackingLevel|evidenceKind|summary records|Simple Fitness Log|Minimal lifting/i.test(profileSource+workoutSource));
+assert(dailySource.includes("collectWoData(recordDate)") && dailySource.includes("p950ApplyTrackingPreferencesToUi(p950LocalDateKey(tDate))"), "Daily draft/form gating is not selected-date effective");
+assert(workoutSource.includes('p950IsTrackingEnabled("modules.sessionNotes",trackingDate)') && workoutSource.includes('p950IsTrackingEnabled("modules.activeCalories",trackingDate)') && workoutSource.includes("p950GetTrackingSnapshotForDate(recordDate)"), "Workout collection/save is not record-date effective");
+assert(basketballSource.includes("mfBasketballPreserveDormantFields(input,existing,recordDate)") && basketballSource.includes("mfBasketballApplyRecordTrackingToForm(session.date,true)"), "Basketball edit/preservation is not session-date effective");
 
 console.log("MarcusFit 10.11.0 tracking preferences: PASS");

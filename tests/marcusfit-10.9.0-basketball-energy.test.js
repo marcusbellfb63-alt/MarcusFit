@@ -205,7 +205,7 @@ assert(html.includes('id="mfWorkoutActiveCalories" type="number" min="0" max="50
 assert(html.includes('id="mfBasketballStructuredActiveCalories" type="number" min="0" max="5000" step="1" inputmode="numeric"'));
 assert(workoutSource.includes("workout.activeCalories=energy.value"));
 assert(workoutSource.includes("/^\\d+$/.test(raw)"));
-assert(workoutSource.includes('localStorage.setItem(dKey(tDate)+"-wo",JSON.stringify(p85PreserveDormantWorkoutFields(woData,workoutBefore)))'), "lifting save no longer replaces the same date key with preservation-aware data");
+assert(workoutSource.includes('localStorage.setItem(dKey(tDate)+"-wo",JSON.stringify(p85PreserveDormantWorkoutFields(woData,workoutBefore,recordDate)))'), "lifting save no longer replaces the same date key with date-effective preservation-aware data");
 assert(historySource.includes("active kcal est."));
 assert(css.includes(".mf-basketball-do-now") && css.includes(".mf-basketball-howto summary{min-height:44px"));
 assert(basketballSource.includes('summary.setAttribute("aria-controls",body.id)') && basketballSource.includes('summary.setAttribute("aria-expanded","false")'));

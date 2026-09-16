@@ -736,12 +736,12 @@ function mfBasketballWriteStore(sessions){
   return store;
 }
 
-function mfBasketballPreserveDormantFields(input,existing){
-  const next=mfBasketballClone(input||{});if(!existing)return next;
-  if(typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.activeCalories")&&Object.prototype.hasOwnProperty.call(existing,"activeCalories"))next.activeCalories=existing.activeCalories;
-  if(typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.sessionNotes")){
-    if(Object.prototype.hasOwnProperty.call(existing,"notes"))next.notes=existing.notes;
-    const oldDrills={};(existing.drills||[]).forEach(function(drill){oldDrills[drill.drillId]=drill;});(next.drills||[]).forEach(function(drill){const old=oldDrills[drill.drillId];if(old&&Object.prototype.hasOwnProperty.call(old,"notes"))drill.notes=old.notes;else delete drill.notes;});
+function mfBasketballPreserveDormantFields(input,existing,recordDate){
+  const next=mfBasketballClone(input||{}),trackingDate=mfBasketballDateKey(recordDate||next.date||(existing&&existing.date)||new Date()),caloriesEnabled=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.activeCalories",trackingDate),notesEnabled=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.sessionNotes",trackingDate);
+  if(!caloriesEnabled){if(existing&&Object.prototype.hasOwnProperty.call(existing,"activeCalories"))next.activeCalories=existing.activeCalories;else delete next.activeCalories;}
+  if(!notesEnabled){
+    if(existing&&Object.prototype.hasOwnProperty.call(existing,"notes"))next.notes=existing.notes;else delete next.notes;
+    const oldDrills={};(existing&&existing.drills||[]).forEach(function(drill){oldDrills[drill.drillId]=drill;});(next.drills||[]).forEach(function(drill){const old=oldDrills[drill.drillId];if(old&&Object.prototype.hasOwnProperty.call(old,"notes"))drill.notes=old.notes;else delete drill.notes;});
   }
   return next;
 }
@@ -753,7 +753,8 @@ function mfBasketballSaveSession(input,options){
   const existingId=String(options.existingId||"");
   const existing=existingId?store.sessions.find(function(session){return session.id===existingId;}):null;
   if(existingId&&!existing)return {ok:false,errors:["The basketball session being edited no longer exists."],session:null};
-  input=mfBasketballPreserveDormantFields(input,existing);
+  const recordDate=mfBasketballDateKey(input&&input.date||(existing&&existing.date)||new Date());
+  input=mfBasketballPreserveDormantFields(input,existing,recordDate);
   const now=String(options.now||new Date().toISOString());
   const normalized=mfBasketballNormalizeSession(input,{
     id:existing?existing.id:(options.id||""),
@@ -932,6 +933,15 @@ function mfBasketballFormatDate(date){return new Date(date+"T12:00:00").toLocale
 function mfBasketballFormValue(id){const el=document.getElementById(id);return el?el.value:"";}
 function mfBasketballSetFormValue(id,value){const el=document.getElementById(id);if(el)el.value=value==null?"":String(value);}
 function mfBasketballSelectedAppDate(){return typeof tDate!=="undefined"?mfBasketballDateKey(tDate):mfBasketballDateKey(new Date());}
+function mfBasketballSetTrackingHidden(element,hidden){if(!element)return;element.classList.toggle("mf-tracking-hidden",!!hidden);element.setAttribute("aria-hidden",hidden?"true":"false");}
+function mfBasketballApplyRecordTrackingToForm(recordDate,revealExisting){
+  if(typeof p950GetTrackingSnapshotForDate!=="function")return null;
+  const snapshot=p950GetTrackingSnapshotForDate(mfBasketballDateKey(recordDate||mfBasketballSelectedAppDate())),section=document.getElementById("p6sec-basketball");
+  if(revealExisting&&section)mfBasketballSetTrackingHidden(section,false);
+  if(section)section.querySelectorAll("[data-mf-collection-module]").forEach(function(element){const key=element.dataset.mfCollectionModule;if(key==="activeCalories"||key==="sessionNotes")mfBasketballSetTrackingHidden(element,!snapshot.modules[key]);});
+  document.querySelectorAll(".mf-basketball-drill-notes").forEach(function(element){mfBasketballSetTrackingHidden(element,!snapshot.modules.sessionNotes);});
+  return snapshot;
+}
 
 function mfBasketballElement(tag,className,textValue){
   const element=document.createElement(tag);if(className)element.className=className;if(textValue!=null)element.textContent=String(textValue);return element;
@@ -1159,7 +1169,7 @@ function mfBasketballOpenStructuredLogger(program,planned,existing){
   mfBasketballSetFormValue("mfBasketballStructuredDate",existing&&existing.date||mfBasketballSelectedAppDate());mfBasketballSetFormValue("mfBasketballStructuredMinutes",existing&&existing.minutes||"");mfBasketballSetFormValue("mfBasketballStructuredActiveCalories",existing&&existing.activeCalories!=null?existing.activeCalories:"");mfBasketballSetFormValue("mfBasketballStructuredNotes",existing&&existing.notes||"");
   drillsRoot.replaceChildren();const existingById={};((existing&&existing.drills)||[]).forEach(function(drill){existingById[drill.drillId]=drill;});planned.drills.forEach(function(drill,index){drillsRoot.appendChild(mfBasketballRenderDrillCard(drill,index,existingById[drill.id]));});
   const advance=document.getElementById("mfBasketballFinishAdvance"),repeat=document.getElementById("mfBasketballFinishRepeat");if(advance)advance.hidden=!!existing;if(repeat)repeat.textContent=existing?"SAVE SESSION CHANGES":"FINISH & REPEAT SESSION";
-  root.hidden=false;if(document.body&&document.body.classList)document.body.classList.add("mf-basketball-structured-open");mfBasketballShowStructuredMessage("");mfBasketballUpdateStructuredSummary();mfBasketballShowStructuredDrill(0);if(typeof p950ApplyTrackingPreferencesToUi==="function")p950ApplyTrackingPreferencesToUi();
+  root.hidden=false;if(document.body&&document.body.classList)document.body.classList.add("mf-basketball-structured-open");mfBasketballShowStructuredMessage("");mfBasketballUpdateStructuredSummary();mfBasketballApplyRecordTrackingToForm(mfBasketballFormValue("mfBasketballStructuredDate"),!!existing);mfBasketballShowStructuredDrill(0);
 }
 
 function mfBasketballStartPlannedSession(){
@@ -1239,6 +1249,7 @@ function mfBasketballResetForm(preserveMessage){
   mfBasketballEditingId=null;
   ["mfBasketballType","mfBasketballMinutes","mfBasketballDribbling","mfBasketballShootingMade","mfBasketballShootingAttempted","mfBasketballFreeThrowsMade","mfBasketballFreeThrowsAttempted","mfBasketballNotes"].forEach(function(id){mfBasketballSetFormValue(id,"");});
   mfBasketballSetFormValue("mfBasketballDate",mfBasketballSelectedAppDate());
+  mfBasketballApplyRecordTrackingToForm(mfBasketballFormValue("mfBasketballDate"),false);
   const save=document.getElementById("mfBasketballSave"),cancel=document.getElementById("mfBasketballCancel");
   if(save)save.textContent="SAVE BASKETBALL SESSION";
   if(cancel)cancel.hidden=true;
@@ -1270,6 +1281,7 @@ function mfBasketballStartEdit(id){
   if(save)save.textContent="SAVE SESSION CHANGES";if(cancel)cancel.hidden=false;if(section)section.classList.add("open");
   mfBasketballShowMessage("Editing "+mfBasketballTypeLabel(session.type)+" from "+mfBasketballFormatDate(session.date)+".","ok");
   if(typeof showScreen==="function")showScreen("log");
+  mfBasketballApplyRecordTrackingToForm(session.date,true);
   if(section&&typeof section.scrollIntoView==="function")section.scrollIntoView({behavior:"smooth",block:"start"});
   const dateInput=document.getElementById("mfBasketballDate");if(dateInput&&typeof dateInput.focus==="function")dateInput.focus();
 }
@@ -1495,7 +1507,7 @@ if(typeof updateTrackerDate==="function"){
   const mfBasketballLegacyUpdateTrackerDate=updateTrackerDate;updateTrackerDate=function(){const result=mfBasketballLegacyUpdateTrackerDate();if(!mfBasketballEditingId)mfBasketballSetFormValue("mfBasketballDate",mfBasketballSelectedAppDate());mfBasketballUpdateBadge();return result;};
 }
 if(typeof showScreen==="function"){
-  const mfBasketballLegacyShowScreen=showScreen;showScreen=function(name){const result=mfBasketballLegacyShowScreen(name);if(name==="history")mfBasketballRenderHistory();if(name==="analytics")mfBasketballRenderStats();if(name==="log")mfBasketballUpdateBadge();if(typeof p950ApplyTrackingPreferencesToUi==="function")p950ApplyTrackingPreferencesToUi();return result;};
+  const mfBasketballLegacyShowScreen=showScreen;showScreen=function(name){const result=mfBasketballLegacyShowScreen(name);if(name==="history")mfBasketballRenderHistory();if(name==="analytics")mfBasketballRenderStats();if(name==="log")mfBasketballUpdateBadge();if(typeof p950ApplyTrackingPreferencesToUi==="function")p950ApplyTrackingPreferencesToUi(name==="log"&&typeof tDate!=="undefined"?p950LocalDateKey(tDate):undefined);return result;};
 }
 if(typeof genExport==="function"){
   const mfBasketballLegacyGenExport=genExport;genExport=function(){
@@ -1629,8 +1641,9 @@ if(typeof process!=="undefined"&&process&&process.versions&&process.versions.nod
 }
 
 function mfBasketballInit(){
-  const save=document.getElementById("mfBasketballSave"),cancel=document.getElementById("mfBasketballCancel"),deleteConfirm=document.getElementById("mfBasketballDeleteConfirm"),deleteCancel=document.getElementById("mfBasketballDeleteCancel"),dialog=document.getElementById("mfBasketballDeleteDialog"),programSelect=document.getElementById("mfBasketballProgramSelectButton"),viewProgram=document.getElementById("mfBasketballViewProgram"),reviewHistory=document.getElementById("mfBasketballReviewHistory"),restart=document.getElementById("mfBasketballRestartProgram"),programConfirm=document.getElementById("mfBasketballProgramDialogConfirm"),programCancel=document.getElementById("mfBasketballProgramDialogCancel"),programDialog=document.getElementById("mfBasketballProgramDialog"),closeStructured=document.getElementById("mfBasketballCloseStructured"),finishAdvance=document.getElementById("mfBasketballFinishAdvance"),finishRepeat=document.getElementById("mfBasketballFinishRepeat");
+  const save=document.getElementById("mfBasketballSave"),cancel=document.getElementById("mfBasketballCancel"),dateInput=document.getElementById("mfBasketballDate"),structuredDateInput=document.getElementById("mfBasketballStructuredDate"),deleteConfirm=document.getElementById("mfBasketballDeleteConfirm"),deleteCancel=document.getElementById("mfBasketballDeleteCancel"),dialog=document.getElementById("mfBasketballDeleteDialog"),programSelect=document.getElementById("mfBasketballProgramSelectButton"),viewProgram=document.getElementById("mfBasketballViewProgram"),reviewHistory=document.getElementById("mfBasketballReviewHistory"),restart=document.getElementById("mfBasketballRestartProgram"),programConfirm=document.getElementById("mfBasketballProgramDialogConfirm"),programCancel=document.getElementById("mfBasketballProgramDialogCancel"),programDialog=document.getElementById("mfBasketballProgramDialog"),closeStructured=document.getElementById("mfBasketballCloseStructured"),finishAdvance=document.getElementById("mfBasketballFinishAdvance"),finishRepeat=document.getElementById("mfBasketballFinishRepeat");
   if(save)save.addEventListener("click",mfBasketballSaveFromUI);if(cancel)cancel.addEventListener("click",function(){mfBasketballResetForm();});if(deleteConfirm)deleteConfirm.addEventListener("click",mfBasketballConfirmDelete);if(deleteCancel)deleteCancel.addEventListener("click",mfBasketballCloseDelete);
+  if(dateInput)dateInput.addEventListener("change",function(){mfBasketballApplyRecordTrackingToForm(dateInput.value,!!mfBasketballEditingId);});if(structuredDateInput)structuredDateInput.addEventListener("change",function(){mfBasketballApplyRecordTrackingToForm(structuredDateInput.value,!!(mfBasketballStructuredContext&&mfBasketballStructuredContext.existingId));});
   if(programSelect)programSelect.addEventListener("click",mfBasketballChooseProgramFromUI);if(viewProgram)viewProgram.addEventListener("click",mfBasketballToggleProgramView);if(reviewHistory)reviewHistory.addEventListener("click",mfBasketballReviewHistory);if(restart)restart.addEventListener("click",function(){mfBasketballOpenProgramDialog({kind:"restart"});});if(programConfirm)programConfirm.addEventListener("click",mfBasketballConfirmProgramAction);if(programCancel)programCancel.addEventListener("click",mfBasketballCloseProgramDialog);if(closeStructured)closeStructured.addEventListener("click",mfBasketballCloseStructured);if(finishAdvance)finishAdvance.addEventListener("click",function(){mfBasketballFinishFromUI("advance");});if(finishRepeat)finishRepeat.addEventListener("click",function(){mfBasketballFinishFromUI("repeat");});
   if(dialog)dialog.addEventListener("click",function(event){if(event.target===dialog)mfBasketballCloseDelete();});
   if(programDialog)programDialog.addEventListener("click",function(event){if(event.target===programDialog)mfBasketballCloseProgramDialog();});

@@ -15,7 +15,7 @@ function showDraftToast(){
 // Collect ALL current form state into a draft object
 function collectDraftState(){
   const dayIdx=document.getElementById("woDaySelect").value;
-  const tracking=typeof p950GetTrackingSnapshotForDate==="function"?p950GetTrackingSnapshotForDate(p950LocalDateKey(new Date())):null,prior=typeof getDraft==="function"?(getDraft()||{}):{},collectedWorkout=collectWoData(),woData=typeof p85PreserveDormantWorkoutFields==="function"?p85PreserveDormantWorkoutFields(collectedWorkout,prior.woData||{}):collectedWorkout;
+  const recordDate=typeof p950LocalDateKey==="function"?p950LocalDateKey(tDate):tDate,tracking=typeof p950GetTrackingSnapshotForDate==="function"?p950GetTrackingSnapshotForDate(recordDate):null,prior=typeof getDraft==="function"?(getDraft()||{}):{},collectedWorkout=collectWoData(recordDate),woData=typeof p85PreserveDormantWorkoutFields==="function"?p85PreserveDormantWorkoutFields(collectedWorkout,prior.woData||{},recordDate):collectedWorkout;
   const draft={
     date: tDate.toISOString().slice(0,10),
     workout: toggleStates.wo,
@@ -108,7 +108,7 @@ function applyStateToForm(d){
     if(energy) energy.value="";
     if(logEl) logEl.innerHTML='<div class="no-workout-msg">Select the day you trained above to log your sets.</div>';
   }
-  if(typeof p950ApplyTrackingPreferencesToUi==="function")p950ApplyTrackingPreferencesToUi();
+  if(typeof p950ApplyTrackingPreferencesToUi==="function")p950ApplyTrackingPreferencesToUi(p950LocalDateKey(tDate));
 }
 
 // After renderWoExercises, re-apply saved set values from a woData object
