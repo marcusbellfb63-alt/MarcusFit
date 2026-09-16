@@ -15,25 +15,16 @@ function showDraftToast(){
 // Collect ALL current form state into a draft object
 function collectDraftState(){
   const dayIdx=document.getElementById("woDaySelect").value;
-  const woData=collectWoData();
-  return {
+  const tracking=typeof p950GetTrackingSnapshotForDate==="function"?p950GetTrackingSnapshotForDate(p950LocalDateKey(new Date())):null,prior=typeof getDraft==="function"?(getDraft()||{}):{},collectedWorkout=collectWoData(),woData=typeof p85PreserveDormantWorkoutFields==="function"?p85PreserveDormantWorkoutFields(collectedWorkout,prior.woData||{}):collectedWorkout;
+  const draft={
     date: tDate.toISOString().slice(0,10),
-    weight: document.getElementById("weightIn").value,
-    sleep: document.getElementById("sleepIn").value,
-    protein: document.getElementById("proteinIn").value,
-    water: document.getElementById("waterIn").value,
-    bm: toggleStates.bm,
-    bmNotes: document.getElementById("bmNotes").value,
-    mood: document.getElementById("moodSlider").value,
-    hunger: document.getElementById("hungerSlider").value,
     workout: toggleStates.wo,
-    zep: toggleStates.zep,
     logGym,
     woDayIdx: dayIdx,
-    notes: document.getElementById("dayNotes").value,
-    habits: JSON.parse(JSON.stringify(habitState)),
     woData: woData || null
   };
+  [["weight",!tracking||tracking.dailyMetrics.weight,document.getElementById("weightIn").value],["sleep",!tracking||tracking.dailyMetrics.sleep,document.getElementById("sleepIn").value],["protein",!tracking||tracking.dailyMetrics.protein,document.getElementById("proteinIn").value],["water",!tracking||tracking.dailyMetrics.water,document.getElementById("waterIn").value],["bm",!tracking||tracking.dailyMetrics.bowelMovement,toggleStates.bm],["bmNotes",!tracking||tracking.dailyMetrics.bowelMovement,document.getElementById("bmNotes").value],["mood",!tracking||tracking.dailyMetrics.energy,document.getElementById("moodSlider").value],["hunger",!tracking||tracking.dailyMetrics.hunger,document.getElementById("hungerSlider").value],["zep",!tracking||tracking.modules.recurringAdherence,toggleStates.zep],["notes",!tracking||tracking.modules.dailyNotes,document.getElementById("dayNotes").value],["habits",!tracking||tracking.modules.habits,JSON.parse(JSON.stringify(habitState))]].forEach(function(field){if(field[1])draft[field[0]]=field[2];else if(Object.prototype.hasOwnProperty.call(prior,field[0]))draft[field[0]]=prior[field[0]];});
+  return draft;
 }
 
 // Auto-save draft (only for today's date — don't draft past/future days)
@@ -117,6 +108,7 @@ function applyStateToForm(d){
     if(energy) energy.value="";
     if(logEl) logEl.innerHTML='<div class="no-workout-msg">Select the day you trained above to log your sets.</div>';
   }
+  if(typeof p950ApplyTrackingPreferencesToUi==="function")p950ApplyTrackingPreferencesToUi();
 }
 
 // After renderWoExercises, re-apply saved set values from a woData object
