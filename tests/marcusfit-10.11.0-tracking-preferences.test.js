@@ -82,6 +82,13 @@ assert.strictEqual(env.storage.writes, 0, "virtual tracking default wrote storag
 // Exact named bundles and Custom retention.
 const full = env.context.p950BuildTrackingPreset("full_coaching");
 const strength = env.context.p950BuildTrackingPreset("strength_tracking");
+assert.strictEqual(full.modules.coachingInsights, true, "Full Coaching must enable coaching insights");
+assert.strictEqual(env.context.p950DetectTrackingPreset(full), "full_coaching", "exact Full bundle was not detected as Full Coaching");
+const fullWithoutCoaching = JSON.parse(JSON.stringify(full));
+fullWithoutCoaching.modules.coachingInsights = false;
+assert.strictEqual(env.context.p950DetectTrackingPreset(fullWithoutCoaching), "custom", "Full minus Coaching Insights was not detected as Custom");
+fullWithoutCoaching.modules.coachingInsights = true;
+assert.strictEqual(env.context.p950DetectTrackingPreset(fullWithoutCoaching), "full_coaching", "restored exact Full bundle did not return to Full Coaching");
 assert.deepStrictEqual(JSON.parse(JSON.stringify(strength.modules)), {
   habits: false, basketball: false, recurringAdherence: false, activeCalories: false,
   dailyNotes: false, sessionNotes: true, coachingInsights: true
@@ -192,6 +199,8 @@ assert.strictEqual((html.match(/class="mf-sync-nav-btn/g) || []).length, 4, "a f
 assert(html.includes('data-mf-settings-section="tracking"') && html.includes("Full Coaching") && html.includes("Strength Tracking") && html.includes("Custom"));
 assert(html.includes('id="screen-program"') && html.includes('id="screen-history"') && html.includes('id="screen-analytics"'));
 assert(css.includes(".mf-tracking-hidden{display:none!important;}") && css.includes("@media(max-width:420px)"));
+assert(css.includes(".mf-tracking-group{min-width:0;margin:18px 0 0;padding:0;border:0;}"), "Tracking preference groups still render an outer fieldset border");
+assert(css.includes("grid-template-columns:minmax(0,1fr)") && css.includes("min-inline-size:0;max-inline-size:100%"), "Basketball form controls lack mobile intrinsic-width containment");
 
 // Collection UI is resolved from the selected record date. Navigating between
 // dates must not reuse the wall-clock/current snapshot in either direction.
