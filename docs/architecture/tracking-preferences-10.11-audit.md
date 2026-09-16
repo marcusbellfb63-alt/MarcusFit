@@ -89,6 +89,23 @@ their accepted top-level allowlist. New Habit or Basketball proposals are
 rejected before writes while that module is disabled. Existing pending
 proposals remain stored and reviewable in Tools.
 
+Habit proposal review stays in Tools -> Personalize regardless of Habit
+collection visibility. Basketball proposal status is rendered both on the
+Daily Basketball surface and in a dedicated Tools -> Personalize section, so
+the Daily collection gate cannot strand an existing pending or undoable
+proposal.
+
+## Backup and reset boundaries
+
+Backup/restore continues to round-trip the raw `mf-user-profile` value under
+schema 1. Preview adds the current preset and timeline-entry count, but restore
+does not fabricate a preference entry for old profiles.
+
+Reset Profile preserves `preferences.tracking` verbatim. Reset Tracking
+Preferences is a separate two-step action that saves Full Coaching for the
+current local date, replacing an existing same-day snapshot or appending a new
+date without removing earlier timeline entries or historical records.
+
 ## Protected behavior
 
 The implementation must preserve base `P`, all 63 exercise IDs, exact workout
@@ -96,4 +113,3 @@ and Basketball history identity, Basketball snapshots and progression, Full
 lifting progression, proposal review/Undo behavior, the 22-script order, core
 Sync ownership, schema-1 backup replacement semantics, accepted Releases, and
 the 10.10 visual system.
-

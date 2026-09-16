@@ -1,7 +1,7 @@
 # MarcusFit runtime architecture
 
 MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
-classic scripts. The 10.10.0 implementation candidate keeps those boundaries
+classic scripts. The 10.11.0 implementation candidate keeps those boundaries
 and composes export sections through the existing ordered classic-script wrappers. GitHub Pages still loads
 static `defer` scripts, and there is no build step or runtime dependency.
 
@@ -33,7 +33,7 @@ assets/js/
 `-- features/22-basketball.js
 ```
 
-The 10.10.0 candidate retains 22 runtime files in the accepted numeric order.
+The 10.11.0 candidate retains 22 runtime files in the accepted numeric order.
 Reproducible physical-line and largest-file counts come from the architecture
 inventory. Numeric prefixes remain globally ordered and match `index.html`.
 
@@ -84,6 +84,15 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - Protected program data and core Sync remain content-identical. Their legacy icon strings are not displayed as platform glyphs and no stored user content is rewritten.
 - See `visual-system-10.10-audit.md` for the color/geometry/emoji/selector inventory and `../../tests/marcusfit-10.10.0-manual-qa.md` for the device matrix.
 
+## 10.11 Tracking Preferences boundary
+
+- `state/04-runtime-state-profile-preferences.js` owns normalized Tracking Preferences inside the existing `mf-user-profile` record, exact preset bundles, complete local-date timeline snapshots, virtual Full fallback, UI binding, and collection gating.
+- `features/08-program-daily.js` and `10-workout-logging.js` preserve dormant values during drafts/saves and omit new disabled fields; lifting evidence, workout identity, and progression stay unchanged.
+- `features/19-recurring-adherence.js` and `20-habits.js` exclude preference-off due dates/opportunities from adherence denominators without mutating schedules, definitions, or history.
+- `sync/11-ai-export.js` and later domain wrappers report compact collection intent and neutral absence semantics. `sync/12-ai-sync.js` remains byte-identical; late extension preflight rejects preference mutation and disabled-domain proposals before writes.
+- Backup/restore continues to carry the raw `mf-user-profile` string under schema 1. Profile reset preserves tracking, while the dedicated Tracking reset records Full Coaching for today and retains earlier timeline entries.
+- See `tracking-preferences-10.11-audit.md` for the full contract and `../../tests/marcusfit-10.11.0-manual-qa.md` for the required browser/device matrix.
+
 ## Guide
 
 - `runtime-system-map.md` records ownership and direct dependencies.
@@ -96,6 +105,7 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - `lifting-10.8-audit.md` records lifting ownership, decision evidence, and conservative fallbacks.
 - `basketball-session-energy-10.9-audit.md` records Basketball prescription, snapshot, active-calorie, analytics, and Sync boundaries.
 - `visual-system-10.10-audit.md` records the visual-token, geometry, icon, emoji, and selector-risk audit.
+- `tracking-preferences-10.11-audit.md` records preference authority, timeline, preservation, adherence, export/Sync, reset, and backup contracts.
 - `../../tests/marcusfit-10.1.2-modularization-equivalence.md` records evidence.
 
 Run `node tools/architecture/inventory-runtime.js` with the bundled Node

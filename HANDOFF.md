@@ -2,32 +2,41 @@
 
 ## Current implementation candidate
 
-MarcusFit 10.10.0 Visual System Modernization starts from the exact accepted
-10.9.0 production merge `d4a8f4d85ecb66e6c30a192ab4c3ae5bc8399dd3`.
-The accepted 10.9 implementation head is
-`3d8c04d52c9731845d4f3cd865b550d7e4287f44`.
+MarcusFit 10.11.0 Tracking Preferences starts from the exact accepted 10.10.0
+production merge `6300c34f52721c8218fce918303ac2a0b75304e6`. The accepted
+10.10 implementation head is `86607d59f0810a4b4ecac4674552a131ace09408`.
 
-10.10.0 is the new implementation candidate and is not accepted. It introduces
-a dark-charcoal/electric-lime design system, a centralized local `currentColor`
-SVG sprite, full-app component geometry/elevation cleanup, and removal of
-platform emoji from normal UI. The accepted stylesheet remains an unchanged
-compatibility prefix with a scoped 10.10 cascade appended after it.
+10.11.0 is the new implementation candidate and is not accepted. It adds
+profile-backed Full Coaching, Strength Tracking, and Custom collection
+preferences with complete local-date timeline snapshots. Old profiles resolve
+to virtual Full Coaching without a migration write. The phase introduces no
+new storage key, schema bump, lifting mode, service, dependency, or build step.
 
-The release intentionally changes no training, progression, Basketball, AI,
-storage, schema, migration, backup/restore, or workflow behavior. Protected
-program data and core Sync remain byte-identical; their legacy icon strings are
-neutralized only at the presentation boundary. See
-`docs/architecture/visual-system-10.10-audit.md` and
-`tests/marcusfit-10.10.0-manual-qa.md`.
+Disabled prompts stop new collection without deleting existing values. Same-day
+edits preserve dormant fields; new disabled fields stay absent. Habit and
+recurring-adherence denominators exclude preference-off dates, while History
+and Stats keep factual historical records visible. AI Export explains current
+and interval-specific collection intent; AI Sync rejects preference mutation
+and new proposals for disabled domains before any writes. See
+`docs/architecture/tracking-preferences-10.11-audit.md` and
+`tests/marcusfit-10.11.0-manual-qa.md`.
 
-## 10.10 candidate validation
+## 10.11 candidate validation
 
-- Static visual-system coverage inventories 315 accepted UI emoji/glyph tokens, validates 41 unique SVG symbols, resolves static/dynamic icon references, and constrains protected source exceptions.
-- Review corrections explicitly enforce a near-white `MARCUS` / lightning-lime `FIT` wordmark, preserve accepted 10.9 AI Export payload text, and adapt only exact core-Sync-owned status prefixes while leaving arbitrary imported/user pictographic text unchanged.
-- All existing regression suites and all 22 runtime syntax checks pass.
-- Protected program/core-Sync blobs, base `P`, 63 stable exercise IDs, accepted release hash, `Releases/` tree, and the accepted 22-script order remain unchanged.
-- Local Chromium QA passed at 320, 390, 480, and 1024 px across Compact, Standard, Large, and Extra Large text on all five primary screens. The four Tools sub-tabs also passed the narrow Extra Large check; no horizontal overflow, rendered UI emoji, unresolved/clipped icons, or console warnings/errors were found.
+- All 21 automated regression suites and all 22 runtime syntax checks pass; `git diff --check` is clean.
+- Local Chromium QA passed the required 320, 390, and 480 px matrix at Standard and Extra Large text, with 44 px minimum preference controls, no horizontal overflow, and no console warnings/errors.
+- Full Coaching, Strength Tracking, mixed Custom, dormant-field preservation, absent synthetic slider defaults, proposal accessibility, factual History/Stats, export interpretation, zero-write Sync preflights, backup preview, profile reset, and same-day Tracking reset behavior were exercised through localhost.
+- Protected base `P`, 63 stable exercise IDs, program-data/core-Sync blobs, canonical core-Sync hash, `Releases/` tree, and the accepted 22-script order remain unchanged.
+- Full lifting/progression remains the only lifting detail; Simple/Minimal lifting is not implemented.
 - Real-iPhone Safari/Home Screen QA remains pending and is required before acceptance.
+
+## Accepted 10.10 state
+
+MarcusFit 10.10.0 Visual System Modernization is accepted and merged at
+`6300c34f52721c8218fce918303ac2a0b75304e6`; its QA-approved implementation
+head is `86607d59f0810a4b4ecac4674552a131ace09408`. The charcoal/lime visual system,
+local `currentColor` SVG sprite, accepted component geometry, and text-size
+preferences are the protected presentation baseline for 10.11.
 
 ## Accepted 10.9 state
 
@@ -147,5 +156,6 @@ Protected values at acceptance:
 10.7.0 — Navigation, Sync IA, and analytics maturation — Accepted
 10.8.0 — Smarter Lifting — Accepted
 10.9.0 — Basketball Drill Coaching and Session Energy — Accepted
-10.10.0 — Visual System Modernization — Candidate
+10.10.0 — Visual System Modernization — Accepted
+10.11.0 — Tracking Preferences — Candidate
 ```
