@@ -1284,6 +1284,26 @@ body{background:var(--app-bg);}
 .p960-icon-option span{max-width:100%;overflow-wrap:anywhere;text-align:center;}
 .p960-icon-option[aria-pressed="true"]{background:var(--brand-surface);border-color:var(--brand-border);color:var(--brand);}
 
+.mf-tracking-hidden{display:none!important;}
+.mf-tracking-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0;}
+.mf-tracking-preset{min-height:44px;padding:8px;border:1px solid var(--border-subtle);border-radius:var(--radius-control);background:var(--surface-interactive);color:var(--text-secondary);font:700 12px 'DM Sans',sans-serif;cursor:pointer;}
+.mf-tracking-preset[aria-pressed="true"]{background:var(--brand-surface);border-color:var(--brand-border);color:var(--brand);}
+.mf-tracking-group{margin-top:14px;padding-top:14px;border-top:1px solid var(--border-subtle);}
+.mf-tracking-group-title{margin-bottom:8px;color:var(--text-primary);font-size:12px;font-weight:700;}
+.mf-tracking-choice{display:flex;align-items:flex-start;gap:10px;min-height:44px;padding:9px 10px;margin-bottom:6px;border:1px solid var(--border-subtle);border-radius:var(--radius-control);background:var(--surface-interactive);color:var(--text-secondary);font-size:12px;line-height:1.35;cursor:pointer;}
+.mf-tracking-choice input{flex:0 0 auto;margin-top:1px;accent-color:var(--brand);}
+.mf-tracking-choice span{min-width:0;}
+.mf-tracking-choice strong{display:block;color:var(--text-primary);font-size:12px;}
+.mf-tracking-choice small{display:block;margin-top:2px;color:var(--text-muted);font-size:10px;}
+.mf-tracking-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px;}
+.mf-tracking-grid .mf-tracking-choice{margin:0;}
+.mf-tracking-status{min-height:18px;margin-top:8px;color:var(--text-muted);font-size:11px;line-height:1.45;}
+
+@media(max-width:420px){
+  .mf-tracking-presets{grid-template-columns:1fr;}
+  .mf-tracking-grid{grid-template-columns:1fr;}
+}
+
 @media(max-width:350px){
   .tab-btn{font-size:8px;letter-spacing:.2px;}
   .p6-section-header{gap:5px;padding-inline:10px;}

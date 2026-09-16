@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MarcusFit 10.10.0</title>
+<title>MarcusFit 10.11.0</title>
 <link rel="stylesheet" href="assets/css/marcusfit.css">
 </head>
 <body>
@@ -182,46 +182,57 @@
       </div>
     </div>
     <div class="p6-section-body">
-      <div class="weight-hero"><div class="weight-hero-num" id="weightHero">&#8212;</div><div class="weight-hero-unit">lbs</div></div>
-      <input class="t-input wide" type="number" id="weightIn" placeholder="Weight in lbs" oninput="document.getElementById('weightHero').textContent=this.value||'&#8212;';p6UpdateMetricsBadge();" style="margin-bottom:14px;">
-      <div class="t-row"><span class="t-emoji"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-moon"></use></svg></span><span class="t-field">Sleep</span><input class="t-input" type="number" id="sleepIn" placeholder="hrs" step="0.5" oninput="p6UpdateMetricsBadge()"></div>
-      <div class="t-row"><span class="t-emoji"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-nutrition"></use></svg></span><span class="t-field">Protein</span><input class="t-input" type="number" id="proteinIn" placeholder="g" oninput="p6UpdateMetricsBadge()"></div>
-      <div class="t-row"><span class="t-emoji"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-water"></use></svg></span><span class="t-field">Water</span><input class="t-input" type="number" id="waterIn" placeholder="oz" oninput="p6UpdateMetricsBadge()"></div>
-      <div class="t-row"><span class="t-emoji"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-pill"></use></svg></span>
-        <div class="p9510-card" id="p9510ZepCard">
-          <div class="p9510-head"><div><div class="p9510-title">Zepbound</div><div class="p9510-status" id="p9510ZepStatus">Schedule not configured</div></div><button class="p9510-link" type="button" onclick="p9510OpenSetup()">Setup</button></div>
-          <div class="p9510-actions" id="p9510ZepActions"></div>
-          <div class="p9510-setup" id="p9510Setup">
-            <div class="p9510-grid">
-              <label class="p9510-field">Scheduled weekday<select id="p9510Weekday"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
-              <label class="p9510-field">Anchor / last known taken<input id="p9510Anchor" type="date"></label>
-              <label class="p9510-field">Grace days<input id="p9510Grace" type="number" min="0" max="7" value="1"></label>
-            </div>
-            <label class="p9510-check"><input id="p9510Enabled" type="checkbox" checked> Tracking enabled</label>
-            <label class="p9510-check"><input id="p9510Paused" type="checkbox"> Paused</label>
-            <div class="p9510-actions"><button class="primary" type="button" onclick="p9510SaveSetup()">Save</button><button type="button" onclick="p9510CancelSetup()">Cancel</button><button type="button" onclick="p9510DisableTracking()">Disable tracking</button></div>
-          </div>
-        </div>
-      </div>
-      <div class="t-row" style="margin-top:2px;"><span class="t-emoji"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-bolt"></use></svg></span><span class="t-field">Energy</span>
+      <div class="weight-hero" data-mf-collection-metric="weight"><div class="weight-hero-num" id="weightHero">&#8212;</div><div class="weight-hero-unit">lbs</div></div>
+      <input class="t-input wide" data-mf-collection-metric="weight" type="number" id="weightIn" placeholder="Weight in lbs" oninput="document.getElementById('weightHero').textContent=this.value||'&#8212;';p6UpdateMetricsBadge();" style="margin-bottom:14px;">
+      <div class="t-row" data-mf-collection-metric="sleep"><span class="t-emoji"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-moon"></use></svg></span><span class="t-field">Sleep</span><input class="t-input" type="number" id="sleepIn" placeholder="hrs" step="0.5" oninput="p6UpdateMetricsBadge()"></div>
+      <div class="t-row" data-mf-collection-metric="protein"><span class="t-emoji"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-nutrition"></use></svg></span><span class="t-field">Protein</span><input class="t-input" type="number" id="proteinIn" placeholder="g" oninput="p6UpdateMetricsBadge()"></div>
+      <div class="t-row" data-mf-collection-metric="water"><span class="t-emoji"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-water"></use></svg></span><span class="t-field">Water</span><input class="t-input" type="number" id="waterIn" placeholder="oz" oninput="p6UpdateMetricsBadge()"></div>
+      <div class="t-row" data-mf-collection-metric="energy" style="margin-top:2px;"><span class="t-emoji"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-bolt"></use></svg></span><span class="t-field">Energy</span>
         <div style="display:flex;align-items:center;gap:8px;flex:1;">
           <input type="range" class="mood-slider" id="moodSlider" min="1" max="10" value="5" oninput="document.getElementById('moodNum').textContent=this.value;p6UpdateMetricsBadge();" style="flex:1;">
           <div class="mood-num" id="moodNum">5</div>
         </div>
       </div>
-      <div class="t-row"><span class="t-emoji"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-nutrition"></use></svg></span><span class="t-field">Hunger</span>
+      <div class="t-row" data-mf-collection-metric="hunger"><span class="t-emoji"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-nutrition"></use></svg></span><span class="t-field">Hunger</span>
         <div style="display:flex;align-items:center;gap:8px;flex:1;">
           <input type="range" class="mood-slider" id="hungerSlider" min="1" max="10" value="5" oninput="document.getElementById('hungerNum').textContent=this.value;p6UpdateMetricsBadge();" style="flex:1;">
           <div class="mood-num" id="hungerNum">5</div>
         </div>
       </div>
-      <div style="margin-top:4px;">
+      <div data-mf-collection-metric="bowelMovement" style="margin-top:4px;">
         <div class="mf-icon-label" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px;"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-activity"></use></svg>Bowel Movement</div>
         <div class="toggle-row" style="margin-bottom:10px;">
           <button class="tog-btn" id="bm-yes" onclick="setTog('bm','yes')"><span class="mf-icon-label"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-check"></use></svg>Yes</span></button>
           <button class="tog-btn" id="bm-no" onclick="setTog('bm','no')"><span class="mf-icon-label"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-x"></use></svg>No</span></button>
         </div>
         <textarea class="notes-ta" id="bmNotes" rows="2" placeholder="BM notes (optional)..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 1B: Recurring adherence collection ── -->
+  <div class="p6-section" id="p6sec-recurring">
+    <div class="p6-section-header" data-mf-p6-toggle="recurring">
+      <div class="p6-section-header-left">
+        <span class="p6-section-icon"><svg class="mf-icon mf-icon-lg" aria-hidden="true"><use href="#mf-icon-pill"></use></svg></span>
+        <div><div class="p6-section-title">Medication Tracking</div><div class="p6-section-sub">Scheduled recurring adherence</div></div>
+      </div>
+      <span class="p6-chevron"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-chevron-down"></use></svg></span>
+    </div>
+    <div class="p6-section-body">
+      <div class="p9510-card" id="p9510ZepCard">
+        <div class="p9510-head"><div><div class="p9510-title">Zepbound</div><div class="p9510-status" id="p9510ZepStatus">Schedule not configured</div></div><button class="p9510-link" type="button" onclick="p9510OpenSetup()">Setup</button></div>
+        <div class="p9510-actions" id="p9510ZepActions"></div>
+        <div class="p9510-setup" id="p9510Setup">
+          <div class="p9510-grid">
+            <label class="p9510-field">Scheduled weekday<select id="p9510Weekday"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
+            <label class="p9510-field">Anchor / last known taken<input id="p9510Anchor" type="date"></label>
+            <label class="p9510-field">Grace days<input id="p9510Grace" type="number" min="0" max="7" value="1"></label>
+          </div>
+          <label class="p9510-check"><input id="p9510Enabled" type="checkbox" checked> Tracking enabled</label>
+          <label class="p9510-check"><input id="p9510Paused" type="checkbox"> Paused</label>
+          <div class="p9510-actions"><button class="primary" type="button" onclick="p9510SaveSetup()">Save</button><button type="button" onclick="p9510CancelSetup()">Cancel</button><button type="button" onclick="p9510DisableTracking()">Disable tracking</button></div>
+        </div>
       </div>
     </div>
   </div>
@@ -273,7 +284,7 @@
         </select>
       </div>
       <div class="wo-day-note" id="woDayNoteOut"></div>
-      <label class="mf-session-energy-field" for="mfWorkoutActiveCalories">Active calories — optional
+      <label class="mf-session-energy-field" data-mf-collection-module="activeCalories" for="mfWorkoutActiveCalories">Active calories — optional
         <input id="mfWorkoutActiveCalories" type="number" min="0" max="5000" step="1" inputmode="numeric" placeholder="Watch estimate">
         <span>Enter a whole-number estimate from your watch or wearable.</span>
       </label>
@@ -338,14 +349,14 @@
           <label class="mf-basketball-field" for="mfBasketballStructuredMinutes">Total minutes
             <input id="mfBasketballStructuredMinutes" type="number" min="0.5" max="1440" step="0.5" inputmode="decimal" placeholder="45" required>
           </label>
-          <label class="mf-basketball-field" for="mfBasketballStructuredActiveCalories">Active calories — optional
+          <label class="mf-basketball-field" data-mf-collection-module="activeCalories" for="mfBasketballStructuredActiveCalories">Active calories — optional
             <input id="mfBasketballStructuredActiveCalories" type="number" min="0" max="5000" step="1" inputmode="numeric" placeholder="Watch estimate">
             <span class="mf-basketball-field-help">Whole-number estimate from your watch or wearable.</span>
           </label>
         </div>
         <div class="mf-basketball-courtside-progress" id="mfBasketballCourtsideProgress" aria-live="polite"></div>
         <div class="mf-basketball-drills" id="mfBasketballDrillLogger"></div>
-        <label class="mf-basketball-field" for="mfBasketballStructuredNotes">Session notes (optional)
+        <label class="mf-basketball-field" data-mf-collection-module="sessionNotes" for="mfBasketballStructuredNotes">Session notes (optional)
           <textarea id="mfBasketballStructuredNotes" rows="3" maxlength="2000" placeholder="How did the session feel overall?"></textarea>
         </label>
         <div class="mf-basketball-session-summary" id="mfBasketballSessionSummary" aria-live="polite"></div>
@@ -396,7 +407,7 @@
             <input id="mfBasketballFreeThrowsAttempted" type="number" min="0" max="10000" step="1" inputmode="numeric" placeholder="10">
           </label>
         </div>
-        <label class="mf-basketball-field" for="mfBasketballNotes">Notes
+        <label class="mf-basketball-field" data-mf-collection-module="sessionNotes" for="mfBasketballNotes">Notes
           <textarea id="mfBasketballNotes" rows="3" maxlength="2000" placeholder="What did you work on?"></textarea>
         </label>
       </details>
@@ -528,8 +539,8 @@
   <section class="mf-sync-page active" id="mfSyncPageAi" data-mf-sync-page="ai" role="tabpanel" aria-labelledby="mfSyncTabAi">
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box mf-release-note">
-    <strong>MarcusFit 10.10.0</strong> &mdash; Visual System Modernization<br>
-    Lightning-lime brand treatment, consistent charcoal surfaces, and a centralized local icon system now unify the full app without changing training or data behavior.
+    <strong>MarcusFit 10.11.0</strong> &mdash; Tracking Preferences<br>
+    Choose Full Coaching, Strength Tracking, or a Custom collection mix. Turning a prompt off keeps existing history and treats intentionally untracked dates neutrally.
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -559,6 +570,68 @@
 
   <!-- ── PHASE 9.5.0: USER PROFILE & APP PREFERENCES ── -->
   <section class="mf-sync-page" id="mfSyncPageProfile" data-mf-sync-page="profile" role="tabpanel" aria-labelledby="mfSyncTabProfile" hidden>
+  <section class="mf-settings-section open" id="mfSettingsTracking" data-mf-settings-section="tracking">
+  <button class="mf-settings-toggle" type="button" data-mf-settings-toggle="tracking" aria-expanded="true" aria-controls="mfSettingsTrackingBody">
+    <span class="mf-settings-toggle-title mf-icon-label"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-target"></use></svg>Tracking Preferences</span>
+    <span class="mf-settings-toggle-summary" id="p950TrackingSummary">Choose how much MarcusFit asks you to track</span>
+    <span class="mf-settings-chevron" aria-hidden="true"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-chevron-down"></use></svg></span>
+  </button>
+  <div class="mf-settings-body" id="mfSettingsTrackingBody">
+    <div class="info-box"><strong>How much do you want MarcusFit to ask you to track?</strong><br>Turning something off hides new tracking prompts. Existing history is kept and returns when re-enabled.</div>
+    <div class="mf-tracking-presets" role="group" aria-label="Tracking preset">
+      <button type="button" class="mf-tracking-preset" data-mf-tracking-preset="full_coaching" aria-pressed="false"><strong>Full Coaching</strong><span>All supported tracking and coaching context</span></button>
+      <button type="button" class="mf-tracking-preset" data-mf-tracking-preset="strength_tracking" aria-pressed="false"><strong>Strength Tracking</strong><span>Lifting plus Weight, Sleep, Energy, and session notes</span></button>
+      <button type="button" class="mf-tracking-preset" data-mf-tracking-preset="custom" aria-pressed="false"><strong>Custom</strong><span>Choose individual collection surfaces</span></button>
+    </div>
+
+    <fieldset class="mf-tracking-group">
+      <legend>Daily Metrics</legend>
+      <label class="mf-tracking-choice mf-tracking-choice-master"><span><strong>All Daily Metrics</strong><small>Show or hide the complete group</small></span><input id="p950TrackingAllMetrics" type="checkbox"></label>
+      <div class="mf-tracking-grid">
+        <label class="mf-tracking-choice"><span>Weight</span><input type="checkbox" data-mf-tracking-kind="dailyMetrics" data-mf-tracking-key="weight"></label>
+        <label class="mf-tracking-choice"><span>Sleep</span><input type="checkbox" data-mf-tracking-kind="dailyMetrics" data-mf-tracking-key="sleep"></label>
+        <label class="mf-tracking-choice"><span>Protein</span><input type="checkbox" data-mf-tracking-kind="dailyMetrics" data-mf-tracking-key="protein"></label>
+        <label class="mf-tracking-choice"><span>Water</span><input type="checkbox" data-mf-tracking-kind="dailyMetrics" data-mf-tracking-key="water"></label>
+        <label class="mf-tracking-choice"><span>Energy</span><input type="checkbox" data-mf-tracking-kind="dailyMetrics" data-mf-tracking-key="energy"></label>
+        <label class="mf-tracking-choice"><span>Hunger</span><input type="checkbox" data-mf-tracking-kind="dailyMetrics" data-mf-tracking-key="hunger"></label>
+        <label class="mf-tracking-choice"><span>Bowel Movement</span><input type="checkbox" data-mf-tracking-kind="dailyMetrics" data-mf-tracking-key="bowelMovement"></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="mf-tracking-group">
+      <legend>Training &amp; Activity</legend>
+      <div class="mf-tracking-grid">
+        <label class="mf-tracking-choice"><span>Habits</span><input type="checkbox" data-mf-tracking-kind="modules" data-mf-tracking-key="habits"></label>
+        <label class="mf-tracking-choice"><span>Basketball</span><input type="checkbox" data-mf-tracking-kind="modules" data-mf-tracking-key="basketball"></label>
+        <label class="mf-tracking-choice"><span>Active Calories</span><input type="checkbox" data-mf-tracking-kind="modules" data-mf-tracking-key="activeCalories"></label>
+        <label class="mf-tracking-choice"><span>Session Notes</span><input type="checkbox" data-mf-tracking-kind="modules" data-mf-tracking-key="sessionNotes"></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="mf-tracking-group">
+      <legend>Other Tracking</legend>
+      <div class="mf-tracking-grid">
+        <label class="mf-tracking-choice"><span>Medication / Recurring</span><input type="checkbox" data-mf-tracking-kind="modules" data-mf-tracking-key="recurringAdherence"></label>
+        <label class="mf-tracking-choice"><span>Daily Notes</span><input type="checkbox" data-mf-tracking-kind="modules" data-mf-tracking-key="dailyNotes"></label>
+        <label class="mf-tracking-choice"><span>Coaching Insights</span><input type="checkbox" data-mf-tracking-kind="modules" data-mf-tracking-key="coachingInsights"></label>
+      </div>
+    </fieldset>
+
+    <div class="mf-stack-actions">
+      <button class="big-btn btn-sync" id="p950TrackingSave" type="button"><span class="mf-icon-label"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-save"></use></svg>SAVE TRACKING PREFERENCES</span></button>
+      <button class="big-btn btn-copy" id="p950TrackingReset" type="button" style="display:block;"><span class="mf-icon-label"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-refresh"></use></svg>RESET TRACKING PREFERENCES</span></button>
+    </div>
+    <div class="sync-result" id="p950TrackingResult" role="status" aria-live="polite"></div>
+    <div id="p950TrackingResetConfirmPanel" data-mf-critical-panel class="mf-critical-panel mf-critical-panel-error" style="display:none;">
+      <div class="mf-critical-title error"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-alert"></use></svg>Reset tracking to Full Coaching?</div>
+      <div class="mf-critical-copy">Prior tracking choices and all recorded history stay intact. Full Coaching becomes effective for new tracking today.</div>
+      <div class="mf-inline-actions">
+        <button class="mf-confirm error" id="p950TrackingResetConfirm" type="button"><span class="mf-icon-label"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-check"></use></svg>CONFIRM RESET</span></button>
+        <button class="mf-cancel" id="p950TrackingResetCancel" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+  </section>
   <hr class="divider">
   <section class="mf-settings-section open" id="mfSettingsProfile" data-mf-settings-section="profile">
   <button class="mf-settings-toggle" type="button" data-mf-settings-toggle="profile" aria-expanded="true" aria-controls="mfSettingsProfileBody">
@@ -631,7 +704,7 @@
     <!-- Reset confirmation panel (two-step, same pattern as Restore/Clear) -->
     <div id="p950ResetConfirmPanel" data-mf-critical-panel class="mf-critical-panel mf-critical-panel-error" style="display:none;">
       <div class="mf-critical-title error"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-alert"></use></svg>Reset profile to Marcus defaults?</div>
-      <div class="mf-critical-copy">This only affects your profile (name, height, goals, units, gym labels). Logs, workouts, AI coaching preferences, and lifecycle data are not touched.</div>
+      <div class="mf-critical-copy">This only affects your profile (name, height, goals, units, gym labels). Tracking Preferences, logs, workouts, AI coaching preferences, and lifecycle data are not touched.</div>
       <div class="mf-inline-actions">
         <button class="mf-confirm error" onclick="p950ConfirmResetProfile()"><span class="mf-icon-label"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-check"></use></svg>CONFIRM RESET</span></button>
         <button class="mf-cancel" onclick="p950CancelResetProfile()">Cancel</button>
@@ -694,6 +767,18 @@
       <button class="p9510-link p960-manage-link" type="button" onclick="p960OpenHabitManager()">Manage Habits</button>
       <button class="p9510-link p960-manage-link" id="p960ProposalReviewButton" type="button" onclick="p960OpenHabitProposalReview()">No Pending Habit Proposal</button>
     </div>
+  </div>
+  </section>
+
+  <section class="mf-settings-section" id="mfSettingsBasketballPersonalization" data-mf-settings-section="basketball">
+  <button class="mf-settings-toggle" type="button" data-mf-settings-toggle="basketball" aria-expanded="false" aria-controls="mfSettingsBasketballPersonalizationBody">
+    <span class="mf-settings-toggle-title mf-icon-label"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-basketball"></use></svg>Basketball Personalization</span>
+    <span class="mf-settings-toggle-summary">Review existing Basketball proposals</span>
+    <span class="mf-settings-chevron" aria-hidden="true"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-chevron-down"></use></svg></span>
+  </button>
+  <div class="mf-settings-body" id="mfSettingsBasketballPersonalizationBody">
+    <div class="info-box">Existing Basketball proposals remain reviewable and dismissible here even when Basketball collection is off. New proposals require Basketball tracking to be enabled.</div>
+    <div class="mf-basketball-proposal-status" id="mfBasketballToolsProposalStatus" role="status" aria-live="polite" hidden></div>
   </div>
   </section>
   </section>

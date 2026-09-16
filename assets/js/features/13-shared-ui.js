@@ -109,7 +109,7 @@ function mfToggleSettingsSection(key){
 }
 
 const MF_SYNC_PAGES=["ai","personalize","profile","data"];
-const MF_SYNC_SECTION_PAGES={coaching:"personalize",program:"personalize",habits:"personalize",profile:"profile",backup:"data",diagnostics:"data"};
+const MF_SYNC_SECTION_PAGES={coaching:"personalize",program:"personalize",habits:"personalize",profile:"profile",backup:"data",diagnostics:"data"};MF_SYNC_SECTION_PAGES.tracking="profile";MF_SYNC_SECTION_PAGES.basketball="personalize";
 let mfActiveSyncPage="ai",mfSyncOpened=false;
 
 function mfSyncVisibleCriticalPanel(){
@@ -170,6 +170,7 @@ function p6Toggle(key){
   const sec=document.getElementById("p6sec-"+key);
   if(sec)sec.classList.toggle("open");
 }
+document.querySelectorAll("[data-mf-p6-toggle]").forEach(function(header){header.addEventListener("click",function(){p6Toggle(header.dataset.mfP6Toggle);});});
 
 // Metrics badge: weight, sleep, hunger, energy
 function p6UpdateMetricsBadge(){
