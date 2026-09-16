@@ -34,5 +34,10 @@
     "characters": 24203,
     "lines": 349,
     "note": "10.10 preserves accepted 10.9 log/progression text and adds bounded Habit icon metadata plus the nine-token canonical icon vocabulary for AI personalization."
+  },
+  "after10_11": {
+    "characters": 24969,
+    "lines": 359,
+    "note": "10.11 adds a compact date-effective Tracking Preferences interpretation while preserving historical evidence and the accepted response contract."
   }
 }
