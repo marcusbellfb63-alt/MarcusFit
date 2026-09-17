@@ -201,6 +201,9 @@ assert(html.includes('id="screen-program"') && html.includes('id="screen-history
 assert(css.includes(".mf-tracking-hidden{display:none!important;}") && css.includes("@media(max-width:420px)"));
 assert(css.includes(".mf-tracking-group{min-width:0;margin:18px 0 0;padding:0;border:0;}"), "Tracking preference groups still render an outer fieldset border");
 assert(css.includes("grid-template-columns:minmax(0,1fr)") && css.includes("min-inline-size:0;max-inline-size:100%"), "Basketball form controls lack mobile intrinsic-width containment");
+assert(css.includes("align-items:center;justify-content:center") && css.includes("text-align:center;overflow-wrap:anywhere"), "Tracking preset card content is not centered with safe wrapping");
+assert(css.includes(".mf-tracking-preset{min-height:68px;}"), "Stacked mobile tracking preset cards do not retain a consistent minimum height");
+assert(css.includes(".export-range-row{margin-bottom:9px;}"), "AI Sync range and included-data controls lack deliberate separation");
 
 // Collection UI is resolved from the selected record date. Navigating between
 // dates must not reuse the wall-clock/current snapshot in either direction.

@@ -1284,11 +1284,12 @@ body{background:var(--app-bg);}
 .p960-icon-option span{max-width:100%;overflow-wrap:anywhere;text-align:center;}
 .p960-icon-option[aria-pressed="true"]{background:var(--brand-surface);border-color:var(--brand-border);color:var(--brand);}
 
+.export-range-row{margin-bottom:9px;}
 .mf-tracking-hidden{display:none!important;}
 .mf-tracking-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0;}
-.mf-tracking-preset{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;min-height:44px;padding:9px 10px;border:1px solid var(--border-subtle);border-radius:var(--radius-control);background:var(--surface-interactive);color:var(--text-secondary);font:700 12px/1.3 'DM Sans',sans-serif;text-align:left;cursor:pointer;}
-.mf-tracking-preset strong{display:block;color:var(--text-primary);}
-.mf-tracking-preset span{display:block;color:var(--text-muted);font-size:10px;font-weight:500;line-height:1.4;overflow-wrap:anywhere;}
+.mf-tracking-preset{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:44px;padding:9px 10px;border:1px solid var(--border-subtle);border-radius:var(--radius-control);background:var(--surface-interactive);color:var(--text-secondary);font:700 12px/1.3 'DM Sans',sans-serif;text-align:center;cursor:pointer;}
+.mf-tracking-preset strong{display:block;width:100%;color:var(--text-primary);text-align:center;}
+.mf-tracking-preset span{display:block;width:100%;max-width:100%;color:var(--text-muted);font-size:10px;font-weight:500;line-height:1.4;text-align:center;overflow-wrap:anywhere;}
 .mf-tracking-preset[aria-pressed="true"]{background:var(--brand-surface);border-color:var(--brand-border);color:var(--brand);}
 .mf-tracking-preset[aria-pressed="true"] strong{color:var(--brand);}
 .mf-tracking-group{min-width:0;margin:18px 0 0;padding:0;border:0;}
@@ -1305,6 +1306,7 @@ body{background:var(--app-bg);}
 
 @media(max-width:420px){
   .mf-tracking-presets{grid-template-columns:1fr;}
+  .mf-tracking-preset{min-height:68px;}
   .mf-tracking-grid{grid-template-columns:1fr;}
 }
 
