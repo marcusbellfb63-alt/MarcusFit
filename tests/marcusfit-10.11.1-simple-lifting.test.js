@@ -110,11 +110,18 @@ vm.runInContext(extractBalanced(workoutSource, "function mfWorkoutEvidenceMode")
 assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail(), "simple");
 modeStore.api.setItem("day-2026-09-15-wo", JSON.stringify({ exercises: {} }));
 assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail(), "full", "legacy Detailed history did not override Simple preference");
+assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail({ liftingDetail: "simple", exercises: {} }), "full", "saved Detailed did not override an explicit Simple draft/context");
 modeStore.api.setItem("day-2026-09-15-wo", JSON.stringify({ liftingDetail: "simple", exercises: {} }));
 modeContext.p950GetTrackingSnapshotForDate = () => ({ liftingDetail: "full" });
 assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail(), "simple", "saved Simple history did not override Detailed preference");
-assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail({ exercises: {} }), "full", "Detailed draft ownership was not preserved");
-assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail({ liftingDetail: "simple", exercises: {} }), "simple", "Simple draft ownership was not preserved");
+assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail({ exercises: {} }), "simple", "saved Simple did not override an explicit Detailed draft/context");
+modeStore.api.removeItem("day-2026-09-15-wo");
+assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail({ liftingDetail: "simple", exercises: {} }), "simple", "Simple draft did not override Detailed preference without a saved workout");
+modeContext.p950GetTrackingSnapshotForDate = () => ({ liftingDetail: "simple" });
+assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail({ exercises: {} }), "full", "Detailed draft did not override Simple preference without a saved workout");
+assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail(), "simple", "date-effective Simple preference did not control a blank workout");
+modeContext.p950GetTrackingSnapshotForDate = () => ({ liftingDetail: "unknown" });
+assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail(), "full", "unknown preference mode did not fail safely to Detailed");
 
 // Simple collection writes one authoritative summary with an empty set array.
 // A blank exercise (including its prescribed-count placeholder) stays absent.
@@ -223,6 +230,50 @@ assert.strictEqual(simpleRecommendation(simpleKg,summary(3,12,"30 kg","2")).outc
 assert.strictEqual(simpleRecommendation(simpleKg,summary(3,12,"70 lb","2")).outcome,"progress_reps");
 assert.strictEqual(simpleRecommendation(simplePress,summary(3,12,"45–50 lb","2")).outcome,"progress_reps");
 assert.strictEqual(simpleRecommendation(simplePress,summary(3,12,"full stack","2")).outcome,"progress_reps");
+
+// Incomplete Simple history is factual history but contributes zero shared
+// load evidence to a later Detailed progression calculation.
+function saveIncompleteSimpleSeries(ex,load){
+  saveProgression("2026-09-01",ex,summary(0,"",load,""),"home",progressionContexts[ex.id].day);
+  saveProgression("2026-09-02",ex,summary(2,12,load,"2"),"home",progressionContexts[ex.id].day);
+  saveProgression("2026-09-03",ex,summary(3,"",load,"2"),"home",progressionContexts[ex.id].day);
+  saveProgression("2026-09-04",ex,summary(3,"invalid",load,"2"),"home",progressionContexts[ex.id].day);
+}
+const isolatedTarget=installProgression({id:"isolated-target",name:"Isolated Target",sets:3,reps:"8–12",load:"20–40 lb",rir:"2"},"home",6);
+saveIncompleteSimpleSeries(isolatedTarget,"80 lb");
+const isolatedTargetResult=progressionContext.p9BuildSuggestion(isolatedTarget.id,detailedSets("30 lb",12),isolatedTarget.reps,isolatedTarget.rir,{dateKey:"day-2026-09-10",subjectStored:false});
+assert.strictEqual(isolatedTargetResult.status,"progress_load","incomplete Simple load triggered Detailed target reset");
+assert.match(isolatedTargetResult.action,/35 lb/,"incomplete Simple load altered the normal Detailed increment");
+
+const isolatedStep=installProgression({id:"isolated-step",name:"Isolated Step",sets:3,reps:"8–12",load:"20–100 lb",rir:"2"},"home",7);
+saveIncompleteSimpleSeries(isolatedStep,"52.5 lb");
+const isolatedStepResult=progressionContext.p9BuildSuggestion(isolatedStep.id,detailedSets("50 lb",12),isolatedStep.reps,isolatedStep.rir,{dateKey:"day-2026-09-10",subjectStored:false});
+assert.match(isolatedStepResult.action,/55 lb/,"incomplete Simple load altered conservative load-step inference");
+
+const isolatedCeiling=installProgression({id:"isolated-ceiling",name:"Isolated Ceiling",sets:3,reps:"8–10",load:"20–30 lb",rir:"2"},"home",8);
+saveIncompleteSimpleSeries(isolatedCeiling,"30 lb");
+const isolatedCeilingResult=progressionContext.p9BuildSuggestion(isolatedCeiling.id,detailedSets("30 lb",10),isolatedCeiling.reps,isolatedCeiling.rir,{dateKey:"day-2026-09-10",subjectStored:false});
+assert.strictEqual(isolatedCeilingResult.status,"capped_hold","incomplete Simple history qualified as ceiling evidence");
+assert.strictEqual(progressionContext.p959CeilingEvidence(isolatedCeiling.id,isolatedCeiling.reps,isolatedCeiling.rir,{dateKey:"day-2026-09-10",subjectStored:false},detailedSets("30 lb",10)).qualifyingSessionCount,0);
+
+const isolatedJump=installProgression({id:"isolated-jump",name:"Isolated Jump",sets:3,reps:"8–12",load:"20–100 lb",rir:"2"},"home",9);
+saveProgression("2026-09-01",isolatedJump,summary(2,12,"50 lb","2"),"home",9);
+assert.strictEqual(progressionContext.p9BuildSuggestion(isolatedJump.id,detailedSets("70 lb",12),isolatedJump.reps,isolatedJump.rir,{dateKey:"day-2026-09-10",subjectStored:false}).status,"progress_load","incomplete Simple history triggered a large-jump hold");
+const isolatedRegression=installProgression({id:"isolated-regression",name:"Isolated Regression",sets:3,reps:"8–12",load:"20–100 lb",rir:"2"},"home",10);
+saveProgression("2026-09-01",isolatedRegression,summary(3,"","50 lb","2"),"home",10);
+assert.strictEqual(progressionContext.p9BuildSuggestion(isolatedRegression.id,detailedSets("50 lb",8),isolatedRegression.reps,isolatedRegression.rir,{dateKey:"day-2026-09-10",subjectStored:false}).status,"build_reps","incomplete Simple history triggered a regression hold");
+
+// Fully qualifying Simple history remains eligible for intentional mixed
+// target reset, jump/regression, safe observed-step, and ceiling behavior.
+const mixedTarget=installProgression({id:"mixed-target",name:"Mixed Target",sets:3,reps:"8–12",load:"20–40 lb",rir:"2"},"partial",2);
+saveProgression("2026-09-01",mixedTarget,summary(3,12,"50 lb","2"),"partial",2);
+assert.strictEqual(progressionContext.p9BuildSuggestion(mixedTarget.id,detailedSets("30 lb",12),mixedTarget.reps,mixedTarget.rir,{dateKey:"day-2026-09-10",subjectStored:false}).status,"target_reset");
+const mixedJumpDetailed=installProgression({id:"mixed-jump-detailed",name:"Mixed Jump Detailed",sets:3,reps:"8–12",load:"20–100 lb",rir:"2"},"partial",3);
+saveProgression("2026-09-01",mixedJumpDetailed,summary(3,12,"50 lb","2"),"partial",3);
+assert.strictEqual(progressionContext.p9BuildSuggestion(mixedJumpDetailed.id,detailedSets("70 lb",12),mixedJumpDetailed.reps,mixedJumpDetailed.rir,{dateKey:"day-2026-09-10",subjectStored:false}).outcome,"repeat_target");
+const mixedStep=installProgression({id:"mixed-step",name:"Mixed Step",sets:3,reps:"8–12",load:"20–100 lb",rir:"2"},"partial",4);
+saveProgression("2026-09-01",mixedStep,summary(3,12,"52.5 lb","2"),"partial",4);
+assert.match(progressionContext.p9BuildSuggestion(mixedStep.id,detailedSets("50 lb",12),mixedStep.reps,mixedStep.rir,{dateKey:"day-2026-09-10",subjectStored:false}).action,/52.5 lb/);
 
 const simpleReset=installProgression({id:"simple-reset",name:"Reset",sets:3,reps:"8–12",load:"20–40 lb",rir:"2"},"home",3);
 saveProgression("2026-09-01",simpleReset,summary(3,12,"50 lb","2"),"home",3);

@@ -466,9 +466,15 @@ function p1111ComparableEvidence(entry,profile,required){
   return {load:loads[0],repsFloor:Math.min.apply(null,reps),totalReps:reps.reduce(function(sum,value){return sum+value;},0),setCount:sets.length,evidenceMode:"detailed"};
 }
 
+function p1111ComparableSimpleHistoricalLoad(entry,profile,required,shape){
+  if(!entry||entry.evidenceMode!=="simple")return null;
+  const evidence=p1111ComparableEvidence(entry,profile,required),load=evidence&&evidence.load;
+  return load&&load.safe&&(!shape||load.shape===shape)?load:null;
+}
+
 function p1111SimpleQualifiesAtCeiling(exId,summaryValue,targetRepsStr,targetRirStr){
-  const summary=p1111NormalizeSimpleSummary(summaryValue),ex=p959FindExercise(exId),profile=p959GetExerciseMetricProfile(exId,ex),target=p5ParseRepRange(targetRepsStr),targetRir=p5ParseRir(targetRirStr),tlr=p9GetTargetLoadRangeForExercise(exId),required=p959GetRequiredSets(exId,ex);
-  if(!summary||profile.type!=="load_reps"||!target||!tlr||summary.setCount<required||parseFloat(summary.repsFloor)<target.hi)return false;
+  const summary=p1111NormalizeSimpleSummary(summaryValue),ex=p959FindExercise(exId),profile=p959GetExerciseMetricProfile(exId,ex),target=p5ParseRepRange(targetRepsStr),targetRir=p5ParseRir(targetRirStr),tlr=p9GetTargetLoadRangeForExercise(exId),required=p959GetRequiredSets(exId,ex),reps=summary?parseFloat(summary.repsFloor):NaN;
+  if(!summary||profile.type!=="load_reps"||!target||!tlr||summary.setCount<required||!Number.isFinite(reps)||reps<=0||reps<target.hi)return false;
   const load=p1080ExactLoad(summary.load,profile),rir=p5ParseRir(summary.rirFloor);
   return load.safe&&load.unit===profile.unit&&Math.abs(load.numeric-tlr.high)<=2&&(targetRir===null||(rir!==null&&rir>=targetRir-.5));
 }
@@ -516,7 +522,7 @@ function p1111BuildSimpleSuggestion(exId,summaryValue,targetRepsStr,targetRirStr
   if(!unitCompatible)return p1080Result("top_range_hold","progress_reps","Keep this resistance setup and confirm the programmed unit.","Logged "+current.unit+" does not match the programmed "+profile.unit+" unit, so numeric progression is not comparable.","low",evidence);
   if(profile.type==="assistance_reps"){
     if(tlr&&current.numeric<=tlr.low+2)return p1080Result("ceiling_update","maintain","Maintain and review the next progression method.",topReason+" The hard end of the programmed assistance range is reached.","medium",evidence);
-    const step=p1080ConservativeStep(current.numeric,profile,history,current.shape),suggested=tlr?Math.max(tlr.low,current.numeric-step):Math.max(0,current.numeric-step);
+    const step=p1080ConservativeStep(current.numeric,profile,history,current.shape,required),suggested=tlr?Math.max(tlr.low,current.numeric-step):Math.max(0,current.numeric-step);
     if(suggested===current.numeric)return p1080Result("ceiling_update","maintain","Maintain and review the next progression method.",topReason+" The programmed assistance limit prevents a safe reduction.","medium",evidence);
     return p1080Result("progress_load","progress_load","Try "+p1080FormatSuggestedLoad(suggested,current,profile)+".",topReason+" Lower assistance is the progression direction.","medium",evidence,{suggestedLoad:p1080FormatSuggestedLoad(suggested,current,profile)});
   }
@@ -525,7 +531,7 @@ function p1111BuildSimpleSuggestion(exId,summaryValue,targetRepsStr,targetRirStr
     if(ceiling.qualifyingSessionCount>=ceiling.confirmationRequirement)return p1080Result("ceiling_update","maintain","Maintain and review the programmed ceiling.",topReason+" Two qualifying ceiling sessions are recorded.","medium",evidence);
     return p1080Result("capped_hold","repeat_target","Repeat the programmed ceiling once more.",topReason+" One more qualifying ceiling session is required.","medium",evidence);
   }
-  const step=p1080ConservativeStep(current.numeric,profile,history,current.shape),suggested=tlr?Math.min(tlr.high,current.numeric+step):current.numeric+step;
+  const step=p1080ConservativeStep(current.numeric,profile,history,current.shape,required),suggested=tlr?Math.min(tlr.high,current.numeric+step):current.numeric+step;
   if(suggested<=current.numeric)return p1080Result("top_range_hold","repeat_target","Repeat the current target.",topReason+" No conservative numeric increase is available inside the programmed constraints.","medium",evidence);
   return p1080Result("progress_load","progress_load","Try "+p1080FormatSuggestedLoad(suggested,current,profile)+".",topReason,"medium",evidence,{suggestedLoad:p1080FormatSuggestedLoad(suggested,current,profile)});
 }
@@ -778,9 +784,9 @@ function p1080ComparablePrior(exId,validSets){
   if(history.length&&JSON.stringify(history[0].validSets)===signature)return history[1]||null;
   return history[0]||null;
 }
-function p1080ConservativeStep(current,profile,history,shape){
+function p1080ConservativeStep(current,profile,history,shape,required){
   const observed=[];
-  history.slice(0,5).forEach(function(entry){if(entry.evidenceMode==="simple"){const load=p1080ExactLoad(entry.summary&&entry.summary.load,profile);if(load.safe&&load.shape===shape&&load.numeric!==current)observed.push(Math.abs(load.numeric-current));return;}(entry.validSets||[]).forEach(function(set){const load=p1080ExactLoad(set.wt,profile);if(load.safe&&load.shape===shape&&load.numeric!==current)observed.push(Math.abs(load.numeric-current));});});
+  history.slice(0,5).forEach(function(entry){if(entry.evidenceMode==="simple"){const load=p1111ComparableSimpleHistoricalLoad(entry,profile,required,shape);if(load&&load.numeric!==current)observed.push(Math.abs(load.numeric-current));return;}(entry.validSets||[]).forEach(function(set){const load=p1080ExactLoad(set.wt,profile);if(load.safe&&load.shape===shape&&load.numeric!==current)observed.push(Math.abs(load.numeric-current));});});
   const plausible=observed.filter(function(step){return step>=1&&step<=Math.max(5,current*.15);});
   const defaultStep=profile&&profile.unit==="kg"?(current<20?1:2.5):(current<30?2.5:5);
   return plausible.length?Math.min(defaultStep,Math.min.apply(null,plausible)):defaultStep;
@@ -814,7 +820,7 @@ p9BuildSuggestion=function(exId,validSets,targetRepsStr,targetRirStr,evaluation)
   const tlr=p9GetTargetLoadRangeForExercise(exId);
   const unitCompatible=!current||!profile.usesLoad||current.unit===profile.unit;
   if(profile.type==="load_reps"&&current&&tlr&&unitCompatible){
-    const comparableLoads=[];history.forEach(function(entry){if(entry.evidenceMode==="simple"){const load=p1080ExactLoad(entry.summary&&entry.summary.load,profile);if(load.safe&&load.shape===current.shape)comparableLoads.push(load.numeric);return;}(entry.validSets||[]).forEach(function(set){const load=p1080ExactLoad(set.wt,profile);if(load.safe&&load.shape===current.shape)comparableLoads.push(load.numeric);});});
+    const comparableLoads=[];history.forEach(function(entry){if(entry.evidenceMode==="simple"){const load=p1111ComparableSimpleHistoricalLoad(entry,profile,required,current.shape);if(load)comparableLoads.push(load.numeric);return;}(entry.validSets||[]).forEach(function(set){const load=p1080ExactLoad(set.wt,profile);if(load.safe&&load.shape===current.shape)comparableLoads.push(load.numeric);});});
     if(comparableLoads.length&&Math.max.apply(null,comparableLoads)>tlr.high+2)return p1080Result("target_reset","reduce_reset","Reset to the programmed load range.","Comparable history exceeds the current programmed ceiling, so rebuild from the current target without rewriting prior loads.","high",evidence);
   }
   if(prior&&current&&unitCompatible){
@@ -840,7 +846,7 @@ p9BuildSuggestion=function(exId,validSets,targetRepsStr,targetRirStr,evaluation)
 
   if(profile.type==="assistance_reps"){
     if(tlr&&current.numeric<=tlr.low+2)return p1080Result("ceiling_update","maintain","Maintain and review the next progression method.",topReason+" The hard end of the programmed assistance range is reached.","high",evidence);
-    const step=p1080ConservativeStep(current.numeric,profile,history,current.shape),suggested=tlr?Math.max(tlr.low,current.numeric-step):Math.max(0,current.numeric-step);
+    const step=p1080ConservativeStep(current.numeric,profile,history,current.shape,required),suggested=tlr?Math.max(tlr.low,current.numeric-step):Math.max(0,current.numeric-step);
     if(suggested===current.numeric)return p1080Result("ceiling_update","maintain","Maintain and review the next progression method.",topReason+" The programmed assistance limit prevents a safe reduction.","high",evidence);
     return p1080Result("progress_load","progress_load","Try "+p1080FormatSuggestedLoad(suggested,current,profile)+".",topReason+" Lower assistance is the progression direction.","high",evidence,{suggestedLoad:p1080FormatSuggestedLoad(suggested,current,profile)});
   }
@@ -849,7 +855,7 @@ p9BuildSuggestion=function(exId,validSets,targetRepsStr,targetRirStr,evaluation)
     if(ceiling.qualifyingSessionCount>=ceiling.confirmationRequirement)return p1080Result("ceiling_update","maintain","Maintain and review the programmed ceiling.",topReason+" Two qualifying ceiling sessions are recorded.","high",evidence);
     return p1080Result("capped_hold","repeat_target","Repeat the programmed ceiling once more.",topReason+" One more qualifying ceiling session is required.","medium",evidence);
   }
-  const step=p1080ConservativeStep(current.numeric,profile,history,current.shape),suggested=tlr?Math.min(tlr.high,current.numeric+step):current.numeric+step;
+  const step=p1080ConservativeStep(current.numeric,profile,history,current.shape,required),suggested=tlr?Math.min(tlr.high,current.numeric+step):current.numeric+step;
   if(suggested<=current.numeric)return p1080Result("top_range_hold","repeat_target","Repeat the current target.",topReason+" No conservative numeric increase is available inside the programmed constraints.","medium",evidence);
   return p1080Result("progress_load","progress_load","Try "+p1080FormatSuggestedLoad(suggested,current,profile)+".",topReason,"high",evidence,{suggestedLoad:p1080FormatSuggestedLoad(suggested,current,profile)});
 };

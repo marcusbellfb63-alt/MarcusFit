@@ -5,8 +5,8 @@ function mfWorkoutSetLoadKeyboardMode(input,button,useText){
 
 function mfWorkoutEvidenceMode(workout){return workout&&workout.liftingDetail==="simple"?"simple":"full";}
 function mfWorkoutResolveLiftingDetail(explicitWorkout){
+  try{const raw=localStorage.getItem(dKey(tDate)+"-wo");if(raw!==null){try{return mfWorkoutEvidenceMode(JSON.parse(raw));}catch(e){return "full";}}}catch(e){}
   if(explicitWorkout&&typeof explicitWorkout==="object")return mfWorkoutEvidenceMode(explicitWorkout);
-  try{const raw=localStorage.getItem(dKey(tDate)+"-wo");if(raw!==null)return mfWorkoutEvidenceMode(JSON.parse(raw));}catch(e){}
   const date=typeof p950LocalDateKey==="function"?p950LocalDateKey(tDate):tDate;
   try{const snapshot=typeof p950GetTrackingSnapshotForDate==="function"?p950GetTrackingSnapshotForDate(date):null;return snapshot&&snapshot.liftingDetail==="simple"?"simple":"full";}catch(e){return "full";}
 }
