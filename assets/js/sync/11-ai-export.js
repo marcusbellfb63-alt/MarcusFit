@@ -77,9 +77,15 @@ function buildLogSection(dkeys,allDkeys){
           (dayData ? dayData.exercises||[] : []).forEach(function(ex){
             const exLog=wo.exercises[ex.id];if(!exLog)return;
             const nm=getF(ex.id,"name",ex.name),ld=getF(ex.id,"load",ex.load),ri=getF(ex.id,"rir",ex.rir);
-            const validSets=exLog.sets.filter(function(s){return s.wt||s.reps;});if(!validSets.length)return;
-            logSection+="  ["+ex.id+"] "+nm+" (target: "+ld+" / RIR "+ri+")\n";
-            validSets.forEach(function(s,i){logSection+="    Set "+(i+1)+": "+(s.wt||"\u2014")+" \xd7 "+(s.reps||"\u2014")+" reps @ RIR "+(s.rir||"\u2014")+"\n";});
+            if(wo.liftingDetail==="simple"){
+              logSection+="  ["+ex.id+"] "+nm+" (target: "+ld+" / RIR "+ri+")\n";
+              const summary=exLog.summary&&exLog.summary.version===1?exLog.summary:null;if(!summary)logSection+="    Evidence: Per-Lift summary — malformed or missing; insufficient evidence\n";
+              else logSection+="    Evidence: Per-Lift summary — individual sets were not recorded\n    Performed: "+summary.setCount+" work sets\n    Lowest-set reps: "+(summary.repsFloor||"\u2014")+"\n    Working load: "+(summary.load||"\u2014")+"\n    Hardest-set RIR: "+(summary.rirFloor||"\u2014")+"\n";
+            }else{
+              const validSets=(exLog.sets||[]).filter(function(s){return s.wt||s.reps;});if(!validSets.length)return;
+              logSection+="  ["+ex.id+"] "+nm+" (target: "+ld+" / RIR "+ri+")\n";
+              validSets.forEach(function(s,i){logSection+="    Set "+(i+1)+": "+(s.wt||"\u2014")+" \xd7 "+(s.reps||"\u2014")+" reps @ RIR "+(s.rir||"\u2014")+"\n";});
+            }
             if(exLog.note)logSection+="    Note: "+exLog.note+"\n";
           });
         }
@@ -163,7 +169,7 @@ const P9489_EXPECTED_CLUSTER_BY_DAYTYPE = {
 // sessions exist yet — callers must treat that as "insufficient data", not
 // as a stale/capped signal.
 function p9489GetRecentExerciseSignals(ex){
-  const hist = p9GetExerciseHistory(ex.id); // already sorted newest-first
+  const hist = p9GetExerciseHistory(ex.id).filter(function(entry){return entry.evidenceMode!=="simple";}); // deterministic rotation requires Detailed evidence
   if(!hist.length) return {hasData:false};
   const targetReps = getF(ex.id,"reps",ex.reps);
   const targetRir  = getF(ex.id,"rir",ex.rir);
@@ -893,9 +899,9 @@ function genExport(){
     +"=== ANALYSIS REQUEST ===\n\n"
     +"You are an AI fitness coach. Analyze the data above and provide:\n\n"
     +"1. WORKOUT PROGRESSION\n"
-    +"   - Review per-set weight, reps, and RIR for each logged exercise\n"
-    +"   - Where logged RIR is consistently >= target: suggest a load increase\n"
-    +"   - Where RIR is below target or sets are failing: suggest reduction\n\n"
+    +"   - Review Per-Set Detailed records as actual set observations\n"
+    +"   - Review Per-Lift Simple records as conservative summaries: reps is the lowest set and RIR is the hardest set\n"
+    +"   - Never infer individual set values from Simple evidence; use its lower granularity when coaching\n\n"
     +"2. LOAD TRENDS\n"
     +"   - Identify exercises showing consistent progress vs plateaus\n"
     +"   - Flag exercises where load has not changed across multiple sessions\n\n"
@@ -954,7 +960,7 @@ function mf105BuildRecommendationsExport(){
   return out+"Do not pile new experiments on top blindly; prefer resolving, simplifying, or intentionally retaining these.\n\n";
 }
 function mf105BuildResponseContract(){
-  return "=== AI RESPONSE / MUTATION CONTRACT ===\n\nFirst provide concise prose using these headings: COACHING ASSESSMENT, CHANGES, and WHAT I INTENTIONALLY LEFT ALONE. Review cross-domain conflicts, redundancies, synergies, adherence, and existing experiments. Do not manufacture changes; no change is acceptable. MarcusFit parses only the marked JSON block.\n\n"
+  return "=== AI RESPONSE / MUTATION CONTRACT ===\n\nFirst provide concise prose using these headings: COACHING ASSESSMENT, CHANGES, and WHAT I INTENTIONALLY LEFT ALONE. Review cross-domain conflicts, redundancies, synergies, adherence, and existing experiments. Do not manufacture changes; no change is acceptable. MarcusFit parses only the marked JSON block.\n\nLIFTING EVIDENCE INTERPRETATION\n- Per-Set Detailed evidence contains actual individual-set weight, reps, and RIR observations.\n- Per-Lift Simple evidence is one conservative exercise-level summary: reps means the lowest-rep counted work set, and RIR means the hardest/lowest-RIR counted work set.\n- Never infer, expand, or fabricate individual set values from a Per-Lift summary. Weigh Simple evidence as less granular while still using a qualifying summary for normal direct progression.\n\n"
     +"MUTATION PERMISSIONS\n- Lifting/core program: directly mutable through the accepted updates array and supported _action entries below. Base program P and history are never mutation targets.\n- Habits: proposal/review mutable only through habitProposal. Import creates a pending proposal; explicit two-stage review/apply is required.\n- Basketball: proposal/review mutable only through basketballProposal. Import creates a pending proposal; explicit review/apply is required.\n- Cardio/activity, vitals/bodyweight, recurring medication adherence, and all historical evidence: advisory/read-only.\n- Pending proposals must not be replaced. Use stable IDs exactly. MarcusFit captures expected-state evidence at import; never send or fabricate expected fingerprints or internal audit/apply/undo fields.\n\n"
     +"ONE TOP-LEVEL JSON CONTRACT\n- Core-only response: the content between markers is the legacy JSON array of lifting updates/actions.\n- Any response containing Habit or Basketball changes: use one object with only the needed keys: {\"updates\":[...],\"habitProposal\":{...},\"basketballProposal\":{...}}. Omit unchanged domains; updates may be omitted or empty.\n- No changes in any domain: use an empty legacy array []. Do not return an object containing only updates.\n- The JSON must contain configuration changes only. Historical records, results, completion state, profiles, medication schedules, backup data, and unsupported cross-domain fields are forbidden.\n\nMARCUSFIT_UPDATE_START\n[]\nMARCUSFIT_UPDATE_END\n\n"
     +"CORE LIFTING\n- Plain update: {\"id\":\"exact-existing-id\",\"load\":\"...\",\"rir\":\"1-2\",\"sets\":\"4\",\"reps\":\"8-12\",\"blurb\":\"under 100 chars\"}. Minor same-exercise rename may include name.\n- Supported _action values: replace, reactivate, remove, reorder, day_override, day_override_clear, day_addition, day_addition_clear, custom_exercise, recommendations.\n- replace uses id plus _newExercise {name, sets, reps, load, rir, blurb}; reorder uses gym, dayIndex, and complete exerciseOrder; day_override uses gym/dayIdx plus supported metadata; day_addition uses gym/dayIdx/name; custom_exercise uses gym/dayIdx/name and lets MarcusFit generate the ID; recommendations uses gym/dayIndex/strategy/experimentTag/expiresAfterSessions/items.\n- Prefer recommendations for bounded cues, reorder for sequencing, replace for a different movement, and custom_exercise only for a genuine addition. Preserve IDs/history and choose the smallest effective change.\n\n"

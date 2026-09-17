@@ -136,7 +136,7 @@ assert.strictEqual((sparseExport.match(/=== AI RESPONSE \/ MUTATION CONTRACT ===
 
 const normalized = exported.replace(/^Generated: .*$/m, "Generated: <deterministic>");
 const metrics = { characters: normalized.length, lines: normalized.split("\n").length };
-assert.deepStrictEqual(metrics, { characters: sizeFixture.after10_11.characters, lines: sizeFixture.after10_11.lines });
+assert.deepStrictEqual(metrics, { characters: sizeFixture.after10_11_1.characters, lines: sizeFixture.after10_11_1.lines });
 assert(sizeFixture.after.characters < sizeFixture.before.characters);
 assert(sizeFixture.after.lines < sizeFixture.before.lines);
 assert.deepStrictEqual(sizeFixture.after.duplicatedGuidance, { habitContractBlocks: 0, basketballContractBlocks: 0, legacyFormattingBlocks: 0 });

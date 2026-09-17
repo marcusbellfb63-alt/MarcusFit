@@ -62,7 +62,8 @@ assert(!css.includes("text-shadow:"), "10.10 must not add or retain decorative t
 
 const exportSource = fs.readFileSync(path.join(jsRoot, "sync/11-ai-export.js"), "utf8");
 const progressionSource = fs.readFileSync(path.join(jsRoot, "features/09-progression-base.js"), "utf8");
-assert.strictEqual(normalizedSliceHash(exportSource, "function buildLogSection", "function p9489ClassifyExercise"), "cba1ce1740cfa86bbe92fc26c2cd153b2bc935501d9adf64263a47d47e48372d", "AI Export daily-log text must remain byte-equivalent to accepted 10.9");
+assert.strictEqual(normalizedSliceHash(exportSource, "function buildLogSection", "function p9489ClassifyExercise"), "5f537482457229d753d0449e3f63bcbf9267da8305db90aa629d6c32ea09df02", "AI Export daily-log text changed beyond the intentional additive Simple-evidence branch");
+assert(exportSource.includes('Set "+(i+1)+": "+(s.wt||"\\u2014")+" \\xd7 "+(s.reps||"\\u2014")+" reps @ RIR "+(s.rir||"\\u2014")'), "Detailed per-set export text changed");
 assert.strictEqual(normalizedSliceHash(progressionSource, "function p9BuildProgressionExport", "// ── END PHASE 9A"), "c7f6b7083b9b30af17d6367e5b6cceb5fcb02ac80cd32202dee787566b8aff30", "Progression-export labels must remain byte-equivalent to accepted 10.9");
 
 const symbols = [...html.matchAll(/<symbol\s+id="(mf-icon-[^"]+)"/g)].map(match => match[1]);

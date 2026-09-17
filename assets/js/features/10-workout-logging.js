@@ -61,7 +61,7 @@ function renderWoExercises(){
     const savedEx=(saved.exercises&&saved.exercises[ex.id])||{sets:[]};
     // v9.4.4: compute progression status once per exercise so prefill can align with badge
     const p942last = p5GetLastEntry(ex.id);
-    const p942status = p9GetProgressionStatus(ex.id, p942last && p942last.validSets.length ? p942last.validSets : null, getF(ex.id,"reps",ex.reps||""), ri);
+    const p942status = p942last&&p942last.evidenceMode==="simple"&&typeof p1111BuildSimpleSuggestion==="function"?p1111BuildSimpleSuggestion(ex.id,p942last.summary,getF(ex.id,"reps",ex.reps||""),ri,{dateKey:p942last.dateKey,subjectStored:true,source:"render"}).status:p9GetProgressionStatus(ex.id, p942last && p942last.validSets.length ? p942last.validSets : null, getF(ex.id,"reps",ex.reps||""), ri);
     // Label helpers: RIR* marks a safer-hold floor
     const wtColLabel  = "Weight";
     const isSaferHold = p942status === "safer_hold" || p942status === "safer-hold";
