@@ -165,6 +165,7 @@ function p950BuildTrackingPreset(presetId, currentValue){
   }
   const preset = p950GetDefaultTrackingPreferences();
   preset.preset = id;
+  preset.liftingDetail = base.liftingDetail;
   if(id === "strength_tracking"){
     preset.modules = {
       habits: false,
@@ -189,7 +190,7 @@ function p950BuildTrackingPreset(presetId, currentValue){
 }
 
 function p950TrackingSelectionMatches(a, b){
-  if(!a || !b || a.liftingDetail !== "full" || b.liftingDetail !== "full") return false;
+  if(!a || !b) return false;
   return P950_TRACKING_MODULE_KEYS.every(function(key){ return a.modules[key] === b.modules[key]; }) &&
     P950_TRACKING_METRIC_KEYS.every(function(key){ return a.dailyMetrics[key] === b.dailyMetrics[key]; });
 }
@@ -208,7 +209,7 @@ function p950NormalizeTrackingSelection(value, fallback){
   const srcMetrics = src.dailyMetrics && typeof src.dailyMetrics === "object" && !Array.isArray(src.dailyMetrics) ? src.dailyMetrics : {};
   delete out.timeline;
   out.preset = P950_TRACKING_PRESETS.includes(src.preset) ? src.preset : def.preset;
-  out.liftingDetail = "full";
+  out.liftingDetail = src.liftingDetail === "simple" ? "simple" : "full";
   out.modules = Object.assign({}, srcModules);
   P950_TRACKING_MODULE_KEYS.forEach(function(key){ out.modules[key] = typeof srcModules[key] === "boolean" ? srcModules[key] : def.modules[key]; });
   out.dailyMetrics = Object.assign({}, srcMetrics);
@@ -449,7 +450,19 @@ function p950InitUserProfile(){
       return;
     }
     const normalized = p950NormalizeUserProfile(parsed);
-    if(JSON.stringify(normalized) !== JSON.stringify(parsed)){
+    const comparable = p950TrackingClone(normalized);
+    const sourceTracking = parsed.preferences && parsed.preferences.tracking;
+    const comparableTracking = comparable.preferences && comparable.preferences.tracking;
+    // liftingDetail is a virtual Full default for older profiles. Its absence
+    // alone must never trigger an eager profile/timeline migration write.
+    if(sourceTracking && comparableTracking){
+      if(!Object.prototype.hasOwnProperty.call(sourceTracking,"liftingDetail")) delete comparableTracking.liftingDetail;
+      const sourceTimeline=Array.isArray(sourceTracking.timeline)?sourceTracking.timeline:[];
+      (comparableTracking.timeline||[]).forEach(function(entry,index){
+        if(sourceTimeline[index]&&!Object.prototype.hasOwnProperty.call(sourceTimeline[index],"liftingDetail"))delete entry.liftingDetail;
+      });
+    }
+    if(JSON.stringify(comparable) !== JSON.stringify(parsed)){
       localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(normalized));
       console.log("[MarcusFit] Migrated/normalized existing user profile.");
     }
@@ -608,7 +621,7 @@ function p950ResetTrackingPreferences(){
     panel.style.display = "block";
     panel.scrollIntoView({behavior:"smooth", block:"nearest"});
   }
-  if(typeof p950ShowTrackingResult === "function") p950ShowTrackingResult("This will restore Full Coaching for new tracking while preserving prior tracking history. Confirm below to proceed.", "warn");
+  if(typeof p950ShowTrackingResult === "function") p950ShowTrackingResult("This will restore Full Coaching and Per Set — Detailed for new tracking while preserving prior tracking history. Confirm below to proceed.", "warn");
 }
 
 function p950ConfirmResetTrackingPreferences(){
@@ -618,7 +631,7 @@ function p950ConfirmResetTrackingPreferences(){
   if(result.ok){
     if(typeof p950RenderTrackingPreferences === "function") p950RenderTrackingPreferences();
     if(typeof p950ApplyTrackingPreferencesToUi === "function") p950ApplyTrackingPreferencesToUi();
-    if(typeof p950ShowTrackingResult === "function") p950ShowTrackingResult("Tracking Preferences reset to Full Coaching. Historical preferences and data were kept.", "ok");
+    if(typeof p950ShowTrackingResult === "function") p950ShowTrackingResult("Tracking Preferences reset to Full Coaching + Per Set — Detailed. Historical preferences and data were kept.", "ok");
   }else if(typeof p950ShowTrackingResult === "function") p950ShowTrackingResult("Tracking reset failed: "+result.error, "err");
   return result;
 }
@@ -678,15 +691,18 @@ function p950BuildTrackingPreferencesExport(startDate, endDate){
   const tracking = p950GetTrackingPreferences(), today = p950LocalDateKey(new Date()), start = /^\d{4}-\d{2}-\d{2}$/.test(String(startDate||"")) ? startDate : today, end = /^\d{4}-\d{2}-\d{2}$/.test(String(endDate||"")) ? endDate : today, current = p950GetTrackingSnapshotForDate(today), currentOff = p950GetDisabledTrackingLabels(current), boundaries = [start];
   tracking.timeline.forEach(function(entry){ if(entry.effectiveDate > start && entry.effectiveDate <= end) boundaries.push(entry.effectiveDate); });
   boundaries.sort();
-  const periods=[];
+  const periods=[],liftingPeriods=[];
   boundaries.forEach(function(boundary,index){
-    const off=p950GetDisabledTrackingLabels(p950GetTrackingSnapshotForDate(boundary));if(!off.length)return;
+    const snapshot=p950GetTrackingSnapshotForDate(boundary),off=p950GetDisabledTrackingLabels(snapshot);
     const through=index+1<boundaries.length?p950AddLocalDays(boundaries[index+1],-1):end;
-    periods.push(boundary+(through!==boundary?" through "+through:"")+": "+off.join(", "));
+    const label=boundary+(through!==boundary?" through "+through:"");
+    if(off.length)periods.push(label+": "+off.join(", "));
+    liftingPeriods.push(label+": "+(snapshot.liftingDetail==="simple"?"Per Lift — Simple":"Per Set — Detailed"));
   });
   return "--- TRACKING PREFERENCES ---\n"
     +"Preset: "+p950TrackingPresetLabel(current.preset)+"\n"
-    +"Lifting Evidence: Full per-set (sets, reps, load, and RIR are unchanged)\n"
+    +"Current Lifting Detail: "+(current.liftingDetail==="simple"?"Per Lift — Simple":"Per Set — Detailed")+"\n"
+    +"Lifting-detail periods in selected range: "+liftingPeriods.join(" | ")+"\n"
     +"Currently Collected: "+p950GetEnabledTrackingLabels(current).join(", ")+"\n"
     +"Intentionally Not Tracked: "+(currentOff.length?currentOff.join(", "):"none")+"\n"
     +"Preference-off periods in selected range: "+(periods.length?periods.join(" | "):"none")+"\n"
@@ -719,6 +735,9 @@ function p950RenderTrackingDraft(){
     const group = input.dataset.mfTrackingKind, key = input.dataset.mfTrackingKey;
     input.checked = !!(draft[group] && draft[group][key]);
   });
+  document.querySelectorAll("[data-mf-lifting-detail]").forEach(function(input){
+    input.checked = input.dataset.mfLiftingDetail === draft.liftingDetail;
+  });
   const metricValues = P950_TRACKING_METRIC_KEYS.map(function(key){ return !!draft.dailyMetrics[key]; });
   const allMetrics = document.getElementById("p950TrackingAllMetrics");
   if(allMetrics){
@@ -726,7 +745,7 @@ function p950RenderTrackingDraft(){
     allMetrics.indeterminate = metricValues.some(Boolean) && !metricValues.every(Boolean);
   }
   const summary = document.getElementById("p950TrackingSummary");
-  if(summary) summary.textContent = p950TrackingPresetLabel(draft.preset)+" · Full lifting";
+  if(summary) summary.textContent = p950TrackingPresetLabel(draft.preset)+" · "+(draft.liftingDetail==="simple"?"Per Lift — Simple":"Per Set — Detailed");
 }
 
 function p950RenderTrackingPreferences(){
@@ -739,7 +758,17 @@ function p950BindTrackingPreferenceControls(){
   if(!document || typeof document.querySelectorAll !== "function") return;
   document.querySelectorAll("[data-mf-tracking-preset]").forEach(function(button){if(button.dataset.mfTrackingBound)return;button.dataset.mfTrackingBound="true";button.addEventListener("click",function(){p950SelectTrackingPreset(button.dataset.mfTrackingPreset);});});
   document.querySelectorAll("[data-mf-tracking-kind][data-mf-tracking-key]").forEach(function(input){if(input.dataset.mfTrackingBound)return;input.dataset.mfTrackingBound="true";input.addEventListener("change",function(){p950UpdateTrackingToggle(input.dataset.mfTrackingKind,input.dataset.mfTrackingKey,input.checked);});});
+  document.querySelectorAll("[data-mf-lifting-detail]").forEach(function(input){if(input.dataset.mfTrackingBound)return;input.dataset.mfTrackingBound="true";input.addEventListener("change",function(){if(input.checked)p950UpdateLiftingDetail(input.dataset.mfLiftingDetail);});});
   [["p950TrackingAllMetrics","change",function(event){p950UpdateTrackingMetricGroup(event.currentTarget.checked); }],["p950TrackingSave","click",p950SaveTrackingPreferencesFromUI],["p950TrackingReset","click",p950ResetTrackingPreferences],["p950TrackingResetConfirm","click",p950ConfirmResetTrackingPreferences],["p950TrackingResetCancel","click",p950CancelResetTrackingPreferences]].forEach(function(binding){const element=document.getElementById(binding[0]);if(!element||element.dataset.mfTrackingBound)return;element.dataset.mfTrackingBound="true";element.addEventListener(binding[1],binding[2]);});
+}
+
+function p950UpdateLiftingDetail(value){
+  if(!p950TrackingUiDraft) p950TrackingUiDraft = p950GetTrackingPreferences();
+  p950TrackingUiDraft.liftingDetail = value === "simple" ? "simple" : "full";
+  p950TrackingUiDraft.preset = p950DetectTrackingPreset(p950TrackingUiDraft);
+  p950RenderTrackingDraft();
+  p950ShowTrackingResult("Review your selection, then save Tracking Preferences.", "warn");
+  return p950TrackingUiDraft.liftingDetail;
 }
 
 function p950SelectTrackingPreset(presetId){

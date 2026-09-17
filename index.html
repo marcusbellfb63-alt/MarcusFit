@@ -585,6 +585,15 @@
     </div>
 
     <fieldset class="mf-tracking-group">
+      <legend>Lifting Detail</legend>
+      <div class="mf-tracking-grid mf-lifting-detail-grid">
+        <label class="mf-tracking-choice"><span><strong>Per Set — Detailed</strong><small>Log weight, reps, and RIR for each individual set.</small></span><input type="radio" name="p950LiftingDetail" value="full" data-mf-lifting-detail="full"></label>
+        <label class="mf-tracking-choice"><span><strong>Per Lift — Simple</strong><small>Log one conservative summary for each exercise.</small></span><input type="radio" name="p950LiftingDetail" value="simple" data-mf-lifting-detail="simple"></label>
+      </div>
+      <div class="mf-tracking-status">Simple uses your lowest-rep work set and hardest (lowest) RIR.</div>
+    </fieldset>
+
+    <fieldset class="mf-tracking-group">
       <legend>Daily Metrics</legend>
       <label class="mf-tracking-choice mf-tracking-choice-master"><span><strong>All Daily Metrics</strong><small>Show or hide the complete group</small></span><input id="p950TrackingAllMetrics" type="checkbox"></label>
       <div class="mf-tracking-grid">
@@ -623,8 +632,8 @@
     </div>
     <div class="sync-result" id="p950TrackingResult" role="status" aria-live="polite"></div>
     <div id="p950TrackingResetConfirmPanel" data-mf-critical-panel class="mf-critical-panel mf-critical-panel-error" style="display:none;">
-      <div class="mf-critical-title error"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-alert"></use></svg>Reset tracking to Full Coaching?</div>
-      <div class="mf-critical-copy">Prior tracking choices and all recorded history stay intact. Full Coaching becomes effective for new tracking today.</div>
+      <div class="mf-critical-title error"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-alert"></use></svg>Reset tracking to Full Coaching + Detailed?</div>
+      <div class="mf-critical-copy">Prior tracking choices and all recorded history stay intact. Full Coaching with Per Set — Detailed becomes effective for new tracking today.</div>
       <div class="mf-inline-actions">
         <button class="mf-confirm error" id="p950TrackingResetConfirm" type="button"><span class="mf-icon-label"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-check"></use></svg>CONFIRM RESET</span></button>
         <button class="mf-cancel" id="p950TrackingResetCancel" type="button">Cancel</button>
