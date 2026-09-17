@@ -736,6 +736,16 @@ function mfBasketballWriteStore(sessions){
   return store;
 }
 
+function mfBasketballPreserveDormantFields(input,existing,recordDate){
+  const next=mfBasketballClone(input||{}),trackingDate=mfBasketballDateKey(recordDate||next.date||(existing&&existing.date)||new Date()),caloriesEnabled=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.activeCalories",trackingDate),notesEnabled=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.sessionNotes",trackingDate);
+  if(!caloriesEnabled){if(existing&&Object.prototype.hasOwnProperty.call(existing,"activeCalories"))next.activeCalories=existing.activeCalories;else delete next.activeCalories;}
+  if(!notesEnabled){
+    if(existing&&Object.prototype.hasOwnProperty.call(existing,"notes"))next.notes=existing.notes;else delete next.notes;
+    const oldDrills={};(existing&&existing.drills||[]).forEach(function(drill){oldDrills[drill.drillId]=drill;});(next.drills||[]).forEach(function(drill){const old=oldDrills[drill.drillId];if(old&&Object.prototype.hasOwnProperty.call(old,"notes"))drill.notes=old.notes;else delete drill.notes;});
+  }
+  return next;
+}
+
 function mfBasketballSaveSession(input,options){
   options=options||{};
   const store=mfBasketballReadStore();
@@ -743,6 +753,8 @@ function mfBasketballSaveSession(input,options){
   const existingId=String(options.existingId||"");
   const existing=existingId?store.sessions.find(function(session){return session.id===existingId;}):null;
   if(existingId&&!existing)return {ok:false,errors:["The basketball session being edited no longer exists."],session:null};
+  const recordDate=mfBasketballDateKey(input&&input.date||(existing&&existing.date)||new Date());
+  input=mfBasketballPreserveDormantFields(input,existing,recordDate);
   const now=String(options.now||new Date().toISOString());
   const normalized=mfBasketballNormalizeSession(input,{
     id:existing?existing.id:(options.id||""),
@@ -921,6 +933,15 @@ function mfBasketballFormatDate(date){return new Date(date+"T12:00:00").toLocale
 function mfBasketballFormValue(id){const el=document.getElementById(id);return el?el.value:"";}
 function mfBasketballSetFormValue(id,value){const el=document.getElementById(id);if(el)el.value=value==null?"":String(value);}
 function mfBasketballSelectedAppDate(){return typeof tDate!=="undefined"?mfBasketballDateKey(tDate):mfBasketballDateKey(new Date());}
+function mfBasketballSetTrackingHidden(element,hidden){if(!element)return;element.classList.toggle("mf-tracking-hidden",!!hidden);element.setAttribute("aria-hidden",hidden?"true":"false");}
+function mfBasketballApplyRecordTrackingToForm(recordDate,revealExisting){
+  if(typeof p950GetTrackingSnapshotForDate!=="function")return null;
+  const snapshot=p950GetTrackingSnapshotForDate(mfBasketballDateKey(recordDate||mfBasketballSelectedAppDate())),section=document.getElementById("p6sec-basketball");
+  if(revealExisting&&section)mfBasketballSetTrackingHidden(section,false);
+  if(section)section.querySelectorAll("[data-mf-collection-module]").forEach(function(element){const key=element.dataset.mfCollectionModule;if(key==="activeCalories"||key==="sessionNotes")mfBasketballSetTrackingHidden(element,!snapshot.modules[key]);});
+  document.querySelectorAll(".mf-basketball-drill-notes").forEach(function(element){mfBasketballSetTrackingHidden(element,!snapshot.modules.sessionNotes);});
+  return snapshot;
+}
 
 function mfBasketballElement(tag,className,textValue){
   const element=document.createElement(tag);if(className)element.className=className;if(textValue!=null)element.textContent=String(textValue);return element;
@@ -965,13 +986,8 @@ function mfBasketballCloseProposalReview(){
 }
 
 function mfBasketballRenderProposalStatus(){
-  const root=document.getElementById("mfBasketballProposalStatus");if(!root)return;const proposal=mfBasketballGetProposal();root.replaceChildren();root.hidden=true;root.className="mf-basketball-proposal-status";
-  if(!proposal)return;
-  if(proposal.status==="pending"){
-    root.hidden=false;root.appendChild(mfBasketballElement("strong","","Pending basketball proposal"));root.appendChild(document.createTextNode(" · "+proposal.summary));const review=mfBasketballElement("button","","REVIEW BASKETBALL PROPOSAL");review.type="button";review.addEventListener("click",mfBasketballOpenProposalReview);root.appendChild(review);
-  }else if(proposal.status==="applied"&&proposal.undoSnapshot){
-    root.hidden=false;root.className+=" applied";root.appendChild(mfBasketballElement("strong","","Basketball personalization applied"));root.appendChild(document.createTextNode(" · "+proposal.summary));const review=mfBasketballElement("button","","REVIEW / UNDO LAST APPLY");review.type="button";review.addEventListener("click",mfBasketballOpenProposalReview);root.appendChild(review);
-  }
+  const roots=[document.getElementById("mfBasketballProposalStatus"),document.getElementById("mfBasketballToolsProposalStatus")].filter(Boolean),proposal=mfBasketballGetProposal();
+  roots.forEach(function(root){root.replaceChildren();root.hidden=true;root.className="mf-basketball-proposal-status";if(!proposal)return;if(proposal.status==="pending"){root.hidden=false;root.appendChild(mfBasketballElement("strong","","Pending basketball proposal"));root.appendChild(document.createTextNode(" · "+proposal.summary));const review=mfBasketballElement("button","","REVIEW BASKETBALL PROPOSAL");review.type="button";review.addEventListener("click",mfBasketballOpenProposalReview);root.appendChild(review);}else if(proposal.status==="applied"&&proposal.undoSnapshot){root.hidden=false;root.className+=" applied";root.appendChild(mfBasketballElement("strong","","Basketball personalization applied"));root.appendChild(document.createTextNode(" · "+proposal.summary));const review=mfBasketballElement("button","","REVIEW / UNDO LAST APPLY");review.type="button";review.addEventListener("click",mfBasketballOpenProposalReview);root.appendChild(review);}});
 }
 
 function mfBasketballOpenProposalReview(){
@@ -1153,7 +1169,7 @@ function mfBasketballOpenStructuredLogger(program,planned,existing){
   mfBasketballSetFormValue("mfBasketballStructuredDate",existing&&existing.date||mfBasketballSelectedAppDate());mfBasketballSetFormValue("mfBasketballStructuredMinutes",existing&&existing.minutes||"");mfBasketballSetFormValue("mfBasketballStructuredActiveCalories",existing&&existing.activeCalories!=null?existing.activeCalories:"");mfBasketballSetFormValue("mfBasketballStructuredNotes",existing&&existing.notes||"");
   drillsRoot.replaceChildren();const existingById={};((existing&&existing.drills)||[]).forEach(function(drill){existingById[drill.drillId]=drill;});planned.drills.forEach(function(drill,index){drillsRoot.appendChild(mfBasketballRenderDrillCard(drill,index,existingById[drill.id]));});
   const advance=document.getElementById("mfBasketballFinishAdvance"),repeat=document.getElementById("mfBasketballFinishRepeat");if(advance)advance.hidden=!!existing;if(repeat)repeat.textContent=existing?"SAVE SESSION CHANGES":"FINISH & REPEAT SESSION";
-  root.hidden=false;if(document.body&&document.body.classList)document.body.classList.add("mf-basketball-structured-open");mfBasketballShowStructuredMessage("");mfBasketballUpdateStructuredSummary();mfBasketballShowStructuredDrill(0);
+  root.hidden=false;if(document.body&&document.body.classList)document.body.classList.add("mf-basketball-structured-open");mfBasketballShowStructuredMessage("");mfBasketballUpdateStructuredSummary();mfBasketballApplyRecordTrackingToForm(mfBasketballFormValue("mfBasketballStructuredDate"),!!existing);mfBasketballShowStructuredDrill(0);
 }
 
 function mfBasketballStartPlannedSession(){
@@ -1233,6 +1249,7 @@ function mfBasketballResetForm(preserveMessage){
   mfBasketballEditingId=null;
   ["mfBasketballType","mfBasketballMinutes","mfBasketballDribbling","mfBasketballShootingMade","mfBasketballShootingAttempted","mfBasketballFreeThrowsMade","mfBasketballFreeThrowsAttempted","mfBasketballNotes"].forEach(function(id){mfBasketballSetFormValue(id,"");});
   mfBasketballSetFormValue("mfBasketballDate",mfBasketballSelectedAppDate());
+  mfBasketballApplyRecordTrackingToForm(mfBasketballFormValue("mfBasketballDate"),false);
   const save=document.getElementById("mfBasketballSave"),cancel=document.getElementById("mfBasketballCancel");
   if(save)save.textContent="SAVE BASKETBALL SESSION";
   if(cancel)cancel.hidden=true;
@@ -1264,6 +1281,7 @@ function mfBasketballStartEdit(id){
   if(save)save.textContent="SAVE SESSION CHANGES";if(cancel)cancel.hidden=false;if(section)section.classList.add("open");
   mfBasketballShowMessage("Editing "+mfBasketballTypeLabel(session.type)+" from "+mfBasketballFormatDate(session.date)+".","ok");
   if(typeof showScreen==="function")showScreen("log");
+  mfBasketballApplyRecordTrackingToForm(session.date,true);
   if(section&&typeof section.scrollIntoView==="function")section.scrollIntoView({behavior:"smooth",block:"start"});
   const dateInput=document.getElementById("mfBasketballDate");if(dateInput&&typeof dateInput.focus==="function")dateInput.focus();
 }
@@ -1383,7 +1401,7 @@ function mfBasketballBuildExport(range,sessions,programStateValue){
   const stats=mfBasketballAggregate(selected),overrides=mfBasketballReadOverrides(),overrideCounts=mfBasketballOverrideCounts(overrides.store),proposal=mfBasketballGetProposal();let output="";
   if(rangeValue!=="program")output+="--- ACTIVE CALORIE ESTIMATES ---\nSource: optional user-entered watch/wearable estimates; not precise energy expenditure.\nRecorded total: "+(calories.recorded?calories.total+" active kcal":"not recorded")+" | Average: "+(calories.average==null?"not recorded":calories.average.toFixed(0)+" active kcal per calorie-recorded session")+"\nLifting: "+(calories.liftingRecorded?calories.liftingTotal+" active kcal across "+calories.liftingRecorded+" session(s)":"no recorded estimates")+" | Basketball: "+(calories.basketballRecorded?calories.basketballTotal+" active kcal across "+calories.basketballRecorded+" structured session(s)":"no recorded estimates")+"\nCoverage: "+calories.recorded+" of "+calories.supported+" supported sessions include an estimate; missing sessions are excluded, not treated as zero.\n\n";
   if(!selected.length&&!program)return output;
-  output+="--- BASKETBALL ACTIVITY ---\n";
+  output+="--- BASKETBALL ACTIVITY ---\nTracking preference: "+(typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.basketball")?"on":"intentionally off; absence of new sessions is neutral")+".\n";
   if(program){output+="Active program: "+program.name+" [programId="+program.id+", version="+program.version+"]\n";output+="Next planned session: "+next.name+" [sessionId="+next.id+"] | Position "+(stateResult.state.nextSessionIndex+1)+" of "+program.sessions.length+"\n";output+="Resolved next drills:\n";const progressionLines=[];next.drills.forEach(function(drill,index){const source=drill.source==="ai_proposal"||drill.personalization?"personalized":"base",progression=mfBasketballProgressionForDrill(drill.id,allSessions,drill,mfBasketballIdentity(program,next,drill)),prescription=mfBasketballPrescriptionFor(drill);output+="  "+(index+1)+". "+drill.name+" [drillId="+drill.id+", mode="+drill.trackingMode+", source="+source+"] — "+mfBasketballDescribeTarget(drill)+"\n";if(prescription)output+="     "+mfBasketballExportPrescription(prescription,"Planned/resolved prescription")+"\n";if(progression.exposures.length)progressionLines.push("  · "+drill.name+": "+progression.label+" — "+progression.guidance);});if(progressionLines.length)output+="Derived progression context (comparable identity only):\n"+progressionLines.join("\n")+"\n";}
   output+="Applied personalization: "+overrideCounts.modified+" modified, "+overrideCounts.added+" added, "+overrideCounts.disabled+" disabled, "+overrideCounts.reordered+" reordered session(s).\n";
   output+="Pending basketball proposal: "+(proposal&&proposal.status==="pending"?proposal.summary+" ("+proposal.changes.length+" actions; review required)":"none")+".\n";
@@ -1396,11 +1414,11 @@ function mfBasketballBuildExport(range,sessions,programStateValue){
 }
 
 function mf105BuildCrossDomainExport(context,range,sessions,programStateValue){
-  const base=context&&context.baseSummary||{},selected=mfBasketballSessionsForRange(String(range||""),Array.isArray(sessions)?sessions:[]),stats=mfBasketballAggregate(selected),programState=programStateValue&&programStateValue.state?programStateValue:mfBasketballReadProgramState(),program=programState.parseOk&&mfBasketballGetResolvedProgram(programState.state.activeProgramId,programState.state.activeProgramVersion),habitProposal=typeof p960GetHabitProposal==="function"?p960GetHabitProposal():null,basketballProposal=mfBasketballGetProposal(),rotation=p9489AnalyzeExerciseRotation(),conditioning=stats.totalSessions>0&&Number(base.dedicatedCardioSessions||0)===0?"Basketball is the only recorded conditioning/cardio source in this range; treat it as replacing dedicated cardio in the recorded evidence.":stats.totalSessions>0?"Basketball and dedicated cardio both occurred; review redundancy and total conditioning load.":"No Basketball conditioning was recorded in this range.",interaction=stats.totalSessions>=2&&Number(base.lowerBodySessions||0)>=2?"Concurrent-load flag: multiple Basketball sessions and multiple lower-body lifting sessions occurred; review leg fatigue before progressing either domain.":"No obvious Basketball/lower-body volume conflict is established by the selected-range counts.";
+  const base=context&&context.baseSummary||{},selected=mfBasketballSessionsForRange(String(range||""),Array.isArray(sessions)?sessions:[]),stats=mfBasketballAggregate(selected),programState=programStateValue&&programStateValue.state?programStateValue:mfBasketballReadProgramState(),program=programState.parseOk&&mfBasketballGetResolvedProgram(programState.state.activeProgramId,programState.state.activeProgramVersion),habitProposal=typeof p960GetHabitProposal==="function"?p960GetHabitProposal():null,basketballProposal=mfBasketballGetProposal(),rotation=p9489AnalyzeExerciseRotation(),basketballOn=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.basketball"),habitsOn=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.habits"),conditioning=!basketballOn&&!stats.totalSessions?"Basketball collection is intentionally off; no absence or conditioning inference is made.":stats.totalSessions>0&&Number(base.dedicatedCardioSessions||0)===0?"Basketball is the only recorded conditioning/cardio source in this range; treat it as replacing dedicated cardio in the recorded evidence.":stats.totalSessions>0?"Basketball and dedicated cardio both occurred; review redundancy and total conditioning load.":"No Basketball conditioning was recorded in this enabled range.",interaction=!basketballOn&&!stats.totalSessions?"Basketball collection is intentionally off; no lower-body conflict inference is made.":stats.totalSessions>=2&&Number(base.lowerBodySessions||0)>=2?"Concurrent-load flag: multiple Basketball sessions and multiple lower-body lifting sessions occurred; review leg fatigue before progressing either domain.":"No obvious Basketball/lower-body volume conflict is established by the selected-range counts.";
   return "--- CROSS-DOMAIN COACHING SUMMARY ---\n"
     +"Selected evidence range: "+(base.rangeLabel||"current selection")+".\n"
     +"Training load: lifting "+(base.liftingSessions||0)+" session(s), including "+(base.lowerBodySessions||0)+" lower-body; Basketball "+stats.totalSessions+" session(s) / "+stats.totalMinutes+" min; dedicated cardio "+(base.dedicatedCardioSessions||0)+" session(s).\n"
-    +"Scheduled Habit completion: "+(base.habitAdherence||"n/a")+"; recurring medication adherence is reported in its own read-only section.\n"
+    +"Scheduled Habit completion: "+(habitsOn?(base.habitAdherence||"n/a"):"tracking intentionally off; no negative adherence inference")+"; recurring medication adherence is reported in its own read-only section.\n"
     +"Program basis: lifting basis and resolved templates are authoritative below; Basketball program "+(program?program.name+" [programId="+program.id+", version="+program.version+"]":"none active")+".\n"
     +"Current experiments/recommendations: "+(base.activeRecommendationCount||0)+" active lifting recommendation record(s); rotation analysis found "+rotation.candidatesTotal+" candidate(s) and "+rotation.weakPointTotal+" weak-point/order signal(s).\n"
     +"Pending ownership: Habit proposal "+(habitProposal&&habitProposal.status==="pending"?"pending - do not replace":"none")+"; Basketball proposal "+(basketballProposal&&basketballProposal.status==="pending"?"pending - do not replace":"none")+".\n"
@@ -1489,7 +1507,7 @@ if(typeof updateTrackerDate==="function"){
   const mfBasketballLegacyUpdateTrackerDate=updateTrackerDate;updateTrackerDate=function(){const result=mfBasketballLegacyUpdateTrackerDate();if(!mfBasketballEditingId)mfBasketballSetFormValue("mfBasketballDate",mfBasketballSelectedAppDate());mfBasketballUpdateBadge();return result;};
 }
 if(typeof showScreen==="function"){
-  const mfBasketballLegacyShowScreen=showScreen;showScreen=function(name){const result=mfBasketballLegacyShowScreen(name);if(name==="history")mfBasketballRenderHistory();if(name==="analytics")mfBasketballRenderStats();if(name==="log")mfBasketballUpdateBadge();return result;};
+  const mfBasketballLegacyShowScreen=showScreen;showScreen=function(name){const result=mfBasketballLegacyShowScreen(name);if(name==="history")mfBasketballRenderHistory();if(name==="analytics")mfBasketballRenderStats();if(name==="log")mfBasketballUpdateBadge();if(typeof p950ApplyTrackingPreferencesToUi==="function")p950ApplyTrackingPreferencesToUi(name==="log"&&typeof tDate!=="undefined"?p950LocalDateKey(tDate):undefined);return result;};
 }
 if(typeof genExport==="function"){
   const mfBasketballLegacyGenExport=genExport;genExport=function(){
@@ -1511,6 +1529,9 @@ function mfBasketballHandleSyncExtension(runCoreSync){
     if(!match)return false;
     const inner=match[1].trim().replace(/^```[a-zA-Z]*\n?/,"").replace(/\n?```$/,"").trim();let payload;
     try{payload=JSON.parse(inner);}catch(e){return mfBasketballLegacySyncExtension?mfBasketballLegacySyncExtension(runCoreSync):false;}
+    if(payload&&!Array.isArray(payload)&&Object.keys(payload).some(function(key){return /tracking|profile/i.test(key); })){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Sync rejected before any writes: Tracking Preferences are user-controlled and cannot be changed by AI Sync.";}return true;}
+    if(payload&&!Array.isArray(payload)&&payload.habitProposal&&typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.habits")){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Sync rejected before any writes: Habit tracking is intentionally off. Re-enable it before importing a Habit proposal.";}return true;}
+    if(payload&&!Array.isArray(payload)&&payload.basketballProposal&&typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.basketball")){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Sync rejected before any writes: Basketball tracking is intentionally off. Re-enable it before importing a Basketball proposal.";}return true;}
     if(!payload||Array.isArray(payload)||!payload.basketballProposal)return mfBasketballLegacySyncExtension?mfBasketballLegacySyncExtension(runCoreSync):false;
     const envelopeExtras=Object.keys(payload).filter(function(k){return !["updates","habitProposal","basketballProposal"].includes(k);});
     const envelopeError=envelopeExtras.length?"Mixed Sync payload contains unsupported top-level field(s): "+envelopeExtras.join(", ")+".":(Object.prototype.hasOwnProperty.call(payload,"updates")&&!Array.isArray(payload.updates)?"Mixed Sync updates must be an array.":"");
@@ -1620,8 +1641,9 @@ if(typeof process!=="undefined"&&process&&process.versions&&process.versions.nod
 }
 
 function mfBasketballInit(){
-  const save=document.getElementById("mfBasketballSave"),cancel=document.getElementById("mfBasketballCancel"),deleteConfirm=document.getElementById("mfBasketballDeleteConfirm"),deleteCancel=document.getElementById("mfBasketballDeleteCancel"),dialog=document.getElementById("mfBasketballDeleteDialog"),programSelect=document.getElementById("mfBasketballProgramSelectButton"),viewProgram=document.getElementById("mfBasketballViewProgram"),reviewHistory=document.getElementById("mfBasketballReviewHistory"),restart=document.getElementById("mfBasketballRestartProgram"),programConfirm=document.getElementById("mfBasketballProgramDialogConfirm"),programCancel=document.getElementById("mfBasketballProgramDialogCancel"),programDialog=document.getElementById("mfBasketballProgramDialog"),closeStructured=document.getElementById("mfBasketballCloseStructured"),finishAdvance=document.getElementById("mfBasketballFinishAdvance"),finishRepeat=document.getElementById("mfBasketballFinishRepeat");
+  const save=document.getElementById("mfBasketballSave"),cancel=document.getElementById("mfBasketballCancel"),dateInput=document.getElementById("mfBasketballDate"),structuredDateInput=document.getElementById("mfBasketballStructuredDate"),deleteConfirm=document.getElementById("mfBasketballDeleteConfirm"),deleteCancel=document.getElementById("mfBasketballDeleteCancel"),dialog=document.getElementById("mfBasketballDeleteDialog"),programSelect=document.getElementById("mfBasketballProgramSelectButton"),viewProgram=document.getElementById("mfBasketballViewProgram"),reviewHistory=document.getElementById("mfBasketballReviewHistory"),restart=document.getElementById("mfBasketballRestartProgram"),programConfirm=document.getElementById("mfBasketballProgramDialogConfirm"),programCancel=document.getElementById("mfBasketballProgramDialogCancel"),programDialog=document.getElementById("mfBasketballProgramDialog"),closeStructured=document.getElementById("mfBasketballCloseStructured"),finishAdvance=document.getElementById("mfBasketballFinishAdvance"),finishRepeat=document.getElementById("mfBasketballFinishRepeat");
   if(save)save.addEventListener("click",mfBasketballSaveFromUI);if(cancel)cancel.addEventListener("click",function(){mfBasketballResetForm();});if(deleteConfirm)deleteConfirm.addEventListener("click",mfBasketballConfirmDelete);if(deleteCancel)deleteCancel.addEventListener("click",mfBasketballCloseDelete);
+  if(dateInput)dateInput.addEventListener("change",function(){mfBasketballApplyRecordTrackingToForm(dateInput.value,!!mfBasketballEditingId);});if(structuredDateInput)structuredDateInput.addEventListener("change",function(){mfBasketballApplyRecordTrackingToForm(structuredDateInput.value,!!(mfBasketballStructuredContext&&mfBasketballStructuredContext.existingId));});
   if(programSelect)programSelect.addEventListener("click",mfBasketballChooseProgramFromUI);if(viewProgram)viewProgram.addEventListener("click",mfBasketballToggleProgramView);if(reviewHistory)reviewHistory.addEventListener("click",mfBasketballReviewHistory);if(restart)restart.addEventListener("click",function(){mfBasketballOpenProgramDialog({kind:"restart"});});if(programConfirm)programConfirm.addEventListener("click",mfBasketballConfirmProgramAction);if(programCancel)programCancel.addEventListener("click",mfBasketballCloseProgramDialog);if(closeStructured)closeStructured.addEventListener("click",mfBasketballCloseStructured);if(finishAdvance)finishAdvance.addEventListener("click",function(){mfBasketballFinishFromUI("advance");});if(finishRepeat)finishRepeat.addEventListener("click",function(){mfBasketballFinishFromUI("repeat");});
   if(dialog)dialog.addEventListener("click",function(event){if(event.target===dialog)mfBasketballCloseDelete();});
   if(programDialog)programDialog.addEventListener("click",function(event){if(event.target===programDialog)mfBasketballCloseProgramDialog();});

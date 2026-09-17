@@ -160,4 +160,7 @@ function renderHistoryFromEntries(entries){
     const habitBadge=habitsDone!==null?`<span class="hist-pill">${p7HistoryIcon("brain")} ${habitsDone}/${HABITS.length}</span>`:"";
     return `<div class="hist-entry${hasWo?" expandable":""}" onclick="${hasWo?"this.classList.toggle('open')":""}" ><div class="hist-date"><span>${dt} \xb7 ${(d.logGym||"home").toUpperCase()}</span>${hasWo?'<span class="mf-icon-label" style="color:var(--muted);font-size:10px;">tap for sets '+p7HistoryIcon("chevron-down")+'</span>':""}</div><div class="hist-pills">${pills.map(p=>`<span class="hist-pill mf-icon-label">${p}</span>`).join("")}${habitBadge}</div>${d.notes?`<div class="hist-notes">"${d.notes}"</div>`:""} ${woDetail}</div>`;
   }).join("");
+  if(typeof p950GetDisabledTrackingLabels==="function"){
+    const off=p950GetDisabledTrackingLabels();if(off.length)c.insertAdjacentHTML("afterbegin",'<div class="info-box mf-tracking-history-context"><strong>Tracking Preferences context</strong><br>'+off.length+' collection area'+(off.length===1?' is':'s are')+' currently off. Existing records below remain factual; preference-off blanks are neutral.</div>');
+  }
 }

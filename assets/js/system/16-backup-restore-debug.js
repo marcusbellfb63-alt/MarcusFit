@@ -48,6 +48,8 @@ function p8492SummarizeBackup(rawOrObj){
     hasUserProfile: false,
     userProfileSchemaVersion: null,
     userProfileDisplayName: null,
+    userProfileTrackingPreset: null,
+    userProfileTrackingTimelineEntries: 0,
     hasOnboardingState: false,
     onboardingStatus: null,
     onboardingCurrentStep: null,
@@ -97,6 +99,9 @@ function p8492SummarizeBackup(rawOrObj){
           const norm = p950NormalizeUserProfile(profileObj);
           result.userProfileSchemaVersion = norm.schemaVersion;
           result.userProfileDisplayName = norm.identity.displayName;
+          const tracking = norm.preferences && norm.preferences.tracking ? p950NormalizeTrackingPreferences(norm.preferences.tracking) : p950GetDefaultTrackingPreferences();
+          result.userProfileTrackingPreset = tracking.preset;
+          result.userProfileTrackingTimelineEntries = tracking.timeline.length;
         } catch(e){
           result.warnings.push("User profile in this backup could not be parsed.");
         }
@@ -156,6 +161,7 @@ function p8492FormatSummaryLines(s){
     "Lifecycle: " + (s.hasLifecycle ? "yes" : "no") + " | Overrides: " + (s.hasOverrides ? "yes" : "no") + " | Draft: " + (s.hasDraft ? "yes" : "no"),
     "Recommendations: " + (s.hasRecommendations ? "yes" : "no") + " | AI coaching prefs: " + (s.hasAiPrefs ? "yes" : "no"),
     "User Profile: " + (s.hasUserProfile ? ("Yes — " + (s.userProfileDisplayName || "unknown") + " (schema v" + (s.userProfileSchemaVersion != null ? s.userProfileSchemaVersion : "?") + ")") : "Not included"),
+    "Tracking Preferences: " + (s.hasUserProfile ? ((s.userProfileTrackingPreset || "Full Coaching virtual default") + " | " + s.userProfileTrackingTimelineEntries + " timeline entr" + (s.userProfileTrackingTimelineEntries===1?"y":"ies")) : "Not included"),
     "Onboarding State: " + (s.hasOnboardingState ? ("Yes — status: " + (s.onboardingStatus || "unknown") + ", step: " + (s.onboardingCurrentStep != null ? s.onboardingCurrentStep : "?")) : "Not included"),
     "Recurring schedules: " + (s.hasRecurringItems ? "yes" : "no") + " | Recurring events: " + (s.hasRecurringEvents ? "yes" : "no"),
     "Approx size: " + s.approxSizeKB + " KB"

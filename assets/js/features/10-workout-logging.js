@@ -88,11 +88,13 @@ function renderWoExercises(){
     logEl.appendChild(block);
   });
   renderWoRecs();
+  if(typeof p950ApplyTrackingPreferencesToUi==="function")p950ApplyTrackingPreferencesToUi(p950LocalDateKey(tDate));
 }
 
 function getTodayWoData(){try{return JSON.parse(localStorage.getItem(dKey(tDate)+"-wo")||"{}")}catch{return{}}}
 
-function collectWoData(){
+function collectWoData(recordDate){
+  const trackingDate=recordDate||(typeof tDate!=="undefined"?(typeof p950LocalDateKey==="function"?p950LocalDateKey(tDate):tDate):undefined);
   const dayIdx=document.getElementById("woDaySelect").value;
   if(dayIdx==="")return null;
   const dayIdxInt = parseInt(dayIdx);
@@ -109,10 +111,18 @@ function collectWoData(){
       const rir=document.querySelector(`select[data-exid="${ex.id}"][data-set="${s}"][data-field="rir"]`);
       sets.push({wt:wt?wt.value:"",reps:reps?reps.value:"",rir:rir?rir.value:""});
     }
-    const noteEl=document.querySelector(`input[data-exid="${ex.id}"][data-field="exnote"]`);
-    if(sets.some(s=>s.wt||s.reps)||(noteEl&&noteEl.value)){exData[ex.id]={sets,note:noteEl?noteEl.value:""};}
+    const noteEl=document.querySelector(`input[data-exid="${ex.id}"][data-field="exnote"]`),notesEnabled=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.sessionNotes",trackingDate);
+    if(sets.some(s=>s.wt||s.reps)||(notesEnabled&&noteEl&&noteEl.value)){exData[ex.id]={sets};if(notesEnabled)exData[ex.id].note=noteEl?noteEl.value:"";}
   });
-  const workout={gym:logGym,dayIdx,dayName:day.name,exercises:exData},energy=typeof mfWorkoutReadActiveCalories==="function"?mfWorkoutReadActiveCalories(false):{ok:true,value:null};if(energy.ok&&energy.value!==null)workout.activeCalories=energy.value;return workout;
+  const workout={gym:logGym,dayIdx,dayName:day.name,exercises:exData},energyEnabled=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.activeCalories",trackingDate),energy=typeof mfWorkoutReadActiveCalories==="function"?mfWorkoutReadActiveCalories(false):{ok:true,value:null};if(energyEnabled&&energy.ok&&energy.value!==null)workout.activeCalories=energy.value;return workout;
+}
+
+function p85PreserveDormantWorkoutFields(next,prior,recordDate){
+  if(!next||!prior||typeof prior!=="object")return next;
+  const trackingDate=recordDate||(typeof tDate!=="undefined"?(typeof p950LocalDateKey==="function"?p950LocalDateKey(tDate):tDate):undefined);
+  if(typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.activeCalories",trackingDate)&&Object.prototype.hasOwnProperty.call(prior,"activeCalories"))next.activeCalories=prior.activeCalories;
+  if(typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.sessionNotes",trackingDate))Object.keys(prior.exercises||{}).forEach(function(id){const old=prior.exercises[id];if(!old||!Object.prototype.hasOwnProperty.call(old,"note"))return;if(!next.exercises[id])next.exercises[id]={sets:Array.isArray(old.sets)?old.sets:[]};next.exercises[id].note=old.note;});
+  return next;
 }
 
 function updateTrackerDate(){document.getElementById("trackerDateLabel").textContent=tDate.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});p85CheckFutureDate();loadDay();p949HideReview();}
@@ -383,31 +393,36 @@ function p85CancelFutureSave(){
 }
 
 function p85ExecuteSave(){
+  const key=dKey(tDate),rawBefore=localStorage.getItem(key),rawWorkoutBefore=localStorage.getItem(key+"-wo");let before={},workoutBefore={};try{before=rawBefore?JSON.parse(rawBefore):{};}catch(e){}try{workoutBefore=rawWorkoutBefore?JSON.parse(rawWorkoutBefore):{};}catch(e){}
+  const recordDate=typeof p950LocalDateKey==="function"?p950LocalDateKey(tDate):tDate,tracking=typeof p950GetTrackingSnapshotForDate==="function"?p950GetTrackingSnapshotForDate(recordDate):null;
   // Save workout data
-  if(document.getElementById("woDaySelect").value!==""&&!mfWorkoutReadActiveCalories(true).ok)return;
-  const woData=collectWoData();
-  if(woData)localStorage.setItem(dKey(tDate)+"-wo",JSON.stringify(woData));
+  if(document.getElementById("woDaySelect").value!==""&&(!tracking||tracking.modules.activeCalories)&&!mfWorkoutReadActiveCalories(true).ok)return;
+  const woData=collectWoData(recordDate);
+  if(woData)localStorage.setItem(dKey(tDate)+"-wo",JSON.stringify(p85PreserveDormantWorkoutFields(woData,workoutBefore,recordDate)));
 
   const data={
     date:tDate.toISOString().slice(0,10),
-    weight:document.getElementById("weightIn").value,
-    sleep:document.getElementById("sleepIn").value,
-    protein:document.getElementById("proteinIn").value,
-    water:document.getElementById("waterIn").value,
-    bm:toggleStates.bm,
-    bmNotes:document.getElementById("bmNotes").value,
-    mood:document.getElementById("moodSlider").value,
-    hunger:document.getElementById("hungerSlider").value,
     workout:toggleStates.wo,
-    zep:toggleStates.zep,
     logGym,
-    woDayIdx:document.getElementById("woDaySelect").value,
-    notes:document.getElementById("dayNotes").value,
-    habits:habitState
+    woDayIdx:document.getElementById("woDaySelect").value
   };
+  const fields=[
+    ["weight",!tracking||tracking.dailyMetrics.weight,document.getElementById("weightIn").value],
+    ["sleep",!tracking||tracking.dailyMetrics.sleep,document.getElementById("sleepIn").value],
+    ["protein",!tracking||tracking.dailyMetrics.protein,document.getElementById("proteinIn").value],
+    ["water",!tracking||tracking.dailyMetrics.water,document.getElementById("waterIn").value],
+    ["bm",!tracking||tracking.dailyMetrics.bowelMovement,toggleStates.bm],
+    ["bmNotes",!tracking||tracking.dailyMetrics.bowelMovement,document.getElementById("bmNotes").value],
+    ["mood",!tracking||tracking.dailyMetrics.energy,document.getElementById("moodSlider").value],
+    ["hunger",!tracking||tracking.dailyMetrics.hunger,document.getElementById("hungerSlider").value],
+    ["zep",!tracking||tracking.modules.recurringAdherence,toggleStates.zep],
+    ["notes",!tracking||tracking.modules.dailyNotes,document.getElementById("dayNotes").value],
+    ["habits",!tracking||tracking.modules.habits,habitState]
+  ];
+  fields.forEach(function(field){if(field[1])data[field[0]]=field[2];else if(Object.prototype.hasOwnProperty.call(before,field[0]))data[field[0]]=before[field[0]];});
 
   // Overwrite same-day entry cleanly (no duplicates — keyed by date)
-  localStorage.setItem(dKey(tDate),JSON.stringify(data));
+  localStorage.setItem(key,JSON.stringify(data));
 
   // Clear draft once officially saved
   if(isTodaySelected()) clearDraft();
@@ -458,6 +473,7 @@ function loadDay(){
     if(woRaw){try{restoreWoDataToForm(JSON.parse(woRaw));}catch{}}
   }
   updateSaveBtn();
+  if(typeof p950ApplyTrackingPreferencesToUi==="function")p950ApplyTrackingPreferencesToUi(p950LocalDateKey(tDate));
 }
 
 function renderHistory(){

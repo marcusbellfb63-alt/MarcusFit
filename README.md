@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.10.0 — Visual System Modernization implementation candidate
+MarcusFit 10.11.0 — Tracking Preferences implementation candidate
 
 ## Architecture
 
@@ -57,6 +57,15 @@ MarcusFit 10.10.0 — Visual System Modernization implementation candidate
 - Workout records may carry optional whole-number `activeCalories` from 0–5000; blank remains absent and same-date saves update the existing workout identity
 - Draft in-progress session: key `mf-current-draft`
 
+### Tracking Preferences (`mf-user-profile.preferences.tracking`)
+- Full Coaching is the virtual default for old profiles and requires no migration write
+- Strength Tracking keeps full lifting plus Weight, Sleep, Energy, Session Notes, and Coaching Insights
+- Custom retains the user's exact metric/module toggle combination; lifting detail remains `full` in 10.11
+- Complete local-date timeline snapshots determine historical collection intent; same-day changes replace today's entry and later-day changes append
+- Disabled collection fields remain dormant and preserved, while new disabled fields are omitted instead of receiving synthetic defaults
+- Habit and recurring-adherence denominators exclude preference-off dates; factual History and Stats records remain visible
+- Tracking Preferences are user-controlled: AI Export explains them, but AI Sync cannot mutate them
+
 ### Basketball Sessions (`mf-basketball-sessions`)
 - Versioned, independent session store supporting multiple sessions per date
 - Required date, stable session type, and positive minutes
@@ -105,7 +114,7 @@ MarcusFit 10.10.0 — Visual System Modernization implementation candidate
 | `mf-basketball-program-state` | Active basketball program and next-session queue position |
 | `mf-basketball-program-overrides` | Sparse future-program basketball personalization overlays |
 | `mf-basketball-proposal` | Basketball proposal review, apply metadata, and safe undo snapshot |
-| `mf-user-profile` | Identity, units, gym labels, and display preferences including text size |
+| `mf-user-profile` | Identity, units, gym labels, display preferences, and the Tracking Preferences timeline |
 | `day-YYYY-MM-DD` | Daily body metrics + habits |
 | `day-YYYY-MM-DD-wo` | Workout sets for that day |
 
@@ -131,7 +140,7 @@ MarcusFit 10.10.0 — Visual System Modernization implementation candidate
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.10.0";
+const APP_VERSION      = "10.11.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
@@ -139,17 +148,17 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 
 ## Candidate record
 
-- 10.10.0 starts from accepted 10.9.0 production merge `d4a8f4d85ecb66e6c30a192ab4c3ae5bc8399dd3`
-- Accepted 10.9.0 QA-approved implementation head: `3d8c04d52c9731845d4f3cd865b550d7e4287f44`
-- The effective dark-charcoal system uses lightning lime `#b7f34a`, neutral surfaces/text, dedicated semantic colors, a three-radius scale, and two intentional elevation levels
-- One local `currentColor` SVG sprite replaces platform emoji throughout normal UI; protected program-data and core-Sync files remain byte-identical, with only exact core-owned Sync status prefixes adapted at the presentation boundary
-- Accepted 10.9 AI Export payload text remains byte-equivalent apart from the required 10.10 version string; exported Unicode and user/imported content are preserved
-- No training, progression, Basketball, AI, storage, schema, migration, backup/restore, workflow, or script-order behavior is intentionally changed
-- See `docs/architecture/visual-system-10.10-audit.md` and `tests/marcusfit-10.10.0-manual-qa.md`
-- 10.10.0 is not accepted; independent review and Marcus real-iPhone QA are required
+- 10.11.0 starts from accepted 10.10.0 production merge `6300c34f52721c8218fce918303ac2a0b75304e6`
+- Accepted 10.10.0 QA-approved implementation head: `86607d59f0810a4b4ecac4674552a131ace09408`
+- Profile-backed Tracking Preferences add Full Coaching, Strength Tracking, and Custom without a new storage key or schema bump
+- Preference-off fields are hidden from collection, preserved when already present, omitted when new, and interpreted neutrally in adherence/export calculations
+- Full lifting, progression, stable identities, historical records, backup raw-string compatibility, the 22-script order, and core Sync ownership remain unchanged
+- See `docs/architecture/tracking-preferences-10.11-audit.md` and `tests/marcusfit-10.11.0-manual-qa.md`
+- 10.11.0 is not accepted; independent review and Marcus real-iPhone QA are required
 
 ## Acceptance Record
 
+- 10.10.0 is accepted and merged at `6300c34f52721c8218fce918303ac2a0b75304e6`; QA-approved implementation head `86607d59f0810a4b4ecac4674552a131ace09408`
 - 10.9.0 is accepted and merged at `d4a8f4d85ecb66e6c30a192ab4c3ae5bc8399dd3`; QA-approved implementation head `3d8c04d52c9731845d4f3cd865b550d7e4287f44`
 - 10.8.0 is accepted and merged at `3eea77df29382182ac639845946419e477cf6da8`; QA-approved implementation head `4f25efa6e0bc6b854d7676f75bda40dc259f9065`
 - 10.7.0 is accepted and merged at `1de89a40c810919d1edf831d1af4d69b2d4b46d7`; QA-approved implementation head `2f553b756309b42494bed34e00f054891e18e78d`
@@ -179,4 +188,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.7.0** — Navigation, Sync IA, and analytics maturation (accepted)
 - **v10.8.0** — Smarter Lifting (accepted)
 - **v10.9.0** — Basketball Drill Coaching and Session Energy (accepted)
-- **v10.10.0** — Visual System Modernization (implementation candidate)
+- **v10.10.0** — Visual System Modernization (accepted)
+- **v10.11.0** — Tracking Preferences (implementation candidate)
