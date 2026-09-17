@@ -11,6 +11,14 @@ optional session field, and each drill result may contain a bounded
 `prescriptionSnapshot`. Blank calories are omitted, zero is retained, invalid
 values fail safely, and old values without either extension remain valid.
 
+10.11.1 also adds no key and no backup-schema increment. Legacy/Detailed
+workouts remain unchanged. A Simple workout adds `liftingDetail:"simple"`; an
+exercise stores `sets:[]` plus `summary:{version:1,setCount,repsFloor,load,rirFloor}`
+and its optional existing note. The empty set array is a compatibility guard,
+not evidence. `mf-current-draft` carries the same workout mode/summary shape.
+Raw backup creation and replacement restore preserve Detailed, Simple, and
+mixed histories byte-for-byte and never fabricate missing mode values.
+
 | Key/pattern | Owner |
 |---|---|
 | `day-YYYY-MM-DD` | daily tracking, adherence bridge, habits |

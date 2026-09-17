@@ -322,7 +322,7 @@ p9BuildProgressionExport=function(ex){
 
 const p959LegacyRenderWoExercises=renderWoExercises;
 renderWoExercises=function(){
-  p959LegacyRenderWoExercises();
+  p959LegacyRenderWoExercises.apply(this,arguments);
   const daySelect=document.getElementById("woDaySelect");
   if(!daySelect||daySelect.value==="")return;
   const day=getResolvedDays(logGym).find(function(d){return d._dayIdx===parseInt(daySelect.value,10);});
@@ -573,6 +573,10 @@ window.mfProgressionDebug=function(exId){
   return {exId:exId,name:getF(exId,"name",ex.name),context:p1080ExerciseContext(exId),metric:p959GetExerciseMetricProfile(exId,ex).metric,status:rec.status,outcome:rec.outcome,recommendedNextAction:rec.action,exactReason:rec.reason,confidence:rec.confidence,evidence:rec.evidence,suggestedLoad:rec.suggestedLoad||null,latestSavedDate:last&&last.dateKey,readOnly:true};
 };
 mfProgressionDebug=window.mfProgressionDebug;
+
+const p1111EvidenceBlock=p5Block;
+const p1111ProgressionExport=p9BuildProgressionExport;
+const p1111ProgressionDebug=window.mfProgressionDebug;
 
 window.mfProgressionAudit=function(){
   const exercises=[],known=["new","target_reset","safer_hold","top_range_hold","progress_load",
@@ -912,4 +916,12 @@ window.mfProgressionDebug=function(exId){
   const history=p9GetExerciseHistory(exId,{includeToday:true}),last=history[0]||null,rec=p9BuildSuggestion(exId,last&&last.validSets,getF(exId,"reps",ex.reps),getF(exId,"rir",ex.rir),last?{dateKey:last.dateKey,subjectStored:true,source:"debug"}:null);
   return {exId:exId,name:getF(exId,"name",ex.name),context:p1080ExerciseContext(exId),metric:p959GetExerciseMetricProfile(exId,ex).metric,status:rec.status,outcome:rec.outcome,recommendedNextAction:rec.action,exactReason:rec.reason,confidence:rec.confidence,evidence:rec.evidence,suggestedLoad:rec.suggestedLoad||null,latestSavedDate:last&&last.dateKey,readOnly:true};
 };
+mfProgressionDebug=window.mfProgressionDebug;
+
+// 10.11.1 is the final evidence-aware layer over the accepted 10.8 engine.
+// Reapply only the mixed-evidence readers that the Detailed hardening below
+// deliberately replaces; the Detailed evaluator itself remains untouched.
+p5Block=p1111EvidenceBlock;
+p9BuildProgressionExport=p1111ProgressionExport;
+window.mfProgressionDebug=p1111ProgressionDebug;
 mfProgressionDebug=window.mfProgressionDebug;

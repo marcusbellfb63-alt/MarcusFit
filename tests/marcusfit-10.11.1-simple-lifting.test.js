@@ -12,6 +12,7 @@ const historySource = fs.readFileSync(path.join(root, "assets/js/features/14-his
 const progressionSource = fs.readFileSync(path.join(root, "assets/js/features/18-progression-corrections.js"), "utf8");
 const statsSource = fs.readFileSync(path.join(root, "assets/js/features/15-stats.js"), "utf8");
 const exportSource = fs.readFileSync(path.join(root, "assets/js/sync/11-ai-export.js"), "utf8");
+const backupSource = fs.readFileSync(path.join(root, "assets/js/system/16-backup-restore-debug.js"), "utf8");
 
 function extractBalanced(source, token) {
   const at = source.indexOf(token); assert(at >= 0, `missing ${token}`);
@@ -148,7 +149,11 @@ assert.deepStrictEqual(dormant.exercises.lift.sets, []);
 
 // Draft resume renders from woData mode before restoring summary values, and
 // all summary controls participate in autosave.
-assert(dailySource.includes("renderWoExercises(d.woData||null)"));
+assert(dailySource.includes("liftingDetail,") && dailySource.includes("if(draftWorkout)renderWoExercises(draftWorkout);else renderWoExercises()"));
+assert(dailySource.includes('if(d.liftingDetail==="simple")draftWorkout.liftingDetail="simple"'));
+assert(progressionSource.includes("p959LegacyRenderWoExercises.apply(this,arguments)"), "effective progression wrapper dropped draft mode ownership");
+assert(progressionSource.includes("p9BuildProgressionExport=p1111ProgressionExport"), "final effective export was not evidence-aware");
+assert(dailySource.indexOf("populateWoDaySelect();\n  updateTrackerDate();")>=0, "boot reset the restored same-date workout selection");
 assert(dailySource.includes("summarySetCount") && dailySource.includes("summaryReps") && dailySource.includes("summaryLoad") && dailySource.includes("summaryRir"));
 assert(dailySource.includes(".wo-summary-sets") && dailySource.includes(".wo-summary-rir"));
 
@@ -262,5 +267,17 @@ assert(exportSource.includes("Never infer, expand, or fabricate individual set v
 assert(exportSource.includes('filter(function(entry){return entry.evidenceMode!=="simple";})'));
 assert(progressionSource.includes('Evidence mode: "+(last.evidenceMode==="simple"?"Per-Lift summary":"Per-Set Detailed")'));
 assert(progressionSource.includes("p1111BuildSimpleWorkoutReview") && progressionSource.includes("setsLogged+=summary.setCount"));
+
+// Backup remains schema 1 and preserves raw Detailed/Simple/profile/draft
+// strings exactly. Restore stays raw replacement and performs no mode migration.
+const detailedRaw=JSON.stringify({gym:"home",dayIdx:"0",exercises:{lift:{sets:[{wt:"90 lb",reps:"8",rir:"2"}]}}});
+const simpleRaw=JSON.stringify(simpleWorkout),draftRaw=JSON.stringify({date:"2026-09-15",woData:simpleWorkout}),profileRaw=JSON.stringify({schemaVersion:1,preferences:{tracking:{liftingDetail:"simple",timeline:[]}}});
+const backupMemory={"day-2026-09-14-wo":detailedRaw,"day-2026-09-15-wo":simpleRaw,"mf-current-draft":draftRaw,"mf-user-profile":profileRaw};
+Object.defineProperties(backupMemory,{getItem:{enumerable:false,value(key){return Object.prototype.hasOwnProperty.call(this,key)?this[key]:null;}}});
+const backupContext={APP_VERSION:"10.11.1",localStorage:backupMemory};vm.createContext(backupContext);
+vm.runInContext('const SCHEMA_VERSION=1,OVR="mf-overrides",DRAFT_KEY="mf-current-draft",LIFECYCLE_KEY="mf-exercise-state",RECS_KEY="mf-recommendations",AI_PREFS_KEY="mf-ai-coaching-preferences",USER_PROFILE_KEY="mf-user-profile",ONBOARDING_KEY="mf-onboarding-state",PROGRAM_PROPOSAL_KEY="mf-onboarding-program-proposal";\n'+extractBalanced(backupSource,"function p8IsMarcusFitKey")+"\n"+extractBalanced(backupSource,"function p8GetMarcusFitKeys")+"\n"+extractBalanced(backupSource,"function p8BuildBackup"),backupContext);
+const mixedBackup=backupContext.p8BuildBackup();assert.strictEqual(mixedBackup.schemaVersion,1);assert.strictEqual(mixedBackup.data["day-2026-09-14-wo"],detailedRaw);assert.strictEqual(mixedBackup.data["day-2026-09-15-wo"],simpleRaw);assert.strictEqual(mixedBackup.data["mf-current-draft"],draftRaw);assert.strictEqual(mixedBackup.data["mf-user-profile"],profileRaw);
+assert(!backupSource.includes("SCHEMA_VERSION = 2")&&!backupSource.includes("liftingDetail migration"));
+assert(!/p950SaveTrackingPreferences\s*\(/.test(extractBalanced(backupSource,"function p8ExecuteRestore")));
 
 console.log("MarcusFit 10.11.1 simple lifting: preference, storage, progression, review, stats, and export PASS");
