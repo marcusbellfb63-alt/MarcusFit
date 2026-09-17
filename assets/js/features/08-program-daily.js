@@ -93,7 +93,7 @@ function applyStateToForm(d){
   }
   if(d.woDayIdx!==undefined&&d.woDayIdx!==""){
     document.getElementById("woDaySelect").value=d.woDayIdx;
-    renderWoExercises();
+    renderWoExercises(d.woData||null);
     // Restore workout set data from draft's woData (overrides -wo localStorage)
     if(d.woData&&d.woData.exercises){
       restoreWoDataToForm(d.woData);
@@ -116,6 +116,10 @@ function restoreWoDataToForm(woData){
   if(!woData)return;
   const energy=document.getElementById("mfWorkoutActiveCalories");if(energy)energy.value=woData.activeCalories==null?"":String(woData.activeCalories);
   Object.entries(woData.exercises||{}).forEach(([exId,exLog])=>{
+    if(woData.liftingDetail==="simple"&&exLog.summary){
+      const fields={summarySetCount:exLog.summary.setCount,summaryReps:exLog.summary.repsFloor,summaryLoad:exLog.summary.load,summaryRir:exLog.summary.rirFloor};
+      Object.keys(fields).forEach(function(field){const selector=(field==="summaryRir"?"select":"input")+`[data-exid="${exId}"][data-field="${field}"]`,element=document.querySelector(selector);if(element&&fields[field]!==undefined&&fields[field]!==null)element.value=String(fields[field]);});
+    }
     (exLog.sets||[]).forEach((s,i)=>{
       const wt=document.querySelector(`input[data-exid="${exId}"][data-set="${i}"][data-field="wt"]`);
       const reps=document.querySelector(`input[data-exid="${exId}"][data-set="${i}"][data-field="reps"]`);
@@ -134,10 +138,10 @@ function wireAutoSave(){
   const log=document.getElementById("screen-log");
   if(!log)return;
   log.addEventListener("input",e=>{
-    if(e.target.matches(".t-input,.notes-ta,.wo-set-wt,.wo-set-reps,.wo-note-input,.habit-note-input,#mfWorkoutActiveCalories"))autoSaveDraft();
+    if(e.target.matches(".t-input,.notes-ta,.wo-set-wt,.wo-set-reps,.wo-summary-sets,.wo-summary-reps,.wo-summary-load,.wo-note-input,.habit-note-input,#mfWorkoutActiveCalories"))autoSaveDraft();
   });
   log.addEventListener("change",e=>{
-    if(e.target.matches(".wo-set-rir,.wo-day-select,.mood-slider"))autoSaveDraft();
+    if(e.target.matches(".wo-set-rir,.wo-summary-rir,.wo-day-select,.mood-slider"))autoSaveDraft();
   });
 }
 

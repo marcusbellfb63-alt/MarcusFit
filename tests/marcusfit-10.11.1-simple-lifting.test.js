@@ -6,6 +6,22 @@ const vm = require("vm");
 const root = path.resolve(__dirname, "..");
 const profileSource = fs.readFileSync(path.join(root, "assets/js/state/04-runtime-state-profile-preferences.js"), "utf8");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const workoutSource = fs.readFileSync(path.join(root, "assets/js/features/10-workout-logging.js"), "utf8");
+const dailySource = fs.readFileSync(path.join(root, "assets/js/features/08-program-daily.js"), "utf8");
+const historySource = fs.readFileSync(path.join(root, "assets/js/features/14-history.js"), "utf8");
+
+function extractBalanced(source, token) {
+  const at = source.indexOf(token); assert(at >= 0, `missing ${token}`);
+  const brace = source.indexOf("{", at); let depth = 0, quote = null, escaped = false;
+  for (let i = brace; i < source.length; i++) {
+    const ch = source[i];
+    if (quote) { if (escaped) escaped = false; else if (ch === "\\") escaped = true; else if (ch === quote) quote = null; continue; }
+    if (ch === "'" || ch === '"' || ch === "`") { quote = ch; continue; }
+    if (ch === "{") depth++;
+    if (ch === "}" && --depth === 0) return source.slice(at, i + 1);
+  }
+  throw new Error(`unbalanced ${token}`);
+}
 
 function storage(initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -81,4 +97,65 @@ assert(html.includes("lowest-rep work set") && html.includes("hardest (lowest) R
 assert(profileSource.includes("Lifting-detail periods in selected range"));
 assert(profileSource.includes("Full Coaching + Per Set — Detailed"));
 
-console.log("MarcusFit 10.11.1 simple lifting: preference foundation PASS");
+// The rendered workout owns save mode. Saved evidence wins over current
+// preference, while a new blank workout uses the date-effective preference.
+const modeStore = storage();
+const modeContext = { localStorage: modeStore.api, tDate: new Date("2026-09-15T12:00:00"), dKey() { return "day-2026-09-15"; }, p950LocalDateKey() { return "2026-09-15"; }, p950GetTrackingSnapshotForDate() { return { liftingDetail: "simple" }; } };
+vm.createContext(modeContext);
+vm.runInContext(extractBalanced(workoutSource, "function mfWorkoutEvidenceMode")+"\n"+extractBalanced(workoutSource, "function mfWorkoutResolveLiftingDetail"), modeContext);
+assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail(), "simple");
+modeStore.api.setItem("day-2026-09-15-wo", JSON.stringify({ exercises: {} }));
+assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail(), "full", "legacy Detailed history did not override Simple preference");
+modeStore.api.setItem("day-2026-09-15-wo", JSON.stringify({ liftingDetail: "simple", exercises: {} }));
+modeContext.p950GetTrackingSnapshotForDate = () => ({ liftingDetail: "full" });
+assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail(), "simple", "saved Simple history did not override Detailed preference");
+assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail({ exercises: {} }), "full", "Detailed draft ownership was not preserved");
+assert.strictEqual(modeContext.mfWorkoutResolveLiftingDetail({ liftingDetail: "simple", exercises: {} }), "simple", "Simple draft ownership was not preserved");
+
+// Simple collection writes one authoritative summary with an empty set array.
+// A blank exercise (including its prescribed-count placeholder) stays absent.
+const fields = new Map([
+  ["woDaySelect", { value: "0" }], ["woExerciseLog", { dataset: { liftingDetail: "simple" } }],
+  ["mfWorkoutActiveCalories", { value: "321", setCustomValidity() {} }]
+]);
+const values = {
+  "lift|summarySetCount": "3", "lift|summaryReps": "8", "lift|summaryLoad": "100 lb", "lift|summaryRir": "1–2", "lift|exnote": "clean",
+  "blank|summarySetCount": "", "blank|summaryReps": "", "blank|summaryLoad": "", "blank|summaryRir": "", "blank|exnote": ""
+};
+const collectContext = {
+  document: {
+    getElementById(id) { return fields.get(id) || null; },
+    querySelector(selector) { const id=(selector.match(/data-exid="([^"]+)"/)||[])[1],field=(selector.match(/data-field="([^"]+)"/)||[])[1];return id&&field?{ value: values[`${id}|${field}`] || "" }:null; }
+  },
+  logGym: "home", tDate: new Date("2026-09-15T12:00:00"),
+  getResolvedDays() { return [{ _dayIdx: 0, name: "Day", exercises: [{ id: "lift", sets: "3" }, { id: "blank", sets: "4" }] }]; },
+  getF(id,key,fallback) { return fallback; }, p950LocalDateKey() { return "2026-09-15"; }, p950IsTrackingEnabled() { return true; }
+};
+vm.createContext(collectContext);
+vm.runInContext(extractBalanced(workoutSource, "function mfWorkoutReadActiveCalories")+"\n"+extractBalanced(workoutSource, "function collectWoData")+"\n"+extractBalanced(workoutSource, "function p85PreserveDormantWorkoutFields"), collectContext);
+const simpleWorkout = JSON.parse(JSON.stringify(collectContext.collectWoData("2026-09-15")));
+assert.deepStrictEqual(simpleWorkout, { gym: "home", dayIdx: "0", dayName: "Day", liftingDetail: "simple", exercises: { lift: { sets: [], summary: { version: 1, setCount: 3, repsFloor: "8", load: "100 lb", rirFloor: "1–2" }, note: "clean" } }, activeCalories: 321 });
+assert.strictEqual(simpleWorkout.exercises.lift.sets.length, 0);
+assert(!simpleWorkout.exercises.blank, "blank Simple exercise was stored from its placeholder");
+collectContext.p950IsTrackingEnabled = path => path !== "modules.sessionNotes";
+const dormant = JSON.parse(JSON.stringify(collectContext.p85PreserveDormantWorkoutFields({ liftingDetail: "simple", exercises: {} }, { liftingDetail: "simple", exercises: { lift: { sets: [], summary: simpleWorkout.exercises.lift.summary, note: "keep" } } }, "2026-09-15")));
+assert.deepStrictEqual(dormant.exercises.lift.summary, simpleWorkout.exercises.lift.summary);
+assert.strictEqual(dormant.exercises.lift.note, "keep");
+assert.deepStrictEqual(dormant.exercises.lift.sets, []);
+
+// Draft resume renders from woData mode before restoring summary values, and
+// all summary controls participate in autosave.
+assert(dailySource.includes("renderWoExercises(d.woData||null)"));
+assert(dailySource.includes("summarySetCount") && dailySource.includes("summaryReps") && dailySource.includes("summaryLoad") && dailySource.includes("summaryRir"));
+assert(dailySource.includes(".wo-summary-sets") && dailySource.includes(".wo-summary-rir"));
+
+// History shows one explicit summary and never fabricates numbered sets.
+const historyStore = storage({ "day-2026-09-15-wo": JSON.stringify(simpleWorkout) });
+const historyNode = { innerHTML: "", insertAdjacentHTML() {} };
+const historyContext = { localStorage: historyStore.api, document: { getElementById() { return historyNode; } }, HABITS: [], p9510HistoryOutcome() { return null; }, p7HistoryIcon() { return ""; }, getSafeDayForLog() { return { exercises: [{ id: "lift", name: "Lift" }] }; }, getHistoricalDayIdentity() { return { currentName: "Day", historicalName: "Day", showHistoricalName: false }; }, getF(id,key,fallback) { return fallback; } };
+vm.createContext(historyContext); vm.runInContext(extractBalanced(historySource, "function renderHistoryFromEntries"), historyContext);
+historyContext.renderHistoryFromEntries([{ key: "day-2026-09-15", data: { date: "2026-09-15", workout: "yes", logGym: "home" } }]);
+assert(historyNode.innerHTML.includes("Per-Lift summary") && historyNode.innerHTML.includes("lowest-set reps 8"));
+assert(!historyNode.innerHTML.includes("Set 1:"), "Simple history fabricated a numbered set row");
+
+console.log("MarcusFit 10.11.1 simple lifting: preference + storage/draft/history PASS");
