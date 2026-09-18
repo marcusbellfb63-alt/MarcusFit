@@ -2,12 +2,24 @@
 
 ## Current implementation candidate
 
-MarcusFit 10.11.2 Post-Merge Acceptance Housekeeping starts from the exact
-accepted 10.11.1 production merge
-`e5d0944aae19c077368af255e9eebbf758aaeecd`. It updates release-state
-documentation and ordinary application-version metadata only. It introduces no
-product behavior, storage, schema, migration, dependency, build-step, or
-runtime-script change. 10.11.2 is a housekeeping candidate and is not accepted.
+MarcusFit 10.12.0 Simple Fitness Log + Streamlined Setup starts from the exact
+accepted 10.11.2 production merge
+`9c854176d1ffb75b5c2247c0add88e6ce6a59768` and production tree
+`da27cb6402ae7c327e73568f2e7502b1aef42319`. It adds one ordinary Tracking
+Preferences preset and clarifies the existing setup surface. It adds no storage
+key, schema, migration, workout evidence type, dependency, build step, runtime
+script, progression change, or AI Sync authority. 10.12.0 is a candidate and is
+not accepted. Automated and localhost/browser QA pass; independent review and
+real-iPhone Safari/Home Screen QA remain pending.
+
+## Accepted 10.11.2 state
+
+MarcusFit 10.11.2 Post-Merge Acceptance Housekeeping is accepted and merged at
+`9c854176d1ffb75b5c2247c0add88e6ce6a59768`; its accepted implementation head
+is `e4bed8cda5d48aef993ec6a108e885c21b7a9be9`, and its accepted production tree
+is `da27cb6402ae7c327e73568f2e7502b1aef42319`. It introduced no functional
+product behavior beyond version/release metadata, so 10.11.1 remains the
+functional runtime baseline beneath 10.12.0.
 
 ## Accepted 10.11.1 state
 
@@ -168,5 +180,6 @@ Protected values at acceptance:
 10.10.0 — Visual System Modernization — Accepted
 10.11.0 — Tracking Preferences — Accepted
 10.11.1 — Per-Lift / Simplified Lifting Tracking — Accepted
-10.11.2 — Post-Merge Acceptance Housekeeping — Candidate
+10.11.2 — Post-Merge Acceptance Housekeeping — Accepted
+10.12.0 — Simple Fitness Log + Streamlined Setup — Candidate; final planned substantive 10.x feature
 ```

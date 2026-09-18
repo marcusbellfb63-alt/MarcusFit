@@ -1,7 +1,7 @@
 # MarcusFit runtime architecture
 
 MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
-classic scripts. The accepted 10.11.1 production runtime keeps those boundaries
+classic scripts. The accepted 10.11.2 production runtime keeps those boundaries
 and composes export sections through the existing ordered classic-script wrappers. GitHub Pages still loads
 static `defer` scripts, and there is no build step or runtime dependency.
 
@@ -33,7 +33,7 @@ assets/js/
 `-- features/22-basketball.js
 ```
 
-The accepted 10.11.1 runtime retains 22 runtime files in the accepted numeric order.
+The accepted 10.11.2 runtime retains 22 runtime files in the accepted numeric order.
 Reproducible physical-line and largest-file counts come from the architecture
 inventory. Numeric prefixes remain globally ordered and match `index.html`.
 
@@ -101,6 +101,15 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - History, Stats, review, and AI Export are evidence-aware. Deterministic rotation considers only Detailed sessions; Simple records remain available for normal direct progression and explicitly labeled coaching context.
 - Backup/restore remains raw schema-1 replacement with no new key. See `simple-lifting-10.11.1-audit.md` and `../../tests/marcusfit-10.11.1-manual-qa.md`.
 
+## 10.12 Simple Fitness Log boundary
+
+- `state/04-runtime-state-profile-preferences.js` adds `simple_fitness_log` as an exact bundle of the existing collection fields. Lifting remains implicit/always available; Session Notes and Coaching Insights are on, while every Daily metric and the other optional collection modules are off.
+- Named preset detection still compares collection fields only. Lifting Detail remains independent: an explicit Simple Fitness Log action defaults to Simple, Full Coaching and Strength Tracking default to Detailed, and later detail-only changes preserve the named preset.
+- The existing Tracking Preferences page is the streamlined, non-forced setup surface. Missing tracking still renders as virtual Full Coaching and opening the surface writes nothing; existing onboarding continues preserving nested preferences.
+- Saves retain the complete local-date timeline contract and never rewrite workouts, daily data, Basketball records, or earlier entries. Saved workout, resumable draft, then date-effective preference remain the workout-mode authority.
+- AI Export labels lightweight intent and neutral missing domains. AI Sync remains unable to target profile/tracking state, and raw schema-1 backup/restore naturally carries the unchanged profile key.
+- See `simple-fitness-log-10.12-audit.md` and `../../tests/marcusfit-10.12.0-manual-qa.md`.
+
 ## Guide
 
 - `runtime-system-map.md` records ownership and direct dependencies.
@@ -114,6 +123,7 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - `basketball-session-energy-10.9-audit.md` records Basketball prescription, snapshot, active-calorie, analytics, and Sync boundaries.
 - `visual-system-10.10-audit.md` records the visual-token, geometry, icon, emoji, and selector-risk audit.
 - `tracking-preferences-10.11-audit.md` records preference authority, timeline, preservation, adherence, export/Sync, reset, and backup contracts.
+- `simple-fitness-log-10.12-audit.md` records the lightweight preset, explicit action defaults, first-run compatibility, mode authority, export, Sync, and backup boundaries.
 - `../../tests/marcusfit-10.1.2-modularization-equivalence.md` records evidence.
 
 Run `node tools/architecture/inventory-runtime.js` with the bundled Node
