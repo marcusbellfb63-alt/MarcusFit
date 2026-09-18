@@ -39,5 +39,10 @@
     "characters": 24969,
     "lines": 359,
     "note": "10.11 adds a compact date-effective Tracking Preferences interpretation while preserving historical evidence and the accepted response contract."
+  },
+  "after10_11_1": {
+    "characters": 25557,
+    "lines": 366,
+    "note": "10.11.1 adds lifting-detail intervals plus explicit Detailed versus Simple evidence interpretation and final evidence-mode progression metadata without duplicating the accepted response contract."
   }
 }

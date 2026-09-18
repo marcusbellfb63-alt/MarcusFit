@@ -68,7 +68,7 @@ function createProfileContext(initial = {}) {
   return { context, storage, elements, selectors };
 }
 
-assert(constantsSource.includes('const APP_VERSION = "10.11.0"'), "APP_VERSION was not advanced");
+assert(constantsSource.includes('const APP_VERSION = "10.11.1"'), "APP_VERSION was not advanced");
 
 // Missing tracking is a virtual Full Coaching read and never persists.
 let env = createProfileContext();

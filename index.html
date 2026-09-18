@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MarcusFit 10.11.0</title>
+<title>MarcusFit 10.11.1</title>
 <link rel="stylesheet" href="assets/css/marcusfit.css">
 </head>
 <body>
@@ -539,7 +539,7 @@
   <section class="mf-sync-page active" id="mfSyncPageAi" data-mf-sync-page="ai" role="tabpanel" aria-labelledby="mfSyncTabAi">
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box mf-release-note">
-    <strong>MarcusFit 10.11.0</strong> &mdash; Tracking Preferences<br>
+    <strong>MarcusFit 10.11.1</strong> &mdash; Per-Lift / Simplified Lifting Tracking<br>
     Choose Full Coaching, Strength Tracking, or a Custom collection mix. Turning a prompt off keeps existing history and treats intentionally untracked dates neutrally.
   </div>
   <div class="export-range-row">
@@ -585,6 +585,15 @@
     </div>
 
     <fieldset class="mf-tracking-group">
+      <legend>Lifting Detail</legend>
+      <div class="mf-tracking-grid mf-lifting-detail-grid">
+        <label class="mf-tracking-choice"><span><strong>Per Set — Detailed</strong><small>Log weight, reps, and RIR for each individual set.</small></span><input type="radio" name="p950LiftingDetail" value="full" data-mf-lifting-detail="full"></label>
+        <label class="mf-tracking-choice"><span><strong>Per Lift — Simple</strong><small>Log one conservative summary for each exercise.</small></span><input type="radio" name="p950LiftingDetail" value="simple" data-mf-lifting-detail="simple"></label>
+      </div>
+      <div class="mf-tracking-status">Simple uses your lowest-rep work set and hardest (lowest) RIR.</div>
+    </fieldset>
+
+    <fieldset class="mf-tracking-group">
       <legend>Daily Metrics</legend>
       <label class="mf-tracking-choice mf-tracking-choice-master"><span><strong>All Daily Metrics</strong><small>Show or hide the complete group</small></span><input id="p950TrackingAllMetrics" type="checkbox"></label>
       <div class="mf-tracking-grid">
@@ -617,14 +626,14 @@
       </div>
     </fieldset>
 
-    <div class="mf-stack-actions">
+    <div class="mf-stack-actions mf-tracking-actions">
       <button class="big-btn btn-sync" id="p950TrackingSave" type="button"><span class="mf-icon-label"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-save"></use></svg>SAVE TRACKING PREFERENCES</span></button>
       <button class="big-btn btn-copy" id="p950TrackingReset" type="button" style="display:block;"><span class="mf-icon-label"><svg class="mf-icon" aria-hidden="true"><use href="#mf-icon-refresh"></use></svg>RESET TRACKING PREFERENCES</span></button>
     </div>
     <div class="sync-result" id="p950TrackingResult" role="status" aria-live="polite"></div>
     <div id="p950TrackingResetConfirmPanel" data-mf-critical-panel class="mf-critical-panel mf-critical-panel-error" style="display:none;">
-      <div class="mf-critical-title error"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-alert"></use></svg>Reset tracking to Full Coaching?</div>
-      <div class="mf-critical-copy">Prior tracking choices and all recorded history stay intact. Full Coaching becomes effective for new tracking today.</div>
+      <div class="mf-critical-title error"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-alert"></use></svg>Reset tracking to Full Coaching + Detailed?</div>
+      <div class="mf-critical-copy">Prior tracking choices and all recorded history stay intact. Full Coaching with Per Set — Detailed becomes effective for new tracking today.</div>
       <div class="mf-inline-actions">
         <button class="mf-confirm error" id="p950TrackingResetConfirm" type="button"><span class="mf-icon-label"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-check"></use></svg>CONFIRM RESET</span></button>
         <button class="mf-cancel" id="p950TrackingResetCancel" type="button">Cancel</button>

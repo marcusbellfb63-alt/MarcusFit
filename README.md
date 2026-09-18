@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.11.0 — Tracking Preferences implementation candidate
+MarcusFit 10.11.1 — Per-Lift / Simplified Lifting Tracking implementation candidate
 
 ## Architecture
 
@@ -39,6 +39,7 @@ MarcusFit 10.11.0 — Tracking Preferences implementation candidate
 - Exact compatible numeric loads may receive a bounded next-load value; ranges, bodyweight, bands, machine labels, mixed formats, and ambiguous text receive qualitative guidance
 - Every visible recommendation separates the action, evidence reason, and confidence; calculations are read-only
 - `p9ComputePrefill()` carries only exact saved values. Recommendations remain visually separate and never populate a blank input
+- 10.11.1 keeps that Detailed path intact and adds a separate Simple evaluator for exercise-level `setCount`, lowest-set reps, common working load, and hardest-set RIR evidence; Simple results normally carry medium confidence
 
 ### AI Recommendations (`mf-recommendations`)
 - Key: `mf-recommendations`
@@ -54,13 +55,15 @@ MarcusFit 10.11.0 — Tracking Preferences implementation candidate
 ### Daily Logs
 - Daily metrics (weight, sleep, mood, habits): key `day-YYYY-MM-DD`
 - Workout sets log: key `day-YYYY-MM-DD-wo`
+- Detailed records retain the legacy per-set shape. Simple records add `liftingDetail: "simple"` and store `sets: []` plus one versioned exercise summary; no synthetic set rows are created
 - Workout records may carry optional whole-number `activeCalories` from 0–5000; blank remains absent and same-date saves update the existing workout identity
 - Draft in-progress session: key `mf-current-draft`
 
 ### Tracking Preferences (`mf-user-profile.preferences.tracking`)
 - Full Coaching is the virtual default for old profiles and requires no migration write
 - Strength Tracking keeps full lifting plus Weight, Sleep, Energy, Session Notes, and Coaching Insights
-- Custom retains the user's exact metric/module toggle combination; lifting detail remains `full` in 10.11
+- Lifting Detail is orthogonal to collection presets: Full Coaching, Strength Tracking, and Custom each support Per Set — Detailed or Per Lift — Simple
+- Missing, malformed, and old-profile lifting-detail values resolve virtually to Detailed without an eager migration write
 - Complete local-date timeline snapshots determine historical collection intent; same-day changes replace today's entry and later-day changes append
 - Disabled collection fields remain dormant and preserved, while new disabled fields are omitted instead of receiving synthetic defaults
 - Habit and recurring-adherence denominators exclude preference-off dates; factual History and Stats records remain visible
@@ -116,7 +119,7 @@ MarcusFit 10.11.0 — Tracking Preferences implementation candidate
 | `mf-basketball-proposal` | Basketball proposal review, apply metadata, and safe undo snapshot |
 | `mf-user-profile` | Identity, units, gym labels, display preferences, and the Tracking Preferences timeline |
 | `day-YYYY-MM-DD` | Daily body metrics + habits |
-| `day-YYYY-MM-DD-wo` | Workout sets for that day |
+| `day-YYYY-MM-DD-wo` | Detailed per-set observations or Simple per-lift summaries for that day |
 
 ## Development Rules
 
@@ -140,7 +143,7 @@ MarcusFit 10.11.0 — Tracking Preferences implementation candidate
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.11.0";
+const APP_VERSION      = "10.11.1";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
@@ -148,16 +151,16 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 
 ## Candidate record
 
-- 10.11.0 starts from accepted 10.10.0 production merge `6300c34f52721c8218fce918303ac2a0b75304e6`
-- Accepted 10.10.0 QA-approved implementation head: `86607d59f0810a4b4ecac4674552a131ace09408`
-- Profile-backed Tracking Preferences add Full Coaching, Strength Tracking, and Custom without a new storage key or schema bump
-- Preference-off fields are hidden from collection, preserved when already present, omitted when new, and interpreted neutrally in adherence/export calculations
-- Full lifting, progression, stable identities, historical records, backup raw-string compatibility, the 22-script order, and core Sync ownership remain unchanged
-- See `docs/architecture/tracking-preferences-10.11-audit.md` and `tests/marcusfit-10.11.0-manual-qa.md`
-- 10.11.0 is not accepted; independent review and Marcus real-iPhone QA are required
+- 10.11.1 starts from accepted 10.11.0 production merge `251f2dc46d36dedcd13d7a92ee89904cd317a536`; accepted 10.11 implementation head `8f5c64550f9fc4ad5aaaa9fab16f6e45f016925c`
+- Per-Lift Simple is an additive workout evidence form inside existing workout keys and draft storage; no storage key, backup schema, historical migration, dependency, build step, or runtime script is added
+- Saved workout mode wins, then resumable draft mode, then the selected date's Tracking Preferences mode; history is never converted
+- Detailed behavior remains on the accepted 10.8 effective evaluator, while Simple evidence is evaluated directly and never expanded into fake sets
+- See `docs/architecture/simple-lifting-10.11.1-audit.md` and `tests/marcusfit-10.11.1-manual-qa.md`
+- 10.11.1 is not accepted; independent review and Marcus real-iPhone QA of the exact candidate head are required
 
 ## Acceptance Record
 
+- 10.11.0 is accepted and merged at `251f2dc46d36dedcd13d7a92ee89904cd317a536`; QA-approved implementation head `8f5c64550f9fc4ad5aaaa9fab16f6e45f016925c`
 - 10.10.0 is accepted and merged at `6300c34f52721c8218fce918303ac2a0b75304e6`; QA-approved implementation head `86607d59f0810a4b4ecac4674552a131ace09408`
 - 10.9.0 is accepted and merged at `d4a8f4d85ecb66e6c30a192ab4c3ae5bc8399dd3`; QA-approved implementation head `3d8c04d52c9731845d4f3cd865b550d7e4287f44`
 - 10.8.0 is accepted and merged at `3eea77df29382182ac639845946419e477cf6da8`; QA-approved implementation head `4f25efa6e0bc6b854d7676f75bda40dc259f9065`
@@ -189,4 +192,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.8.0** — Smarter Lifting (accepted)
 - **v10.9.0** — Basketball Drill Coaching and Session Energy (accepted)
 - **v10.10.0** — Visual System Modernization (accepted)
-- **v10.11.0** — Tracking Preferences (implementation candidate)
+- **v10.11.0** — Tracking Preferences (accepted)
+- **v10.11.1** — Per-Lift / Simplified Lifting Tracking (implementation candidate)

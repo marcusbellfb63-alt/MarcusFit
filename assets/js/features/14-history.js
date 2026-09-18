@@ -146,9 +146,10 @@ function renderHistoryFromEntries(entries){
         (dayData.exercises||[]).forEach(ex=>{
           const exLog=wo.exercises[ex.id];if(!exLog)return;
           const nm=getF(ex.id,"name",ex.name);
-          const validSets=exLog.sets.filter(s=>s.wt||s.reps);if(!validSets.length)return;
+          const simple=wo.liftingDetail==="simple",summary=simple&&exLog.summary&&exLog.summary.version===1?exLog.summary:null,validSets=Array.isArray(exLog.sets)?exLog.sets.filter(s=>s.wt||s.reps):[];if(!summary&&!validSets.length)return;
           woDetail+=`<div class="hist-wo-ex"><div class="hist-wo-ex-name">${nm}</div>`;
-          validSets.forEach((s,i)=>{woDetail+=`<div class="hist-wo-set">Set ${i+1}: ${s.wt||"\u2014"} \xd7 ${s.reps||"\u2014"} reps @ RIR ${s.rir||"\u2014"}</div>`;});
+          if(summary)woDetail+=`<div class="hist-wo-mode">Per-Lift summary</div><div class="hist-wo-set">${summary.setCount||"\u2014"} work sets · lowest-set reps ${summary.repsFloor||"\u2014"} · ${summary.load||"\u2014"} · hardest RIR ${summary.rirFloor||"\u2014"}</div>`;
+          else validSets.forEach((s,i)=>{woDetail+=`<div class="hist-wo-set">Set ${i+1}: ${s.wt||"\u2014"} \xd7 ${s.reps||"\u2014"} reps @ RIR ${s.rir||"\u2014"}</div>`;});
           if(exLog.note)woDetail+=`<div class="hist-wo-set" style="font-style:italic;">"${exLog.note}"</div>`;
           woDetail+='</div>';
         });

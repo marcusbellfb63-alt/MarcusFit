@@ -2,33 +2,40 @@
 
 ## Current implementation candidate
 
-MarcusFit 10.11.0 Tracking Preferences starts from the exact accepted 10.10.0
-production merge `6300c34f52721c8218fce918303ac2a0b75304e6`. The accepted
-10.10 implementation head is `86607d59f0810a4b4ecac4674552a131ace09408`.
+MarcusFit 10.11.1 Per-Lift / Simplified Lifting Tracking starts from the exact
+accepted 10.11.0 production merge
+`251f2dc46d36dedcd13d7a92ee89904cd317a536`. The accepted 10.11 implementation
+head is `8f5c64550f9fc4ad5aaaa9fab16f6e45f016925c`.
 
-10.11.0 is the new implementation candidate and is not accepted. It adds
-profile-backed Full Coaching, Strength Tracking, and Custom collection
-preferences with complete local-date timeline snapshots. Old profiles resolve
-to virtual Full Coaching without a migration write. The phase introduces no
-new storage key, schema bump, lifting mode, service, dependency, or build step.
+10.11.1 is an implementation candidate and is not accepted. It activates the
+existing `mf-user-profile.preferences.tracking.liftingDetail` timeline field
+with `full` and `simple` values. Missing or malformed values remain virtual
+Detailed reads without an eager write. Named collection presets remain
+orthogonal to lifting detail.
 
-Disabled prompts stop new collection without deleting existing values. Same-day
-edits preserve dormant fields; new disabled fields stay absent. Habit and
-recurring-adherence denominators exclude preference-off dates, while History
-and Stats keep factual historical records visible. AI Export explains current
-and interval-specific collection intent; AI Sync rejects preference mutation
-and new proposals for disabled domains before any writes. See
-`docs/architecture/tracking-preferences-10.11-audit.md` and
-`tests/marcusfit-10.11.0-manual-qa.md`.
+Detailed workouts retain the accepted per-set shape and effective 10.8
+progression path. Simple workouts stay in the existing `day-YYYY-MM-DD-wo` key,
+carry `liftingDetail:"simple"`, and store each exercise as `sets:[]` plus one
+versioned summary containing completed set count, lowest-set reps, common load,
+and hardest-set RIR. No Simple path fabricates individual set observations.
+Saved workout mode wins over draft mode, which wins over the date-effective
+preference for a blank workout. History, Stats, workout review, progression,
+AI Export, and diagnostics consume the evidence form directly. No storage key,
+backup schema, historical migration, dependency, build step, or runtime script
+is added. See `docs/architecture/simple-lifting-10.11.1-audit.md` and
+`tests/marcusfit-10.11.1-manual-qa.md`.
 
-## 10.11 candidate validation
+Real-iPhone Safari/Home Screen QA and explicit acceptance of the exact candidate
+head remain pending and are required before merge.
 
-- All 21 automated regression suites and all 22 runtime syntax checks pass; `git diff --check` is clean.
-- Local Chromium QA passed the required 320, 390, and 480 px matrix at Standard and Extra Large text, with 44 px minimum preference controls, no horizontal overflow, and no console warnings/errors.
-- Full Coaching, Strength Tracking, mixed Custom, dormant-field preservation, absent synthetic slider defaults, proposal accessibility, factual History/Stats, export interpretation, zero-write Sync preflights, backup preview, profile reset, and same-day Tracking reset behavior were exercised through localhost.
-- Protected base `P`, 63 stable exercise IDs, program-data/core-Sync blobs, canonical core-Sync hash, `Releases/` tree, and the accepted 22-script order remain unchanged.
-- Full lifting/progression remains the only lifting detail; Simple/Minimal lifting is not implemented.
-- Real-iPhone Safari/Home Screen QA remains pending and is required before acceptance.
+## Accepted 10.11 state
+
+MarcusFit 10.11.0 Tracking Preferences is accepted and merged at
+`251f2dc46d36dedcd13d7a92ee89904cd317a536`; its QA-approved implementation head
+is `8f5c64550f9fc4ad5aaaa9fab16f6e45f016925c`. It provides Full Coaching,
+Strength Tracking, and Custom collection preferences with complete local-date
+timeline snapshots, dormant-field preservation, preference-aware adherence and
+export interpretation, and zero-write AI Sync preference protection.
 
 ## Accepted 10.10 state
 
@@ -157,5 +164,6 @@ Protected values at acceptance:
 10.8.0 — Smarter Lifting — Accepted
 10.9.0 — Basketball Drill Coaching and Session Energy — Accepted
 10.10.0 — Visual System Modernization — Accepted
-10.11.0 — Tracking Preferences — Candidate
+10.11.0 — Tracking Preferences — Accepted
+10.11.1 — Per-Lift / Simplified Lifting Tracking — Candidate
 ```

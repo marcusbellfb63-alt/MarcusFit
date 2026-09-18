@@ -1,7 +1,7 @@
 # MarcusFit runtime architecture
 
 MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
-classic scripts. The 10.11.0 implementation candidate keeps those boundaries
+classic scripts. The 10.11.1 implementation candidate keeps those boundaries
 and composes export sections through the existing ordered classic-script wrappers. GitHub Pages still loads
 static `defer` scripts, and there is no build step or runtime dependency.
 
@@ -33,7 +33,7 @@ assets/js/
 `-- features/22-basketball.js
 ```
 
-The 10.11.0 candidate retains 22 runtime files in the accepted numeric order.
+The 10.11.1 candidate retains 22 runtime files in the accepted numeric order.
 Reproducible physical-line and largest-file counts come from the architecture
 inventory. Numeric prefixes remain globally ordered and match `index.html`.
 
@@ -92,6 +92,14 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - `sync/11-ai-export.js` and later domain wrappers report compact collection intent and neutral absence semantics. `sync/12-ai-sync.js` remains byte-identical; late extension preflight rejects preference mutation and disabled-domain proposals before writes.
 - Backup/restore continues to carry the raw `mf-user-profile` string under schema 1. Profile reset preserves tracking, while the dedicated Tracking reset records Full Coaching for today and retains earlier timeline entries.
 - See `tracking-preferences-10.11-audit.md` for the full contract and `../../tests/marcusfit-10.11.0-manual-qa.md` for the required browser/device matrix.
+
+## 10.11.1 Simple lifting boundary
+
+- `state/04-runtime-state-profile-preferences.js` activates `liftingDetail` as a date-effective `full` / `simple` selection without migrating missing values. Collection preset detection deliberately ignores lifting detail.
+- `features/10-workout-logging.js` resolves mode from saved workout, resumable draft, then preference. Simple exercises retain `sets:[]` and store only the versioned summary; `features/08-program-daily.js` restores that mode before draft values.
+- `features/18-progression-corrections.js` remains the effective progression authority. Its dedicated Simple evaluator consumes summary facts directly, emits medium-confidence qualifying results, and shares only pure load/metric/chronology/ceiling helpers with Detailed evaluation.
+- History, Stats, review, and AI Export are evidence-aware. Deterministic rotation considers only Detailed sessions; Simple records remain available for normal direct progression and explicitly labeled coaching context.
+- Backup/restore remains raw schema-1 replacement with no new key. See `simple-lifting-10.11.1-audit.md` and `../../tests/marcusfit-10.11.1-manual-qa.md`.
 
 ## Guide
 

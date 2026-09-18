@@ -3,6 +3,15 @@ function mfWorkoutSetLoadKeyboardMode(input,button,useText){
   if(!input||!button)return false;input.setAttribute("inputmode",useText?"text":"decimal");button.textContent=useText?"123":"ABC";button.setAttribute("aria-pressed",useText?"true":"false");button.setAttribute("aria-label",useText?"Use number keypad for this load":"Use text keyboard for this load");if(typeof input.focus==="function")input.focus();return true;
 }
 
+function mfWorkoutEvidenceMode(workout){return workout&&workout.liftingDetail==="simple"?"simple":"full";}
+function mfWorkoutResolveLiftingDetail(explicitWorkout){
+  try{const raw=localStorage.getItem(dKey(tDate)+"-wo");if(raw!==null){try{return mfWorkoutEvidenceMode(JSON.parse(raw));}catch(e){return "full";}}}catch(e){}
+  if(explicitWorkout&&typeof explicitWorkout==="object")return mfWorkoutEvidenceMode(explicitWorkout);
+  const date=typeof p950LocalDateKey==="function"?p950LocalDateKey(tDate):tDate;
+  try{const snapshot=typeof p950GetTrackingSnapshotForDate==="function"?p950GetTrackingSnapshotForDate(date):null;return snapshot&&snapshot.liftingDetail==="simple"?"simple":"full";}catch(e){return "full";}
+}
+function mfWorkoutEscapeAttr(value){return String(value==null?"":value).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
 function mfWorkoutReadActiveCalories(report){
   const input=document.getElementById("mfWorkoutActiveCalories");if(!input)return {ok:true,value:null};
   const raw=String(input.value||"").trim();input.setCustomValidity("");
@@ -15,6 +24,7 @@ function mfWorkoutReadActiveCalories(report){
 function renderWoExercises(){
   const dayIdx=document.getElementById("woDaySelect").value;
   const noteEl=document.getElementById("woDayNoteOut"),logEl=document.getElementById("woExerciseLog");
+  const liftingDetail=typeof mfWorkoutResolveLiftingDetail==="function"?mfWorkoutResolveLiftingDetail(arguments[0]):"full";if(!logEl.dataset)logEl.dataset={};logEl.dataset.liftingDetail=liftingDetail;
   // v9.4.4 Bug 4: always clear exercise log DOM before building new state
   logEl.innerHTML="";
   if(dayIdx===""){noteEl.textContent="";logEl.innerHTML='<div class="no-workout-msg">Select the day you trained above to log your sets.</div>';const energy=document.getElementById("mfWorkoutActiveCalories");if(energy)energy.value="";renderWoRecs();return;}
@@ -51,20 +61,27 @@ function renderWoExercises(){
     const savedEx=(saved.exercises&&saved.exercises[ex.id])||{sets:[]};
     // v9.4.4: compute progression status once per exercise so prefill can align with badge
     const p942last = p5GetLastEntry(ex.id);
-    const p942status = p9GetProgressionStatus(ex.id, p942last && p942last.validSets.length ? p942last.validSets : null, getF(ex.id,"reps",ex.reps||""), ri);
+    const p942status = p942last&&p942last.evidenceMode==="simple"&&typeof p1111BuildSimpleSuggestion==="function"?p1111BuildSimpleSuggestion(ex.id,p942last.summary,getF(ex.id,"reps",ex.reps||""),ri,{dateKey:p942last.dateKey,subjectStored:true,source:"render"}).status:p9GetProgressionStatus(ex.id, p942last && p942last.validSets.length ? p942last.validSets : null, getF(ex.id,"reps",ex.reps||""), ri);
     // Label helpers: RIR* marks a safer-hold floor
     const wtColLabel  = "Weight";
     const isSaferHold = p942status === "safer_hold" || p942status === "safer-hold";
     const rirColLabel = isSaferHold ? "RIR*" : "RIR";
     const saferHoldNote = isSaferHold ? `<div class="p9-safer-hold-note">*RIR floor raised — keep load, stop with more in reserve</div>` : "";
-    let setRowsHTML=`<div class="wo-set-labels"><span class="wo-set-label wt">${wtColLabel}</span><span class="wo-set-label rp">Reps</span><span class="wo-set-label ri">${rirColLabel}</span></div><div class="wo-set-rows">`;
-    for(let s=0;s<st;s++){
-      // v9.4.4: use aligned prefill; savedEx only has data when today's key has been saved
-      const pf = p9ComputePrefill(ex.id, s, savedEx.sets, p942status, getF(ex.id,"reps",ex.reps||""), ri);
-      const rirOptsS=["0","1","1\u20132","2","2\u20133","3","3+","\u2014"].map(v=>`<option value="${v}"${pf.rir===v?" selected":""}>${v==="\u2014"?"N/A":"RIR "+v}</option>`).join("");
-      setRowsHTML+=`<div class="wo-set-row"><div class="wo-set-num"><span class="wo-set-num-n">S${s+1}</span></div><div class="wo-set-load-entry"><input class="wo-set-wt" type="text" inputmode="decimal" placeholder="${ld}" value="${pf.wt}" data-exid="${ex.id}" data-set="${s}" data-field="wt"><button type="button" class="wo-load-keyboard-toggle" aria-label="Use text keyboard for this load" aria-pressed="false">ABC</button></div><input class="wo-set-reps" type="text" inputmode="${valueInputMode}" placeholder="reps" value="${pf.reps}" data-exid="${ex.id}" data-set="${s}" data-field="reps"><select class="wo-set-rir" data-exid="${ex.id}" data-set="${s}" data-field="rir">${rirOptsS}</select></div>`;
+    let setRowsHTML="";
+    if(liftingDetail==="simple"){
+      const summary=savedEx&&savedEx.summary&&savedEx.summary.version===1?savedEx.summary:{},rirValue=String(summary.rirFloor||"");
+      const rirOptsS=["","0","1","1\u20132","2","2\u20133","3","3+","\u2014"].map(v=>`<option value="${v}"${rirValue===v?" selected":""}>${v===""?"Select":v==="\u2014"?"N/A":"RIR "+v}</option>`).join("");
+      setRowsHTML=`<div class="wo-simple-summary" role="group" aria-label="Per-Lift summary for ${mfWorkoutEscapeAttr(nm)}"><div class="wo-simple-fields"><label><span>Sets</span><input class="wo-summary-sets" type="text" inputmode="numeric" aria-label="Completed work sets" placeholder="${st}" value="${mfWorkoutEscapeAttr(summary.setCount||"")}" data-exid="${ex.id}" data-field="summarySetCount"></label><label><span>Reps</span><input class="wo-summary-reps" type="text" inputmode="${valueInputMode}" aria-label="Lowest reps completed on any counted work set" placeholder="lowest" value="${mfWorkoutEscapeAttr(summary.repsFloor||"")}" data-exid="${ex.id}" data-field="summaryReps"></label><label><span>Weight</span><div class="wo-set-load-entry"><input class="wo-summary-load wo-set-wt" type="text" inputmode="decimal" aria-label="Common working resistance" placeholder="${mfWorkoutEscapeAttr(ld)}" value="${mfWorkoutEscapeAttr(summary.load||"")}" data-exid="${ex.id}" data-field="summaryLoad"><button type="button" class="wo-load-keyboard-toggle" aria-label="Use text keyboard for this load" aria-pressed="false">ABC</button></div></label><label><span>RIR</span><select class="wo-summary-rir" aria-label="Hardest lowest RIR" data-exid="${ex.id}" data-field="summaryRir">${rirOptsS}</select></label></div><div class="wo-simple-help">Reps = lowest-rep work set · RIR = hardest (lowest) work set.</div></div>`;
+    }else{
+      setRowsHTML=`<div class="wo-set-labels"><span class="wo-set-label wt">${wtColLabel}</span><span class="wo-set-label rp">Reps</span><span class="wo-set-label ri">${rirColLabel}</span></div><div class="wo-set-rows">`;
+      for(let s=0;s<st;s++){
+        // v9.4.4: use aligned prefill; savedEx only has data when today's key has been saved
+        const pf = p9ComputePrefill(ex.id, s, savedEx.sets, p942status, getF(ex.id,"reps",ex.reps||""), ri);
+        const rirOptsS=["0","1","1\u20132","2","2\u20133","3","3+","\u2014"].map(v=>`<option value="${v}"${pf.rir===v?" selected":""}>${v==="\u2014"?"N/A":"RIR "+v}</option>`).join("");
+        setRowsHTML+=`<div class="wo-set-row"><div class="wo-set-num"><span class="wo-set-num-n">S${s+1}</span></div><div class="wo-set-load-entry"><input class="wo-set-wt" type="text" inputmode="decimal" placeholder="${ld}" value="${pf.wt}" data-exid="${ex.id}" data-set="${s}" data-field="wt"><button type="button" class="wo-load-keyboard-toggle" aria-label="Use text keyboard for this load" aria-pressed="false">ABC</button></div><input class="wo-set-reps" type="text" inputmode="${valueInputMode}" placeholder="reps" value="${pf.reps}" data-exid="${ex.id}" data-set="${s}" data-field="reps"><select class="wo-set-rir" data-exid="${ex.id}" data-set="${s}" data-field="rir">${rirOptsS}</select></div>`;
+      }
+      setRowsHTML+='</div>';
     }
-    setRowsHTML+='</div>';
     const p5Html = p5Block(ex.id, getF(ex.id,"reps",ex.reps||""), ri);
     const bl=getF(ex.id,"blurb",ex.blurb||"");
     // v9.4.4 Bug 5: suppress coach text that contains a specific load conflicting with target_reset
@@ -102,8 +119,14 @@ function collectWoData(recordDate){
   const resolvedDays = getResolvedDays(logGym);
   const day = resolvedDays.find(d => d._dayIdx === dayIdxInt) || null;
   if(!day) return null;
-  const exData={};
+  const exData={},logEl=document.getElementById("woExerciseLog"),liftingDetail=logEl&&logEl.dataset&&logEl.dataset.liftingDetail==="simple"?"simple":"full";
   (day.exercises||[]).forEach(ex=>{
+    if(liftingDetail==="simple"){
+      const setCountEl=document.querySelector(`input[data-exid="${ex.id}"][data-field="summarySetCount"]`),repsEl=document.querySelector(`input[data-exid="${ex.id}"][data-field="summaryReps"]`),loadEl=document.querySelector(`input[data-exid="${ex.id}"][data-field="summaryLoad"]`),rirEl=document.querySelector(`select[data-exid="${ex.id}"][data-field="summaryRir"]`),noteEl=document.querySelector(`input[data-exid="${ex.id}"][data-field="exnote"]`),notesEnabled=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.sessionNotes",trackingDate);
+      const setCountRaw=String(setCountEl&&setCountEl.value||"").trim(),repsFloor=String(repsEl&&repsEl.value||"").trim(),load=String(loadEl&&loadEl.value||"").trim(),rirFloor=String(rirEl&&rirEl.value||"").trim(),touched=!!(setCountRaw||repsFloor||load||rirFloor),note=noteEl?noteEl.value:"";
+      if(touched||(notesEnabled&&note)){const entry={sets:[]};if(touched)entry.summary={version:1,setCount:/^\d+$/.test(setCountRaw)?parseInt(setCountRaw,10):0,repsFloor:repsFloor,load:load,rirFloor:rirFloor};if(notesEnabled)entry.note=note;exData[ex.id]=entry;}
+      return;
+    }
     const st=parseInt(getF(ex.id,"sets",ex.sets||"3"))||3;const sets=[];
     for(let s=0;s<st;s++){
       const wt=document.querySelector(`input[data-exid="${ex.id}"][data-set="${s}"][data-field="wt"]`);
@@ -114,14 +137,14 @@ function collectWoData(recordDate){
     const noteEl=document.querySelector(`input[data-exid="${ex.id}"][data-field="exnote"]`),notesEnabled=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.sessionNotes",trackingDate);
     if(sets.some(s=>s.wt||s.reps)||(notesEnabled&&noteEl&&noteEl.value)){exData[ex.id]={sets};if(notesEnabled)exData[ex.id].note=noteEl?noteEl.value:"";}
   });
-  const workout={gym:logGym,dayIdx,dayName:day.name,exercises:exData},energyEnabled=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.activeCalories",trackingDate),energy=typeof mfWorkoutReadActiveCalories==="function"?mfWorkoutReadActiveCalories(false):{ok:true,value:null};if(energyEnabled&&energy.ok&&energy.value!==null)workout.activeCalories=energy.value;return workout;
+  const workout={gym:logGym,dayIdx,dayName:day.name,exercises:exData};if(liftingDetail==="simple")workout.liftingDetail="simple";const energyEnabled=typeof p950IsTrackingEnabled!=="function"||p950IsTrackingEnabled("modules.activeCalories",trackingDate),energy=typeof mfWorkoutReadActiveCalories==="function"?mfWorkoutReadActiveCalories(false):{ok:true,value:null};if(energyEnabled&&energy.ok&&energy.value!==null)workout.activeCalories=energy.value;return workout;
 }
 
 function p85PreserveDormantWorkoutFields(next,prior,recordDate){
   if(!next||!prior||typeof prior!=="object")return next;
   const trackingDate=recordDate||(typeof tDate!=="undefined"?(typeof p950LocalDateKey==="function"?p950LocalDateKey(tDate):tDate):undefined);
   if(typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.activeCalories",trackingDate)&&Object.prototype.hasOwnProperty.call(prior,"activeCalories"))next.activeCalories=prior.activeCalories;
-  if(typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.sessionNotes",trackingDate))Object.keys(prior.exercises||{}).forEach(function(id){const old=prior.exercises[id];if(!old||!Object.prototype.hasOwnProperty.call(old,"note"))return;if(!next.exercises[id])next.exercises[id]={sets:Array.isArray(old.sets)?old.sets:[]};next.exercises[id].note=old.note;});
+  if(typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.sessionNotes",trackingDate))Object.keys(prior.exercises||{}).forEach(function(id){const old=prior.exercises[id];if(!old||!Object.prototype.hasOwnProperty.call(old,"note"))return;if(!next.exercises[id]){next.exercises[id]={sets:Array.isArray(old.sets)?old.sets:[]};if(prior.liftingDetail==="simple"&&old.summary)next.exercises[id].summary=JSON.parse(JSON.stringify(old.summary));}next.exercises[id].note=old.note;});
   return next;
 }
 
