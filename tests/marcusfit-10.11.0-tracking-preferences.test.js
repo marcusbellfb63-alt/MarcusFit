@@ -68,7 +68,7 @@ function createProfileContext(initial = {}) {
   return { context, storage, elements, selectors };
 }
 
-assert(constantsSource.includes('const APP_VERSION = "10.11.2"'), "APP_VERSION was not advanced");
+assert(constantsSource.includes('const APP_VERSION = "10.12.0"'), "APP_VERSION was not advanced");
 
 // Missing tracking is a virtual Full Coaching read and never persists.
 let env = createProfileContext();
@@ -363,7 +363,7 @@ assert.deepStrictEqual(JSON.parse(JSON.stringify(onboardingMerged.preferences.tr
 const canonicalCoreHash = crypto.createHash("sha256").update(coreSyncSource.replace(/\r\n/g,"\n")).digest("hex");
 assert.strictEqual(canonicalCoreHash, "14245321c8f47de5c152d011a08877ef4821e353c15bc3ed72c0490aa767c598");
 assert.strictEqual((html.match(/<script\s+src="[^"]+"\s+defer><\/script>/g) || []).length, 22);
-assert(!/trackingLevel|evidenceKind|summary records|Simple Fitness Log|Minimal lifting/i.test(profileSource+workoutSource));
+assert(!/trackingLevel|evidenceKind|summary records|Minimal lifting/i.test(profileSource+workoutSource));
 assert(dailySource.includes("collectWoData(recordDate)") && dailySource.includes("p950ApplyTrackingPreferencesToUi(p950LocalDateKey(tDate))"), "Daily draft/form gating is not selected-date effective");
 assert(workoutSource.includes('p950IsTrackingEnabled("modules.sessionNotes",trackingDate)') && workoutSource.includes('p950IsTrackingEnabled("modules.activeCalories",trackingDate)') && workoutSource.includes("p950GetTrackingSnapshotForDate(recordDate)"), "Workout collection/save is not record-date effective");
 assert(basketballSource.includes("mfBasketballPreserveDormantFields(input,existing,recordDate)") && basketballSource.includes("mfBasketballApplyRecordTrackingToForm(session.date,true)"), "Basketball edit/preservation is not session-date effective");
