@@ -51,7 +51,7 @@ function normalizedSliceHash(source, startMarker, endMarker) {
   return crypto.createHash("sha256").update(source.slice(start, end).replace(/\r\n/g, "\n")).digest("hex");
 }
 
-assert(html.includes("MarcusFit 10.11.1"));
+assert(html.includes("MarcusFit 10.11.2"));
 assert(css.includes("--brand:#b7f34a"));
 assert(css.includes("--accent:var(--brand)"));
 assert(css.includes(".logo span:first-child{color:var(--text-primary);}"), "MARCUS must resolve to primary near-white text");

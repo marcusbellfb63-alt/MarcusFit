@@ -1,6 +1,6 @@
 
 // ── VERSION ────────────────────────────────────────────────────────────────
-const APP_VERSION = "10.11.1";
+const APP_VERSION = "10.11.2";
 const LIFECYCLE_VERSION = APP_VERSION;
 // ── 9.5.6 ARCHITECTURE PREP (DOCUMENTATION ONLY) ──────────────────────────
 // MarcusFit intentionally remains one dependency-free HTML file in this

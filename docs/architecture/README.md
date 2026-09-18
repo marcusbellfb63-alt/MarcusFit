@@ -1,7 +1,7 @@
 # MarcusFit runtime architecture
 
 MarcusFit 10.1.2 reorganized the accepted runtime into 22 coherent, ordered
-classic scripts. The 10.11.1 implementation candidate keeps those boundaries
+classic scripts. The accepted 10.11.1 production runtime keeps those boundaries
 and composes export sections through the existing ordered classic-script wrappers. GitHub Pages still loads
 static `defer` scripts, and there is no build step or runtime dependency.
 
@@ -33,7 +33,7 @@ assets/js/
 `-- features/22-basketball.js
 ```
 
-The 10.11.1 candidate retains 22 runtime files in the accepted numeric order.
+The accepted 10.11.1 runtime retains 22 runtime files in the accepted numeric order.
 Reproducible physical-line and largest-file counts come from the architecture
 inventory. Numeric prefixes remain globally ordered and match `index.html`.
 

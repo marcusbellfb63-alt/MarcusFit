@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.11.1 — Per-Lift / Simplified Lifting Tracking implementation candidate
+MarcusFit 10.11.2 — Post-Merge Acceptance Housekeeping candidate
 
 ## Architecture
 
@@ -143,23 +143,25 @@ MarcusFit 10.11.1 — Per-Lift / Simplified Lifting Tracking implementation cand
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.11.1";
+const APP_VERSION      = "10.11.2";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
 Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, lifecycle default `lifecycleVersion`, migration targets, and export strings reference these constants.
 
-## Candidate record
+## Current housekeeping candidate
 
-- 10.11.1 starts from accepted 10.11.0 production merge `251f2dc46d36dedcd13d7a92ee89904cd317a536`; accepted 10.11 implementation head `8f5c64550f9fc4ad5aaaa9fab16f6e45f016925c`
-- Per-Lift Simple is an additive workout evidence form inside existing workout keys and draft storage; no storage key, backup schema, historical migration, dependency, build step, or runtime script is added
-- Saved workout mode wins, then resumable draft mode, then the selected date's Tracking Preferences mode; history is never converted
-- Detailed behavior remains on the accepted 10.8 effective evaluator, while Simple evidence is evaluated directly and never expanded into fake sets
-- See `docs/architecture/simple-lifting-10.11.1-audit.md` and `tests/marcusfit-10.11.1-manual-qa.md`
-- 10.11.1 is not accepted; independent review and Marcus real-iPhone QA of the exact candidate head are required
+- 10.11.2 starts from accepted 10.11.1 production merge `e5d0944aae19c077368af255e9eebbf758aaeecd`
+- This housekeeping candidate updates release-state documentation and ordinary application-version metadata only
+- No product behavior, storage key, schema, migration, dependency, build step, or runtime script is changed
+- 10.11.2 remains a draft candidate pending independent review and Marcus acceptance
 
 ## Acceptance Record
 
+- 10.11.1 is accepted and merged at `e5d0944aae19c077368af255e9eebbf758aaeecd`; accepted implementation head `15742d4bb5fb853a50d099be14c25416eb846ce2`; accepted production tree `6fec699c5625dcceb980ff11b00c064b0705f2c1`
+- 10.11.1 delivers Per Set — Detailed and Per Lift — Simple lifting with saved workout > resumable draft > date-effective preference authority, authoritative versioned Simple summaries, mixed evidence-aware consumers, raw backup compatibility, and no fabricated individual-set evidence
+- Malformed or incomplete Simple history remains isolated from progression calculations requiring qualifying evidence, and Simple history is excluded from deterministic stale/capped rotation thresholds in 10.11.1
+- Real-iPhone Safari and Home Screen/PWA QA passed before 10.11.1 acceptance
 - 10.11.0 is accepted and merged at `251f2dc46d36dedcd13d7a92ee89904cd317a536`; QA-approved implementation head `8f5c64550f9fc4ad5aaaa9fab16f6e45f016925c`
 - 10.10.0 is accepted and merged at `6300c34f52721c8218fce918303ac2a0b75304e6`; QA-approved implementation head `86607d59f0810a4b4ecac4674552a131ace09408`
 - 10.9.0 is accepted and merged at `d4a8f4d85ecb66e6c30a192ab4c3ae5bc8399dd3`; QA-approved implementation head `3d8c04d52c9731845d4f3cd865b550d7e4287f44`
@@ -193,4 +195,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.9.0** — Basketball Drill Coaching and Session Energy (accepted)
 - **v10.10.0** — Visual System Modernization (accepted)
 - **v10.11.0** — Tracking Preferences (accepted)
-- **v10.11.1** — Per-Lift / Simplified Lifting Tracking (implementation candidate)
+- **v10.11.1** — Per-Lift / Simplified Lifting Tracking (accepted)
+- **v10.11.2** — Post-Merge Acceptance Housekeeping (current candidate)

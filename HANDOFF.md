@@ -2,31 +2,33 @@
 
 ## Current implementation candidate
 
-MarcusFit 10.11.1 Per-Lift / Simplified Lifting Tracking starts from the exact
-accepted 10.11.0 production merge
-`251f2dc46d36dedcd13d7a92ee89904cd317a536`. The accepted 10.11 implementation
-head is `8f5c64550f9fc4ad5aaaa9fab16f6e45f016925c`.
+MarcusFit 10.11.2 Post-Merge Acceptance Housekeeping starts from the exact
+accepted 10.11.1 production merge
+`e5d0944aae19c077368af255e9eebbf758aaeecd`. It updates release-state
+documentation and ordinary application-version metadata only. It introduces no
+product behavior, storage, schema, migration, dependency, build-step, or
+runtime-script change. 10.11.2 is a housekeeping candidate and is not accepted.
 
-10.11.1 is an implementation candidate and is not accepted. It activates the
-existing `mf-user-profile.preferences.tracking.liftingDetail` timeline field
-with `full` and `simple` values. Missing or malformed values remain virtual
-Detailed reads without an eager write. Named collection presets remain
-orthogonal to lifting detail.
+## Accepted 10.11.1 state
 
-Detailed workouts retain the accepted per-set shape and effective 10.8
-progression path. Simple workouts stay in the existing `day-YYYY-MM-DD-wo` key,
-carry `liftingDetail:"simple"`, and store each exercise as `sets:[]` plus one
-versioned summary containing completed set count, lowest-set reps, common load,
-and hardest-set RIR. No Simple path fabricates individual set observations.
-Saved workout mode wins over draft mode, which wins over the date-effective
-preference for a blank workout. History, Stats, workout review, progression,
-AI Export, and diagnostics consume the evidence form directly. No storage key,
-backup schema, historical migration, dependency, build step, or runtime script
-is added. See `docs/architecture/simple-lifting-10.11.1-audit.md` and
+MarcusFit 10.11.1 Per-Lift / Simplified Lifting Tracking is accepted and merged
+at `e5d0944aae19c077368af255e9eebbf758aaeecd`; its accepted implementation head
+is `15742d4bb5fb853a50d099be14c25416eb846ce2`, and the accepted production tree
+is `6fec699c5625dcceb980ff11b00c064b0705f2c1`.
+
+It provides Per Set — Detailed and Per Lift — Simple lifting. Saved workout,
+resumable draft, then date-effective preference determine mode authority. Simple
+records retain `sets:[]` plus one authoritative versioned summary and never
+fabricate individual-set evidence. History, Stats, workout review, progression,
+and AI Export consume mixed Detailed/Simple evidence directly. Raw backup
+compatibility is preserved without a storage or schema migration; malformed or
+incomplete Simple history is isolated from calculations requiring qualifying
+evidence, and Simple history is excluded from deterministic stale/capped
+rotation thresholds in 10.11.1.
+
+Real-iPhone Safari and Home Screen/PWA QA passed before explicit acceptance.
+See `docs/architecture/simple-lifting-10.11.1-audit.md` and
 `tests/marcusfit-10.11.1-manual-qa.md`.
-
-Real-iPhone Safari/Home Screen QA and explicit acceptance of the exact candidate
-head remain pending and are required before merge.
 
 ## Accepted 10.11 state
 
@@ -165,5 +167,6 @@ Protected values at acceptance:
 10.9.0 — Basketball Drill Coaching and Session Energy — Accepted
 10.10.0 — Visual System Modernization — Accepted
 10.11.0 — Tracking Preferences — Accepted
-10.11.1 — Per-Lift / Simplified Lifting Tracking — Candidate
+10.11.1 — Per-Lift / Simplified Lifting Tracking — Accepted
+10.11.2 — Post-Merge Acceptance Housekeeping — Candidate
 ```
