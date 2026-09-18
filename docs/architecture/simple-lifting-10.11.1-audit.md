@@ -1,9 +1,9 @@
 # MarcusFit 10.11.1 Simple lifting audit
 
-Status: implementation candidate based on accepted 10.11.0 production commit
-`251f2dc46d36dedcd13d7a92ee89904cd317a536` and accepted implementation head
-`8f5c64550f9fc4ad5aaaa9fab16f6e45f016925c`. Nothing here marks 10.11.1
-accepted.
+Status: accepted production. Accepted implementation head
+`15742d4bb5fb853a50d099be14c25416eb846ce2`; accepted production merge
+`e5d0944aae19c077368af255e9eebbf758aaeecd`; accepted production tree
+`6fec699c5625dcceb980ff11b00c064b0705f2c1`.
 
 ## Evidence model
 
@@ -81,9 +81,9 @@ independently qualifying sessions; either session may be Detailed or Simple.
 - Backups remain schema 1 raw-string snapshots. No storage key or migration is
   introduced, and `assets/js/sync/12-ai-sync.js` remains protected.
 
-## Acceptance gate
+## Acceptance record
 
-Automated and localhost checks support an implementation candidate only.
-Marcus must complete the exact-head real-iPhone Safari and Home Screen matrix in
-`tests/marcusfit-10.11.1-manual-qa.md`, explicitly accept that head, and retain
-merge authority. The implementation agent must not merge or mark the PR ready.
+The complete automated suite, localhost validation, and exact-head real-iPhone
+Safari and Home Screen/PWA matrix passed before Marcus explicitly accepted
+`15742d4bb5fb853a50d099be14c25416eb846ce2`. PR #23 was merged to production
+with true merge commit `e5d0944aae19c077368af255e9eebbf758aaeecd`.
