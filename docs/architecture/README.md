@@ -110,6 +110,12 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - AI Export labels lightweight intent and neutral missing domains. AI Sync remains unable to target profile/tracking state, and raw schema-1 backup/restore naturally carries the unchanged profile key.
 - See `simple-fitness-log-10.12-audit.md` and `../../tests/marcusfit-10.12.0-manual-qa.md`.
 
+### 10.12.1 AI Sync composite contract hotfix
+
+- Final object dispatch is owned by the existing late Basketball/Habit Sync composition boundary; legacy arrays continue to the byte-identical core importer.
+- Composite envelope, nested proposal schemas, tracking gates, and pending guards validate before writes; unexpected later failure restores synchronous storage state.
+- See `ai-sync-composite-10.12.1-audit.md` and `../../tests/marcusfit-10.12.1-manual-qa.md`.
+
 ## Guide
 
 - `runtime-system-map.md` records ownership and direct dependencies.
