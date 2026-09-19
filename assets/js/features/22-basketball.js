@@ -1525,32 +1525,40 @@ if(typeof genExport==="function"){
 // passed in is always the live authoritative core applySync binding from file 12.
 let mfBasketballLegacySyncExtension=null;
 function mfBasketballHandleSyncExtension(runCoreSync){
+    function has(value,key){return Object.prototype.hasOwnProperty.call(value,key);}
+    function reject(result,message){if(result){result.style.display="block";result.style.color="var(--red)";result.textContent=message;}return true;}
+    function storageSnapshot(){const snapshot=Object.create(null);for(let index=0;index<localStorage.length;index++){const key=localStorage.key(index);if(key!=null)snapshot[key]=localStorage.getItem(key);}return snapshot;}
+    function restoreStorage(snapshot){const current=[];for(let index=0;index<localStorage.length;index++){const key=localStorage.key(index);if(key!=null)current.push(key);}current.forEach(function(key){if(!has(snapshot,key))localStorage.removeItem(key);});Object.keys(snapshot).forEach(function(key){localStorage.setItem(key,snapshot[key]);});}
     const input=document.getElementById("syncInput"),res=document.getElementById("syncResult"),raw=input&&input.value||"",match=raw.match(/MARCUSFIT_UPDATE_START([\s\S]*?)MARCUSFIT_UPDATE_END/);
     if(!match)return false;
-    const inner=match[1].trim().replace(/^```[a-zA-Z]*\n?/,"").replace(/\n?```$/,"").trim();let payload;
+    const inner=match[1].trim().replace(/^```[a-zA-Z]*\n?/,"").replace(/\n?```$/,"").trim().replace(/[\u2013\u2014\u2012\u2010]/g,"-").replace(/[\u201C\u201D]/g,'"').replace(/[\u2018\u2019]/g,"'");let payload;
     try{payload=JSON.parse(inner);}catch(e){return mfBasketballLegacySyncExtension?mfBasketballLegacySyncExtension(runCoreSync):false;}
-    if(payload&&!Array.isArray(payload)&&Object.keys(payload).some(function(key){return /tracking|profile/i.test(key); })){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Sync rejected before any writes: Tracking Preferences are user-controlled and cannot be changed by AI Sync.";}return true;}
-    if(payload&&!Array.isArray(payload)&&payload.habitProposal&&typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.habits")){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Sync rejected before any writes: Habit tracking is intentionally off. Re-enable it before importing a Habit proposal.";}return true;}
-    if(payload&&!Array.isArray(payload)&&payload.basketballProposal&&typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.basketball")){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Sync rejected before any writes: Basketball tracking is intentionally off. Re-enable it before importing a Basketball proposal.";}return true;}
-    if(!payload||Array.isArray(payload)||!payload.basketballProposal)return mfBasketballLegacySyncExtension?mfBasketballLegacySyncExtension(runCoreSync):false;
+    if(!payload||typeof payload!=="object"||Array.isArray(payload))return mfBasketballLegacySyncExtension?mfBasketballLegacySyncExtension(runCoreSync):false;
+    if(Object.keys(payload).some(function(key){return /tracking|profile/i.test(key); }))return reject(res,"Sync rejected before any writes: Tracking Preferences are user-controlled and cannot be changed by AI Sync.");
+    const hasHabit=has(payload,"habitProposal"),hasBasketball=has(payload,"basketballProposal");
     const envelopeExtras=Object.keys(payload).filter(function(k){return !["updates","habitProposal","basketballProposal"].includes(k);});
-    const envelopeError=envelopeExtras.length?"Mixed Sync payload contains unsupported top-level field(s): "+envelopeExtras.join(", ")+".":(Object.prototype.hasOwnProperty.call(payload,"updates")&&!Array.isArray(payload.updates)?"Mixed Sync updates must be an array.":"");
-    if(envelopeError){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Sync proposal import rejected before any proposal or core processing:\n"+envelopeError;}return true;}
-    const basketballExisting=mfBasketballGetProposal(),basketballValidation=basketballExisting&&basketballExisting.status==="pending"?{valid:false,errors:["A basketball proposal is already pending. Review or dismiss it before importing another."]}:mfBasketballValidateProposal(payload.basketballProposal,{captureExpectedState:true});
+    const envelopeError=envelopeExtras.length?"Composite Sync payload contains unsupported top-level field(s): "+envelopeExtras.join(", ")+".":(has(payload,"updates")&&!Array.isArray(payload.updates)?"Composite Sync updates must be an array.":(!hasHabit&&!hasBasketball?"Composite Sync payload must contain a Habit or Basketball proposal; core-only changes must use the legacy top-level array.":""));
+    if(envelopeError)return reject(res,"Sync proposal import rejected before any proposal or core processing:\n"+envelopeError);
+    if(hasHabit&&typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.habits"))return reject(res,"Sync rejected before any writes: Habit tracking is intentionally off. Re-enable it before importing a Habit proposal.");
+    if(hasBasketball&&typeof p950IsTrackingEnabled==="function"&&!p950IsTrackingEnabled("modules.basketball"))return reject(res,"Sync rejected before any writes: Basketball tracking is intentionally off. Re-enable it before importing a Basketball proposal.");
+    let basketballValidation=null,basketballExisting=null;
+    if(hasBasketball){
+      basketballExisting=mfBasketballGetProposal();basketballValidation=basketballExisting&&basketballExisting.status==="pending"?{valid:false,errors:["A basketball proposal is already pending. Review or dismiss it before importing another."]}:mfBasketballValidateProposal(payload.basketballProposal,{captureExpectedState:true});
+    }
     let habitValidation=null,habitExisting=null;
-    if(payload.habitProposal&&typeof p960ValidateHabitProposal==="function"){
+    if(hasHabit&&typeof p960ValidateHabitProposal==="function"){
       habitExisting=typeof p960GetHabitProposal==="function"?p960GetHabitProposal():null;habitValidation=habitExisting&&habitExisting.status==="pending"?{valid:false,errors:["A habit proposal is already pending. Review or dismiss it before importing another."]}:p960ValidateHabitProposal(payload.habitProposal,null,{captureExpectedState:true});
     }
-    const importErrors=[];if(!basketballValidation.valid)importErrors.push.apply(importErrors,basketballValidation.errors||["Basketball proposal is invalid."]);if(payload.habitProposal&&(!habitValidation||!habitValidation.valid))importErrors.push.apply(importErrors,habitValidation&&habitValidation.errors||["Habit proposal is invalid."]);
-    if(importErrors.length){if(res){res.style.display="block";res.style.color="var(--red)";res.textContent="Sync proposal import rejected before any proposal or core processing:\n"+importErrors.join("\n");}return true;}
-    const updates=Array.isArray(payload.updates)?payload.updates:[],habitBefore=localStorage.getItem("mf-habit-proposal"),basketballBefore=localStorage.getItem(MF_BASKETBALL_PROPOSAL_KEY);let coreMessage="";
-    if(updates.length){try{input.value="MARCUSFIT_UPDATE_START\n"+JSON.stringify(updates,null,2)+"\nMARCUSFIT_UPDATE_END";runCoreSync();coreMessage=res&&res.textContent||"";}finally{input.value=raw;}}
+    const importErrors=[];if(hasBasketball&&(!basketballValidation||!basketballValidation.valid))importErrors.push.apply(importErrors,basketballValidation&&basketballValidation.errors||["Basketball proposal is invalid."]);if(hasHabit&&(!habitValidation||!habitValidation.valid))importErrors.push.apply(importErrors,habitValidation&&habitValidation.errors||["Habit proposal is invalid."]);
+    if(importErrors.length)return reject(res,"Sync proposal import rejected before any proposal or core processing:\n"+importErrors.join("\n"));
+    const updates=Array.isArray(payload.updates)?payload.updates:[],storageBefore=storageSnapshot();let coreMessage="";
     try{
-      if(payload.habitProposal){const importedHabit=p960ImportHabitProposal(payload.habitProposal);if(!importedHabit.valid)throw new Error((importedHabit.errors||["Habit proposal import failed."]).join(" "));}
-      const importedBasketball=mfBasketballImportProposal(payload.basketballProposal);if(!importedBasketball.valid)throw new Error((importedBasketball.errors||["Basketball proposal import failed."]).join(" "));
-    }catch(e){mfBasketballRestoreRaw("mf-habit-proposal",habitBefore);mfBasketballRestoreRaw(MF_BASKETBALL_PROPOSAL_KEY,basketballBefore);if(res){res.style.display="block";res.style.color="var(--red)";res.textContent=(updates.length?"Core program sync completed, but proposal imports were rolled back together. ":"")+String(e.message||e);}return true;}
-    if(res){const parts=[];if(updates.length)parts.push("Program sync processed.");if(payload.habitProposal)parts.push("Habit changes are pending explicit review.");parts.push(updates.length||payload.habitProposal?"Basketball changes are pending explicit review.":"Basketball proposal imported. Review required before any basketball program changes are applied.");res.style.display="block";res.style.color="var(--yellow)";res.textContent=parts.join(" ")+(coreMessage&&/skipped|error|rollback|invalid/i.test(coreMessage)?"\n\nCore Sync details:\n"+coreMessage:"");}
-    mfBasketballRenderProposalStatus();mfBasketballOpenProposalReview();return true;
+      if(updates.length){input.value="MARCUSFIT_UPDATE_START\n"+JSON.stringify(updates,null,2)+"\nMARCUSFIT_UPDATE_END";runCoreSync();coreMessage=res&&res.textContent||"";input.value=raw;}
+      if(hasHabit){const importedHabit=p960ImportHabitProposal(payload.habitProposal);if(!importedHabit.valid)throw new Error((importedHabit.errors||["Habit proposal import failed."]).join(" "));}
+      if(hasBasketball){const importedBasketball=mfBasketballImportProposal(payload.basketballProposal);if(!importedBasketball.valid)throw new Error((importedBasketball.errors||["Basketball proposal import failed."]).join(" "));}
+    }catch(e){input.value=raw;restoreStorage(storageBefore);if(typeof p960UpdateSettingsStatus==="function")p960UpdateSettingsStatus();mfBasketballRenderProposalStatus();return reject(res,"Composite Sync failed; all storage writes from this payload were rolled back. "+String(e.message||e));}
+    if(res){const parts=[];if(updates.length)parts.push("Program sync processed.");if(hasHabit)parts.push("Habit changes are pending explicit review.");if(hasBasketball)parts.push(updates.length||hasHabit?"Basketball changes are pending explicit review.":"Basketball proposal imported. Review required before any basketball program changes are applied.");res.style.display="block";res.style.color="var(--yellow)";res.textContent=parts.join(" ")+(coreMessage&&/skipped|error|rollback|invalid/i.test(coreMessage)?"\n\nCore Sync details:\n"+coreMessage:"");}
+    if(hasBasketball){mfBasketballRenderProposalStatus();mfBasketballOpenProposalReview();}else p960OpenHabitProposalReview();return true;
 }
 if(typeof p960HandleSyncExtension==="function"){
   mfBasketballLegacySyncExtension=p960HandleSyncExtension;
