@@ -160,7 +160,7 @@ assert(dailySource.includes("liftingDetail,") && dailySource.includes("if(draftW
 assert(dailySource.includes('if(d.liftingDetail==="simple")draftWorkout.liftingDetail="simple"'));
 assert(progressionSource.includes("p959LegacyRenderWoExercises.apply(this,arguments)"), "effective progression wrapper dropped draft mode ownership");
 assert(progressionSource.includes("p9BuildProgressionExport=p1111ProgressionExport"), "final effective export was not evidence-aware");
-assert(dailySource.indexOf("populateWoDaySelect();\n  updateTrackerDate();")>=0, "boot reset the restored same-date workout selection");
+assert(dailySource.replace(/\r\n/g,"\n").indexOf("populateWoDaySelect();\n  updateTrackerDate();")>=0, "boot reset the restored same-date workout selection");
 assert(dailySource.includes("summarySetCount") && dailySource.includes("summaryReps") && dailySource.includes("summaryLoad") && dailySource.includes("summaryRir"));
 assert(dailySource.includes(".wo-summary-sets") && dailySource.includes(".wo-summary-rir"));
 

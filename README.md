@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.11.2 — Post-Merge Acceptance Housekeeping candidate
+MarcusFit 10.12.0 — Simple Fitness Log + Streamlined Setup candidate
 
 ## Architecture
 
@@ -62,7 +62,9 @@ MarcusFit 10.11.2 — Post-Merge Acceptance Housekeeping candidate
 ### Tracking Preferences (`mf-user-profile.preferences.tracking`)
 - Full Coaching is the virtual default for old profiles and requires no migration write
 - Strength Tracking keeps full lifting plus Weight, Sleep, Energy, Session Notes, and Coaching Insights
-- Lifting Detail is orthogonal to collection presets: Full Coaching, Strength Tracking, and Custom each support Per Set — Detailed or Per Lift — Simple
+- Simple Fitness Log keeps lifting, Session Notes, Coaching Insights, History, and progression while turning off Daily metrics, Habits, Basketball, recurring adherence, Daily Notes, and Active Calories
+- Lifting Detail is orthogonal to collection presets: every named preset supports Per Set — Detailed or Per Lift — Simple without changing its collection identity
+- Explicit Full Coaching and Strength Tracking actions default to Detailed; Simple Fitness Log defaults to Simple; Custom preserves the current fields
 - Missing, malformed, and old-profile lifting-detail values resolve virtually to Detailed without an eager migration write
 - Complete local-date timeline snapshots determine historical collection intent; same-day changes replace today's entry and later-day changes append
 - Disabled collection fields remain dormant and preserved, while new disabled fields are omitted instead of receiving synthetic defaults
@@ -143,21 +145,23 @@ MarcusFit 10.11.2 — Post-Merge Acceptance Housekeeping candidate
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.11.2";
+const APP_VERSION      = "10.12.0";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
 Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, lifecycle default `lifecycleVersion`, migration targets, and export strings reference these constants.
 
-## Current housekeeping candidate
+## Current feature candidate
 
-- 10.11.2 starts from accepted 10.11.1 production merge `e5d0944aae19c077368af255e9eebbf758aaeecd`
-- This housekeeping candidate updates release-state documentation and ordinary application-version metadata only
-- No product behavior, storage key, schema, migration, dependency, build step, or runtime script is changed
-- 10.11.2 remains a draft candidate pending independent review and Marcus acceptance
+- 10.12.0 starts from accepted 10.11.2 production merge `9c854176d1ffb75b5c2247c0add88e6ce6a59768` and tree `da27cb6402ae7c327e73568f2e7502b1aef42319`
+- Simple Fitness Log is an ordinary collection preset inside the existing Tracking Preferences timeline; no second app mode or workout record type is introduced
+- The Tracking Preferences setup surface now leads with four outcome-focused choices, keeps Workout logging detail separate, and exposes the accepted fine-tuning controls below
+- No storage key, schema, migration, dependency, build step, runtime script, progression rule, or core Sync behavior is changed
+- Automated and localhost/browser QA pass; 10.12.0 remains a draft candidate pending independent review, later real-iPhone QA, and explicit Marcus acceptance
 
 ## Acceptance Record
 
+- 10.11.2 is accepted and merged at `9c854176d1ffb75b5c2247c0add88e6ce6a59768`; accepted implementation head `e4bed8cda5d48aef993ec6a108e885c21b7a9be9`; accepted production tree `da27cb6402ae7c327e73568f2e7502b1aef42319`
 - 10.11.1 is accepted and merged at `e5d0944aae19c077368af255e9eebbf758aaeecd`; accepted implementation head `15742d4bb5fb853a50d099be14c25416eb846ce2`; accepted production tree `6fec699c5625dcceb980ff11b00c064b0705f2c1`
 - 10.11.1 delivers Per Set — Detailed and Per Lift — Simple lifting with saved workout > resumable draft > date-effective preference authority, authoritative versioned Simple summaries, mixed evidence-aware consumers, raw backup compatibility, and no fabricated individual-set evidence
 - Malformed or incomplete Simple history remains isolated from progression calculations requiring qualifying evidence, and Simple history is excluded from deterministic stale/capped rotation thresholds in 10.11.1
@@ -196,4 +200,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.10.0** — Visual System Modernization (accepted)
 - **v10.11.0** — Tracking Preferences (accepted)
 - **v10.11.1** — Per-Lift / Simplified Lifting Tracking (accepted)
-- **v10.11.2** — Post-Merge Acceptance Housekeeping (current candidate)
+- **v10.11.2** — Post-Merge Acceptance Housekeeping (accepted)
+- **v10.12.0** — Simple Fitness Log + Streamlined Setup (current candidate; final planned substantive 10.x feature)

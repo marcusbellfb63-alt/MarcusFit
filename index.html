@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MarcusFit 10.11.2</title>
+<title>MarcusFit 10.12.0</title>
 <link rel="stylesheet" href="assets/css/marcusfit.css">
 </head>
 <body>
@@ -539,8 +539,8 @@
   <section class="mf-sync-page active" id="mfSyncPageAi" data-mf-sync-page="ai" role="tabpanel" aria-labelledby="mfSyncTabAi">
   <div class="info-box">Export your program + recent logs so AI can analyze trends. Select a range to keep exports focused &#8212; <strong>Program + Last 14 Days</strong> is the default. Copy &#8594; paste into any AI &#8594; it returns a <strong>MARCUSFIT_UPDATE</strong> block you paste back here.</div>
   <div class="info-box mf-release-note">
-    <strong>MarcusFit 10.11.2</strong> &mdash; Post-Merge Acceptance Housekeeping<br>
-    MarcusFit 10.11.1 Per-Lift / Simplified Lifting Tracking passed real-iPhone QA and is the accepted production baseline.
+    <strong>MarcusFit 10.12.0</strong> &mdash; Simple Fitness Log + Streamlined Setup<br>
+    Choose Full Coaching, Strength Tracking, Simple Fitness Log, or Custom, then select how much lifting detail you want to record.
   </div>
   <div class="export-range-row">
     <span class="export-range-label">Range</span>
@@ -577,21 +577,27 @@
     <span class="mf-settings-chevron" aria-hidden="true"><svg class="mf-icon mf-icon-sm" aria-hidden="true"><use href="#mf-icon-chevron-down"></use></svg></span>
   </button>
   <div class="mf-settings-body" id="mfSettingsTrackingBody">
-    <div class="info-box"><strong>How much do you want MarcusFit to ask you to track?</strong><br>Turning something off hides new tracking prompts. Existing history is kept and returns when re-enabled.</div>
-    <div class="mf-tracking-presets" role="group" aria-label="Tracking preset">
-      <button type="button" class="mf-tracking-preset" data-mf-tracking-preset="full_coaching" aria-pressed="false"><strong>Full Coaching</strong><span>All supported tracking and coaching context</span></button>
-      <button type="button" class="mf-tracking-preset" data-mf-tracking-preset="strength_tracking" aria-pressed="false"><strong>Strength Tracking</strong><span>Lifting plus Weight, Sleep, Energy, and session notes</span></button>
-      <button type="button" class="mf-tracking-preset" data-mf-tracking-preset="custom" aria-pressed="false"><strong>Custom</strong><span>Choose individual collection surfaces</span></button>
+    <div class="info-box"><strong>Choose how much you want to track</strong><br>Presets change future prompts only. Existing history stays available and nothing is deleted.</div>
+    <div class="mf-tracking-status mf-tracking-setup-status" id="p950TrackingSetupStatus"></div>
+    <div class="mf-tracking-presets" role="group" aria-label="Choose how much you want to track">
+      <button type="button" class="mf-tracking-preset" data-mf-tracking-preset="full_coaching" aria-pressed="false"><strong>Full Coaching</strong><span>Workouts, recovery, habits, wellness, and coaching signals.</span><span class="mf-tracking-preset-state" aria-hidden="true">Selected</span></button>
+      <button type="button" class="mf-tracking-preset" data-mf-tracking-preset="strength_tracking" aria-pressed="false"><strong>Strength Tracking</strong><span>Lifting plus the core recovery data that helps explain performance.</span><span class="mf-tracking-preset-state" aria-hidden="true">Selected</span></button>
+      <button type="button" class="mf-tracking-preset" data-mf-tracking-preset="simple_fitness_log" aria-pressed="false"><strong>Simple Fitness Log</strong><span>Fast workout logging with minimal daily tracking, history, and progression.</span><span class="mf-tracking-preset-state" aria-hidden="true">Selected</span></button>
+      <button type="button" class="mf-tracking-preset" data-mf-tracking-preset="custom" aria-pressed="false"><strong>Custom</strong><span>Choose exactly what MarcusFit asks you to track.</span><span class="mf-tracking-preset-state" aria-hidden="true">Selected</span></button>
     </div>
 
-    <fieldset class="mf-tracking-group">
-      <legend>Lifting Detail</legend>
+    <fieldset class="mf-tracking-group mf-lifting-detail-group">
+      <legend>Workout logging detail</legend>
+      <div class="mf-tracking-status">This is separate from how much you track and can be changed after choosing a preset.</div>
       <div class="mf-tracking-grid mf-lifting-detail-grid">
-        <label class="mf-tracking-choice"><span><strong>Per Set — Detailed</strong><small>Log weight, reps, and RIR for each individual set.</small></span><input type="radio" name="p950LiftingDetail" value="full" data-mf-lifting-detail="full"></label>
-        <label class="mf-tracking-choice"><span><strong>Per Lift — Simple</strong><small>Log one conservative summary for each exercise.</small></span><input type="radio" name="p950LiftingDetail" value="simple" data-mf-lifting-detail="simple"></label>
+        <label class="mf-tracking-choice"><span><strong>Per Lift — Simple</strong><small>One summary for the whole exercise.</small></span><input type="radio" name="p950LiftingDetail" value="simple" data-mf-lifting-detail="simple"></label>
+        <label class="mf-tracking-choice"><span><strong>Per Set — Detailed</strong><small>Weight, reps, and RIR for every set.</small></span><input type="radio" name="p950LiftingDetail" value="full" data-mf-lifting-detail="full"></label>
       </div>
       <div class="mf-tracking-status">Simple uses your lowest-rep work set and hardest (lowest) RIR.</div>
     </fieldset>
+
+    <h3 class="mf-tracking-group-title mf-tracking-fine-tune-title">Fine-tune tracking</h3>
+    <div class="mf-tracking-status">Changing a collection control makes this Custom. Changing only workout logging detail keeps the named preset.</div>
 
     <fieldset class="mf-tracking-group">
       <legend>Daily Metrics</legend>

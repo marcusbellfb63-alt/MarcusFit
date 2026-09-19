@@ -110,7 +110,7 @@ const USER_PROFILE_KEY = "mf-user-profile";
 const USER_PROFILE_SCHEMA = 1;
 const USER_PROFILE_TEXT_SIZES = ["compact", "standard", "large", "extra-large"];
 const P950_TRACKING_MODEL_VERSION = 1;
-const P950_TRACKING_PRESETS = ["full_coaching", "strength_tracking", "custom"];
+const P950_TRACKING_PRESETS = ["full_coaching", "strength_tracking", "simple_fitness_log", "custom"];
 const P950_TRACKING_MODULE_KEYS = ["habits", "basketball", "recurringAdherence", "activeCalories", "dailyNotes", "sessionNotes", "coachingInsights"];
 const P950_TRACKING_METRIC_KEYS = ["weight", "sleep", "protein", "water", "energy", "hunger", "bowelMovement"];
 
@@ -185,6 +185,25 @@ function p950BuildTrackingPreset(presetId, currentValue){
       hunger: false,
       bowelMovement: false
     };
+  }else if(id === "simple_fitness_log"){
+    preset.modules = {
+      habits: false,
+      basketball: false,
+      recurringAdherence: false,
+      activeCalories: false,
+      dailyNotes: false,
+      sessionNotes: true,
+      coachingInsights: true
+    };
+    preset.dailyMetrics = {
+      weight: false,
+      sleep: false,
+      protein: false,
+      water: false,
+      energy: false,
+      hunger: false,
+      bowelMovement: false
+    };
   }
   return preset;
 }
@@ -198,6 +217,7 @@ function p950TrackingSelectionMatches(a, b){
 function p950DetectTrackingPreset(value){
   if(p950TrackingSelectionMatches(value, p950BuildTrackingPreset("full_coaching"))) return "full_coaching";
   if(p950TrackingSelectionMatches(value, p950BuildTrackingPreset("strength_tracking"))) return "strength_tracking";
+  if(p950TrackingSelectionMatches(value, p950BuildTrackingPreset("simple_fitness_log"))) return "simple_fitness_log";
   return "custom";
 }
 
@@ -699,6 +719,9 @@ function p950BuildTrackingPreferencesExport(startDate, endDate){
     if(off.length)periods.push(label+": "+off.join(", "));
     liftingPeriods.push(label+": "+(snapshot.liftingDetail==="simple"?"Per Lift — Simple":"Per Set — Detailed"));
   });
+  const presetContext=current.preset==="simple_fitness_log"
+    ? "Preset context: "+p950TrackingPresetLabel(current.preset)+" intentionally prioritizes workout evidence, history, and progression. Missing wellness, Habit, Basketball, and Active Calories data during preference-off periods is expected and neutral.\n"
+    : "";
   return "--- TRACKING PREFERENCES ---\n"
     +"Preset: "+p950TrackingPresetLabel(current.preset)+"\n"
     +"Current Lifting Detail: "+(current.liftingDetail==="simple"?"Per Lift — Simple":"Per Set — Detailed")+"\n"
@@ -706,13 +729,14 @@ function p950BuildTrackingPreferencesExport(startDate, endDate){
     +"Currently Collected: "+p950GetEnabledTrackingLabels(current).join(", ")+"\n"
     +"Intentionally Not Tracked: "+(currentOff.length?currentOff.join(", "):"none")+"\n"
     +"Preference-off periods in selected range: "+(periods.length?periods.join(" | "):"none")+"\n"
+    +presetContext
     +"Interpretation: Blank values during preference-off periods are neutral, not failures. Existing history remains factual. Habit and recurring-adherence denominators exclude preference-off dates. Tracking Preferences are user-controlled and must not be changed through AI Sync.\n\n";
 }
 
 let p950TrackingUiDraft = null;
 
 function p950TrackingPresetLabel(id){
-  return {full_coaching:"Full Coaching",strength_tracking:"Strength Tracking",custom:"Custom"}[id] || "Custom";
+  return {full_coaching:"Full Coaching",strength_tracking:"Strength Tracking",simple_fitness_log:"Simple Fitness Log",custom:"Custom"}[id] || "Custom";
 }
 
 function p950ShowTrackingResult(message, type){
@@ -746,6 +770,14 @@ function p950RenderTrackingDraft(){
   }
   const summary = document.getElementById("p950TrackingSummary");
   if(summary) summary.textContent = p950TrackingPresetLabel(draft.preset)+" · "+(draft.liftingDetail==="simple"?"Per Lift — Simple":"Per Set — Detailed");
+  const setupStatus = document.getElementById("p950TrackingSetupStatus");
+  if(setupStatus){
+    const profile = p950GetUserProfile();
+    const persisted = !!(profile.preferences && profile.preferences.tracking);
+    setupStatus.textContent = persisted
+      ? "Choose a preset or fine-tune the controls below. Changes take effect only after you save."
+      : "No tracking choice is saved yet. Full Coaching is active for compatibility until you choose and save a preset.";
+  }
 }
 
 function p950RenderTrackingPreferences(){
@@ -774,6 +806,8 @@ function p950UpdateLiftingDetail(value){
 function p950SelectTrackingPreset(presetId){
   if(!p950TrackingUiDraft) p950TrackingUiDraft = p950GetTrackingPreferences();
   p950TrackingUiDraft = p950BuildTrackingPreset(presetId, p950TrackingUiDraft);
+  if(presetId !== "custom") p950TrackingUiDraft.liftingDetail = presetId === "simple_fitness_log" ? "simple" : "full";
+  p950TrackingUiDraft.preset = presetId === "custom" ? "custom" : p950DetectTrackingPreset(p950TrackingUiDraft);
   p950RenderTrackingDraft();
   p950ShowTrackingResult("Review your selection, then save Tracking Preferences.", "warn");
 }
