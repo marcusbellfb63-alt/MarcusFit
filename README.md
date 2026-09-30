@@ -4,7 +4,7 @@ Personal mobile-first fitness tracker for workout logging, daily metrics, progre
 
 ## Current Version
 
-MarcusFit 10.12.0 — Simple Fitness Log + Streamlined Setup candidate
+MarcusFit 10.12.1 — AI Sync Composite Contract Hotfix candidate
 
 ## Architecture
 
@@ -145,22 +145,23 @@ MarcusFit 10.12.0 — Simple Fitness Log + Streamlined Setup candidate
 ## Version Constants
 
 ```js
-const APP_VERSION      = "10.12.0";
+const APP_VERSION      = "10.12.1";
 const LIFECYCLE_VERSION = APP_VERSION;
 ```
 
 Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, lifecycle default `lifecycleVersion`, migration targets, and export strings reference these constants.
 
-## Current feature candidate
+## Current hotfix candidate
 
-- 10.12.0 starts from accepted 10.11.2 production merge `9c854176d1ffb75b5c2247c0add88e6ce6a59768` and tree `da27cb6402ae7c327e73568f2e7502b1aef42319`
-- Simple Fitness Log is an ordinary collection preset inside the existing Tracking Preferences timeline; no second app mode or workout record type is introduced
-- The Tracking Preferences setup surface now leads with four outcome-focused choices, keeps Workout logging detail separate, and exposes the accepted fine-tuning controls below
-- No storage key, schema, migration, dependency, build step, runtime script, progression rule, or core Sync behavior is changed
-- Automated and localhost/browser QA pass; 10.12.0 remains a draft candidate pending independent review, later real-iPhone QA, and explicit Marcus acceptance
+- 10.12.1 starts from accepted 10.12.0 production merge `ff966fe7ca42ad3f4ee8d6b3420a0f9d9b7578e1` and tree `15d0cb0f164e88b39d4f05175bded8dec5e2a252`
+- The final Sync extension dispatches legacy arrays to the byte-identical core importer and validates composite `updates` / `habitProposal` / `basketballProposal` envelopes before writes
+- Habit and Basketball imports remain pending review proposals; core mutation authority and every protected historical/profile/tracking boundary remain unchanged
+- No storage key, schema, migration, dependency, build step, runtime script, or base-program behavior is changed
+- 10.12.1 remains a draft hotfix candidate pending independent review, real-iPhone QA, and explicit Marcus acceptance
 
 ## Acceptance Record
 
+- 10.12.0 is accepted and merged at `ff966fe7ca42ad3f4ee8d6b3420a0f9d9b7578e1`; accepted implementation head `4c3f53baff78cfa6e45009375280b22b6426b32b`; accepted production tree `15d0cb0f164e88b39d4f05175bded8dec5e2a252`
 - 10.11.2 is accepted and merged at `9c854176d1ffb75b5c2247c0add88e6ce6a59768`; accepted implementation head `e4bed8cda5d48aef993ec6a108e885c21b7a9be9`; accepted production tree `da27cb6402ae7c327e73568f2e7502b1aef42319`
 - 10.11.1 is accepted and merged at `e5d0944aae19c077368af255e9eebbf758aaeecd`; accepted implementation head `15742d4bb5fb853a50d099be14c25416eb846ce2`; accepted production tree `6fec699c5625dcceb980ff11b00c064b0705f2c1`
 - 10.11.1 delivers Per Set — Detailed and Per Lift — Simple lifting with saved workout > resumable draft > date-effective preference authority, authoritative versioned Simple summaries, mixed evidence-aware consumers, raw backup compatibility, and no fabricated individual-set evidence
@@ -201,4 +202,5 @@ Both are declared in `assets/js/core/01-app-constants.js`. Backup `appVersion`, 
 - **v10.11.0** — Tracking Preferences (accepted)
 - **v10.11.1** — Per-Lift / Simplified Lifting Tracking (accepted)
 - **v10.11.2** — Post-Merge Acceptance Housekeeping (accepted)
-- **v10.12.0** — Simple Fitness Log + Streamlined Setup (current candidate; final planned substantive 10.x feature)
+- **v10.12.0** — Simple Fitness Log + Streamlined Setup (accepted)
+- **v10.12.1** — AI Sync Composite Contract Hotfix (current candidate)

@@ -2,15 +2,24 @@
 
 ## Current implementation candidate
 
-MarcusFit 10.12.0 Simple Fitness Log + Streamlined Setup starts from the exact
-accepted 10.11.2 production merge
-`9c854176d1ffb75b5c2247c0add88e6ce6a59768` and production tree
-`da27cb6402ae7c327e73568f2e7502b1aef42319`. It adds one ordinary Tracking
-Preferences preset and clarifies the existing setup surface. It adds no storage
-key, schema, migration, workout evidence type, dependency, build step, runtime
-script, progression change, or AI Sync authority. 10.12.0 is a candidate and is
-not accepted. Automated and localhost/browser QA pass; independent review and
-real-iPhone Safari/Home Screen QA remain pending.
+MarcusFit 10.12.1 AI Sync Composite Contract Hotfix starts from the exact
+accepted 10.12.0 production merge
+`ff966fe7ca42ad3f4ee8d6b3420a0f9d9b7578e1` and production tree
+`15d0cb0f164e88b39d4f05175bded8dec5e2a252`. It keeps the authoritative core
+Sync implementation byte-identical and consolidates composite object dispatch
+in the final Basketball/Habit extension boundary. Complete composite validation
+and pending-proposal guards run before writes, and unexpected later failures
+restore the payload's synchronous storage writes. It adds no storage key,
+schema, migration, mutation authority, dependency, build step, or runtime
+script. 10.12.1 is a draft candidate pending independent review, localhost and
+real-iPhone QA, and explicit acceptance.
+
+## Accepted 10.12.0 state
+
+MarcusFit 10.12.0 Simple Fitness Log + Streamlined Setup is accepted and merged
+at `ff966fe7ca42ad3f4ee8d6b3420a0f9d9b7578e1`; its accepted implementation head
+is `4c3f53baff78cfa6e45009375280b22b6426b32b`, and its accepted production tree
+is `15d0cb0f164e88b39d4f05175bded8dec5e2a252`.
 
 ## Accepted 10.11.2 state
 
@@ -181,5 +190,6 @@ Protected values at acceptance:
 10.11.0 — Tracking Preferences — Accepted
 10.11.1 — Per-Lift / Simplified Lifting Tracking — Accepted
 10.11.2 — Post-Merge Acceptance Housekeeping — Accepted
-10.12.0 — Simple Fitness Log + Streamlined Setup — Candidate; final planned substantive 10.x feature
+10.12.0 — Simple Fitness Log + Streamlined Setup — Accepted
+10.12.1 — AI Sync Composite Contract Hotfix — Candidate
 ```
