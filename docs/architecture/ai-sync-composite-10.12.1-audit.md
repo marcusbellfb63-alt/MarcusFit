@@ -49,14 +49,19 @@ unchanged.
 The complete envelope, tracking-preference gates, both proposal schemas, and
 both existing-pending guards are checked before core or proposal writes. The
 dispatcher snapshots synchronous browser storage immediately before execution.
-If a post-preflight core/import exception or unexpected import refusal occurs,
-the snapshot is restored so the composite package cannot leave core or one
-proposal domain committed by itself.
+After composite core updates run, the dispatcher checks the core parser's exact
+failure result forms: an early `❌` rejection or the authoritative
+`⚠️ Skipped (N):` summary. Either result restores the snapshot and prevents all
+proposal imports. A post-preflight core/import exception or unexpected import
+refusal likewise restores the snapshot, so the composite package cannot leave
+core or one proposal domain committed by itself.
 
-Core updates retain legacy per-entry validation and skip/report semantics. A
-reported invalid or protected core target gains no authority and does not
-modify its protected target. Proposal imports remain pending only; expected
-state and fingerprints are captured by the existing domain validators.
+Standalone legacy arrays retain their accepted per-entry validation and
+skip/report semantics. Composite objects are stricter: every core entry must
+complete without a rejection or skip before proposals can be staged. A reported
+invalid or protected core target gains no authority and does not modify its
+protected target. Proposal imports remain pending only; expected state and
+fingerprints are captured by the existing domain validators.
 
 ## Contract and authority audit
 

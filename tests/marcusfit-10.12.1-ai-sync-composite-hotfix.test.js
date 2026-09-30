@@ -124,6 +124,14 @@ assert(/updated/i.test(runSync([{ id: coreId, blurb: "legacy core update" }])));
 clearMutableSyncState();
 assert(/updated/i.test(runSync([{ id: coreId, blurb: "legacy contract unchanged" }], true)));
 
+// Legacy arrays retain accepted partial-processing semantics.
+clearMutableSyncState();
+const legacyMixedBefore = storage.snapshot();
+let legacyMixedMessage = runSync([{ id: coreId, blurb: "legacy valid write remains" }, { id: "not-a-real-id", load: "999" }]);
+assert(/updated/i.test(legacyMixedMessage) && /Skipped \(1\)/.test(legacyMixedMessage));
+assert.notDeepStrictEqual(storage.snapshot(), legacyMixedBefore);
+assert.strictEqual(JSON.parse(storage.getItem("mf-overrides"))[coreId].blurb, "legacy valid write remains");
+
 // Composite shape matrix: proposals are staged pending and never auto-applied.
 clearMutableSyncState();
 assert(/Habit changes are pending/.test(runSync({ habitProposal: habitProposal("only") })));
@@ -162,6 +170,46 @@ assertRejectedWithoutWrites({ updates: [{ id: coreId, blurb: "must not write" }]
 assertRejectedWithoutWrites({ updates: [{ id: coreId, blurb: "must not write" }], basketballProposal: { changes: [] } }, /rejected before any proposal or core processing/);
 assertRejectedWithoutWrites({ habitProposal: habitProposal("protected"), profile: { firstName: "AI" } }, /user-controlled/);
 assertRejectedWithoutWrites({ basketballProposal: basketballProposal("protected"), trackingPreferences: { preset: "full_coaching" } }, /user-controlled/);
+
+// Composite core updates are all-or-nothing: any skipped entry rolls back core
+// writes and prevents every proposal import, while fully valid updates succeed.
+clearMutableSyncState();
+let coreAtomicBefore = storage.snapshot();
+message = runSync({ updates: [{ id: "not-a-real-id", load: "999" }], habitProposal: habitProposal("invalid-core") });
+assert(/rolled back because core processing did not fully succeed/.test(message) && /Skipped \(1\)/.test(message));
+assert.strictEqual(storage.getItem("mf-habit-proposal"), null);
+assert.deepStrictEqual(storage.snapshot(), coreAtomicBefore);
+
+clearMutableSyncState();
+coreAtomicBefore = storage.snapshot();
+message = runSync({ updates: [{ id: "not-a-real-id", load: "999" }], basketballProposal: basketballProposal("invalid-core") });
+assert(/rolled back because core processing did not fully succeed/.test(message) && /Skipped \(1\)/.test(message));
+assert.strictEqual(storage.getItem("mf-basketball-proposal"), null);
+assert.deepStrictEqual(storage.snapshot(), coreAtomicBefore);
+
+clearMutableSyncState();
+coreAtomicBefore = storage.snapshot();
+message = runSync({ updates: [{ id: coreId, blurb: "must roll back after mixed Habit core" }, { id: "not-a-real-id", load: "999" }], habitProposal: habitProposal("mixed-core") });
+assert(/rolled back because core processing did not fully succeed/.test(message) && /not-a-real-id/.test(message));
+assert.strictEqual(storage.getItem("mf-habit-proposal"), null);
+assert.deepStrictEqual(storage.snapshot(), coreAtomicBefore);
+
+clearMutableSyncState();
+coreAtomicBefore = storage.snapshot();
+message = runSync({ updates: [{ id: coreId, blurb: "must roll back after mixed Basketball core" }, { id: "not-a-real-id", load: "999" }], basketballProposal: basketballProposal("mixed-core") });
+assert(/rolled back because core processing did not fully succeed/.test(message) && /not-a-real-id/.test(message));
+assert.strictEqual(storage.getItem("mf-basketball-proposal"), null);
+assert.deepStrictEqual(storage.snapshot(), coreAtomicBefore);
+
+clearMutableSyncState();
+message = runSync({ updates: [{ id: coreId, blurb: "fully valid Habit core" }], habitProposal: habitProposal("valid-core") });
+assert(/Program sync processed/.test(message));
+assert.strictEqual(c.p960GetHabitProposal().status, "pending");
+
+clearMutableSyncState();
+message = runSync({ updates: [{ id: coreId, blurb: "fully valid Basketball core" }], basketballProposal: basketballProposal("valid-core") });
+assert(/Program sync processed/.test(message));
+assert.strictEqual(c.mfBasketballGetProposal().status, "pending");
 
 // Existing pending proposals block the whole composite, including core updates.
 clearMutableSyncState();

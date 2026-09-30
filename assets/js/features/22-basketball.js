@@ -1527,6 +1527,7 @@ let mfBasketballLegacySyncExtension=null;
 function mfBasketballHandleSyncExtension(runCoreSync){
     function has(value,key){return Object.prototype.hasOwnProperty.call(value,key);}
     function reject(result,message){if(result){result.style.display="block";result.style.color="var(--red)";result.textContent=message;}return true;}
+    function coreSucceeded(message,result){return !(result&&result.style&&result.style.color==="var(--red)")&&!message.split("\n").some(function(line){return /^\S+ Skipped \(\d+\):$/.test(line);});}
     function storageSnapshot(){const snapshot=Object.create(null);for(let index=0;index<localStorage.length;index++){const key=localStorage.key(index);if(key!=null)snapshot[key]=localStorage.getItem(key);}return snapshot;}
     function restoreStorage(snapshot){const current=[];for(let index=0;index<localStorage.length;index++){const key=localStorage.key(index);if(key!=null)current.push(key);}current.forEach(function(key){if(!has(snapshot,key))localStorage.removeItem(key);});Object.keys(snapshot).forEach(function(key){localStorage.setItem(key,snapshot[key]);});}
     const input=document.getElementById("syncInput"),res=document.getElementById("syncResult"),raw=input&&input.value||"",match=raw.match(/MARCUSFIT_UPDATE_START([\s\S]*?)MARCUSFIT_UPDATE_END/);
@@ -1553,7 +1554,7 @@ function mfBasketballHandleSyncExtension(runCoreSync){
     if(importErrors.length)return reject(res,"Sync proposal import rejected before any proposal or core processing:\n"+importErrors.join("\n"));
     const updates=Array.isArray(payload.updates)?payload.updates:[],storageBefore=storageSnapshot();let coreMessage="";
     try{
-      if(updates.length){input.value="MARCUSFIT_UPDATE_START\n"+JSON.stringify(updates,null,2)+"\nMARCUSFIT_UPDATE_END";runCoreSync();coreMessage=res&&res.textContent||"";input.value=raw;}
+      if(updates.length){input.value="MARCUSFIT_UPDATE_START\n"+JSON.stringify(updates,null,2)+"\nMARCUSFIT_UPDATE_END";runCoreSync();coreMessage=res&&res.textContent||"";input.value=raw;if(!coreSucceeded(coreMessage,res)){restoreStorage(storageBefore);if(typeof p960UpdateSettingsStatus==="function")p960UpdateSettingsStatus();mfBasketballRenderProposalStatus();return reject(res,"Composite Sync failed; all storage writes from this payload were rolled back because core processing did not fully succeed.\n\nCore Sync details:\n"+coreMessage);}}
       if(hasHabit){const importedHabit=p960ImportHabitProposal(payload.habitProposal);if(!importedHabit.valid)throw new Error((importedHabit.errors||["Habit proposal import failed."]).join(" "));}
       if(hasBasketball){const importedBasketball=mfBasketballImportProposal(payload.basketballProposal);if(!importedBasketball.valid)throw new Error((importedBasketball.errors||["Basketball proposal import failed."]).join(" "));}
     }catch(e){input.value=raw;restoreStorage(storageBefore);if(typeof p960UpdateSettingsStatus==="function")p960UpdateSettingsStatus();mfBasketballRenderProposalStatus();return reject(res,"Composite Sync failed; all storage writes from this payload were rolled back. "+String(e.message||e));}
