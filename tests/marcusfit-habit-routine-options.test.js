@@ -186,6 +186,7 @@ assert.strictEqual(draft.habits[id].notes, "Recovery-based choice");
 assert.strictEqual(draft.habits[id].value, null);
 assert(!document.getElementById("habitCards").textContent.includes("Active 90/90"));
 assert(document.getElementById("habitCards").textContent.includes("Supported standing hip circles"));
+c.updateHabitValue(id, "9", "duration");
 c.toggleHabitDone({ stopPropagation() {} }, id);
 c.p85ExecuteSave();
 let saved = JSON.parse(storage.getItem("day-2026-09-14"));
@@ -227,13 +228,18 @@ c.p960OpenHabitManager(); c.p960EditHabit(id);
 const form = document.getElementById("p960HabitForm");
 let rows = form.querySelectorAll(".p960-routine-row"); assert.strictEqual(rows.length, 2);
 rows[1].querySelector('[data-routine-key="name"]').value = "Easy Recovery";
+rows[1].querySelector('[data-routine-key="unit"]').value = "minutes-new";
 assert(c.p960CommitHabitForm());
 assert.strictEqual(storage.getItem("mf-habit-definitions"), defsBeforeEdit);
 assert(c.p960SaveHabitManager());
 habit = c.p960GetHabitById(id);
 assert.strictEqual(habit.routineOptions[1].id, "easy");
 assert.strictEqual(habit.routineOptions[1].name, "Easy Recovery");
+assert.strictEqual(habit.routineOptions[1].target.unit, "minutes-new");
 assert.deepStrictEqual(clone(habit.routineOptions[0].instructions), fixture.habitProposal.changes[0].fields.routineOptions[0].instructions);
+const historicalExport = c.buildLogSection(["day-2026-09-14"], ["day-2026-09-14"]);
+assert(historicalExport.includes("Hip Mobility - Easy [id=habit-mobility-reset]: completed; value 9 min"));
+assert(!historicalExport.includes("Easy Recovery") && !historicalExport.includes("minutes-new"));
 
 // Strict import boundaries, including mixed-domain zero-write preflight failures.
 function invalidOptions(options, fields = {}) {

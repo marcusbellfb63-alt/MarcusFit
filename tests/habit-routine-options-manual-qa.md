@@ -29,3 +29,28 @@ This candidate remains draft until Marcus explicitly accepts manual QA.
    selection change, and proposal scrolling. Confirm lifting, Basketball,
    ordinary Habits, preference-off dates, and existing Sync workflows behave
    as before. Do not merge before explicit acceptance.
+
+## Pre-acceptance verification — 2026-10-17
+
+- Localhost Chromium at a 390 × 844 touch viewport passed proposal import and
+  apply, Challenging and Easy rendering, selection focus, completion/value
+  clearing with note retention, one-opportunity progress, save/reload
+  persistence, legacy completion adherence, and byte-identical seeded lifting,
+  Basketball, and prior-day values. This is not Safari or real-device evidence.
+- A regression found during review was fixed: AI Export history now uses saved
+  routine name/target snapshots after later definition edits. The focused test
+  records a value, renames the routine and unit, and verifies the export retains
+  the historical name and unit.
+- All 25 test files pass. Three tests require the documented untracked preload
+  because nested `spawnSync` returns `EPERM`; their actual inventory/Basketball
+  child scripts run in-process and their assertions remain unchanged.
+- JavaScript syntax (49 files), architecture inventory, protected hashes, both
+  committed-range and working-tree `git diff --check`, and accepted-release
+  immutability pass.
+
+Remaining acceptance QA: complete steps 1–8 in real iPhone Safari and the
+installed Home Screen app, including keyboard/desktop coverage where noted.
+Pay particular attention to persistence after fully terminating the Home Screen
+app, historical-date isolation, Habit Manager Cancel/Save boundaries, backup
+restore in an isolated profile, text zoom, proposal scrolling/body lock, and
+console sanity. Explicit acceptance is still required before merge.

@@ -90,6 +90,11 @@ contract assertion follows the new snapshot-aware Habit history helper.
 
 In the managed environment, nested Node `spawnSync` returns `EPERM`. For the
 three suites using subprocesses, their inventory/Basketball subcommands are run
-separately against the same source and real captured stdout is supplied to the
+against the same source in-process and real captured stdout is supplied to the
 unchanged assertions through a temporary, untracked preloader. No test assertion
-or runtime behavior is disabled. All 22 maintained 10.x/new test suites pass with this workaround. Local HTTP smoke cannot start because the sandbox rejects socket creation (`EPERM`). Browser and real-device QA are not claimed.
+or runtime behavior is disabled. All 25 test files pass with this workaround.
+Localhost Chromium QA at a 390 × 844 touch viewport verifies the proposal,
+Challenging/Easy selection, switch clearing, focus, save/reload persistence,
+one-opportunity adherence, and unrelated-store preservation. Safari and an
+installed iPhone Home Screen app were not available and remain required before
+acceptance.

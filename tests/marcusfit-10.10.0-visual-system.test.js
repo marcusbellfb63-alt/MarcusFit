@@ -62,7 +62,8 @@ assert(!css.includes("text-shadow:"), "10.10 must not add or retain decorative t
 
 const exportSource = fs.readFileSync(path.join(jsRoot, "sync/11-ai-export.js"), "utf8");
 const progressionSource = fs.readFileSync(path.join(jsRoot, "features/09-progression-base.js"), "utf8");
-assert.strictEqual(normalizedSliceHash(exportSource, "function buildLogSection", "function p9489ClassifyExercise"), "5f537482457229d753d0449e3f63bcbf9267da8305db90aa629d6c32ea09df02", "AI Export daily-log text changed beyond the intentional additive Simple-evidence branch");
+assert.strictEqual(normalizedSliceHash(exportSource, "function buildLogSection", "function p9489ClassifyExercise"), "68b14b3e5f442a36b79164e36b6fab46208d52ae60f57f1f870e5932590a411b", "AI Export daily-log text changed beyond the intentional Simple-evidence and routine-snapshot branches");
+assert(exportSource.includes("state&&state.routineId?(state.routineName?") && exportSource.includes("state.routineId&&state.routineTarget||definition&&definition.target"), "Historical routine names and units must come from saved snapshots");
 assert(exportSource.includes('Set "+(i+1)+": "+(s.wt||"\\u2014")+" \\xd7 "+(s.reps||"\\u2014")+" reps @ RIR "+(s.rir||"\\u2014")'), "Detailed per-set export text changed");
 assert.strictEqual(normalizedSliceHash(progressionSource, "function p9BuildProgressionExport", "// ── END PHASE 9A"), "c7f6b7083b9b30af17d6367e5b6cceb5fcb02ac80cd32202dee787566b8aff30", "Progression-export labels must remain byte-equivalent to accepted 10.9");
 

@@ -57,8 +57,8 @@ function buildLogSection(dkeys,allDkeys){
       habitIds.forEach(function(id){
         const state=d.habits[id],definition=mf105HistoricalHabitDefinition(id),meaningful=state&&typeof state==="object"&&(state.completed||state.value!==null&&state.value!==undefined&&state.value!==""||state.notes);
         if(!meaningful&&definition)return;
-        const safeId=mf105HistoricalHabitText(id)||"unknown-id",name=definition&&definition.name?mf105HistoricalHabitText(definition.name):"Unknown Habit",parts=[state&&state.completed?"completed":"recorded"];
-        if(state&&state.value!==null&&state.value!==undefined&&state.value!==""){const unit=definition&&definition.target&&definition.target.unit?" "+mf105HistoricalHabitText(definition.target.unit):"";parts.push("value "+mf105HistoricalHabitText(state.value)+unit);}
+        const safeId=mf105HistoricalHabitText(id)||"unknown-id",routineName=state&&state.routineId?(state.routineName?mf105HistoricalHabitText(state.routineName):"Routine "+mf105HistoricalHabitText(state.routineId)):"",name=routineName||(definition&&definition.name?mf105HistoricalHabitText(definition.name):"Unknown Habit"),parts=[state&&state.completed?"completed":"recorded"];
+        if(state&&state.value!==null&&state.value!==undefined&&state.value!==""){const target=state.routineId&&state.routineTarget||definition&&definition.target,unit=target&&target.unit?" "+mf105HistoricalHabitText(target.unit):"";parts.push("value "+mf105HistoricalHabitText(state.value)+unit);}
         if(state&&state.notes)parts.push("note: "+mf105HistoricalHabitText(state.notes));
         logSection+="    "+name+" [id="+safeId+"]"+(definition&&definition.active===false?" (archived)":"")+": "+parts.join("; ")+"\n";
       });
