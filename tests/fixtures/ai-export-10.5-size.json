@@ -44,5 +44,10 @@
     "characters": 25557,
     "lines": 366,
     "note": "10.11.1 adds lifting-detail intervals plus explicit Detailed versus Simple evidence interpretation and final evidence-mode progression metadata without duplicating the accepted response contract."
+  },
+  "afterRoutineOptions": {
+    "characters": 26275,
+    "lines": 366,
+    "note": "Adds the bounded, daily-parent routineOptions AI Sync contract; unchanged fixture has no routine options and no additional Habit obligations."
   }
 }

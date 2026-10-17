@@ -194,7 +194,7 @@ assert(!/name\.textContent\s*=\s*h\.icon/.test(habits), "Stored Habit icons must
 assert(!/def\s*\?\s*def\.icon/.test(habits), "Habit history must not render stored platform glyphs");
 assert(habits.includes("mfSetIconLabel(name,mfHabitIconName(h),displayName)"), "Daily Habit names must use the stored-token-aware presentation helper beside an SVG icon");
 assert(habits.includes("strong.textContent=mfHabitDisplayName(h.name)"), "Habit Manager names must use the presentation helper");
-assert(habits.includes("def?mfHabitDisplayName(def.name)"), "Habit History names must use the presentation helper");
+assert(habits.includes("p960HabitHistoryName(def,state)") && habits.includes("mfHabitDisplayName(state.routineName") && habits.includes("mfHabitDisplayName(h.name)"), "Habit History must use presentation helpers for both routine snapshots and legacy names");
 assert(habits.includes("p960-proposal-name\",mfHabitDisplayName(rawName)"), "Habit proposal names must use the presentation helper");
 assert(stats.includes("p7Escape(mfHabitDisplayName(a.habits.best.name))") && stats.includes("p7Escape(mfHabitDisplayName(a.habits.worst.name))"), "Habit Stats names must use the presentation helper");
 assert(!/mfSetIconLabel\(name,mfHabitIconName\(h\.id\),h\.name\)|strong\.textContent=h\.name|def\?def\.name/.test(habits), "Daily, Manager, and History must not render raw Habit names directly");
