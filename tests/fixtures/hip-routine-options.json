@@ -1,0 +1,50 @@
+{
+  "habitProposal": {
+    "schemaVersion": 1,
+    "proposalVersion": "10.12.2",
+    "proposalId": "mobility-reset-daily-routines-v1",
+    "source": "ai_sync",
+    "summary": "Choose Challenging or Easy within the existing daily Mobility Reset habit.",
+    "rationale": "Preserve the existing habit ID, daily schedule, target, and history. Complete one recovery-appropriate routine daily. About three nonconsecutive Challenging sessions weekly is guidance, not an additional obligation.",
+    "changes": [
+      {
+        "action": "modify",
+        "habitId": "habit-mobility-reset",
+        "fields": {
+          "description": "Choose one 8-10-minute routine based on recovery. Both support hip mobility and pelvic coordination for athletic and sexual movement.",
+          "instructions": [],
+          "routineOptions": [
+            {
+              "id": "challenging",
+              "name": "Hip Control - Challenging",
+              "target": { "type": "duration", "value": 8, "unit": "min", "display": "8-10 minutes" },
+              "weeklyGoal": 3,
+              "avoidConsecutiveDays": true,
+              "instructions": [
+                "Use moderate effort on well-recovered days, preferably nonconsecutive. Include rests and transitions within 8-10 minutes; stop for sharp pain, pinching, numbness, or pelvic pressure.",
+                "1 minute: Standing pelvic isolation. Slowly tilt the pelvis forward and back while keeping ribs quiet and breathing freely.",
+                "2 minutes: Active 90/90 hip switches. Use a comfortable range; pause briefly with control on each side and avoid forcing the knees.",
+                "2 minutes: Glute bridges, 2 sets of 8 slow reps with a 2-second squeeze. Rest briefly; keep ribs down and avoid arching the lower back.",
+                "2 minutes: Standing or tall-kneeling rhythmic pelvic movement. Move smoothly forward/back and side/side at an easy rhythm; keep the motion controlled rather than forceful.",
+                "1-3 minutes: Bridge holds for hip-extension endurance, 2-3 holds of 15-25 seconds with rest. Keep hips level, breathe, and finish before form breaks. Stay within the 10-minute cap."
+              ]
+            },
+            {
+              "id": "easy",
+              "name": "Hip Mobility - Easy",
+              "target": { "type": "duration", "value": 8, "unit": "min", "display": "8-10 minutes" },
+              "instructions": [
+                "Use on other days or whenever fatigued. Keep effort gentle and include transitions within 8-10 minutes; stop for pain or pelvic pressure.",
+                "2 minutes: Lie with knees bent. Breathe into the ribs and gently tilt the pelvis forward/back; relax the pelvic floor on the inhale.",
+                "2 minutes: Supported standing hip circles, 1 minute each direction. Use a small, comfortable range without twisting the knees.",
+                "2 minutes: Half-kneeling hip-flexor mobility, 1 minute per side. Gently tuck the pelvis and shift forward slightly without arching the lower back.",
+                "1-2 minutes: Slow supported hip switches or side-to-side weight shifts. Coordinate the movement with easy breathing; avoid strain.",
+                "1-2 minutes: Relaxed breathing on your back with knees bent. Let the abdomen and pelvic floor soften; finish within 10 minutes."
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

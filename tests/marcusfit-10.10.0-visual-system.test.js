@@ -51,7 +51,7 @@ function normalizedSliceHash(source, startMarker, endMarker) {
   return crypto.createHash("sha256").update(source.slice(start, end).replace(/\r\n/g, "\n")).digest("hex");
 }
 
-assert(html.includes("MarcusFit 10.12.1"));
+assert(html.includes("MarcusFit 10.12.2"));
 assert(css.includes("--brand:#b7f34a"));
 assert(css.includes("--accent:var(--brand)"));
 assert(css.includes(".logo span:first-child{color:var(--text-primary);}"), "MARCUS must resolve to primary near-white text");
@@ -62,7 +62,8 @@ assert(!css.includes("text-shadow:"), "10.10 must not add or retain decorative t
 
 const exportSource = fs.readFileSync(path.join(jsRoot, "sync/11-ai-export.js"), "utf8");
 const progressionSource = fs.readFileSync(path.join(jsRoot, "features/09-progression-base.js"), "utf8");
-assert.strictEqual(normalizedSliceHash(exportSource, "function buildLogSection", "function p9489ClassifyExercise"), "5f537482457229d753d0449e3f63bcbf9267da8305db90aa629d6c32ea09df02", "AI Export daily-log text changed beyond the intentional additive Simple-evidence branch");
+assert.strictEqual(normalizedSliceHash(exportSource, "function buildLogSection", "function p9489ClassifyExercise"), "68b14b3e5f442a36b79164e36b6fab46208d52ae60f57f1f870e5932590a411b", "AI Export daily-log text changed beyond the intentional Simple-evidence and routine-snapshot branches");
+assert(exportSource.includes("state&&state.routineId?(state.routineName?") && exportSource.includes("state.routineId&&state.routineTarget||definition&&definition.target"), "Historical routine names and units must come from saved snapshots");
 assert(exportSource.includes('Set "+(i+1)+": "+(s.wt||"\\u2014")+" \\xd7 "+(s.reps||"\\u2014")+" reps @ RIR "+(s.rir||"\\u2014")'), "Detailed per-set export text changed");
 assert.strictEqual(normalizedSliceHash(progressionSource, "function p9BuildProgressionExport", "// ── END PHASE 9A"), "c7f6b7083b9b30af17d6367e5b6cceb5fcb02ac80cd32202dee787566b8aff30", "Progression-export labels must remain byte-equivalent to accepted 10.9");
 
@@ -194,7 +195,7 @@ assert(!/name\.textContent\s*=\s*h\.icon/.test(habits), "Stored Habit icons must
 assert(!/def\s*\?\s*def\.icon/.test(habits), "Habit history must not render stored platform glyphs");
 assert(habits.includes("mfSetIconLabel(name,mfHabitIconName(h),displayName)"), "Daily Habit names must use the stored-token-aware presentation helper beside an SVG icon");
 assert(habits.includes("strong.textContent=mfHabitDisplayName(h.name)"), "Habit Manager names must use the presentation helper");
-assert(habits.includes("def?mfHabitDisplayName(def.name)"), "Habit History names must use the presentation helper");
+assert(habits.includes("p960HabitHistoryName(def,state)") && habits.includes("mfHabitDisplayName(state.routineName") && habits.includes("mfHabitDisplayName(h.name)"), "Habit History must use presentation helpers for both routine snapshots and legacy names");
 assert(habits.includes("p960-proposal-name\",mfHabitDisplayName(rawName)"), "Habit proposal names must use the presentation helper");
 assert(stats.includes("p7Escape(mfHabitDisplayName(a.habits.best.name))") && stats.includes("p7Escape(mfHabitDisplayName(a.habits.worst.name))"), "Habit Stats names must use the presentation helper");
 assert(!/mfSetIconLabel\(name,mfHabitIconName\(h\.id\),h\.name\)|strong\.textContent=h\.name|def\?def\.name/.test(habits), "Daily, Manager, and History must not render raw Habit names directly");

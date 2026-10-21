@@ -1343,3 +1343,12 @@ body{background:var(--app-bg);}
 @media(max-width:350px){
   .wo-simple-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;}
 }
+
+
+/* Mutually exclusive daily routines share one Habit card. */
+.p960-routine-picker{display:flex;flex-direction:column;gap:8px;margin:12px 0;font-weight:600;}
+.p960-routine-picker select{width:100%;min-height:44px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:inherit;}
+.p960-routine-guidance{font-size:13px;line-height:1.5;color:var(--text);margin:8px 0;}
+.p960-routine-editor{grid-column:1/-1;min-width:0;border:1px solid var(--border);border-radius:8px;padding:12px;}
+.p960-routine-row{min-width:0;border:1px solid var(--border);border-radius:8px;padding:12px;margin:12px 0;display:grid;gap:10px;}
+.p960-routine-row input,.p960-routine-row textarea,.p960-routine-row select{max-width:100%;}

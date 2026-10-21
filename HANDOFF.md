@@ -2,17 +2,25 @@
 
 ## Current implementation candidate
 
-MarcusFit 10.12.1 AI Sync Composite Contract Hotfix starts from the exact
-accepted 10.12.0 production merge
-`ff966fe7ca42ad3f4ee8d6b3420a0f9d9b7578e1` and production tree
-`15d0cb0f164e88b39d4f05175bded8dec5e2a252`. It keeps the authoritative core
-Sync implementation byte-identical and consolidates composite object dispatch
-in the final Basketball/Habit extension boundary. Complete composite validation
-and pending-proposal guards run before writes, and unexpected later failures
-restore the payload's synchronous storage writes. It adds no storage key,
-schema, migration, mutation authority, dependency, build step, or runtime
-script. 10.12.1 is a draft candidate pending independent review, localhost and
-real-iPhone QA, and explicit acceptance.
+MarcusFit 10.12.2 Habit Routine Options starts from the exact accepted 10.12.1
+production merge `261952c461272da40ad4edb2ad4c80cbc4fe0383` and production
+tree `65b4fa1f8971c8edc281331df84a76cdc41fbf2a`. An existing daily Habit may
+offer mutually exclusive routines while retaining one stable parent ID and one
+daily adherence opportunity. Switching routines clears completion/value while
+retaining notes; instruction lists, advisory weekly/nonconsecutive guidance,
+legacy completions, historical routine snapshots, AI Sync review/apply/undo,
+and raw backup validation preserve their documented boundaries. Core AI Sync,
+base program `P`, lifting, Basketball, storage keys, classic-script order, and
+accepted `Releases/` artifacts remain unchanged. Localhost Chromium QA is prior
+evidence only; real-iPhone Safari and installed Home Screen/PWA QA remain
+pending before explicit acceptance.
+
+## Accepted 10.12.1 state
+
+MarcusFit 10.12.1 AI Sync Composite Contract Hotfix is accepted and merged at
+`261952c461272da40ad4edb2ad4c80cbc4fe0383`; its accepted implementation head
+is `a332452a6c1a39d3db77ef1399792afe16c2f099`, and its accepted production tree
+is `65b4fa1f8971c8edc281331df84a76cdc41fbf2a`.
 
 ## Accepted 10.12.0 state
 
@@ -191,5 +199,6 @@ Protected values at acceptance:
 10.11.1 — Per-Lift / Simplified Lifting Tracking — Accepted
 10.11.2 — Post-Merge Acceptance Housekeeping — Accepted
 10.12.0 — Simple Fitness Log + Streamlined Setup — Accepted
-10.12.1 — AI Sync Composite Contract Hotfix — Candidate
+10.12.1 — AI Sync Composite Contract Hotfix — Accepted
+10.12.2 — Habit Routine Options — Candidate
 ```

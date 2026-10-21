@@ -78,7 +78,7 @@ function createProfileContext(initial = {}) {
 function plain(value) { return JSON.parse(JSON.stringify(value)); }
 function draft(context) { return JSON.parse(vm.runInContext("JSON.stringify(p950TrackingUiDraft)", context)); }
 
-assert(constantsSource.includes('const APP_VERSION = "10.12.1"'));
+assert(constantsSource.includes('const APP_VERSION = "10.12.2"'));
 
 // Presets reuse exactly the accepted collection fields. The pure builder keeps
 // lifting detail orthogonal; explicit UI actions apply the preset defaults.
