@@ -1,9 +1,10 @@
-# Daily Habit routine options — draft candidate
+# MarcusFit 10.12.2 Habit Routine Options — draft candidate
 
 An existing daily Habit can offer mutually exclusive routines while retaining
 one schedule, one completion flag, and its existing stable Habit ID. No additional
 Habit definition or independent adherence obligation is created for an option.
-This candidate has not been accepted or merged; device QA remains required.
+This candidate has not been accepted or merged; real-iPhone Safari and installed
+Home Screen/PWA QA remain required.
 
 ## Definition and proposal contract
 
@@ -84,7 +85,7 @@ validation, and read-only export. It verifies unrelated saved lifting and
 Basketball data remain byte-identical.
 
 The 10.x regression suites, architecture inventory, syntax checks, and
-`git diff --check` are required. The representative export fixture adds 718
+`git diff --check` are required. The representative export fixture adds 719
 characters for the new contract, retaining its 366-line layout. The visual
 contract assertion follows the new snapshot-aware Habit history helper.
 

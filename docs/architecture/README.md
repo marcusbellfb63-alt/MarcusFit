@@ -116,6 +116,13 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - Composite envelope, nested proposal schemas, tracking gates, and pending guards validate before writes; unexpected later failure restores synchronous storage state.
 - See `ai-sync-composite-10.12.1-audit.md` and `../../tests/marcusfit-10.12.1-manual-qa.md`.
 
+### 10.12.2 Habit routine options boundary
+
+- `features/20-habits.js` owns optional mutually exclusive routine definitions, daily selection, routine-specific instructions, advisory frequency/recovery guidance, and historical name/target snapshots under one stable parent Habit ID.
+- Daily adherence remains one parent opportunity. Switching a routine clears completion/value while retaining notes; legacy completions remain compatible and are not attributed to a routine.
+- Habit proposal review/apply/undo and backup validation cover the additive field without changing storage keys or core `sync/12-ai-sync.js`.
+- See `habit-routine-options.md` and `../../tests/habit-routine-options-manual-qa.md`.
+
 ## Guide
 
 - `runtime-system-map.md` records ownership and direct dependencies.
@@ -130,6 +137,7 @@ inventory. Numeric prefixes remain globally ordered and match `index.html`.
 - `visual-system-10.10-audit.md` records the visual-token, geometry, icon, emoji, and selector-risk audit.
 - `tracking-preferences-10.11-audit.md` records preference authority, timeline, preservation, adherence, export/Sync, reset, and backup contracts.
 - `simple-fitness-log-10.12-audit.md` records the lightweight preset, explicit action defaults, first-run compatibility, mode authority, export, Sync, and backup boundaries.
+- `habit-routine-options.md` records the 10.12.2 routine-option schema, daily behavior, historical compatibility, export, Sync, and backup boundaries.
 - `../../tests/marcusfit-10.1.2-modularization-equivalence.md` records evidence.
 
 Run `node tools/architecture/inventory-runtime.js` with the bundled Node

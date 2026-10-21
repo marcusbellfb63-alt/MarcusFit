@@ -1,4 +1,4 @@
-# Daily Habit routine options — manual QA
+# MarcusFit 10.12.2 Habit Routine Options — manual QA
 
 Use a localhost HTTP server and a backup/test profile. Keep production data
 separate. Test iPhone Safari and Home Screen plus a desktop keyboard/browser.

@@ -128,6 +128,7 @@ const before = storage.snapshot();
 const fixture = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/hip-routine-options.json"), "utf8"));
 const exampleBlock = fs.readFileSync(path.join(root, "docs/examples/hip-routine-options.sync.txt"), "utf8");
 assert.deepStrictEqual(JSON.parse(exampleBlock.match(/MARCUSFIT_UPDATE_START([\s\S]*?)MARCUSFIT_UPDATE_END/)[1]), fixture);
+assert.strictEqual(fixture.habitProposal.proposalVersion, "10.12.2");
 function runSync(payload) {
   document.getElementById("syncInput").value = typeof payload === "string" ? payload : "MARCUSFIT_UPDATE_START\n" + JSON.stringify(payload) + "\nMARCUSFIT_UPDATE_END";
   c.applySync(); return document.getElementById("syncResult").textContent;

@@ -2,6 +2,7 @@ MARCUSFIT_UPDATE_START
 {
   "habitProposal": {
     "schemaVersion": 1,
+    "proposalVersion": "10.12.2",
     "proposalId": "mobility-reset-daily-routines-v1",
     "source": "ai_sync",
     "summary": "Choose Challenging or Easy within the existing daily Mobility Reset habit.",
